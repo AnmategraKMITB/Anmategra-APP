@@ -202,6 +202,7 @@ export const lembagaRelations = relations(lembaga, ({ one, many }) => ({
   associationRequestsLembaga: many(associationRequestsLembaga),
   bestStaffLembaga: many(bestStaffLembaga),
   profilLembaga: many(profilLembaga),
+  organizationStructures: many(organizationStructure),
 }));
 
 export const eventStatusEnum = pgEnum('event_status', [
@@ -240,6 +241,7 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
   associationRequests: many(associationRequests),
   bestStaffKegiatan: many(bestStaffKegiatan),
   profilKegiatan: many(profilKegiatan),
+  organizationStructures: many(organizationStructure),
 }));
 
 // Enum for association request status
@@ -259,6 +261,8 @@ export const keanggotaan = createTable(
     user_id: varchar('user_id', { length: 255 })
       .references(() => users.id)
       .notNull(),
+    org_unit_id: varchar('org_unit_id', { length: 255 }),
+    org_role_id: varchar('org_role_id', { length: 255 }),
     position: varchar('position', { length: 255 }).notNull(),
     division: varchar('division', { length: 255 }).notNull(),
     index: integer('index').notNull().default(0),
@@ -281,6 +285,8 @@ export const associationRequests = createTable('association_request', {
   user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
     onDelete: 'cascade',
   }),
+  org_unit_id: varchar('org_unit_id', { length: 255 }),
+  org_role_id: varchar('org_role_id', { length: 255 }),
   position: varchar('position', { length: 255 }).notNull(),
   division: varchar('division', { length: 255 }).notNull(),
   status: associationRequestStatusEnum('status').notNull().default('Pending'),
@@ -296,6 +302,8 @@ export const associationRequestsLembaga = createTable(
       () => lembaga.id,
     ),
     user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    org_unit_id: varchar('org_unit_id', { length: 255 }),
+    org_role_id: varchar('org_role_id', { length: 255 }),
     position: varchar('position', { length: 255 }).notNull(),
     division: varchar('division', { length: 255 }).notNull(),
     status: associationRequestStatusEnum('status').notNull().default('Pending'),
@@ -450,6 +458,8 @@ export const kehimpunan = createTable(
     lembagaId: varchar('lembaga_id', { length: 255 })
       .notNull()
       .references(() => lembaga.id),
+    org_unit_id: varchar('org_unit_id', { length: 255 }),
+    org_role_id: varchar('org_role_id', { length: 255 }),
     division: varchar('division', { length: 255 }).notNull(),
     position: varchar('position', { length: 255 }).notNull(),
     index: integer('index').notNull().default(0),
@@ -461,6 +471,59 @@ export const kehimpunan = createTable(
     ),
   }),
 );
+
+// Organization Structure
+export const organizationStructure = createTable('organization_structure', {
+  id: varchar('id', { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  lembagaId: varchar('lembaga_id', { length: 255 }).references(
+    () => lembaga.id,
+    { onDelete: 'cascade' },
+  ),
+  eventId: varchar('event_id', { length: 255 }).references(() => events.id, {
+    onDelete: 'cascade',
+  }),
+  name: varchar('name', { length: 255 }).notNull(),
+  is_active: boolean('is_active').notNull().default(true),
+  ...timestamps,
+});
+
+// Organization Unit
+export const organizationUnit = createTable('organization_unit', {
+  id: varchar('id', { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  structure_id: varchar('structure_id', { length: 255 })
+    .references(() => organizationStructure.id, { onDelete: 'cascade' })
+    .notNull(),
+  parent_id: varchar('parent_id', { length: 255 }).references(
+    () => organizationUnit.id,
+    { onDelete: 'restrict' },
+  ),
+  name: varchar('name', { length: 255 }).notNull(),
+  kind: varchar('kind', { length: 255 }).notNull(),
+  level: integer('level').notNull(),
+  sort_order: integer('sort_order').notNull().default(0),
+  ...timestamps,
+});
+
+// Organization Role
+export const organizationRole = createTable('organization_role', {
+  id: varchar('id', { length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  structure_id: varchar('structure_id', { length: 255 })
+    .references(() => organizationStructure.id, { onDelete: 'cascade' })
+    .notNull(),
+  name: varchar('name', { length: 255 }).notNull(),
+  ring_level: integer('ring_level').notNull(),
+  sort_order: integer('sort_order').notNull().default(0),
+  ...timestamps,
+});
 
 // Best Staff
 export const bestStaffKegiatan = createTable('best_staff_kegiatan', {
@@ -531,6 +594,50 @@ export const bestStaffLembagaRelations = relations(
     mahasiswa: one(mahasiswa, {
       fields: [bestStaffLembaga.mahasiswaId],
       references: [mahasiswa.userId],
+    }),
+  }),
+);
+
+// Organization Structure Relations
+export const organizationStructureRelations = relations(
+  organizationStructure,
+  ({ one, many }) => ({
+    lembaga: one(lembaga, {
+      fields: [organizationStructure.lembagaId],
+      references: [lembaga.id],
+    }),
+    event: one(events, {
+      fields: [organizationStructure.eventId],
+      references: [events.id],
+    }),
+    units: many(organizationUnit),
+    roles: many(organizationRole),
+  }),
+);
+
+// Organization Unit Relations
+export const organizationUnitRelations = relations(
+  organizationUnit,
+  ({ one, many }) => ({
+    structure: one(organizationStructure, {
+      fields: [organizationUnit.structure_id],
+      references: [organizationStructure.id],
+    }),
+    parent: one(organizationUnit, {
+      fields: [organizationUnit.parent_id],
+      references: [organizationUnit.id],
+    }),
+    children: many(organizationUnit),
+  }),
+);
+
+// Organization Role Relations
+export const organizationRoleRelations = relations(
+  organizationRole,
+  ({ one }) => ({
+    structure: one(organizationStructure, {
+      fields: [organizationRole.structure_id],
+      references: [organizationStructure.id],
     }),
   }),
 );
