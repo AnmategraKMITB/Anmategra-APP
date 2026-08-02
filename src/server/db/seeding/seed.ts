@@ -758,6 +758,13 @@ export async function seedFromCsv() {
     console.log('🎉 CSV import completed successfully!');
 
     // @TODO: Ini short-term solution, tidak untuk digunakan di production.
+    // Dev-only: rewrites a random user's email so a personal Google account
+    // can impersonate lembaga/mahasiswa locally. Never runs in production —
+    // use `npm run db:seed-lembaga` for real institution accounts instead.
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Skipping TEST_EMAIL seeding (production).');
+      return;
+    }
     const randomLembaga = await db.query.users.findFirst({
       where: eq(users.role, 'lembaga'),
     });
