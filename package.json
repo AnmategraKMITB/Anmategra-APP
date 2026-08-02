@@ -14,6 +14,7 @@
     "db:seed-csv": "tsx src/server/db/seeding/seed.ts",
     "db:seed": "npm run db:generate:csv && npm run db:seed-csv",
     "db:seed-lembaga": "tsx src/server/db/seeding/seed-lembaga.ts",
+    "db:refresh-lembaga": "bash scripts/refresh-lembaga.sh",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",

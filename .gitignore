@@ -46,3 +46,5 @@ yarn-error.log*
 .idea
 
 .vscode
+# raw source spreadsheets (contain contact data; keep out of git history)
+*.xlsx
