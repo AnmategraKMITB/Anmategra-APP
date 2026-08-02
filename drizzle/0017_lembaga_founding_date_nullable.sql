@@ -1,0 +1,1 @@
+ALTER TABLE "anmategra_lembaga" ALTER COLUMN "founding_date" DROP NOT NULL;

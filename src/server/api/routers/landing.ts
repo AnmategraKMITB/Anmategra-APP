@@ -344,7 +344,7 @@ export const landingRouter = createTRPCRouter({
         name: item.name,
         description: item.description,
         anggotaCount: item.memberCount ?? 0,
-        startDate: new Date(item.foundingDate),
+        startDate: item.foundingDate ? new Date(item.foundingDate) : null,
         image: item.users?.image,
         endDate: item.endingDate ? new Date(item.endingDate) : null,
       }));

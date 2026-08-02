@@ -27,24 +27,26 @@ import { lembaga, users, verifiedUsers } from '../schema.js';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
-const CSV_PATH = path.join(
-  process.cwd(),
-  'src',
-  'server',
-  'db',
-  'seeding',
-  'data',
-  'lembaga-official.csv',
-);
+const CSV_PATH =
+  process.env.LEMBAGA_CSV ??
+  path.join(
+    process.cwd(),
+    'src',
+    'server',
+    'db',
+    'seeding',
+    'data',
+    'lembaga-official.csv',
+  );
 
-const LEMBAGA_TYPES = ['Himpunan', 'UKM', 'Kepanitiaan'] as const;
+const LEMBAGA_TYPES = ['Himpunan', 'UKM', 'Kepanitiaan', 'BSO'] as const;
 type LembagaType = (typeof LEMBAGA_TYPES)[number];
 
 interface Row {
   email: string;
   name: string;
   description: string | null;
-  foundingDate: Date;
+  foundingDate: Date | null;
   endingDate: Date | null;
   type: LembagaType | null;
   major: string | null;
@@ -76,9 +78,9 @@ function readCsv(): Row[] {
     const name = rec.name ?? '';
     const foundingDate = parseDate(rec.founding_date);
 
-    if (!email || !name || !foundingDate) {
+    if (!email || !name) {
       console.warn(
-        `line ${line}: skipping — need email, name, valid founding_date`,
+        `line ${line}: skipping — need email and name (${name || email || 'empty row'})`,
       );
       return;
     }
