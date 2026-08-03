@@ -626,8 +626,9 @@ export const organizationUnitRelations = relations(
     parent: one(organizationUnit, {
       fields: [organizationUnit.parent_id],
       references: [organizationUnit.id],
+      relationName: 'unitHierarchy',
     }),
-    children: many(organizationUnit),
+    children: many(organizationUnit, { relationName: 'unitHierarchy' }),
   }),
 );
 
