@@ -25,8 +25,12 @@ export async function generateMetadata({
   });
 
   return {
-    title: `${kegiatan?.name} | Anmategra`,
+    // Suffix '| Anmategra' datang dari title.template di root layout.
+    title: kegiatan?.name,
     description: kegiatan?.description ?? 'Detail kegiatan mahasiswa.',
+    // Halaman ini duplikat dari /profile-kegiatan/[id] versi publik dan hanya
+    // bisa diakses setelah login. Versi publik yang jadi kanoniknya.
+    robots: { index: false, follow: false },
     openGraph: {
       title: kegiatan?.name,
       description: kegiatan?.description ?? kegiatan?.name,

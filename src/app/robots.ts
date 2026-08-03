@@ -1,16 +1,28 @@
 import { MetadataRoute } from 'next';
-import { env } from '~/env';
+import { BASE_URL } from '~/lib/seo';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = env.NEXT_PUBLIC_BASE_URL;
-  const isDevSite = baseUrl.includes('dev');
+  const isDevSite = BASE_URL.includes('dev');
 
   return {
     rules: {
       userAgent: '*',
       allow: isDevSite ? [] : '/',
-      disallow: isDevSite ? '/' : ['/api/', '/_next/', '/admin/', '/lembaga/'],
+      disallow: isDevSite
+        ? '/'
+        : [
+            '/api/',
+            '/_next/',
+            '/admin/',
+            '/lembaga/',
+            // Duplikat konten: /mahasiswa/profile-lembaga/[id] menampilkan
+            // halaman yang sama dengan /profile-lembaga/[id] versi publik.
+            '/mahasiswa/',
+            '/authentication',
+            '/auth-error',
+            '/coming-soon',
+          ],
     },
-    sitemap: `${baseUrl ?? 'https://anmategra.com'}/sitemap.xml`,
+    sitemap: `${BASE_URL}/sitemap.xml`,
   };
 }
