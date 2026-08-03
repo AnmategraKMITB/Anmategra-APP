@@ -1,9 +1,11 @@
 // Font Import
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { GeistSans } from 'geist/font/sans';
 // Library Import
 import { type Metadata } from 'next';
 // Components Import
 import { Toaster } from '~/components/ui/toaster';
+import { env } from '~/env';
 import { BASE_URL, SITE_DESCRIPTION, SITE_NAME } from '~/lib/seo';
 import '~/styles/globals.css';
 import { TRPCReactProvider } from '~/trpc/react';
@@ -59,6 +61,9 @@ export const metadata: Metadata = {
     },
   },
   icons: [{ rel: 'icon', url: '/images/favicon.ico' }],
+  // Hanya dirender kalau env terisi; Search Console memakainya untuk
+  // memverifikasi kepemilikan domain lewat metode "HTML tag".
+  verification: { google: env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION },
 };
 
 export default function RootLayout({
@@ -76,6 +81,11 @@ export default function RootLayout({
           </div>
         </div>
         <Toaster />
+        {/* Tanpa Measurement ID, GA tidak dipasang sama sekali — ini yang
+            bikin kode aman di-merge sebelum property GA4-nya tersedia. */}
+        {env.NEXT_PUBLIC_GA_ID && (
+          <GoogleAnalytics gaId={env.NEXT_PUBLIC_GA_ID} />
+        )}
       </body>
     </html>
   );
