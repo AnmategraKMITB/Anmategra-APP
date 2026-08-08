@@ -25,7 +25,7 @@
 
 ## Common maintenance tasks
 
-**Fill in missing emails.** Rows without an email are skipped (with a named warning) at seed time — currently 15 orgs, e.g. HMM, have everything except the email. To seed them: fill the `email` column for those rows in `lembaga-official.csv`, then
+**Fill in missing emails.** Rows without an email are skipped (with a named warning) at seed time — currently 6 orgs (Himarekta, Unit Aikido, UKSU, Cerberus, Ganesha Pintar, Perisai Diri — not yet registered in Ditmawa) have everything except the email. To seed them: fill the `email` column for those rows in `lembaga-official.csv`, then
 
 ```
 npm run db:seed-lembaga -- --dry-run   # confirm which rows will be added
@@ -65,4 +65,4 @@ disbanded org stays until removed from the DB by hand.
 - **Order matters:** re-running `build-lembaga-csv.py` regenerates the baseline and **wipes emails** — step 2 is baseline-only, never run it after step 4.
 - The xlsx stays gitignored because it holds officers' personal data; the CSV holds org-level accounts only.
 - **Line endings:** all scripts read/write LF. Python's `csv` module defaults to CRLF, which csv-parse rejects mid-file (it locks the record delimiter on first sight) — `build-lembaga-csv.py` now passes `lineterminator="\n"` and `apply-merge.cjs` splits on `\r?\n` defensively.
-- Remaining gaps (tracked locally, not committed): 15 rows without email (seed skips them with a named warning), the 24 added orgs flagged `needs_review`, and one auto-corrected email typo (Pramuka — verify before production).
+- Remaining gaps (tracked locally, not committed): 6 rows without email (seed skips them with a named warning), the 24 added orgs flagged `needs_review`, and one auto-corrected email typo (Pramuka — verify before production).
