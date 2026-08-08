@@ -70,7 +70,7 @@ const pickEmail = (raw) => {
     .filter((t) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(t));
   if (all.length === 0) return { picked: '', all: [] };
   const km = all.find((e) => e.endsWith('@km.itb.ac.id'));
-  return { picked: km ?? all[0], all };
+  return { picked: km ?? all[0] ?? '', all };
 };
 
 // pick + normalize + QA-flag in one place (used by patches AND additions)
@@ -182,6 +182,7 @@ const ADDITIONS = [
     .filter((r) => r.method !== 'NO MATCH');
   const patchByName = new Map(report.map((r) => [r.my_name, r]));
 
+  /** @type {{emailPicks: string[], typos: string[], gaps: string[], additions: string[], notes: string[]}} */
   const qa = { emailPicks: [], typos: [], gaps: [], additions: [], notes: [] };
 
   // 1) patch existing rows

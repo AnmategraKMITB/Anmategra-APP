@@ -103,7 +103,7 @@ function readSheet(ws, headerRow, nameKey) {
 
 function loadCsv() {
   const text = fs.readFileSync(CSV_PATH, 'utf-8');
-  const [head, ...lines] = text.trim().split('\n');
+  const [head = '', ...lines] = text.trim().split('\n');
   const cols = head.split(',');
   const parseLine = (line) => {
     const out = [];
@@ -208,7 +208,11 @@ function loadCsv() {
   }
   const unmatchedTheirs = theirKeys.filter((tk) => !matched.has(tk)).map((tk) => tk.t);
 
-  const header = Object.keys(report[0]);
+  const firstReport = report[0];
+  if (!firstReport) {
+    throw new Error(`No baseline rows found in ${CSV_PATH}`);
+  }
+  const header = Object.keys(firstReport);
   const esc = (v) => /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
   fs.writeFileSync(REPORT,
     [header.join(','), ...report.map((r) => header.map((h) => esc(r[h])).join(','))].join('\n') + '\n',
