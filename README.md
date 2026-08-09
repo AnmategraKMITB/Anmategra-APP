@@ -2,45 +2,15 @@
 
 Build With [T3 Stack](https://create.t3.gg/)
 
-## Branch Name Convention
-```
-<tipe>/<BE/FE> /<deskripsi>
-```
+## Tentang Anmategra
 
-Contoh : `feat/BE/LandingPage`
+Anmategra platform manajemen data kemahasiswaan/lembaga di ITB. Fungsi utama:
+- **Lembaga & Keanggotaan** — data lembaga, anggota, posisi/divisi, request asosiasi anggota ke lembaga
+- **Kegiatan/Event** — pengelolaan event, panitia, pendaftaran
+- **Profil** — profil mahasiswa & lembaga, pemetaan profil ke kegiatan/lembaga
+- **Rapor & Best Staff** — penilaian lembaga, riwayat best staff per periode
+- **Role-based access** — 3 peran: `admin`, `lembaga`, `mahasiswa`
 
-## Aturan Semantic Commit
+Tech stack: [T3 Stack](https://create.t3.gg/) (Next.js, tRPC, Drizzle ORM, NextAuth, Tailwind), PostgreSQL.
 
-1. Format Umum :
-```
-<tipe>(<scope>): <deskripsi>
-```
-
-2. Tipe Commit :
-- `feat`: Menambahkan fitur baru.
-- `fix`: Memperbaiki bug.
-- `docs`: Mengubah dokumentasi.
-- `style`: Perubahan yang tidak mempengaruhi logika (formatting, spasi, dll).
-- `refactor`: Perubahan kode yang tidak menambah fitur atau memperbaiki bug.
-- `test`: Menambahkan atau memperbaiki pengujian.
-- `chore`: Tugas rutin yang tidak termasuk dalam kategori di atas (pengaturan build, perubahan dependensi, dll).
-
-Contoh : `fix(api): resolve CORS issue`
-
-## Penamaan Component atau Actions
-
-1. Komponen (Components) :
-- Format : `PascalCase`
-- Contoh : `UserProfile`, `NavBar`, `Button`
-
-2. Actions : 
-- Format : `camelCase`
-- Contoh : `fetchUserData`, `updateProfile`, `handleSubmit`
-
-3. Folder dan File :
-- Format : `kebab-case`
-- Contoh : `user-profile.tsx`, `nav-bar.tsx`, `api-enpoint.ts`
-
-## TRPC Panel
-
-- [Anmategra Panel](http://localhost:3000/api/panel)
+Untuk konvensi branch, commit, dan penamaan komponen, cek [DEVELOPER_CONVENTION.MD](./DEVELOPER_CONVENTION.MD).
