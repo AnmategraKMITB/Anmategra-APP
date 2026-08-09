@@ -4,11 +4,18 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
+import { JsonLd } from '~/app/_components/json-ld';
 // Components Import
 import { EventHeader } from '~/app/_components/placeholder/event-header';
 import { PenyelenggaraCard } from '~/app/_components/placeholder/penyelenggara-card';
 import { OrganogramDialog } from '~/app/_components/profile-kegiatan/organogram-dialog';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
+import {
+  ITB_ADDRESS,
+  ITB_ORGANIZATION,
+  absoluteUrl,
+  breadcrumbJsonLd,
+} from '~/lib/seo';
 import { api } from '~/trpc/server';
 
 export async function generateMetadata({
@@ -16,20 +23,44 @@ export async function generateMetadata({
 }: {
   params: { profileKegiatanId: string };
 }): Promise<Metadata> {
-  const { kegiatan } = await api.profile.getKegiatanPublic({
-    kegiatanId: params.profileKegiatanId,
-  });
+  const path = `/profile-kegiatan/${params.profileKegiatanId}`;
 
-  return {
-    title: `${kegiatan?.name} | Anmategra`,
-    description: kegiatan?.description ?? 'Detail kegiatan mahasiswa.',
-    openGraph: {
-      title: kegiatan?.name,
-      description: kegiatan?.description ?? kegiatan?.name,
-      images: [kegiatan?.image || '/images/logo/anmategra-logo.png'],
-      type: 'website',
-    },
-  };
+  try {
+    const { kegiatan, lembaga } = await api.profile.getKegiatanPublic({
+      kegiatanId: params.profileKegiatanId,
+    });
+
+    const title = kegiatan.name;
+    const description =
+      kegiatan.description?.trim() ??
+      `${kegiatan.name} oleh ${lembaga.name}. Lihat kepanitiaan dan detail kegiatannya di Anmategra.`;
+    const image =
+      kegiatan.image ||
+      kegiatan.background_image ||
+      '/images/logo/anmategra-logo-full.png';
+
+    return {
+      title,
+      description,
+      alternates: { canonical: path },
+      openGraph: {
+        type: 'article',
+        url: path,
+        title,
+        description,
+        images: [image],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [image],
+      },
+    };
+  } catch {
+    // Sejalan dengan redirect('/404') di komponen halaman.
+    return { title: 'Kegiatan tidak ditemukan', robots: { index: false } };
+  }
 }
 
 const ProfileKegiatan = async ({
@@ -43,36 +74,48 @@ const ProfileKegiatan = async ({
       kegiatanId: query,
     });
 
+    const path = `/profile-kegiatan/${query}`;
+    const lembagaPath = `/profile-lembaga/${lembaga.id}`;
+
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'Event',
-      name: kegiatan?.name,
-      description: kegiatan?.description,
-      startDate: kegiatan?.start_date,
-      endDate: kegiatan?.end_date,
-      image: kegiatan?.image,
+      '@id': `${absoluteUrl(path)}#event`,
+      name: kegiatan.name,
+      description: kegiatan.description ?? undefined,
+      url: absoluteUrl(path),
+      startDate: kegiatan.start_date.toISOString(),
+      endDate: kegiatan.end_date?.toISOString(),
+      // Rich Results menolak `image: null`, jadi selalu ada fallback.
+      image: absoluteUrl(
+        kegiatan.image ??
+          kegiatan.background_image ??
+          '/images/logo/anmategra-logo-full.png',
+      ),
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
       organizer: {
         '@type': 'Organization',
-        name: lembaga?.name,
+        name: lembaga.name,
+        url: absoluteUrl(lembagaPath),
       },
       location: {
         '@type': 'Place',
-        name: 'Institut Teknologi Bandung',
-        address: {
-          '@type': 'PostalAddress',
-          streetAddress: 'Jl. Ganesha No.10',
-          addressLocality: 'Bandung',
-          addressCountry: 'ID',
-        },
+        name: kegiatan.location ?? ITB_ORGANIZATION.name,
+        address: ITB_ADDRESS,
       },
     };
 
+    const breadcrumbJson = breadcrumbJsonLd([
+      { name: 'Beranda', path: '/' },
+      { name: lembaga.name, path: lembagaPath },
+      { name: kegiatan.name, path },
+    ]);
+
     return (
       <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <JsonLd data={jsonLd} />
+        <JsonLd data={breadcrumbJson} />
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="w-full flex min-h-screen flex-col items-center">
             <div className="w-full max-w-6xl bg-slate-50 py-6 rounded-none sm:rounded-xl">

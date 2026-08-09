@@ -31,8 +31,12 @@ export async function generateMetadata({
   });
 
   return {
-    title: `${lembagaData?.name} | Anmategra`,
+    // Suffix '| Anmategra' datang dari title.template di root layout.
+    title: lembagaData?.name,
     description: lembagaData?.description ?? 'Profil lembaga kemahasiswaan.',
+    // Halaman ini duplikat dari /profile-lembaga/[id] versi publik dan hanya
+    // bisa diakses setelah login. Versi publik yang jadi kanoniknya.
+    robots: { index: false, follow: false },
     openGraph: {
       title: lembagaData?.name,
       description: lembagaData?.description ?? lembagaData?.name,

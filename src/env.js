@@ -37,6 +37,14 @@ export const env = createEnv({
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
     NEXT_PUBLIC_BASE_URL: z.string(),
+    /**
+     * Measurement ID GA4, mis. "G-XXXXXXXXXX". Opsional supaya build lokal dan
+     * preview tetap jalan tanpa analytics; skrip GA hanya dipasang kalau ini
+     * terisi.
+     */
+    NEXT_PUBLIC_GA_ID: z.string().optional(),
+    /** Token dari Google Search Console untuk verifikasi lewat meta tag. */
+    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
   },
 
   /**
@@ -54,6 +62,9 @@ export const env = createEnv({
     AZURE_AD_CLIENT_SECRET: process.env.AZURE_AD_CLIENT_SECRET,
     AZURE_AD_TENANT_ID: process.env.AZURE_AD_TENANT_ID,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
+    NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
+      process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
