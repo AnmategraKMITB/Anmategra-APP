@@ -1,0 +1,117 @@
+my_name,my_type,method,sheet,xlsx_row,their_name,email,founding_date,member_count,prodi,rumpun,kampus,has_medsos
+Himpunan Mahasiswa Informatika ITB,Himpunan,abbr:hmif,HMPS ITB,42,Himpunan Mahasiswa Informatika Institut Teknologi Bandung,hmif-de@std.stei.itb.ac.id,1982-10-11,844,"Teknik Informatika
+2. Sistem dan Teknologi Informasi",,Ganesha,yes
+Himpunan Mahasiswa Teknik Perminyakan ITB,Himpunan,abbr:hmtm/patra,HMPS ITB,30,Himpunan Mahasiswa Teknik Perminyakan “PATRA” Institut Teknologi Bandung,patra_itb@km.itb.ac.id,1963-12-24,292,Teknik Perminyakan,,Ganesha,yes
+Himpunan Mahasiswa Elektroteknik ITB,Himpunan,abbr:hme,HMPS ITB,43,Himpunan Mahasiswa Elektroteknik,hme_itb@km.itb.ac.id,1949-12-05,571,Teknik Elektro,,Ganesha,yes
+Himpunan Mahasiswa Fisika Teknik ITB,Himpunan,abbr:hmft,HMPS ITB,16,Himpunan Mahasiswa Fisika Teknik Institut Teknologi Bandung,hmftitb@km.itb.ac.id,1953-12-17,283,Teknik Fisika,,Ganesha,yes
+Ikatan Mahasiswa Geodesi ITB,Himpunan,NO MATCH,,,,,,,,,,
+Himpunan Mahasiswa Matematika ITB,Himpunan,abbr:himatika,HMPS ITB,8,Himpunan Mahasiswa Matematika dan Aktuaria Institut Teknologi Bandung,bp@himatika.itb.ac.id,1960-11-23,456,"Matematika
+2. Aktuaria",,Ganesha,yes
+Ikatan Mahasiswa Arsitektur Gunadharma ITB,Himpunan,abbr:ima,HMPS ITB,34,Ikatan Mahasiswa Arsitektur Gunadharma,imag_itb@km.itb.ac.id / imagunadharma@gmail.com / merangkaibentang.imag@gmail.com,1951-11-15,287,Arsitektur,,Ganesha,yes
+Himpunan Mahasiswa Kimia 'Amisca' ITB,Himpunan,abbr:hmk/amisca,HMPS ITB,9,Himpunan Mahasiswa Kimia 'AMISCA' Institut Teknologi Bandung,amisca_itb@km.itb.ac.id,1956-02-10,342,Kimia,,Ganesha,yes
+Keluarga Mahasiswa Teknik Industri ITB,Himpunan,abbr:mti,HMPS ITB,15,Keluarga Mahasiswa Teknik Industri Institut Teknologi Bandung,bpmtiitb@gmail.com,1976-02-24,480,"Teknik Industri
+2. Manajemen Rekayasa",,Ganesha,yes
+Himpunan Mahasiswa Oseanografi ITB,Himpunan,abbr:hmo/triton,HMPS ITB,4,"Himpunan Mahasiswa Oseanografi ""TRITON"" Institut Teknologi Bandung",triton_itb@km.itb.ac.id,2008-09-19,213,Oseanografi,,Ganesha,yes
+Himpunan Mahasiswa Teknik Perencanaan Wilayah dan Kota Pangripta Loka ITB,Himpunan,abbr:hmp,HMPS ITB,35,Himpunan Mahasiswa Perencanaan Wilayah dan Kota 'Pangripta Loka' Institut Teknologi Bandung,hmp_itb@km.itb.ac.id,2004-12-04,258,Perencanaan Wilayah dan Kota,,Ganesha,yes
+Keluarga Mahasiswa Teknik Penerbangan ITB,Himpunan,abbr:kmpn,HMPS ITB,21,Keluarga Mahasiswa Teknik Penerbangan,,1997-08-06,256,Teknik Dirgantara,,Ganesha,yes
+Himpunan Mahasiswa Teknik Lingkungan ITB,Himpunan,abbr:hmtl,HMPS ITB,23,Himpunan Mahasiswa Teknik Lingkungan Institut Teknologi Bandung,bestarihmtlitb@gmail.com,1962-11-10,335,Teknik Lingkungan,,Ganesha,yes
+Himpunan Mahasiswa Astronomi ITB,Himpunan,abbr:himastron,HMPS ITB,7,Himpunan Mahasiswa Astronomi Institut Teknologi Bandung,himastron_itb@km.itb.ac.id,2004-12-04,168,Astronomi,,Ganesha,yes
+Himpunan Mahasiswa Mikrobiologi 'Archaea' ITB,Himpunan,abbr:himamikro/archaea,HMPS ITB,39,Himpunan Mahasiswa Mikrobiologi “Archaea” Institut Teknologi Bandung,archaea_itb@km.itb.ac.id,2013-03-27,136,Mikrobiologi,,Ganesha,yes
+Ikatan Mahasiswa Metalurgi ITB,Himpunan,abbr:immg,HMPS ITB,29,Ikatan Mahasiswa Metalurgi Institut Teknologi Bandung,immg_itb@km.itb.ac.id,2007-10-05,257,Teknik Metalurgi,,Ganesha,yes
+Himpunan Mahasiswa Sumber Daya Air ITB,Himpunan,abbr:himasda,HMPS ITB,27,Himpunan Mahasiswa Sumber Daya Air Institut Teknologi Bandung,himasda_itb@km.itb.ac.id,2015-03-23,120,Teknik dan Pengelolaan Sumber Daya Air,,Jatinangor,yes
+Himpunan Mahasiswa Mesin ITB,Himpunan,NO MATCH,,,,,,,,,,
+Ikatan Pemuda Pemudi Desain Grafis ITB,Himpunan,abbr:ippdig,HMPS ITB,11,Ikatan Pemuda Pemudi Desain Grafis Institut Teknologi Bandung,ippdig_itb@km.itb.ac.id,1982-09-23,,Desain Komunikasi Visual,,Ganesha,yes
+Keluarga Mahasiswa Infrastruktur Lingkungan ITB,Himpunan,abbr:kmil,HMPS ITB,26,Keluarga Mahasiswa Infrastruktur Lingkungan,kmil_itb@km.itb.ac.id/kmil.itb@gmail.com,2015-02-09,177,Rekayasa Infrastruktur Lingkungan,,Jatinangor,yes
+Himpunan Mahasiswa Meteorologi ITB,Himpunan,abbr:hmme,HMPS ITB,3,"Himpunan Mahasiswa Meteorologi ""Atmosphaira"" Institut Teknologi Bandung",atmosphaira_itb@km.itb.ac.id,2008-09-19,189,Meteorologi,,Ganesha,yes
+Himpunan Mahasiswa Biologi ITB,Himpunan,abbr:himabio,HMPS ITB,38,"Himpunan Mahasiswa Biologi ""Nymphaea"" Institut Teknologi Bandung",nymphaea_itb@km.itb.ac.id,1951-03-01,281,Biologi,,Ganesha,yes
+Himpunan Mahasiswa Fisika ITB,Himpunan,abbr:himafi,HMPS ITB,10,Himpunan Mahasiswa Fisika Institut Teknologi Bandung,himafi_itb@km.itb.ac.id,1967-05-06,321,Fisika,,Ganesha,yes
+Industrial Design Student Society ITB,Himpunan,abbr:inddes,HMPS ITB,12,Himpunan Mahasiswa Desain Produk “INDDES” Institut Teknologi Bandung,hmdpinddesitb@gmail.com,1978-02-14,190,Desain Produk,,Ganesha,yes
+Himpunan Mahasiswa Rekayasa Pertanian 'Agrapana' ITB,Himpunan,NO MATCH,,,,,,,,,,
+Himpunan Mahasiswa Tambang ITB,Himpunan,abbr:hmt,HMPS ITB,31,Himpunan Mahasiswa Tambang Institut Teknologi Bandung,hmt_itb@km.itb.ac.id,1955-05-15,263,Teknik Pertambangan,,Ganesha,yes
+Himpunan Mahasiswa Rekayasa Hayati ITB,Himpunan,abbr:hmrh,HMPS ITB,41,"Himpunan Mahasiswa Rekayasa Hayati ""HMRH"" Institut Teknologi Bandung",hmrh_itb@km.itb.ac.id,2013-03-27,145,Rekayasa Hayati,,Jatinangor,yes
+Himpunan Mahasiswa Teknik Geofisika ITB,Himpunan,abbr:hima,HMPS ITB,28,"Himpunan Mahasiswa Teknik Geofisika ""TERRA"" Institut Teknologi Bandung",terra_itb@km.itb.ac.id,1998-07-13,280,Teknik Geofisika,,Ganesha,yes
+Himpunan Mahasiswa Teknik Material ITB,Himpunan,name:j=1.00,HMPS ITB,22,Teknik Material,mtm_itb@km.itb.ac.id,1998-09-30,195,MTM ITB,,Ganesha,yes
+Himpunan Mahasiswa Teknik Geologi ITB,Himpunan,abbr:hmtg,HMPS ITB,5,Himpunan Mahasiswa Teknik Geologi “GEA” Institut Teknologi Bandung,gea_itb@km.itb.ac.id,1955-05-06,305,Teknik Geologi,,Ganesha,yes
+Ikatan Mahasiswa Desain Interior ITB,Himpunan,NO MATCH,,,,,,,,,,
+Himpunan Mahasiswa Sipil ITB,Himpunan,abbr:hms,HMPS ITB,25,Himpunan Mahasiswa Sipil Institut Teknologi Bandung,hms_itb@km.itb.ac.id,1954-05-30,490,Teknik Sipil,,Ganesha,yes
+Himpunan Mahasiswa Teknik Kimia ITB,Himpunan,abbr:himatek,HMPS ITB,17,Himpunan Mahasiswa Teknik Kimia Institut Teknologi Bandung,himatek_itb@km.itb.ac.id,2005-10-05,358,Teknik Kimia,,Ganesha,yes
+TERIKAT ITB,Himpunan,prodi:kriya,HMPS ITB,13,TERIKAT-GANESHA ITB,terikat_itb@km.itb.ac.id,2015-03-22,136,Kriya,,Ganesha,yes
+Himpunan Mahasiswa Rekayasa Kehutanan 'Selva' ITB,Himpunan,NO MATCH,,,,,,,,,,
+Keluarga Mahasiswa Teknik Kelautan ITB,Himpunan,abbr:kmkl,HMPS ITB,24,Keluarga Mahasiswa Teknik Kelautan,kmkl_itb@km.itb.ac.id,1995-09-23,227,Teknik Kelautan,,Ganesha,yes
+Himpunan Mahasiswa Farmasi 'Ars Praeparandi' ITB,Himpunan,abbr:hmf/ars/praeparandi,HMPS ITB,37,Himpunan Mahasiswa Farmasi 'Ars Praeparandi' Institut Teknologi Bandung,hmf_itb@km.itb.ac.id,1954-12-17,436,"Sains dan Teknologi Farmasi
+2. Farmasi Klinik dan Komunitas",,Ganesha,yes
+Himpunan Mahasiswa Teknologi Pascapanen 'VADRA' ITB,Himpunan,abbr:hmpp/vadra,HMPS ITB,40,Himpunan Mahasiswa Teknologi Pasca Panen 'Vadra' Institut Teknologi Bandung,vadra_itb@km.itb.ac.id,2017-05-22,220,Teknologi Pasca Panen,,Jatinangor,yes
+Visual Art Student Aggregate ITB,Himpunan,NO MATCH,,,,,,,,,,
+Himpunan Mahasiswa Teknik Pangan ITB,Himpunan,abbr:hmpg,HMPS ITB,19,Himpunan Mahasiswa Teknik Pangan Institut Teknologi Bandung,hmpg_itb@km.itb.ac.id,2017-05-12,162,Teknik Pangan,,Jatinangor,yes
+Ikatan Mahasiswa Telekomunikasi 'Signum' ITB,Himpunan,NO MATCH,,,,,,,,,,
+Himpunan Mahasiswa Teknik Bioenergi dan Kemurgi ITB,Himpunan,abbr:hmtb/rinuva,HMPS ITB,18,"Himpunan Mahasiswa Teknik Bioenergi dan Kemurgi ""RINUVA"" Institut Teknologi Bandung",hmtb_itb@km.itb.ac.id,2017-05-14,137,Teknik Bioenergi dan Kemurgi,,Jatinangor,yes
+Keluarga Mahasiswa Manajemen ITB,Himpunan,NO MATCH,,,,,,,,,,
+Unit Renang dan Polo Air ITB,UKM,abbr:urpa,UKM,56,Unit Renang dan Polo Air (URPA) ITB,urpa_itb@km.itb.ac.id,1975-11-09,97,,Olahraga dan Kesehatan,,yes
+Unit Bulu Tangkis ITB,UKM,abbr:ubt,UKM,38,Unit Bulu Tangkis ITB (UBT ITB),UnitBuluTangkisITB@km.itb.ac.id,1973-01-13,250,,Olahraga dan Kesehatan,,yes
+Unit Rebana ITB,UKM,NO MATCH,,,,,,,,,,
+Unit Aktivitas Tenis Meja ITB,UKM,abbr:uatm,UKM,52,Unit Aktivitas Tenis Meja (UATM),uatm_itb@km.itb.ac.id,1974-09-28,,,Olahraga dan Kesehatan,,yes
+ITB Student Orchestra,UKM,abbr:iso,UKM,67,ITB Student Orchestra (ISO),iso_itb@km.itb.ac.id,2005-03-02,176,,Seni,,yes
+Persatuan Catur Mahasiswa ITB,UKM,abbr:percama,UKM,39,Persatuan Catur Mahasiswa ITB (Percama ITB),percamaitb1967@gmail.com,1967-03-01,269,,Olahraga dan Kesehatan,,yes
+Unit Kebudayaan Jepang ITB,UKM,abbr:ukj,UKM,73,Unit Kebudayaan Jepang ITB (UKJ ITB),ukj_itb@km.itb.ac.id,1997-09-19,269,,Budaya,,yes
+Unit Kebudayaan Aceh ITB,UKM,abbr:uka,UKM,78,Unit Kebudayaan Aceh ITB (UKA-ITB),Itb.unitkebudayaanaceh@gmail.com,1989-08-23,75,,Budaya - Paguyuban,,yes
+Korean Culture Club ITB,UKM,name:subset,UKM,75,Korean Culture Club,kcc_itb@km.itb.ac.id,2017-03-27,104,,Budaya,,yes
+Atletik Ganesha ITB,UKM,abbr:atlas,UKM,46,Atletik Ganesha ITB (ATLAS ITB),atlas_itb@km.itb.ac.id,1990-09-23,,,Olahraga dan Kesehatan,,yes
+Capoeira Brasil ITB,UKM,name:j=1.00,UKM,50,Capoeira Brasil ITB,capoeira_itb@km.itb.ac.id,2004-04-10,,,Olahraga dan Kesehatan,,yes
+Unit Aikido ITB,UKM,NO MATCH,,,,,,,,,,
+Keluarga Mahasiswa Islam ITB,UKM,abbr:gamais,UKM,8,Keluarga Mahasiswa Islam ITB (GAMAIS),gamais_itb@km.itb.ac.id,1987-08-30,206,,Agama,,yes
+Perkumpulan Seni Tari dan Karawitan Jawa ITB,UKM,name:subset,UKM,77,(Perkumpulan Seni Tari dan Karawitan Jawa ) PSTK ITB,pstk_itb@km.itb.ac.id,1971-03-07,84,,Budaya,,yes
+Marching Band Waditra Ganesha ITB,UKM,abbr:mbwg,UKM,64,Marching Band Waditra Ganesha ITB (MBWG) ITB),mbwg_itb@km.itb.ac.id,1971-05-17,55,,Seni,,yes
+Unit Flag Football ITB - Ganesha Touchdown,UKM,abbr:uff,UKM,45,Unit Flag Football ITB - Ganesha Touchdown (UFF ITB - GT),gt_itb@km.itb.ac.id,2010-10-20,50,,Olahraga dan Kesehatan,,yes
+Persekutuan Mahasiswa Kristen ITB,UKM,abbr:pmk,UKM,6,Persekutuan Mahasiswa Kristen ITB (PMK ITB),pmk_itb@gmail.com,1990-11-30,1500,,Agama,,yes
+Koperasi Kesejahteraan Mahasiswa ITB,UKM,abbr:kokesma,UKM,12,KOPERASI KESEJAHTERAAN MAHASISWA ITB (KOKESMA ITB),kokesma_itb@km.itb.ac.id,1984-11-26,85,,Pendidikan,,yes
+8EH Radio ITB,UKM,abbr:8eh,UKM,36,8EH Radio ITB,8eh_itb@km.itb.ac.id,1963-05-20,119,,Media,,yes
+Keluarga Mahasiswa Pencinta Alam Ganesha ITB,UKM,abbr:kmpa,UKM,59,Keluarga Mahasiswa Pencinta Alam (KMPA) Ganesha ITB,kmpaganesha@km.itb.ac.id,1991-02-24,61,,Olahraga dan Kesehatan,,yes
+Keluarga Mahasiswa Hindu Vidya Dharma Putra Ganesha ITB,UKM,abbr:kmh,UKM,5,Keluarga Mahasiswa Hindu Vidya Dharma Putra Ganesha ITB (KMH),kmh_itb@km.itb.ac.id,1989-11-03,,,Agama,,yes
+Ganesha Model United Nations Club ITB,UKM,abbr:gmunc,UKM,19,Ganesha Model United Nations Club (GMUNC) ITB,gmunc_itb@km.itb.ac.id,2011-08-14,75,,Pendidikan,,yes
+Studi Teater Mahasiswa ITB,UKM,abbr:stema,UKM,68,Studi Teater Mahasiswa ITB (STEMA ITB),stema_itb@km.itb.ac.id,1972-06-25,76,,Seni,,yes
+Keluarga Paduan Angklung ITB,UKM,abbr:kpa,UKM,70,KPA ITB (Keluarga Paduan Angklung),badanpengurus53kpaitb@gmail.com,1972-03-17,248,,Seni,,yes
+U-Green ITB,UKM,abbr:green,UKM,17,U-Green ITB,sekretariatugreenitb@gmail.com,2006-08-16,,,Pendidikan,,yes
+Unit Basket Ganesha ITB,UKM,abbr:ubg,UKM,37,Unit Basket Ganesha ITB (UBG ITB),ubg_itb@km.itb.ac.id,1972-07-27,,,Olahraga dan Kesehatan,,yes
+Keluarga Mahasiswa Buddhis 'Dhammañano' ITB,UKM,abbr:kmb,UKM,3,Keluarga Mahasiswa Buddhis Dhammañano ITB (KMB ITB),kmbitb@gmail.com,1991-10-04,304,,Agama,,yes
+Persatuan Sepakbola ITB,UKM,name:j=1.00,UKM,62,Persatuan Sepak bola ITB,psitb1975@gmail.com,1975-06-01,,,Olahraga dan Kesehatan,,yes
+Keluarga Mahasiswa Katolik ITB,UKM,abbr:kmk,UKM,4,Keluarga Mahasiswa Katolik ITB (KMK ITB),kmk_itb@km.itb.ac.id,1973-11-15,1056,,Agama,,yes
+Unit Budaya Lampung ITB,UKM,abbr:ubala,UKM,84,Ubala ITB  (Unit Budaya Lampung),ubala_itb@km.itb.ac.id,1997-11-23,195,,Budaya - Paguyuban,,yes
+Genshiken ITB,UKM,name:j=1.00,UKM,76,Genshiken ITB,genshiken_itb@km.itb.ac.id,2005-06-25,567,,Budaya,,yes
+Unit Taekwondo ITB,UKM,name:j=1.00,UKM,49,Unit Taekwondo ITB,taekwondoitb95@gmail.com,1995-11-23,,,Olahraga dan Kesehatan,,yes
+Unit Panahan Pasopati ITB,UKM,abbr:pasopati,UKM,55,Unit Panahan Pasopati ITB,itb.pasopati@gmail.com,10 Oktober 1995,,,Olahraga dan Kesehatan,,yes
+Paduan Suara Mahasiswa ITB,UKM,abbr:psm,UKM,71,Paduan Suara Mahasiswa (PSM) ITB,psm_itb@km.itb.ac.id,1962-02-11,224,,Seni,,yes
+Unit Robotika ITB,UKM,abbr:uro,UKM,11,Unit Robotika ITB (URO ITB),uro.itb1920@gmail.com,2008-05-19,,,Pendidikan,,yes
+Liga Film Mahasiswa ITB,UKM,abbr:lfm,UKM,33,Liga Film Mahasiswa ITB (LFM ITB),humaslfmitb24@gmail.com,1960-04-21,,,Media,,yes
+ITB Dance and Performance Art Community,UKM,abbr:infinity,UKM,66,ITB Dance and Performance Art Community (INFINITY ITB),infinity_itb@km.itb.ac.id,2009-02-13,82,,Seni,,yes
+Unit Otomotif Rakata ITB,UKM,abbr:rakata,UKM,13,RAKATA ITB,rakataitb@gmail.com,2010-12-04,,,Pendidikan,,yes
+Unit Kebudayaan Melayu Riau ITB,UKM,abbr:ukmr,UKM,79,Unit Kebudayaan Melayu Riau (UKMR ITB),ukmr_itb@km.itb.ac.id,8 Maret 2006,219,,Budaya - Paguyuban,,yes
+Unit Bola Voli ITB,UKM,abbr:ubv,UKM,44,Unit Bola Voli ITB (UBV ITB),Ubv.itb@gmail.com,1960-02-09,95,,Olahraga dan Kesehatan,,yes
+Unit Kebudayaan Tionghoa ITB,UKM,abbr:ukt,UKM,72,Unit Kebudayaan Tionghoa (UKT ITB),ukt_itb@km.itb.ac.id,2012-04-24,,,Budaya,,yes
+Persaudaraan Setia Hati Terate ITB,UKM,abbr:psht,UKM,41,Persaudaraan Setia Hati Terate ITB (PSHT ITB),pshtitb@gmail.com,2013-09-09,,,Olahraga dan Kesehatan,,yes
+Unit Kesenian Minangkabau ITB,UKM,abbr:ukm,UKM,80,Unit Kesenian Minangkabau Institut Teknologi Bandung (UKM-ITB),ukm.itb@gmail.com dan ukm_itb@km.itb.ac.id,1975-06-01,206,,Budaya - Paguyuban,,yes
+ITBJazz,UKM,abbr:itbjazz,UKM,69,ITBJazz,itbjazz@km.itb.ac.id,2007-08-10,535,,Seni,,yes
+Unit Kesenian Sumatera Utara ITB,UKM,abbr:uksu,UKM,81,Unit Kesenian Sumatera Utara - ITB (UKSU-ITB),,1978-12-23,186,,Budaya - Paguyuban,,yes
+Unit Softball ITB,UKM,name:j=0.50,UKM,40,Unit Softball ITB (US ITB),usitb1974@gmail.com,1974-02-07,88,,Olahraga dan Kesehatan,,yes
+Resimen Mahasiswa Mahawarman Batalyon I/ITB,UKM,name:subset,UKM,23,Resimen Mahasiswa Mahawarman Batalyon I/ITB,menwa_itb@km.itb.ac.id,1964-03-30,,,Pendidikan,,yes
+Pelita Muda ITB,UKM,name:j=1.00,UKM,10,Pelita Muda,pelitamuda_itb@km.itb.ac.id,2015-08-17,,,Pendidikan,,yes
+Unit Tenis ITB,UKM,name:j=1.00,UKM,54,Unit Tenis ITB,ut_itb@km.itb.ac.id,1977-01-19,,,Olahraga dan Kesehatan,,yes
+Unit Selam Nautika ITB,UKM,abbr:nautika,UKM,47,"Unit Selam ""Nautika"" ITB",nautika_itb@km.itb.ac.id,1996-08-17,125,,Olahraga dan Kesehatan,,yes
+Kelompok Studi Ekonomi dan Pasar Modal ITB,UKM,abbr:ksep,UKM,15,Kelompok Studi Ekonomi dan Pasar Modal ITB (KSEP ITB),ksep_itb@km.itb.ac.id,1997-11-22,290,,Pendidikan,,yes
+Student English Forum ITB,UKM,name:subset,UKM,29,Student English Forum ITB,studentenglishforum@gmail.com,1999-09-04,113,,Pendidikan,,yes
+Korps Sukarela Palang Merah Indonesia Unit ITB,UKM,abbr:ksr/pmi,UKM,16,KSR PMI Unit ITB,ksr_pmi@km.itb.ac.id,2000-02-29,,,Pendidikan,,yes
+Techno Entrepreneur Club ITB,UKM,abbr:tec,UKM,18,TEC ITB,tec_itb@km.itb.ac.id,2007-12-19,,,Pendidikan,,yes
+Mahasiswa Bumi Sriwijaya ITB,UKM,abbr:musi,UKM,82,Mahasiswa Bumi Sriwijaya ITB (MUSI),musitekanjad@gmail.com,1999-09-28,,,Budaya - Paguyuban,,yes
+Unit Aktivitas Bridge ITB,UKM,abbr:uab,UKM,42,Unit Aktivitas Bridge ITB (UAB ITB),uab_itb@km.itb.ac.id,1979-08-31,32,,Olahraga dan Kesehatan,,yes
+Unit Kendo ITB,UKM,abbr:kendo,UKM,48,Unit Kendo ITB,kendoitb.unit@gmail.com,1998-09-14,,,Olahraga dan Kesehatan,,yes
+Aksantara ITB,UKM,abbr:aksantara,UKM,21,Aksantara,aksantaraitb@gmail.com,2013-05-13,,,Pendidikan,,yes
+Keluarga Mahasiswa Islam ITB Kampus Cirebon,UKM,abbr:kawai,UKM,7,Keluarga Mahasiswa Islam ITB Cirebon (KAWAI ITB),kawaicrb@gmail.com,2019-02-16,,,Agama,,yes
+Ganesha Interactive Media ITB,UKM,abbr:gim,UKM,34,Ganesha Interactive Media (GIM) ITB,gim@km.itb.ac.id,2019-11-10,,,Media,,yes
+Gajah Ngomik ITB,UKM,name:j=1.00,UKM,30,Gajah Ngomik,gajahngomik@gmail.com,2020-08-23,,,Pendidikan,,yes
+Society of Renewable Energy ITB,UKM,abbr:sre,UKM,20,Society of Renewable Energy (SRE) ITB,sreitb2425@gmail.com,2019-07-27,,,Pendidikan,,
+Cerberus Racing Team ITB,UKM,NO MATCH,,,,,,,,,,
+Cirebon Boardgame Community ITB,UKM,abbr:cbc,UKM,51,Cirebon Boardgame Community (CBC) ITB,cbcitb11.11@gmail.com,2023-11-11,100,,Olahraga dan Kesehatan,,yes
+Gebrak Indonesia ITB,UKM,abbr:gebrak,UKM,25,Gebrak Indonesia,gebrakindonesia@km.itb.ac.id,2013-04-13,191,,Pendidikan,,yes
+Cirebon Sport Community ITB,UKM,abbr:cisco,UKM,43,Unit Cirebon Sport Community (CISCO ITB),ciscosportitb@gmail.com,2023-04-16,175,,Olahraga dan Kesehatan,,yes
+Advance Association of Petroleum Geologists ITB,UKM,abbr:aapg,UKM,24,AAPG ITB,aapgitbsc@km.itb.ac.id,2000-10-08,150,,Pendidikan,,yes
+Ganesha Pintar ITB,UKM,NO MATCH,,,,,,,,,,
+Fit Levitating ITB,UKM,name:j=1.00,UKM,53,Fit Levitating ITB,fitlevitatingitb@gmail.com,2025-01-31,75,,Olahraga dan Kesehatan,,yes

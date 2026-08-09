@@ -98,7 +98,10 @@ export const KepanitiaanCard = ({
         <div className="mt-auto flex items-center gap-1 text-sm text-Regent-Gray">
           <CalendarIcon />
           <span className="line-clamp-1">
-            {dayjs(kepanitiaan.startDate).format('MMM YYYY')} -{' '}
+            {kepanitiaan.startDate
+              ? dayjs(kepanitiaan.startDate).format('MMM YYYY')
+              : '—'}{' '}
+            -{' '}
             {kepanitiaan.endDate
               ? dayjs(kepanitiaan.endDate).format('MMM YYYY')
               : 'Sekarang'}

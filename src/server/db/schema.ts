@@ -168,6 +168,7 @@ export const lembagaTypeEnum = pgEnum('lembaga_type', [
   'Himpunan',
   'UKM',
   'Kepanitiaan',
+  'BSO',
 ]);
 
 export const lembaga = createTable('lembaga', {
@@ -180,7 +181,7 @@ export const lembaga = createTable('lembaga', {
   foundingDate: timestamp('founding_date', {
     mode: 'date',
     withTimezone: true,
-  }).notNull(),
+  }),
   endingDate: timestamp('ending_date', {
     mode: 'date',
     withTimezone: true,
