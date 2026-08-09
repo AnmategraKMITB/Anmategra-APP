@@ -1,0 +1,31 @@
+id,userId,lembagaId,division,position
+c365990e-cb21-4b27-b09f-ec08c5ca2e69,user-94,lembaga-18,Pengembangan Diri,Wakil Ketua
+2cfa3e0b-0ad1-4964-ba2a-0b0b4cc4fda9,user-91,lembaga-5,Pengembangan Diri,Anggota
+cf7126f2-2ba8-4fc8-98e2-8db08e5a5c47,user-91,lembaga-2,Minat Bakat,Ketua
+b939eec5-8c68-4b6a-8799-d2253f937563,user-77,lembaga-19,Humas,Anggota
+37a27c78-bd7c-43bc-a604-ec191a0a96d7,user-74,lembaga-2,Akademik,Koordinator
+187cf5c9-090d-4088-abb7-a2d3b48256d1,user-48,lembaga-2,Internal,Koordinator
+0ff64758-fe48-42a5-acb8-c19dc275a063,user-33,lembaga-5,Minat Bakat,Wakil Ketua
+c94c222c-cb93-47a7-a809-51980ed1ea7b,user-76,lembaga-9,Internal,Koordinator
+743b5345-03ba-4fb2-a94c-a8856cdc065b,user-84,lembaga-5,Humas,Ketua
+34e6aa96-5ca6-4cbe-853a-831812fc95a4,user-30,lembaga-7,Internal,Wakil Ketua
+6d4259ad-70f8-4c1f-8416-c890d0f919e8,user-36,lembaga-9,Pengembangan Diri,Bendahara
+6b91fc1d-8bcf-4963-b28b-38018d2401fd,user-53,lembaga-2,Minat Bakat,Bendahara
+257da05d-07c0-41ce-917e-149c2747ff03,user-72,lembaga-12,Pengembangan Diri,Bendahara
+fa8ef590-0c15-4514-8f4a-8b59c60a6824,user-31,lembaga-14,Minat Bakat,Bendahara
+f9fdc32f-6688-4569-89f7-bb1a1eaf7c54,user-30,lembaga-12,Humas,Ketua
+d7c9a187-f1e8-4973-a007-36523b403c59,user-69,lembaga-14,Pengembangan Diri,Wakil Ketua
+cd5a97d2-2a5d-450e-b3cd-b768d22848a5,user-55,lembaga-11,Internal,Bendahara
+9a319621-a7a9-4d8b-9490-9c41b869fa1b,user-41,lembaga-11,Minat Bakat,Koordinator
+b3bc69d0-a898-469e-96c4-a21bd9120c91,user-73,lembaga-8,Internal,Ketua
+ba9ebd84-9237-4f57-8d81-e08fa5f11fcf,user-71,lembaga-7,Minat Bakat,Sekretaris
+1a12ec1c-79af-4b57-b6d7-7c07d65998f5,user-47,lembaga-13,Internal,Koordinator
+cde191dd-60db-4692-9da9-b335a082f3b0,user-76,lembaga-1,Minat Bakat,Sekretaris
+25086061-298e-4532-8307-ac73abc00f33,user-86,lembaga-7,Pengembangan Diri,Koordinator
+8edb49dd-6854-4f51-9eb6-1bc5f53d6ff0,user-27,lembaga-2,Pengembangan Diri,Koordinator
+9524fe03-677f-4194-a832-a52aa9773cd9,user-82,lembaga-19,Humas,Ketua
+90063d75-dd91-4278-8f20-5ee49de6ff23,user-43,lembaga-14,Pengembangan Diri,Bendahara
+ce4880f1-cd40-48ac-a1ef-736028ea641f,user-39,lembaga-10,Humas,Sekretaris
+3fd3c648-22bd-4ca6-8ac6-989b829dd119,user-52,lembaga-15,Minat Bakat,Anggota
+b85bb469-a870-46e3-940d-908ca97f1f20,user-26,lembaga-8,Internal,Wakil Ketua
+cb799e31-224f-4f4c-8cc0-655c668be1ba,user-39,lembaga-3,Minat Bakat,Sekretaris
