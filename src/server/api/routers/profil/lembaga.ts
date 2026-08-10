@@ -9,7 +9,7 @@ import {
   EditProfilInputSchema,
   EditProfilOutputSchema,
   GetAllProfilLembagaInputSchema,
-  GetAllProfilOutputSchema,
+  GetAllProfilLembagaOutputSchema,
 } from '~/server/api/types/profil.type';
 import {
   lembaga,
@@ -25,7 +25,7 @@ import {
 export const profileLembagaRouter = createTRPCRouter({
   getAllProfilLembaga: protectedProcedure
     .input(GetAllProfilLembagaInputSchema)
-    .output(GetAllProfilOutputSchema)
+    .output(GetAllProfilLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       const profil = await ctx.db.query.profilLembaga.findMany({
         where: eq(profilLembaga.lembagaId, input.lembaga_id),

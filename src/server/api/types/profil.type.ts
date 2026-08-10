@@ -11,9 +11,23 @@ export const GetAllProfilKegiatanInputSchema = z.object({
   event_id: z.string(),
 });
 
-export const GetAllProfilOutputSchema = z
-  .object({ profil_lembaga: z.array(ProfilSchema) })
-  .or(z.object({ profil_kegiatan: z.array(ProfilSchema) }));
+export const GetAllProfilLembagaOutputSchema = z.object({
+  profil_lembaga: z.array(ProfilSchema),
+});
+
+export const GetAllProfilKegiatanOutputSchema = z.object({
+  profil_kegiatan: z.array(ProfilSchema),
+});
+
+/**
+ * FE-only union for components that render profil data from either source
+ * (e.g. shared rapor individu views gated by an `isLembaga` prop). Not used
+ * as a tRPC `.output()` contract — each endpoint returns its own exact
+ * schema above.
+ */
+export const GetAllProfilOutputSchema = GetAllProfilLembagaOutputSchema.or(
+  GetAllProfilKegiatanOutputSchema,
+);
 
 export const GetAllProfilLembagaInputSchema = z.object({
   lembaga_id: z.string(),

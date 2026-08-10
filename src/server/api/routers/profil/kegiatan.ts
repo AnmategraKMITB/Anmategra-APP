@@ -9,7 +9,7 @@ import {
   EditProfilInputSchema,
   EditProfilOutputSchema,
   GetAllProfilKegiatanInputSchema,
-  GetAllProfilOutputSchema,
+  GetAllProfilKegiatanOutputSchema,
 } from '~/server/api/types/profil.type';
 import {
   events,
@@ -25,7 +25,7 @@ import {
 export const profilKegiatanRouter = createTRPCRouter({
   getAllProfilKegiatan: protectedProcedure
     .input(GetAllProfilKegiatanInputSchema)
-    .output(GetAllProfilOutputSchema)
+    .output(GetAllProfilKegiatanOutputSchema)
     .query(async ({ ctx, input }) => {
       const profil = await ctx.db.query.profilKegiatan.findMany({
         where: eq(profilKegiatan.eventId, input.event_id),
