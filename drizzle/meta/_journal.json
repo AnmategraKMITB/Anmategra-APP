@@ -141,6 +141,13 @@
       "when": 1786393024657,
       "tag": "0019_drop_kontak_type_enum",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786393134387,
+      "tag": "0020_sync_mahasiswa_nama_on_user_update",
+      "breakpoints": true
     }
   ]
 }
