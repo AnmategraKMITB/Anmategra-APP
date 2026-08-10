@@ -86,7 +86,7 @@ export const AddAnggotaLembagaInputSchema = z.object({
 
 export const AddAnggotaManualLembagaInputSchema = z.object({
   name: z.string().nonempty(),
-  nim: z.string().nonempty(),
+  nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
 });

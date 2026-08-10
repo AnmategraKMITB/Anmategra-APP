@@ -134,7 +134,7 @@ export const GetMahasiswaByIdInputSchema = z.object({
 });
 
 export const GetMahasiswaByNimInputSchema = z.object({
-  nim: z.string(),
+  nim: z.string().regex(/^\d+$/, 'NIM harus berupa angka'),
 });
 
 export const GetMahasiswaOutputSchema = z.object({

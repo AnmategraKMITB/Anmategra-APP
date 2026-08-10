@@ -89,7 +89,7 @@ export const GetAllAnggotaKegiatanOutputSchema = z.array(PanitiaKegiatanSchema);
 export const AddNewPanitiaKegiatanManualInputSchema = z.object({
   event_id: z.string(),
   name: z.string().nonempty(),
-  nim: z.string().nonempty(),
+  nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   position: z.string().nonempty(),
   division: z.string().nonempty(),
 });
