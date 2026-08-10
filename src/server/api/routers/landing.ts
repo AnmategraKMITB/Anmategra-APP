@@ -62,19 +62,24 @@ export const landingRouter = createTRPCRouter({
         },
       });
 
-      const formattedEvents: Kepanitiaan[] = events.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        image: item.background_image,
-        anggotaCount: item.participant_count ?? 0,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+      const formattedEvents: Kepanitiaan[] = events.map((item) => {
+        const lembaga = item.lembaga as
+          | { name: string | null; users: { image: string | null } }
+          | null;
+        return {
+          lembaga: {
+            name: lembaga?.name ?? '',
+            profilePicture: lembaga?.users.image ?? '',
+          },
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          image: item.background_image,
+          anggotaCount: item.participant_count ?? 0,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       return formattedEvents;
     }),
@@ -192,19 +197,24 @@ export const landingRouter = createTRPCRouter({
       const hasMore = list.length > limit;
       const sliced = hasMore ? list.slice(0, limit) : list;
 
-      const formattedEvents: Kepanitiaan[] = sliced.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        image: item.background_image,
-        anggotaCount: item.participant_count ?? 0,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+      const formattedEvents: Kepanitiaan[] = sliced.map((item) => {
+        const lembaga = item.lembaga as
+          | { name: string | null; users: { image: string | null } }
+          | null;
+        return {
+          lembaga: {
+            name: lembaga?.name ?? '',
+            profilePicture: lembaga?.users.image ?? '',
+          },
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          image: item.background_image,
+          anggotaCount: item.participant_count ?? 0,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       const lastItem = sliced[sliced.length - 1];
       const nextCursor =
@@ -251,19 +261,24 @@ export const landingRouter = createTRPCRouter({
         },
       });
 
-      const formattedEvents: Kepanitiaan[] = events.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        anggotaCount: item.participant_count ?? 0,
-        image: item.background_image,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+      const formattedEvents: Kepanitiaan[] = events.map((item) => {
+        const lembaga = item.lembaga as
+          | { name: string | null; users: { image: string | null } }
+          | null;
+        return {
+          lembaga: {
+            name: lembaga?.name ?? '',
+            profilePicture: lembaga?.users.image ?? '',
+          },
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          anggotaCount: item.participant_count ?? 0,
+          image: item.background_image,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       return formattedEvents;
     }),
@@ -335,33 +350,41 @@ export const landingRouter = createTRPCRouter({
         image: mahasiswa.image ?? undefined,
       }));
 
-      const formattedLembaga: Kepanitiaan[] = lembaga.map((item) => ({
-        lembaga: {
+      const formattedLembaga: Kepanitiaan[] = lembaga.map((item) => {
+        const itemUsers = item.users as { image: string | null } | null;
+        return {
+          lembaga: {
+            id: item.id,
+            name: item.name,
+            profilePicture: itemUsers?.image ?? '',
+          },
+          name: item.name,
+          description: item.description,
+          anggotaCount: item.memberCount ?? 0,
+          startDate: item.foundingDate ? new Date(item.foundingDate) : null,
+          image: itemUsers?.image ?? null,
+          endDate: item.endingDate ? new Date(item.endingDate) : null,
+        };
+      });
+
+      const formattedKepanitiaan: Kepanitiaan[] = event.map((item) => {
+        const lembagaItem = item.lembaga as
+          | { name: string | null; users: { image: string | null } }
+          | null;
+        return {
+          lembaga: {
+            name: lembagaItem?.name ?? '',
+            profilePicture: lembagaItem?.users.image ?? '',
+          },
           id: item.id,
           name: item.name,
-          profilePicture: item.users?.image ?? '',
-        },
-        name: item.name,
-        description: item.description,
-        anggotaCount: item.memberCount ?? 0,
-        startDate: item.foundingDate ? new Date(item.foundingDate) : null,
-        image: item.users?.image,
-        endDate: item.endingDate ? new Date(item.endingDate) : null,
-      }));
-
-      const formattedKepanitiaan: Kepanitiaan[] = event.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        image: item.background_image,
-        anggotaCount: item.participant_count ?? 0,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+          description: item.description,
+          image: item.background_image,
+          anggotaCount: item.participant_count ?? 0,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       return {
         mahasiswa: formattedMahasiswa,

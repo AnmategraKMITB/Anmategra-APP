@@ -140,11 +140,12 @@ export const profileRouter = createTRPCRouter({
         orderBy: desc(events.start_date),
       });
 
+      const lembagaUsers = lembaga.users as { id: string; image: string | null };
       const formattedEvents: Kepanitiaan[] = newestEvent.map((item) => ({
         lembaga: {
           id: lembaga.id,
           name: lembaga.name,
-          profilePicture: lembaga.users.image,
+          profilePicture: lembagaUsers.image,
         },
         id: item.id,
         name: item.name,
@@ -198,7 +199,7 @@ export const profileRouter = createTRPCRouter({
       }));
 
       return {
-        lembagaData: lembaga,
+        lembagaData: { ...lembaga, users: lembagaUsers },
         newestEvent: formattedEvents,
         highlightedEvent: highlightedEvent ? highlightedEvent : null,
         anggota: formattedAnggota,
@@ -328,11 +329,12 @@ export const profileRouter = createTRPCRouter({
         orderBy: desc(events.start_date),
       });
 
+      const lembagaUsers = lembaga.users as { id: string; image: string | null };
       const formattedEvents: Kepanitiaan[] = newestEvent.map((item) => ({
         lembaga: {
           id: lembaga.id,
           name: lembaga.name,
-          profilePicture: lembaga.users.image,
+          profilePicture: lembagaUsers.image,
         },
         id: item.id,
         name: item.name,
@@ -353,7 +355,7 @@ export const profileRouter = createTRPCRouter({
       });
 
       return {
-        lembagaData: lembaga,
+        lembagaData: { ...lembaga, users: lembagaUsers },
         newestEvent: formattedEvents,
         highlightedEvent: highlightedEvent ? highlightedEvent : null,
       };

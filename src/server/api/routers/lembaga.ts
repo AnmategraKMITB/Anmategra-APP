@@ -120,10 +120,11 @@ export const lembagaRouter = createTRPCRouter({
         });
       }
 
+      const lembagaUsers = lembaga.users as { image: string | null };
       return {
         id: lembaga.id,
         nama: lembaga.name,
-        foto: lembaga.users.image,
+        foto: lembagaUsers.image,
         deskripsi: lembaga.description,
         tanggal_berdiri: lembaga.foundingDate,
         tipe_lembaga: lembaga.type,

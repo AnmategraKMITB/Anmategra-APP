@@ -138,11 +138,11 @@ export async function GET(
 
     // --- Add nilai for each profil ---
     profilKegiatanList.forEach((profil) => {
-      const nilai = nilaiProfilData.find(
-        (n) =>
-          n.mahasiswa.userId === member.user?.id &&
-          n.profilKegiatan.id === profil.id,
-      );
+      const nilai = nilaiProfilData.find((n) => {
+        const m = n.mahasiswa as { userId: string };
+        const p = n.profilKegiatan as { id: string };
+        return m.userId === member.user?.id && p.id === profil.id;
+      });
       rowData.push(nilai?.nilai ?? 0);
     });
 
@@ -329,10 +329,11 @@ export async function POST(
         );
       }
 
-      if (mahasiswaRecord.users.name !== nama) {
+      const mahasiswaUser = mahasiswaRecord.users as { name: string | null };
+      if (mahasiswaUser.name !== nama) {
         return Response.json(
           {
-            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaRecord.users.name}, got ${nama}.\n Please contact admin if this is an error.`,
+            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaUser.name}, got ${nama}.\n Please contact admin if this is an error.`,
           },
           { status: 400 },
         );

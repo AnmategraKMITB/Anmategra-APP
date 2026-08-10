@@ -233,12 +233,13 @@ export async function POST(
         );
       }
 
-      const expectedName = mahasiswaRecord.users.name?.toLocaleLowerCase();
+      const mahasiswaUser = mahasiswaRecord.users as { name: string | null };
+      const expectedName = mahasiswaUser.name?.toLocaleLowerCase();
       const actualName = nama.toLocaleLowerCase();
       if (expectedName !== actualName) {
         return Response.json(
           {
-            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaRecord.users.name}, got ${nama}.\n Please contact admin if this is an error.`,
+            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaUser.name}, got ${nama}.\n Please contact admin if this is an error.`,
           },
           { status: 400 },
         );

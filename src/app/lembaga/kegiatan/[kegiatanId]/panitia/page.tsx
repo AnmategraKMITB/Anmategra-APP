@@ -19,8 +19,9 @@ const DaftarPanitiaKegiatanPage = async ({
     event_id: query,
   });
   const event = await api.event.getByID({ id: query });
+  const eventLembaga = event?.lembaga as { id: string } | undefined;
 
-  if (event && session && event?.lembaga?.id !== session?.user.lembagaId) {
+  if (event && session && eventLembaga?.id !== session?.user.lembagaId) {
     return (
       <div className="flex items-center justify-center h-screen">
         <div className="text-lg">Unauthorized Access</div>
