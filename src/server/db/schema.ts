@@ -172,7 +172,9 @@ export const lembagaTypeEnum = pgEnum('lembaga_type', [
 ]);
 
 export const lembaga = createTable('lembaga', {
-  id: varchar('id', { length: 255 }).primaryKey(),
+  id: varchar('id', { length: 255 })
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
   userId: varchar('user_id', { length: 255 })
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
