@@ -355,9 +355,12 @@ export const associationRequestLembagaRelations = relations(
 
 // Enum for support ticket status
 export const supportStatusEnum = pgEnum('support_status', [
-  'Draft',
+  'Open',
   'In Progress',
   'Resolved',
+  'Closed',
+  'Draft',
+  'Backlog',
   'Reported',
 ]);
 

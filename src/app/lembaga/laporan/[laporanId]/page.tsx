@@ -2,6 +2,7 @@ import {
   LaporanCard,
   type Attachment,
 } from "~/app/_components/laporan/detail/laporan-card";
+import { toColumnType } from "~/app/_components/laporan/board/column-type";
 import { api } from "~/trpc/server";
 import { RaporBreadcrumb } from "~/app/_components/breadcrumb";
 import { formatTanggal } from "~/utils/utils";
@@ -36,7 +37,7 @@ export default async function ReportDetail({ params }: { params: { laporanId: st
       />
 
       <LaporanCard
-        status={report.status}
+        status={toColumnType(report.status)}
         content={report.description}
         id={report.id}
         name={report.subject}

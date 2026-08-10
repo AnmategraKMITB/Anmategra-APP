@@ -12,7 +12,8 @@ import DraftIcon from '/public/images/laporan/draft.svg';
 import InProgressIcon from '/public/images/laporan/in-progress.svg';
 import ResolvedIcon from '/public/images/laporan/resolved.svg';
 
-export type ColumnType = 'Draft' | 'Reported' | 'In Progress' | 'Resolved';
+export { type ColumnType, toColumnType } from './column-type';
+import { type ColumnType } from './column-type';
 
 export interface ColumnProps {
   title: ColumnType;
