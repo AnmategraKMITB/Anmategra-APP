@@ -415,12 +415,14 @@ export const userRouter = createTRPCRouter({
           and(
             eq(associationRequests.event_id, input.event_id),
             eq(associationRequests.user_id, ctx.session.user.id),
+            eq(associationRequests.status, 'Pending'),
           ),
       });
       if (!existingRequest) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Permintaan asosiasi tidak ditemukan',
+          message:
+            'Permintaan asosiasi tidak ditemukan atau tidak dapat diubah',
         });
       }
       await ctx.db
@@ -434,6 +436,7 @@ export const userRouter = createTRPCRouter({
           and(
             eq(associationRequests.event_id, input.event_id),
             eq(associationRequests.user_id, ctx.session.user.id),
+            eq(associationRequests.status, 'Pending'),
           ),
         );
       return { success: true, message: 'Permintaan asosiasi berhasil diubah' };
@@ -557,10 +560,25 @@ export const userRouter = createTRPCRouter({
             ),
         });
       if (existingRequest) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Anda sudah pernah membuat permintaan untuk lembaga ini',
-        });
+        if (
+          existingRequest.status === 'Pending' ||
+          existingRequest.status === 'Accepted'
+        ) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Anda sudah pernah membuat permintaan untuk lembaga ini',
+          });
+        } else {
+          await ctx.db
+            .update(associationRequestsLembaga)
+            .set({
+              status: 'Pending',
+              division: input.division,
+              position: input.position,
+            })
+            .where(eq(associationRequestsLembaga.id, existingRequest.id));
+          return { success: true };
+        }
       }
       await ctx.db.insert(associationRequestsLembaga).values({
         id: crypto.randomUUID(),
