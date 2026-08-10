@@ -1,3 +1,4 @@
+import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
@@ -66,6 +67,19 @@ export const kegiatanRouter = createTRPCRouter({
     .input(EventIdSchema)
     .output(GetPosisiBidangOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
+      const kegiatan = await ctx.db.query.events.findFirst({
+        where: (events, { eq }) => eq(events.id, input.event_id),
+        columns: { org_id: true },
+      });
+
+      if (!kegiatan) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Kegiatan tidak ditemukan' });
+      }
+
+      if (kegiatan.org_id !== ctx.session.user.lembagaId) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+
       const list_posisi_bidang = await ctx.db.query.keanggotaan.findMany({
         where: (keanggotaan, { eq }) =>
           eq(keanggotaan.event_id, input.event_id),

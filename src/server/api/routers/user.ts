@@ -154,10 +154,23 @@ export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk mengambil data pilihan untuk tambah anggota pada suatu kegiatan
    */
-  getTambahAnggotaKegiatanOptions: protectedProcedure
+  getTambahAnggotaKegiatanOptions: lembagaProcedure
     .input(GetTambahAnggotaKegiatanOptionsInputSchema)
     .output(GetTambahAnggotaKegiatanOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
+      const kegiatan = await ctx.db.query.events.findFirst({
+        where: (events, { eq }) => eq(events.id, input.kegiatanId),
+        columns: { org_id: true },
+      });
+
+      if (!kegiatan) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Kegiatan tidak ditemukan' });
+      }
+
+      if (kegiatan.org_id !== ctx.session.user.lembagaId) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+
       const list_posisi_bidang = await ctx.db.query.keanggotaan.findMany({
         where: (keanggotaan, { eq }) =>
           eq(keanggotaan.event_id, input.kegiatanId),

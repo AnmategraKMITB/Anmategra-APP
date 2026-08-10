@@ -459,7 +459,7 @@ export const lembagaRouter = createTRPCRouter({
 
           // User exists, just add them to kehimpunan
           await ctx.db.insert(kehimpunan).values({
-            id: existingUser.id + '_' + ctx.session.user.lembagaId!,
+            id: existingUser.id + '_' + ctx.session.user.id,
             lembagaId: ctx.session.user.lembagaId!,
             userId: existingUser.id,
             division: input.division,
@@ -1113,6 +1113,10 @@ export const lembagaRouter = createTRPCRouter({
     .input(GetBestStaffLembagaOptionsInputSchema)
     .output(GetBestStaffLembagaOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
+      if (input.lembaga_id !== ctx.session.user.lembagaId) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+
       const staffOptions = await ctx.db
         .select({
           user_id: users.id,
