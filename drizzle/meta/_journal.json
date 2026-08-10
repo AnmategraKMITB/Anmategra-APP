@@ -127,6 +127,13 @@
       "when": 1785490832100,
       "tag": "0017_fair_mulholland_black",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786367528646,
+      "tag": "0018_majestic_sersi",
+      "breakpoints": true
     }
   ]
 }

@@ -1,1 +1,0 @@
-ALTER TYPE "lembaga_type" ADD VALUE 'BSO';

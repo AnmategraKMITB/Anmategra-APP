@@ -1,6 +1,6 @@
 {
-  "id": "fdd0b07f-cd97-4833-977a-95e868cffbcd",
-  "prevId": "8c823510-2fce-400b-a896-e9c1dfd40734",
+  "id": "7ab773b9-7289-4f42-8924-8eab3889327d",
+  "prevId": "31458c90-d4b2-4153-8043-93af6db1a042",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -140,6 +140,18 @@
           "primaryKey": false,
           "notNull": false
         },
+        "org_unit_id": {
+          "name": "org_unit_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "org_role_id": {
+          "name": "org_role_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "position": {
           "name": "position",
           "type": "varchar(255)",
@@ -225,6 +237,18 @@
         },
         "user_id": {
           "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "org_unit_id": {
+          "name": "org_unit_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "org_role_id": {
+          "name": "org_role_id",
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": false
@@ -610,6 +634,18 @@
           "primaryKey": false,
           "notNull": true
         },
+        "org_unit_id": {
+          "name": "org_unit_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "org_role_id": {
+          "name": "org_role_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
         "position": {
           "name": "position",
           "type": "varchar(255)",
@@ -711,6 +747,18 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
+        },
+        "org_unit_id": {
+          "name": "org_unit_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "org_role_id": {
+          "name": "org_role_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
         },
         "division": {
           "name": "division",
@@ -1221,6 +1269,251 @@
             "id"
           ],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.anmategra_organization_role": {
+      "name": "anmategra_organization_role",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "structure_id": {
+          "name": "structure_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ring_level": {
+          "name": "ring_level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "anmategra_organization_role_structure_id_anmategra_organization_structure_id_fk": {
+          "name": "anmategra_organization_role_structure_id_anmategra_organization_structure_id_fk",
+          "tableFrom": "anmategra_organization_role",
+          "tableTo": "anmategra_organization_structure",
+          "columnsFrom": [
+            "structure_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.anmategra_organization_structure": {
+      "name": "anmategra_organization_structure",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "lembaga_id": {
+          "name": "lembaga_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_active": {
+          "name": "is_active",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "anmategra_organization_structure_lembaga_id_anmategra_lembaga_id_fk": {
+          "name": "anmategra_organization_structure_lembaga_id_anmategra_lembaga_id_fk",
+          "tableFrom": "anmategra_organization_structure",
+          "tableTo": "anmategra_lembaga",
+          "columnsFrom": [
+            "lembaga_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_organization_structure_event_id_anmategra_event_id_fk": {
+          "name": "anmategra_organization_structure_event_id_anmategra_event_id_fk",
+          "tableFrom": "anmategra_organization_structure",
+          "tableTo": "anmategra_event",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.anmategra_organization_unit": {
+      "name": "anmategra_organization_unit",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "structure_id": {
+          "name": "structure_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parent_id": {
+          "name": "parent_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "kind": {
+          "name": "kind",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "level": {
+          "name": "level",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "anmategra_organization_unit_structure_id_anmategra_organization_structure_id_fk": {
+          "name": "anmategra_organization_unit_structure_id_anmategra_organization_structure_id_fk",
+          "tableFrom": "anmategra_organization_unit",
+          "tableTo": "anmategra_organization_structure",
+          "columnsFrom": [
+            "structure_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_organization_unit_parent_id_anmategra_organization_unit_id_fk": {
+          "name": "anmategra_organization_unit_parent_id_anmategra_organization_unit_id_fk",
+          "tableFrom": "anmategra_organization_unit",
+          "tableTo": "anmategra_organization_unit",
+          "columnsFrom": [
+            "parent_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "restrict",
           "onUpdate": "no action"
         }
       },
