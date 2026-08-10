@@ -134,6 +134,13 @@
       "when": 1786367528646,
       "tag": "0018_majestic_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1786393024657,
+      "tag": "0019_drop_kontak_type_enum",
+      "breakpoints": true
     }
   ]
 }
