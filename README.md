@@ -13,10 +13,6 @@ Anmategra platform manajemen data kemahasiswaan/lembaga di ITB. Fungsi utama:
 
 Tech stack: [T3 Stack](https://create.t3.gg/) (Next.js, tRPC, Drizzle ORM, NextAuth, Tailwind), PostgreSQL.
 
-# Anmategra App
-
-Build With [T3 Stack](https://create.t3.gg/)
-
 ## Setup untuk Developer Baru
 
 ### Prasyarat
@@ -40,6 +36,8 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/anmategra"
 `husky` prepare hook otomatis jalan pas `npm install` (setup lint-staged pre-commit).
 
 ### Setup Database
+
+Opsi A — manual:
 ```
 psql -U postgres
 CREATE DATABASE anmategra;
@@ -48,11 +46,21 @@ CREATE DATABASE anmategra;
 npm run db:push
 ```
 
+Opsi B — pakai Docker (lihat `scripts/start-database.sh`):
+```
+./scripts/start-database.sh
+npm run db:push
+```
+
 Perintah db lain yang tersedia:
 - `npm run db:generate` — generate migration dari schema (drizzle-kit generate)
 - `npm run db:migrate` — jalanin migration (drizzle-kit migrate)
 - `npm run db:studio` — buka Drizzle Studio buat liat data
 - `npm run db:seed` — generate csv + seed database (dev only)
+- `npm run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
+- `npm run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
+- `npm run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
+- `npm run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
 - `npm run db:clear` — kosongin database
 
 ### Menjalankan Project
@@ -65,6 +73,35 @@ Script lain:
 - `npm run build` — build production
 - `npm run start` — jalanin hasil build
 - `npm run lint` — cek lint (next lint)
+
+## Struktur Project
+
+```
+.
+├── src/
+│   ├── app/            # Next.js App Router — halaman & API routes
+│   ├── components/      # Komponen UI reusable (di luar shadcn/ui)
+│   ├── hooks/            # Custom React hooks
+│   ├── lib/              # Utility umum (SEO helper, dll)
+│   ├── server/
+│   │   ├── api/routers/  # tRPC routers (business logic per domain)
+│   │   ├── auth.ts       # Konfigurasi NextAuth
+│   │   └── db/
+│   │       ├── schema.ts    # Skema Drizzle ORM (source of truth tabel)
+│   │       └── seeding/     # Script & data CSV buat seed database
+│   ├── trpc/            # Setup client/server tRPC
+│   ├── types/            # Shared TypeScript types
+│   └── utils/            # Fungsi utility lain
+├── drizzle/              # Migration SQL & snapshot (hasil drizzle-kit generate)
+├── scripts/              # Script dev/data: start-database.sh, refresh-lembaga.sh, dll
+├── docs/                 # Dokumentasi tambahan (API reference, sprint backlog, dll)
+├── public/                # Static assets
+├── Dockerfile              # Build image production
+├── docker-entrypoint.sh    # Entry container: jalanin db:migrate lalu npm run start
+└── drizzle.config.ts       # Config drizzle-kit
+```
+
+Config tool lain (`next.config.js`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.cjs`, `.eslintrc.cjs`, `prettier.config.js`, `components.json`) sengaja ditaruh di root karena masing-masing tool nyari file itu di situ secara default.
 
 ## Branch Name Convention
 ```
