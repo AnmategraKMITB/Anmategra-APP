@@ -56,3 +56,6 @@ scripts/.km-summarize-cache.json
 
 # raw source spreadsheets (contain contact data; keep out of git history)
 *.xlsx
+
+# bug-hunter skill scan artifacts
+.bug-hunter/
