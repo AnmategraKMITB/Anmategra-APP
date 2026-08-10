@@ -42,7 +42,7 @@ export const kegiatanRouter = createTRPCRouter({
             },
           },
         },
-        columns: {},
+        columns: { org_id: false },
       });
       return kegiatan;
     }),
