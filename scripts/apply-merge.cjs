@@ -29,6 +29,19 @@ const cell = (v) => {
   const s = String(v).trim();
   return s === '' || s === '-' ? null : s;
 };
+const MONTHS_ID = {
+  januari: '01', februari: '02', maret: '03', april: '04', mei: '05', juni: '06',
+  juli: '07', agustus: '08', september: '09', oktober: '10', november: '11', desember: '12',
+};
+const normalizeDate = (value) => {
+  const raw = cell(value);
+  if (!raw || /^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+  const match = /^(\d{1,2})\s+([a-z]+)\s+(\d{4})$/i.exec(raw);
+  if (!match) return null;
+  const [, day, monthName, year] = match;
+  const month = monthName ? MONTHS_ID[monthName.toLowerCase()] : null;
+  return day && month && year ? `${year}-${month}-${day.padStart(2, '0')}` : null;
+};
 const norm = (s) =>
   (s ?? '').toLowerCase().replace(/institut teknologi bandung/g, ' ')
     .replace(/[\u2018\u2019\u201c\u201d"']/g, ' ').replace(/\bitb\b/g, ' ')
@@ -56,7 +69,7 @@ function readSheet(ws, headerRow, nameKey) {
     rows.push({
       sheet: ws.name, name: name ?? '',
       prodi: (get(cols.prodi) ?? '').replace(/^\d+\.\s*/, '') || null,
-      rumpun: get(cols.rumpun), lahir: get(cols.lahir), email,
+      rumpun: get(cols.rumpun), lahir: normalizeDate(get(cols.lahir)), email,
       anggota: anggota && /^\d+$/.test(String(anggota).trim()) ? anggota : null,
       kampus: get(cols.kampus),
     });
@@ -113,17 +126,17 @@ function parseCsv(text) {
 const ADDITIONS = [
   // --- new UKMs (per team decision: add all, flagged) ---
   ['UKM', 'Amateur Radio Club', 'UKM', 'Amateur Radio Club ITB',
-    'Amateur Radio Club ITB (ARC ITB) adalah unit kegiatan mahasiswa ITB di bidang komunikasi radio amatir.', '', ''],
+    'Amateur Radio Club ITB adalah organisasi mahasiswa yang berfokus pada pengembangan web, jaringan komputer, dan teknologi informasi.', '', ''],
   ['UKM', 'Pramuka ITB', 'UKM', 'Pramuka ITB',
     'Pramuka ITB adalah unit kegiatan mahasiswa ITB di bidang kepanduan dan kegiatan alam terbuka.', '', ''],
   ['UKM', 'Solve-It', 'UKM', 'Solve-It ITB',
     'Solve-It ITB adalah unit kegiatan mahasiswa yang menjadi wadah kajian dan pemecahan masalah berbasis studi kasus.', '', 'verify: tujuan disimpulkan dari nama'],
   ['UKM', 'shARE ITB', 'UKM', 'shARE ITB',
-    'shARE ITB adalah unit kegiatan mahasiswa yang menjadi wadah berbagi pengetahuan dan pengembangan diri mahasiswa ITB.', '', 'verify: tujuan disimpulkan dari nama'],
+    'ShARE ITB adalah klub konsultasi mahasiswa yang mengembangkan kepemimpinan melalui pembelajaran, pendampingan, dan proyek konsultasi.', '', ''],
   ['UKM', 'Ganesha Caffeine Society', 'UKM', 'Ganesha Caffeine Society ITB',
-    'Ganesha Caffeine Society ITB (GCS ITB) adalah komunitas mahasiswa ITB yang bergerak di bidang perkopian.', '', 'verify: tujuan disimpulkan dari nama'],
+    'Ganesha Caffeine Society ITB adalah komunitas mahasiswa ITB yang mewadahi minat dan kegiatan seputar kopi.', '', 'confirmed by team'],
   ['UKM', 'ITB Fellowship Club', 'UKM', 'ITB Fellowship Club',
-    'ITB Fellowship Club adalah komunitas persekutuan mahasiswa Kristen di ITB.', '', 'verify: afiliasi keagamaan'],
+    'ITB Fellowship Club adalah inisiatif pengembangan karier yang mempersiapkan mahasiswa ITB melalui mentoring, pelatihan, dan kegiatan kesiapan profesional.', '', 'LinkedIn-verified career preparation focus'],
   ['UKM', 'Majalah Ganesha', 'UKM', 'Majalah Ganesha ITB',
     'Majalah Ganesha (Kelompok Studi Sejarah, Ekonomi, dan Politik) adalah unit kegiatan mahasiswa ITB di bidang jurnalistik dan kajian sosial-politik.', '', ''],
   ['UKM', 'Boulevard ITB', 'UKM', 'Boulevard ITB',
@@ -143,7 +156,7 @@ const ADDITIONS = [
   ['UKM', 'Lingkung Seni Sunda', 'UKM', 'Lingkung Seni Sunda ITB',
     'Lingkung Seni Sunda ITB (LSS ITB) adalah unit kegiatan mahasiswa yang melestarikan dan mengembangkan seni tradisional Sunda.', '', ''],
   ['UKM', 'Keluarga Mahasiswa Jambi', 'UKM', 'Keluarga Mahasiswa Jambi ITB',
-    'Keluarga Mahasiswa Jambi ITB (KMJ ITB) adalah wadah kebersamaan mahasiswa asal Jambi di ITB serta pelestarian budaya Jambi.', '', ''],
+    'Keluarga Mahasiswa Jambi ITB adalah wadah mahasiswa asal Jambi yang menyelenggarakan Ganesha Fun Day untuk mengenalkan pendidikan tinggi kepada pelajar Jambi.', '', 'LinkedIn-verified Ganesha Fun Day outreach'],
   // --- komisariat (per team decision: include as separate lembaga) ---
   ['HMPS ITB', 'Komisariat Himpunan Mahasiswa Oseanografi', 'Himpunan', "Komisariat Himpunan Mahasiswa Oseanografi 'TRITON' ITB Cirebon",
     "Komisariat Himpunan Mahasiswa Oseanografi 'TRITON' ITB Kampus Cirebon adalah perwakilan HMO TRITON ITB bagi mahasiswa Oseanografi di ITB Kampus Cirebon.", 'Oseanografi', ''],

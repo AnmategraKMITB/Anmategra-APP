@@ -43,7 +43,9 @@ type CsvRow = Record<string, string> & {
   email: string;
   name: string;
   description: string;
+  type?: string;
   major?: string;
+  field?: string;
   description_original?: string;
 };
 
@@ -271,10 +273,52 @@ async function scrapeAll(cache: Cache) {
   }
 }
 
+const FIELD_PATHS: Record<string, string> = {
+  Agama: 'rumpun-agama',
+  Pendidikan: 'rumpun-pendidikan',
+  Kajian: 'rumpun-kajian',
+  Media: 'rumpun-media',
+  'Olahraga dan Kesehatan': 'rumpun-olahraga-dan-kesehatan',
+  Seni: 'rumpun-seni-budaya',
+  Budaya: 'rumpun-seni-budaya',
+  'Budaya - Paguyuban': 'rumpun-seni-budaya',
+};
+
+function isCompatibleMatch(row: CsvRow, page: ProfilePage) {
+  const pathType = page.url.includes('/lembaga/hmp/')
+    ? 'Himpunan'
+    : page.url.includes('/lembaga/ukm/')
+      ? 'UKM'
+      : page.url.includes('/lembaga/bso/')
+        ? 'BSO'
+        : undefined;
+  if (row.type && pathType && row.type !== pathType) return false;
+  const expectedFieldPath = row.field ? FIELD_PATHS[row.field] : undefined;
+  return !expectedFieldPath || page.url.includes(`/${expectedFieldPath}/`);
+}
+
 async function matchAll(rows: CsvRow[], cache: Cache) {
-  const knownEmails = new Set(
-    rows.map((row) => row.email.toLowerCase()).filter(Boolean),
+  const rowsByEmail = new Map(
+    rows
+      .filter((row) => row.email)
+      .map((row) => [row.email.toLowerCase(), row]),
   );
+  const pagesByUrl = new Map(cache.pages.map((page) => [page.url, page]));
+
+  // Discard stale or category-incompatible cached matches before resuming.
+  for (const [email, url] of Object.entries(cache.matches)) {
+    const row = rowsByEmail.get(email);
+    const page = pagesByUrl.get(url);
+    if (!row || !page || !isCompatibleMatch(row, page)) {
+      delete cache.matches[email];
+      cache.matchedUrls = cache.matchedUrls.filter(
+        (matchedUrl) => matchedUrl !== url,
+      );
+    }
+  }
+  saveCache(cache);
+
+  const knownEmails = new Set(rowsByEmail.keys());
   const processed = new Set(cache.matchedUrls);
   const pending = cache.pages.filter((page) => !processed.has(page.url));
   if (!pending.length) {
@@ -284,13 +328,16 @@ async function matchAll(rows: CsvRow[], cache: Cache) {
 
   const names = rows
     .filter((row) => row.email)
-    .map((row) => `${row.name} (${row.major || '-'}) <${row.email}>`)
+    .map(
+      (row) =>
+        `${row.name} [type=${row.type || '-'}, field=${row.field || '-'}, major=${row.major || '-'}] <${row.email}>`,
+    )
     .join('\n');
   console.log(`Matching ${pending.length} profile pages...`);
   for (let start = 0; start < pending.length; start += 20) {
     const batch = pending.slice(start, start + 20);
     const listing = batch
-      .map((page, index) => `${index}. ${page.title}`)
+      .map((page, index) => `${index}. ${page.title} [${page.url}]`)
       .join('\n');
     const reply = parseJsonObject(
       await chat(
@@ -303,7 +350,16 @@ async function matchAll(rows: CsvRow[], cache: Cache) {
     for (const [index, email] of Object.entries(reply)) {
       const page = batch[Number(index)];
       const normalizedEmail = email?.toLowerCase();
-      if (page && normalizedEmail && knownEmails.has(normalizedEmail)) {
+      const row = normalizedEmail
+        ? rowsByEmail.get(normalizedEmail)
+        : undefined;
+      if (
+        page &&
+        row &&
+        normalizedEmail &&
+        knownEmails.has(normalizedEmail) &&
+        isCompatibleMatch(row, page)
+      ) {
         cache.matches[normalizedEmail] = page.url;
       }
     }
