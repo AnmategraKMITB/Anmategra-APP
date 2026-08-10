@@ -390,7 +390,7 @@ export const raporRouter = createTRPCRouter({
         }
 
         if (
-          !lembaga.raporVisible &&
+          !lembagaUser.raporVisible &&
           ctx.session.user.lembagaId !== input.lembaga_id
         ) {
           throw new TRPCError({
