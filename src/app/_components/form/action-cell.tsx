@@ -25,7 +25,6 @@ export type Member = {
   nim: string;
   divisi: string;
   posisi: string;
-  posisiColor: string;
 };
 
 interface ActionCellProps {

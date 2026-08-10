@@ -20,7 +20,7 @@ import {
 } from '~/server/db/schema';
 
 import {
-  ToggleRaporVisibilityInputSchema,
+  ToggleRaporVisibilityMahasiswaInputSchema,
   ToggleRaporVisibilityOutputSchema,
 } from '../types/event.type';
 import {
@@ -36,7 +36,6 @@ import {
   GetAnggotaByNameInputSchema,
   GetAnggotaOutputSchema,
   GetMahasiswaByIdInputSchema,
-  GetMahasiswaByNameInputSchema,
   GetMahasiswaByNimInputSchema,
   GetMahasiswaOutputSchema,
   GetMyRequestAssociationLembagaOutputSchema,
@@ -584,29 +583,6 @@ export const userRouter = createTRPCRouter({
       };
     }),
 
-  getMahasiswaByName: protectedProcedure
-    .input(GetMahasiswaByNameInputSchema)
-    .output(GetMahasiswaOutputSchema)
-    .query(async ({ ctx, input }) => {
-      const mahasiswaResult = await ctx.db
-        .select()
-        .from(mahasiswa)
-        .innerJoin(users, eq(mahasiswa.userId, users.id))
-        .where(eq(users.name, input.name))
-        .limit(1);
-
-      if (mahasiswaResult.length === 0 || !mahasiswaResult[0]) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Mahasiswa tidak ditemukan',
-        });
-      }
-
-      return {
-        mahasiswaData: mahasiswaResult[0],
-      };
-    }),
-
   getMahasiswaByNim: protectedProcedure
     .input(GetMahasiswaByNimInputSchema)
     .output(GetMahasiswaOutputSchema)
@@ -1004,7 +980,7 @@ export const userRouter = createTRPCRouter({
     }),
 
   toggleRaporVisibility: protectedProcedure
-    .input(ToggleRaporVisibilityInputSchema)
+    .input(ToggleRaporVisibilityMahasiswaInputSchema)
     .output(ToggleRaporVisibilityOutputSchema)
     .mutation(async ({ ctx, input }) => {
       await ctx.db

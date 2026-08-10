@@ -234,7 +234,6 @@ const TambahEditAnggotaForm = ({
         editLembagaMutation.mutate(
           {
             user_id: values.user_id,
-            lembaga_id: lembagaId ?? session?.user.id ?? '',
             position: values.position,
             division: values.division,
           },

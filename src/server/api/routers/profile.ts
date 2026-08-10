@@ -195,7 +195,6 @@ export const profileRouter = createTRPCRouter({
         image: anggota.image,
         divisi: anggota.divisi,
         posisi: anggota.posisi,
-        posisiColor: 'blue',
       }));
 
       return {
@@ -281,7 +280,6 @@ export const profileRouter = createTRPCRouter({
         image: participant.image,
         posisi: participant.position,
         divisi: participant.divisi,
-        posisiColor: 'blue',
       }));
 
       return {

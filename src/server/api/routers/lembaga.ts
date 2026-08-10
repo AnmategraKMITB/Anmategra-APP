@@ -181,7 +181,6 @@ export const lembagaRouter = createTRPCRouter({
           nim: anggota.nim.toString(),
           divisi: anggota.divisi,
           posisi: anggota.posisi,
-          posisiColor: 'blue',
         }));
       } catch (error) {
         throw new TRPCError({

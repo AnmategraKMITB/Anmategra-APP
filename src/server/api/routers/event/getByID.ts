@@ -70,7 +70,6 @@ export const getAllAnggota = protectedProcedure
           nim: anggota.nim.toString() ?? '',
           divisi: anggota.division ?? '',
           posisi: anggota.position ?? '',
-          posisiColor: 'blue',
         };
       });
 

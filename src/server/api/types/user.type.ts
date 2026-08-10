@@ -133,10 +133,6 @@ export const GetMahasiswaByIdInputSchema = z.object({
   userId: z.string(),
 });
 
-export const GetMahasiswaByNameInputSchema = z.object({
-  name: z.string(),
-});
-
 export const GetMahasiswaByNimInputSchema = z.object({
   nim: z.string(),
 });

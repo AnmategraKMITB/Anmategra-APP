@@ -76,7 +76,6 @@ const PanitiaKegiatanSchema = z.object({
   nim: z.string(),
   divisi: z.string(),
   posisi: z.string(),
-  posisiColor: z.string(),
 });
 
 export const GetAllAnggotaKegiatanInputSchema = z.object({
@@ -111,6 +110,10 @@ export const ToggleHighlightOutputSchema = z.object({
 
 export const ToggleRaporVisibilityInputSchema = z.object({
   id: z.string(),
+  rapor_visible: z.boolean(),
+});
+
+export const ToggleRaporVisibilityMahasiswaInputSchema = z.object({
   rapor_visible: z.boolean(),
 });
 

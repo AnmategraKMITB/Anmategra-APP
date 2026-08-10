@@ -35,7 +35,6 @@ const PanitiaKegiatanSchema = z.object({
   image: z.string().url().nullable(),
   divisi: z.string().nullable(),
   posisi: z.string().nullable(),
-  posisiColor: z.string(),
 });
 
 export const GetLembagaInputSchema = z.object({ lembagaId: z.string() });

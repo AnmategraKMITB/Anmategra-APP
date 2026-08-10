@@ -25,7 +25,6 @@ const AnggotaLembagaSchema = z.object({
   nim: z.string(),
   divisi: z.string(),
   posisi: z.string(),
-  posisiColor: z.string(),
 });
 
 export const GetAllAnggotaLembagaInputSchema = z.object({
@@ -106,7 +105,6 @@ export const RemoveAnggotaLembagaOutputSchema = z.object({
 });
 
 export const editAnggotaLembagaInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -148,8 +146,6 @@ export const AcceptRequestAssociationOutputSchema = z.object({
 export const DeclineRequestAssociationInputSchema = z.object({
   event_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
-  division: z.string().nonempty(),
-  position: z.string().nonempty(),
 });
 
 export const DeclineRequestAssociationOutputSchema = z.object({
