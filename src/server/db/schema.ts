@@ -478,6 +478,17 @@ export const kehimpunan = createTable(
   }),
 );
 
+export const kehimpunanRelations = relations(kehimpunan, ({ one }) => ({
+  user: one(users, {
+    fields: [kehimpunan.userId],
+    references: [users.id],
+  }),
+  lembaga: one(lembaga, {
+    fields: [kehimpunan.lembagaId],
+    references: [lembaga.id],
+  }),
+}));
+
 // Organization Structure
 export const organizationStructure = createTable('organization_structure', {
   id: varchar('id', { length: 255 })
@@ -682,31 +693,47 @@ export const profilLembaga = createTable('profil_lembaga', {
   description: text('description').notNull(),
 });
 
-export const pemetaanProfilKegiatan = createTable('pemetaan_profil_kegiatan', {
-  id: varchar('id', { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  profilKegiatanId: varchar('profil_kegiatan_id', { length: 255 })
-    .references(() => profilKegiatan.id, { onDelete: 'cascade' })
-    .notNull(),
-  profilKMId: varchar('profil_km_id', { length: 255 })
-    .references(() => profilKM.id, { onDelete: 'cascade' })
-    .notNull(),
-});
+export const pemetaanProfilKegiatan = createTable(
+  'pemetaan_profil_kegiatan',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    profilKegiatanId: varchar('profil_kegiatan_id', { length: 255 })
+      .references(() => profilKegiatan.id, { onDelete: 'cascade' })
+      .notNull(),
+    profilKMId: varchar('profil_km_id', { length: 255 })
+      .references(() => profilKM.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => ({
+    uniqueProfilKegiatanKM: uniqueIndex(
+      'pemetaan_profil_kegiatan_profil_km_unique',
+    ).on(table.profilKegiatanId, table.profilKMId),
+  }),
+);
 
-export const pemetaanProfilLembaga = createTable('pemetaan_profil_lembaga', {
-  id: varchar('id', { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  profilLembagaId: varchar('profil_lembaga_id', { length: 255 })
-    .references(() => profilLembaga.id, { onDelete: 'cascade' })
-    .notNull(),
-  profilKMId: varchar('profil_km_id', { length: 255 })
-    .references(() => profilKM.id, { onDelete: 'cascade' })
-    .notNull(),
-});
+export const pemetaanProfilLembaga = createTable(
+  'pemetaan_profil_lembaga',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    profilLembagaId: varchar('profil_lembaga_id', { length: 255 })
+      .references(() => profilLembaga.id, { onDelete: 'cascade' })
+      .notNull(),
+    profilKMId: varchar('profil_km_id', { length: 255 })
+      .references(() => profilKM.id, { onDelete: 'cascade' })
+      .notNull(),
+  },
+  (table) => ({
+    uniqueProfilLembagaKM: uniqueIndex(
+      'pemetaan_profil_lembaga_profil_km_unique',
+    ).on(table.profilLembagaId, table.profilKMId),
+  }),
+);
 
 export const nilaiProfilKegiatan = createTable(
   'nilai_profil_kegiatan',
