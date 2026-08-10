@@ -1448,7 +1448,7 @@ export const lembagaRouter = createTRPCRouter({
       const lembagaRecords = await ctx.db
         .select({
           lembaga_id: lembaga.id,
-          event_name: lembaga.name,
+          lembaga_name: lembaga.name,
           start_date: bestStaffLembaga.startDate,
           end_date: bestStaffLembaga.endDate,
           division: bestStaffLembaga.division,
@@ -1468,7 +1468,7 @@ export const lembagaRouter = createTRPCRouter({
         })),
         best_staff_lembaga: lembagaRecords.map((record) => ({
           lembaga_id: record.lembaga_id ?? '',
-          event_name: record.event_name ?? '',
+          lembaga_name: record.lembaga_name ?? '',
           start_date: record.start_date.toISOString(),
           end_date: record.end_date.toISOString(),
           division: record.division ?? '',

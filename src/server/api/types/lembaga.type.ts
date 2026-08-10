@@ -400,7 +400,7 @@ export const GetAllHistoryBestStaffMahasiswaOutputSchema = z.object({
   best_staff_lembaga: z.array(
     z.object({
       lembaga_id: z.string(),
-      event_name: z.string(),
+      lembaga_name: z.string(),
       start_date: z.string().datetime(),
       end_date: z.string().datetime(),
       division: z.string(),
