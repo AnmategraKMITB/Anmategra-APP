@@ -114,6 +114,17 @@ export const addNewPanitia = lembagaProcedure
       if (error instanceof TRPCError) {
         throw error;
       }
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === '23505'
+      ) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+        });
+      }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Terjadi kesalahan tak terduga saat menambahkan panitia.',
@@ -323,6 +334,17 @@ export const addNewPanitiaManual = lembagaProcedure
     } catch (error) {
       if (error instanceof TRPCError) {
         throw error;
+      }
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        error.code === '23505'
+      ) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+        });
       }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
