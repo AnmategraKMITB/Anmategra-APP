@@ -281,12 +281,19 @@ export const ChooseBestStaffLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
-export const DeleteBestStaffPeriodeInputSchema = z.object({
-  lembaga_id: z.string().nonempty().optional(),
-  event_id: z.string().nonempty().optional(),
-  start_date: z.string().datetime(),
-  end_date: z.string().datetime(),
-});
+export const DeleteBestStaffPeriodeInputSchema = z
+  .object({
+    lembaga_id: z.string().nonempty().optional(),
+    event_id: z.string().nonempty().optional(),
+    start_date: z.string().datetime(),
+    end_date: z.string().datetime(),
+  })
+  .refine((data) => !(data.lembaga_id && data.event_id), {
+    message: 'lembaga_id dan event_id tidak boleh dikirim bersamaan',
+  })
+  .refine((data) => data.lembaga_id ?? data.event_id, {
+    message: 'lembaga_id atau event_id wajib diisi',
+  });
 
 export const DeleteBestStaffPeriodeOutputSchema = z.object({
   success: z.boolean(),

@@ -1594,6 +1594,20 @@ export const lembagaRouter = createTRPCRouter({
           });
         }
 
+        const [totalAnggotaResult] = await ctx.db
+          .select({ count: count() })
+          .from(kehimpunan)
+          .where(eq(kehimpunan.lembagaId, input.lembaga_id));
+        const totalAnggota = totalAnggotaResult?.count ?? 0;
+
+        if (input.user_ids.length !== totalAnggota) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message:
+              'Daftar urutan anggota tidak lengkap, harap sertakan semua anggota',
+          });
+        }
+
         await ctx.db.transaction(async (tx) => {
           for (let i = 0; i < input.user_ids.length; i++) {
             await tx
