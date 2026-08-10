@@ -2,10 +2,28 @@ import { MetadataRoute } from 'next';
 import { BASE_URL, absoluteUrl } from '~/lib/seo';
 import { api } from '~/trpc/server';
 
+async function fetchAllIds(
+  fetchPage: (cursor?: string) => Promise<{
+    items: { id: string }[];
+    nextCursor?: string;
+  }>,
+) {
+  const allItems: { id: string }[] = [];
+  let cursor: string | undefined;
+
+  do {
+    const page = await fetchPage(cursor);
+    allItems.push(...page.items);
+    cursor = page.nextCursor;
+  } while (cursor);
+
+  return allItems;
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [events, organizations] = await Promise.all([
-    api.landing.getAllEventIds({ limit: 100 }),
-    api.landing.getAllLembagaIds({ limit: 100 }),
+    fetchAllIds((cursor) => api.landing.getAllEventIds({ limit: 100, cursor })),
+    fetchAllIds((cursor) => api.landing.getAllLembagaIds({ limit: 100, cursor })),
   ]);
 
   const eventEntries: MetadataRoute.Sitemap = (events ?? []).map((event) => ({

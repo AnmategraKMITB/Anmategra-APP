@@ -495,26 +495,48 @@ export const landingRouter = createTRPCRouter({
     }),
 
   getAllEventIds: publicProcedure
-    .input(z.object({ limit: z.number().min(1).max(100).default(100) }))
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(100),
+        cursor: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
-      const events = await ctx.db.query.events.findMany({
+      const items = await ctx.db.query.events.findMany({
         columns: {
           id: true,
         },
+        where: input.cursor ? (e, { gt }) => gt(e.id, input.cursor!) : undefined,
+        orderBy: (e, { asc }) => [asc(e.id)],
         limit: input.limit,
       });
-      return events;
+
+      const nextCursor =
+        items.length === input.limit ? items[items.length - 1]?.id : undefined;
+
+      return { items, nextCursor };
     }),
 
   getAllLembagaIds: publicProcedure
-    .input(z.object({ limit: z.number().min(1).max(100).default(100) }))
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(100),
+        cursor: z.string().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
-      const lembagaList = await ctx.db.query.lembaga.findMany({
+      const items = await ctx.db.query.lembaga.findMany({
         columns: {
           id: true,
         },
+        where: input.cursor ? (l, { gt }) => gt(l.id, input.cursor!) : undefined,
+        orderBy: (l, { asc }) => [asc(l.id)],
         limit: input.limit,
       });
-      return lembagaList;
+
+      const nextCursor =
+        items.length === input.limit ? items[items.length - 1]?.id : undefined;
+
+      return { items, nextCursor };
     }),
 });
