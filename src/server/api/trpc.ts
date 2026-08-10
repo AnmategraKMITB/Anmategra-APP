@@ -95,6 +95,14 @@ export const createCallerFactory = t.createCallerFactory;
 export const createTRPCRouter = t.router;
 
 /**
+ * Merge multiple routers into one, flattening their procedures onto a
+ * single namespace (official replacement for spreading `._def.procedures`).
+ *
+ * @see https://trpc.io/docs/server/merging-routers
+ */
+export const mergeTRPCRouters = t.mergeRouters;
+
+/**
  * Middleware for timing procedure execution and adding an artificial delay in development.
  *
  * You can remove this if you don't like it, but it can help catch unwanted waterfalls by simulating
