@@ -365,6 +365,7 @@ export const lembagaRouter = createTRPCRouter({
             eq(event.org_id, input.lembagaId),
             eq(event.is_highlighted, true),
           ),
+        orderBy: (event, { desc }) => [desc(event.updated_at)],
       });
 
       if (!highlightedEvent) return null;

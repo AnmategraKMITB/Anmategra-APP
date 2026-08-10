@@ -214,26 +214,34 @@ export const eventStatusEnum = pgEnum('event_status', [
   'Ended',
 ]);
 
-export const events = createTable('event', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  org_id: varchar('org_id', { length: 255 }).references(() => lembaga.id),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-  image: varchar('image', { length: 255 }),
-  background_image: varchar('background_image', { length: 255 }),
-  start_date: timestamp('start_date').notNull(),
-  end_date: timestamp('end_date'),
-  status: eventStatusEnum('status').notNull(),
-  oprec_link: varchar('oprec_link', { length: 255 }),
-  location: varchar('location', { length: 255 }),
-  participant_limit: integer('participant_limit').notNull().default(0),
-  participant_count: integer('participant_count').notNull().default(0),
-  is_highlighted: boolean('is_highlighted').notNull().default(false),
-  is_organogram: boolean('is_organogram').notNull().default(false),
-  organogram_image: varchar('organogram_image', { length: 255 }),
-  rapor_visible: boolean('rapor_visible').notNull().default(false),
-  ...timestamps,
-});
+export const events = createTable(
+  'event',
+  {
+    id: varchar('id', { length: 255 }).primaryKey(),
+    org_id: varchar('org_id', { length: 255 }).references(() => lembaga.id),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: text('description'),
+    image: varchar('image', { length: 255 }),
+    background_image: varchar('background_image', { length: 255 }),
+    start_date: timestamp('start_date').notNull(),
+    end_date: timestamp('end_date'),
+    status: eventStatusEnum('status').notNull(),
+    oprec_link: varchar('oprec_link', { length: 255 }),
+    location: varchar('location', { length: 255 }),
+    participant_limit: integer('participant_limit').notNull().default(0),
+    participant_count: integer('participant_count').notNull().default(0),
+    is_highlighted: boolean('is_highlighted').notNull().default(false),
+    is_organogram: boolean('is_organogram').notNull().default(false),
+    organogram_image: varchar('organogram_image', { length: 255 }),
+    rapor_visible: boolean('rapor_visible').notNull().default(false),
+    ...timestamps,
+  },
+  (table) => ({
+    uniqueHighlightedPerOrg: uniqueIndex('event_org_highlighted_unique')
+      .on(table.org_id)
+      .where(sql`${table.is_highlighted} = true`),
+  }),
+);
 
 export const eventsRelations = relations(events, ({ many, one }) => ({
   lembaga: one(lembaga, {
