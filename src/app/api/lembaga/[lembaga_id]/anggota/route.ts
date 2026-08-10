@@ -3,6 +3,7 @@ import ExcelJS from 'exceljs';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { kehimpunan, mahasiswa, users } from '~/server/db/schema';
+import { apiError } from '~/utils/api-error';
 
 export async function GET(
   request: Request,
@@ -11,15 +12,15 @@ export async function GET(
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
   if (session.user.role !== 'lembaga') {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
-    return Response.json({ error: 'Missing lembaga_id' }, { status: 400 });
+    return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
   // --- Validate lembaga ownership ---
@@ -27,12 +28,12 @@ export async function GET(
     where: (l, { eq }) => eq(l.userId, session.user.id),
   });
   if (!userLembaga) {
-    return Response.json({ error: 'Lembaga not found' }, { status: 404 });
+    return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
   // --- Validate lembaga_id matches user's lembaga ---
   if (userLembaga.id !== lembaga_id) {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   // --- Fetch lembaga member data ---
@@ -131,15 +132,15 @@ export async function POST(
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
   if (session.user.role !== 'lembaga') {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
-    return Response.json({ error: 'Missing lembaga_id' }, { status: 400 });
+    return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
   // --- Validate lembaga ownership ---
@@ -147,12 +148,12 @@ export async function POST(
     where: (l, { eq }) => eq(l.userId, session.user.id),
   });
   if (!userLembaga) {
-    return Response.json({ error: 'Lembaga not found' }, { status: 404 });
+    return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
   // --- Validate lembaga_id matches user's lembaga ---
   if (userLembaga.id !== lembaga_id) {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   try {
@@ -161,16 +162,14 @@ export async function POST(
     const file = formData.get('file') as File;
 
     if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+      return apiError(400, 'No file provided', 'BAD_REQUEST');
     }
 
     if (!/\.(xlsx|xls)$/.exec(file.name)) {
-      return Response.json(
-        {
-          error:
-            'Invalid file format. Please upload Excel file (.xlsx or .xls)',
-        },
-        { status: 400 },
+      return apiError(
+        400,
+        'Invalid file format. Please upload Excel file (.xlsx or .xls)',
+        'BAD_REQUEST',
       );
     }
 
@@ -183,10 +182,7 @@ export async function POST(
     const sheet = workbook.getWorksheet();
 
     if (!sheet) {
-      return Response.json(
-        { error: 'Worksheet not found' },
-        { status: 400 },
-      );
+      return apiError(400, 'Worksheet not found', 'BAD_REQUEST');
     }
 
     // --- Process sheet data ---
@@ -209,11 +205,10 @@ export async function POST(
       if (!nama && !nim && !divisi && !posisi) continue;
 
       if (!nama || !nim || !divisi || !posisi) {
-        return Response.json(
-          {
-            error: `Row ${rowNumber}: Missing required data (Nama, NIM, Divisi, Posisi)`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Row ${rowNumber}: Missing required data (Nama, NIM, Divisi, Posisi)`,
+          'VALIDATION_ERROR',
         );
       }
       // Find mahasiswa by NIM
@@ -225,11 +220,10 @@ export async function POST(
       });
 
       if (!mahasiswaRecord) {
-        return Response.json(
-          {
-            error: `Student with NIM ${nim} not found in database. Please contact admin if this is an error.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Student with NIM ${nim} not found in database. Please contact admin if this is an error.`,
+          'VALIDATION_ERROR',
         );
       }
 
@@ -237,20 +231,18 @@ export async function POST(
       const expectedName = mahasiswaUser.name?.toLocaleLowerCase();
       const actualName = nama.toLocaleLowerCase();
       if (expectedName !== actualName) {
-        return Response.json(
-          {
-            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaUser.name}, got ${nama}.\n Please contact admin if this is an error.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Name mismatch for NIM ${nim}: expected ${mahasiswaUser.name}, got ${nama}.\n Please contact admin if this is an error.`,
+          'VALIDATION_ERROR',
         );
       }
 
       if (anggotaData.some((a) => a.userId === mahasiswaRecord.userId)) {
-        return Response.json(
-          {
-            error: `Duplicate entry for NIM ${nim} in Excel file.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Duplicate entry for NIM ${nim} in Excel file.`,
+          'VALIDATION_ERROR',
         );
       }
 
@@ -258,10 +250,7 @@ export async function POST(
     }
 
     if (anggotaData.length === 0) {
-      return Response.json(
-        { error: 'No member data found in Excel file' },
-        { status: 400 },
-      );
+      return apiError(400, 'No member data found in Excel file', 'VALIDATION_ERROR');
     }
     // --- Find users and insert kehimpunan ---
     let insertedCount = 0;
@@ -296,12 +285,11 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error importing Excel data:', error);
-    return Response.json(
-      {
-        error: 'Failed to import Excel data',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
+    return apiError(
+      500,
+      'Failed to import Excel data',
+      'INTERNAL_ERROR',
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 }
