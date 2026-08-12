@@ -114,16 +114,22 @@ export const editAnggotaLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
+// Limits track the real data: `lembaga.name` is varchar(255) (longest seeded
+// name is 73 chars), `lembaga.description` is text (longest seeded is 227).
+// The previous 30/100 caps rejected 62 of 135 names and 134 of 135
+// descriptions, so a seeded lembaga could not save its own profile at all.
 export const EditProfilLembagaInputSchema = z.object({
   nama: z
     .string()
+    .trim()
     .min(1, 'Nama wajib diisi')
-    .max(30, 'Nama maksimal 30 karakter'),
+    .max(255, 'Nama maksimal 255 karakter'),
   tipe: z.enum(['Himpunan', 'UKM', 'Kepanitiaan', 'BSO']).optional(),
   deskripsi: z
     .string()
+    .trim()
     .min(10, 'Deskripsi minimal 10 karakter')
-    .max(100, 'Deskripsi maksimal 100 karakter')
+    .max(500, 'Deskripsi maksimal 500 karakter')
     .optional(),
   gambar: z.string().url().optional(),
 });
