@@ -32,12 +32,50 @@ export const ORG_UNIT_KIND_RANK: Record<OrganizationUnitKind, number> = {
   Subdivisi: 3,
 };
 
-export type StructureOwner = {
-  id: string;
-  lembagaId: string | null;
-  eventId: string | null;
-  is_active: boolean;
-};
+export type StructureOwner = typeof organizationStructure.$inferSelect;
+
+/** Postgres unique_violation — a duplicate that callers should see as CONFLICT. */
+export function isUniqueViolation(error: unknown): boolean {
+  return (
+    !!error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code?: string }).code === '23505'
+  );
+}
+
+/** Postgres foreign_key_violation — e.g. deleting a unit that still has children. */
+export function isForeignKeyViolation(error: unknown): boolean {
+  return (
+    !!error &&
+    typeof error === 'object' &&
+    'code' in error &&
+    (error as { code?: string }).code === '23503'
+  );
+}
+
+/**
+ * Resolves which owner a request is scoped to. `event_id` present means the
+ * structure hangs off that kegiatan (ownership checked); absent means it
+ * belongs to the caller's own lembaga — taken from the session, never input.
+ */
+export async function resolveOwnerScope(
+  ctx: TRPCContext,
+  eventId?: string,
+): Promise<{ lembagaId: string | null; eventId: string | null }> {
+  if (eventId) {
+    await validateKegiatanOwnership(ctx, eventId);
+    return { lembagaId: null, eventId };
+  }
+  const lembagaId = ctx.session?.user?.lembagaId;
+  if (!lembagaId) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Akun ini tidak terhubung ke lembaga mana pun.',
+    });
+  }
+  return { lembagaId, eventId: null };
+}
 
 /**
  * `lembagaProcedure` only proves "you are some lembaga". Every structure-scoped
@@ -68,12 +106,7 @@ export async function resolveStructureOwnership(
   structureId: string,
 ): Promise<StructureOwner> {
   const rows = await ctx.db
-    .select({
-      id: organizationStructure.id,
-      lembagaId: organizationStructure.lembagaId,
-      eventId: organizationStructure.eventId,
-      is_active: organizationStructure.is_active,
-    })
+    .select()
     .from(organizationStructure)
     .where(eq(organizationStructure.id, structureId))
     .limit(1);
@@ -100,12 +133,7 @@ export async function resolveUnitOwnership(
   const rows = await ctx.db
     .select({
       unit: organizationUnit,
-      structure: {
-        id: organizationStructure.id,
-        lembagaId: organizationStructure.lembagaId,
-        eventId: organizationStructure.eventId,
-        is_active: organizationStructure.is_active,
-      },
+      structure: organizationStructure,
     })
     .from(organizationUnit)
     .innerJoin(
@@ -134,12 +162,7 @@ export async function resolveRoleOwnership(
   const rows = await ctx.db
     .select({
       role: organizationRole,
-      structure: {
-        id: organizationStructure.id,
-        lembagaId: organizationStructure.lembagaId,
-        eventId: organizationStructure.eventId,
-        is_active: organizationStructure.is_active,
-      },
+      structure: organizationStructure,
     })
     .from(organizationRole)
     .innerJoin(
