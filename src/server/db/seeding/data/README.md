@@ -36,7 +36,17 @@ Emails come from a human source — an updated sheet from the lead, or the org's
 
 **Add one new lembaga by hand.** Append a row to `lembaga-official.csv` (minimum: `email`, `name`, `type`) and re-run `npm run db:seed-lembaga`. When new orgs arrive as part of a whole new spreadsheet, use the refresh pipeline below instead.
 
-**Change or remove an existing account.** The seed cannot do this (see the add-only limitation below) — edit the database directly.
+**Change an existing account.** Edit the row in `lembaga-official.csv` and re-run the seed — it updates any lembaga whose stored values disagree with the CSV. Always dry-run first: the CSV wins, so an update silently replaces whatever is in the database, including edits a lembaga made through the app.
+
+```
+npm run db:seed-lembaga -- --dry-run       # prints every field as "old -> new"
+npm run db:seed-lembaga
+npm run db:seed-lembaga -- --insert-only   # add new orgs, touch nothing existing
+```
+
+A blank CSV cell means "unknown", never "clear this" — an empty cell leaves a populated column alone, so blanking a field still has to be done in the database. Only `name`, `description`, `founding_date`, `ending_date`, `type`, `major`, `field` and `member_count` are ever written; a name change also updates `users.name`, which is what the logged-in sidebar shows. Dates compare on their **Jakarta calendar date**, so a value stored at WIB midnight is not mistaken for a different day.
+
+**Remove an account.** The seed never deletes — do it in the database directly.
 
 ## How this CSV was built (one-shot pipeline)
 
@@ -44,7 +54,7 @@ Emails come from a human source — an updated sheet from the lead, or the org's
 2. `scripts/build-lembaga-csv.py` → baseline CSV — descriptions + inferred majors/fields (**no emails**)
 3. `scripts/merge-lembaga-xlsx.cjs <xlsx>` → `raw/merge-report.csv` — matches the baseline against the official KM ITB database
 4. `scripts/apply-merge.cjs <xlsx>` → patches the baseline (emails, founding dates, member counts, official prodi/rumpun) and appends the team-approved additions (16 new UKMs, 6 Cirebon komisariat, 2 BSO)
-5. `npm run db:seed-lembaga [-- --dry-run]` — idempotent loader; `LEMBAGA_CSV=<path>` env var points it at another file (e.g. a synthetic-email copy for testing)
+5. `npm run db:seed-lembaga [-- --dry-run]` — idempotent loader; inserts new accounts and updates changed ones. `LEMBAGA_CSV=<path>` env var points it at another file (e.g. a synthetic-email copy for testing)
 
 **Next period's spreadsheet?** One command re-runs steps 2–4 deterministically:
 
@@ -56,9 +66,11 @@ Changed emails/dates/counts propagate on re-run. Orgs the sheet lists that we do
 have yet show up as `unmatched theirs` in the merge summary — add a one-line entry to
 `ADDITIONS` in `scripts/apply-merge.cjs` (with a hand-written description) and re-run.
 
-**Limitation — the seed is add-only:** it never updates or deletes existing accounts.
-If an org's email changes, seeding adds a second account and orphans the old one; a
-disbanded org stays until removed from the DB by hand.
+**Limitation — email is the join key:** rows are matched to existing accounts by
+email, so a *changed* email is not an update, it is a new account — seeding adds a
+second one and orphans the old (along with anything the org filled in through the
+app). Fix the email in the database first, then seed. Deletions are never
+automatic: a disbanded org stays until removed by hand.
 
 ## Cautions
 
