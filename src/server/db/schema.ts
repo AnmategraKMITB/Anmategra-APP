@@ -272,8 +272,14 @@ export const keanggotaan = createTable(
     user_id: varchar('user_id', { length: 255 })
       .references(() => users.id)
       .notNull(),
-    org_unit_id: varchar('org_unit_id', { length: 255 }),
-    org_role_id: varchar('org_role_id', { length: 255 }),
+    org_unit_id: varchar('org_unit_id', { length: 255 }).references(
+      () => organizationUnit.id,
+      { onDelete: 'set null' },
+    ),
+    org_role_id: varchar('org_role_id', { length: 255 }).references(
+      () => organizationRole.id,
+      { onDelete: 'set null' },
+    ),
     position: varchar('position', { length: 255 }).notNull(),
     division: varchar('division', { length: 255 }).notNull(),
     index: integer('index').notNull().default(0),
@@ -284,6 +290,10 @@ export const keanggotaan = createTable(
       table.event_id,
       table.user_id,
     ),
+    // Postgres does not index the child side of a FK, and ON DELETE SET NULL
+    // scans it on every organization_unit/_role delete.
+    orgUnitIdx: index('keanggotaan_org_unit_idx').on(table.org_unit_id),
+    orgRoleIdx: index('keanggotaan_org_role_idx').on(table.org_role_id),
   }),
 );
 
@@ -296,8 +306,14 @@ export const associationRequests = createTable('association_request', {
   user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
     onDelete: 'cascade',
   }),
-  org_unit_id: varchar('org_unit_id', { length: 255 }),
-  org_role_id: varchar('org_role_id', { length: 255 }),
+  org_unit_id: varchar('org_unit_id', { length: 255 }).references(
+    () => organizationUnit.id,
+    { onDelete: 'set null' },
+  ),
+  org_role_id: varchar('org_role_id', { length: 255 }).references(
+    () => organizationRole.id,
+    { onDelete: 'set null' },
+  ),
   position: varchar('position', { length: 255 }).notNull(),
   division: varchar('division', { length: 255 }).notNull(),
   status: associationRequestStatusEnum('status').notNull().default('Pending'),
@@ -313,8 +329,14 @@ export const associationRequestsLembaga = createTable(
       () => lembaga.id,
     ),
     user_id: varchar('user_id', { length: 255 }).references(() => users.id),
-    org_unit_id: varchar('org_unit_id', { length: 255 }),
-    org_role_id: varchar('org_role_id', { length: 255 }),
+    org_unit_id: varchar('org_unit_id', { length: 255 }).references(
+      () => organizationUnit.id,
+      { onDelete: 'set null' },
+    ),
+    org_role_id: varchar('org_role_id', { length: 255 }).references(
+      () => organizationRole.id,
+      { onDelete: 'set null' },
+    ),
     position: varchar('position', { length: 255 }).notNull(),
     division: varchar('division', { length: 255 }).notNull(),
     status: associationRequestStatusEnum('status').notNull().default('Pending'),
@@ -472,8 +494,14 @@ export const kehimpunan = createTable(
     lembagaId: varchar('lembaga_id', { length: 255 })
       .notNull()
       .references(() => lembaga.id),
-    org_unit_id: varchar('org_unit_id', { length: 255 }),
-    org_role_id: varchar('org_role_id', { length: 255 }),
+    org_unit_id: varchar('org_unit_id', { length: 255 }).references(
+      () => organizationUnit.id,
+      { onDelete: 'set null' },
+    ),
+    org_role_id: varchar('org_role_id', { length: 255 }).references(
+      () => organizationRole.id,
+      { onDelete: 'set null' },
+    ),
     division: varchar('division', { length: 255 }).notNull(),
     position: varchar('position', { length: 255 }).notNull(),
     index: integer('index').notNull().default(0),
@@ -483,6 +511,10 @@ export const kehimpunan = createTable(
       table.lembagaId,
       table.userId,
     ),
+    // Postgres does not index the child side of a FK, and ON DELETE SET NULL
+    // scans it on every organization_unit/_role delete.
+    orgUnitIdx: index('kehimpunan_org_unit_idx').on(table.org_unit_id),
+    orgRoleIdx: index('kehimpunan_org_role_idx').on(table.org_role_id),
   }),
 );
 
@@ -498,57 +530,115 @@ export const kehimpunanRelations = relations(kehimpunan, ({ one }) => ({
 }));
 
 // Organization Structure
-export const organizationStructure = createTable('organization_structure', {
-  id: varchar('id', { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  lembagaId: varchar('lembaga_id', { length: 255 }).references(
-    () => lembaga.id,
-    { onDelete: 'cascade' },
-  ),
-  eventId: varchar('event_id', { length: 255 }).references(() => events.id, {
-    onDelete: 'cascade',
+export const organizationStructure = createTable(
+  'organization_structure',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    lembagaId: varchar('lembaga_id', { length: 255 }).references(
+      () => lembaga.id,
+      { onDelete: 'cascade' },
+    ),
+    eventId: varchar('event_id', { length: 255 }).references(() => events.id, {
+      onDelete: 'cascade',
+    }),
+    name: varchar('name', { length: 255 }).notNull(),
+    is_active: boolean('is_active').notNull().default(true),
+    ...timestamps,
+  },
+  (table) => ({
+    // A structure belongs to exactly one owner; the XOR itself is a CHECK
+    // constraint hand-written in the migration (drizzle-kit cannot emit those).
+    activeLembagaUnique: uniqueIndex(
+      'organization_structure_active_lembaga_unique',
+    )
+      .on(table.lembagaId)
+      .where(sql`${table.is_active} = true AND ${table.lembagaId} IS NOT NULL`),
+    activeEventUnique: uniqueIndex('organization_structure_active_event_unique')
+      .on(table.eventId)
+      .where(sql`${table.is_active} = true AND ${table.eventId} IS NOT NULL`),
   }),
-  name: varchar('name', { length: 255 }).notNull(),
-  is_active: boolean('is_active').notNull().default(true),
-  ...timestamps,
-});
+);
+
+/**
+ * Labels a unit carries. `level` is the unit's DEPTH in the tree (root = 1),
+ * NOT a fixed function of `kind` — existing production data is flat, with
+ * `Divisi` sitting at level 1 as a root. Ordering rules between kinds are
+ * enforced in the router, not the database.
+ */
+export const ORGANIZATION_UNIT_KINDS = [
+  'Bidang',
+  'Divisi',
+  'Subdivisi',
+] as const;
+export type OrganizationUnitKind = (typeof ORGANIZATION_UNIT_KINDS)[number];
+
+export const ORGANIZATION_UNIT_MAX_LEVEL = 3;
 
 // Organization Unit
-export const organizationUnit = createTable('organization_unit', {
-  id: varchar('id', { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  structure_id: varchar('structure_id', { length: 255 })
-    .references(() => organizationStructure.id, { onDelete: 'cascade' })
-    .notNull(),
-  parent_id: varchar('parent_id', { length: 255 }).references(
-    () => organizationUnit.id,
-    { onDelete: 'restrict' },
-  ),
-  name: varchar('name', { length: 255 }).notNull(),
-  kind: varchar('kind', { length: 255 }).notNull(),
-  level: integer('level').notNull(),
-  sort_order: integer('sort_order').notNull().default(0),
-  ...timestamps,
-});
+export const organizationUnit = createTable(
+  'organization_unit',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    structure_id: varchar('structure_id', { length: 255 })
+      .references(() => organizationStructure.id, { onDelete: 'cascade' })
+      .notNull(),
+    // `no action` rather than `restrict`: restrict is checked immediately, so
+    // cascading a structure delete into a multi-level tree would abort with
+    // 23503 and make deleting a lembaga fail. `no action` defers the check to
+    // end-of-statement, still rejecting a direct delete of a unit with children.
+    parent_id: varchar('parent_id', { length: 255 }).references(
+      () => organizationUnit.id,
+      { onDelete: 'no action' },
+    ),
+    name: varchar('name', { length: 255 }).notNull(),
+    kind: varchar('kind', { length: 255 })
+      .$type<OrganizationUnitKind>()
+      .notNull(),
+    level: integer('level').notNull(),
+    sort_order: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    structureIdx: index('organization_unit_structure_idx').on(
+      table.structure_id,
+    ),
+    parentIdx: index('organization_unit_parent_idx').on(table.parent_id),
+    siblingOrderIdx: index('organization_unit_sibling_order_idx').on(
+      table.structure_id,
+      table.parent_id,
+      table.sort_order,
+    ),
+  }),
+);
 
 // Organization Role
-export const organizationRole = createTable('organization_role', {
-  id: varchar('id', { length: 255 })
-    .notNull()
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  structure_id: varchar('structure_id', { length: 255 })
-    .references(() => organizationStructure.id, { onDelete: 'cascade' })
-    .notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  ring_level: integer('ring_level').notNull(),
-  sort_order: integer('sort_order').notNull().default(0),
-  ...timestamps,
-});
+export const organizationRole = createTable(
+  'organization_role',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    structure_id: varchar('structure_id', { length: 255 })
+      .references(() => organizationStructure.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    ring_level: integer('ring_level').notNull(),
+    sort_order: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    structureIdx: index('organization_role_structure_idx').on(
+      table.structure_id,
+    ),
+  }),
+);
 
 // Best Staff
 export const bestStaffKegiatan = createTable('best_staff_kegiatan', {
