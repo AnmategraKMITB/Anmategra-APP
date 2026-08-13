@@ -20,6 +20,7 @@ import {
   UpdateEventInputSchema,
   UpdateEventOutputSchema,
 } from '../../types/event.type';
+import { resolveOrgAssignment } from '../organization/services';
 
 export const updateEvent = lembagaProcedure
   .input(UpdateEventInputSchema)
@@ -98,12 +99,21 @@ export const addNewPanitia = lembagaProcedure
         });
       }
 
+      const assignment = await resolveOrgAssignment(ctx.db, {
+        ownerType: 'event',
+        ownerId: input.event_id,
+        org_unit_id: input.org_unit_id,
+        org_role_id: input.org_role_id,
+      });
+
       await ctx.db.insert(keanggotaan).values({
         id: input.event_id + '_' + input.user_id,
         event_id: input.event_id,
         user_id: input.user_id,
-        position: input.position,
-        division: input.division,
+        org_unit_id: assignment.org_unit_id,
+        org_role_id: assignment.org_role_id,
+        position: assignment.position ?? input.position,
+        division: assignment.division ?? input.division,
       });
 
       return {
@@ -204,11 +214,24 @@ export const editPanitia = lembagaProcedure
         });
       }
 
+      const hasOrgAssignmentInput =
+        input.org_unit_id !== undefined || input.org_role_id !== undefined;
+      const assignment = await resolveOrgAssignment(ctx.db, {
+        ownerType: 'event',
+        ownerId: input.event_id,
+        org_unit_id: input.org_unit_id,
+        org_role_id: input.org_role_id,
+      });
+
       const result = await ctx.db
         .update(keanggotaan)
         .set({
-          position: input.position,
-          division: input.division,
+          ...(hasOrgAssignmentInput && {
+            org_unit_id: assignment.org_unit_id,
+            org_role_id: assignment.org_role_id,
+          }),
+          position: assignment.position ?? input.position,
+          division: assignment.division ?? input.division,
         })
         .where(
           and(
@@ -263,6 +286,13 @@ export const addNewPanitiaManual = lembagaProcedure
         });
       }
 
+      const assignment = await resolveOrgAssignment(ctx.db, {
+        ownerType: 'event',
+        ownerId: input.event_id,
+        org_unit_id: input.org_unit_id,
+        org_role_id: input.org_role_id,
+      });
+
       // Check if user already exists by email (primary identifier)
       const email = `${input.nim}@mahasiswa.itb.ac.id`;
       const existingUser = await ctx.db.query.users.findFirst({
@@ -282,8 +312,10 @@ export const addNewPanitiaManual = lembagaProcedure
           id: input.event_id + '_' + existingUser.id,
           event_id: input.event_id,
           user_id: existingUser.id,
-          position: input.position,
-          division: input.division,
+          org_unit_id: assignment.org_unit_id,
+          org_role_id: assignment.org_role_id,
+          position: assignment.position ?? input.position,
+          division: assignment.division ?? input.division,
         });
 
         return {
@@ -322,8 +354,10 @@ export const addNewPanitiaManual = lembagaProcedure
           id: input.event_id + '_' + user[0]!.id,
           event_id: input.event_id,
           user_id: user[0]!.id,
-          position: input.position,
-          division: input.division,
+          org_unit_id: assignment.org_unit_id,
+          org_role_id: assignment.org_role_id,
+          position: assignment.position ?? input.position,
+          division: assignment.division ?? input.division,
         });
       });
 

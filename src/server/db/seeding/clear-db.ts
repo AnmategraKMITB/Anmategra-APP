@@ -15,6 +15,9 @@ import {
   nilaiProfilKegiatan,
   nilaiProfilLembaga,
   notifications,
+  organizationRole,
+  organizationStructure,
+  organizationUnit,
   pemetaanProfilKegiatan,
   pemetaanProfilLembaga,
   profilKM,
@@ -65,6 +68,13 @@ async function clearAllTables() {
     await safeDelete(profilKM, 'profilKM');
     await safeDelete(bestStaffLembaga, 'bestStaffLembaga');
     await safeDelete(bestStaffKegiatan, 'bestStaffKegiatan');
+    // Organization tables before the membership tables: keanggotaan/kehimpunan
+    // point at them via ON DELETE SET NULL, and those rows are deleted below
+    // anyway. Units go first so the self-referencing parent_id is emptied in
+    // one statement rather than relying on the structure cascade.
+    await safeDelete(organizationUnit, 'organizationUnit');
+    await safeDelete(organizationRole, 'organizationRole');
+    await safeDelete(organizationStructure, 'organizationStructure');
     await safeDelete(kehimpunan, 'kehimpunan');
     await safeDelete(notifications, 'notifications');
     await safeDelete(support, 'support');

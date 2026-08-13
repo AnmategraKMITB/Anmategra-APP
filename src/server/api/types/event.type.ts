@@ -49,6 +49,8 @@ export const AddNewPanitiaKegiatanInputSchema = z.object({
   user_id: z.string(),
   position: z.string(),
   division: z.string(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const AddNewPanitiaKegiatanOutputSchema = z.object({
@@ -92,6 +94,8 @@ export const AddNewPanitiaKegiatanManualInputSchema = z.object({
   nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   position: z.string().nonempty(),
   division: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const EventIdSchema = z.object({
