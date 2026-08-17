@@ -613,6 +613,9 @@ export const lembagaRouter = createTRPCRouter({
           name: input.nama,
           description: input.deskripsi,
           ...(input.tipe ? { type: input.tipe } : {}),
+          ...(input.singkatan !== undefined
+            ? { acronym: input.singkatan || null }
+            : {}),
         })
         .where(eq(lembaga.id, ctx.session.user.lembagaId!));
 

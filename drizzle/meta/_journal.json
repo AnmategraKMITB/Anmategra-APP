@@ -169,6 +169,13 @@
       "when": 1786396556997,
       "tag": "0023_marvelous_robin_chapel",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1786959870493,
+      "tag": "0024_tearful_korath",
+      "breakpoints": true
     }
   ]
 }

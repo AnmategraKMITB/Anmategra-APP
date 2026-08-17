@@ -36,12 +36,13 @@ const profileLembagaSchema = z.object({
   nama: z
     .string()
     .min(1, 'Nama wajib diisi')
-    .max(30, 'Nama maksimal 30 karakter'),
+    .max(255, 'Nama maksimal 255 karakter'),
+  singkatan: z.string().max(50, 'Singkatan maksimal 50 karakter').optional(),
   tipe: z.enum(lembagaTypeOptions).optional(),
   deskripsi: z
     .string()
     .min(10, 'Deskripsi minimal 10 karakter')
-    .max(100, 'Deskripsi maksimal 100 krakater'),
+    .max(500, 'Deskripsi maksimal 500 karakter'),
   gambar: z.string().url(),
 });
 type profileLembagaSchemaType = z.infer<typeof profileLembagaSchema>;
@@ -54,6 +55,7 @@ const EditProfileLembaga = ({
   lembagaData: {
     id: string;
     name: string;
+    acronym?: string | null;
     description: string | null;
     type?: (typeof lembagaTypeOptions)[number] | null;
     users: {
@@ -70,6 +72,7 @@ const EditProfileLembaga = ({
     resolver: zodResolver(profileLembagaSchema),
     defaultValues: {
       nama: lembagaData.name ?? '',
+      singkatan: lembagaData.acronym ?? '',
       tipe: lembagaData.type ?? undefined,
       deskripsi: lembagaData.description ?? '',
       gambar: lembagaData.users.image ?? '',
@@ -220,6 +223,27 @@ const EditProfileLembaga = ({
                         <FormControl>
                           <Input
                             placeholder="Masukkan nama lembaga"
+                            {...field}
+                            className="border rounded-xl border-neutral-400 bg-neutral-200 text-sm md:text-base"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Nama Singkatan / Akronim */}
+                  <FormField
+                    control={form.control}
+                    name="singkatan"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="font-normal text-neutral-1000 text-sm md:text-lg">
+                          Nama Singkatan
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="Contoh: HMTG"
                             {...field}
                             className="border rounded-xl border-neutral-400 bg-neutral-200 text-sm md:text-base"
                           />
