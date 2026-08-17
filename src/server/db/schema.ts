@@ -179,6 +179,7 @@ export const lembaga = createTable('lembaga', {
     .references(() => users.id, { onDelete: 'cascade' })
     .notNull(),
   name: varchar('name', { length: 255 }).notNull(),
+  acronym: varchar('acronym', { length: 50 }),
   description: text('description'),
   foundingDate: timestamp('founding_date', {
     mode: 'date',

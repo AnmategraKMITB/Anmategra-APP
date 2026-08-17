@@ -58,6 +58,7 @@ type LembagaType = (typeof LEMBAGA_TYPES)[number];
 interface Row {
   email: string;
   name: string;
+  acronym: string | null;
   description: string | null;
   foundingDate: Date | null;
   endingDate: Date | null;
@@ -108,6 +109,7 @@ function readCsv(): Row[] {
     rows.push({
       email,
       name,
+      acronym: rec.acronym || null,
       description: rec.description || null,
       foundingDate,
       endingDate: parseDate(rec.ending_date),
@@ -127,6 +129,7 @@ function readCsv(): Row[] {
 /** The lembaga columns this CSV owns — the only ones an update ever touches. */
 const UPDATABLE = [
   'name',
+  'acronym',
   'description',
   'foundingDate',
   'endingDate',
@@ -198,6 +201,7 @@ async function applyUpdate(update: PlannedUpdate): Promise<void> {
   const set: Partial<typeof lembaga.$inferInsert> = {};
 
   if (changed.has('name')) set.name = row.name;
+  if (changed.has('acronym')) set.acronym = row.acronym;
   if (changed.has('description')) set.description = row.description;
   if (changed.has('foundingDate')) set.foundingDate = row.foundingDate;
   if (changed.has('endingDate')) set.endingDate = row.endingDate;
@@ -267,6 +271,7 @@ async function main() {
             id: lembaga.id,
             userId: lembaga.userId,
             name: lembaga.name,
+            acronym: lembaga.acronym,
             description: lembaga.description,
             foundingDate: lembaga.foundingDate,
             endingDate: lembaga.endingDate,
@@ -385,6 +390,7 @@ async function main() {
         id: crypto.randomUUID(),
         userId: userIdByEmail.get(r.email)!,
         name: r.name,
+        acronym: r.acronym,
         description: r.description,
         foundingDate: r.foundingDate,
         endingDate: r.endingDate,

@@ -124,6 +124,11 @@ export const EditProfilLembagaInputSchema = z.object({
     .trim()
     .min(1, 'Nama wajib diisi')
     .max(255, 'Nama maksimal 255 karakter'),
+  singkatan: z
+    .string()
+    .trim()
+    .max(50, 'Singkatan maksimal 50 karakter')
+    .optional(),
   tipe: z.enum(['Himpunan', 'UKM', 'Kepanitiaan', 'BSO']).optional(),
   deskripsi: z
     .string()

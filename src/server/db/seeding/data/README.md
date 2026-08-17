@@ -16,6 +16,7 @@
 |---|---|---|
 | `email` | yes | rows without email are skipped by the seed with a named warning |
 | `name` | yes | |
+| `acronym` | no | short name / nama singkatan, e.g. `HMTG` (max 50 chars); blank leaves any existing value alone |
 | `description` | no | neutral factual Indonesian, 1–2 sentences |
 | `founding_date` | no | ISO date; unknown stays null (column nullable since migration `0017`) |
 | `type` | yes | `Himpunan` / `UKM` / `Kepanitiaan` / `BSO` (`BSO` added in migration `0018`) |
@@ -44,9 +45,37 @@ npm run db:seed-lembaga
 npm run db:seed-lembaga -- --insert-only   # add new orgs, touch nothing existing
 ```
 
-A blank CSV cell means "unknown", never "clear this" — an empty cell leaves a populated column alone, so blanking a field still has to be done in the database. Only `name`, `description`, `founding_date`, `ending_date`, `type`, `major`, `field` and `member_count` are ever written; a name change also updates `users.name`, which is what the logged-in sidebar shows. Dates compare on their **Jakarta calendar date**, so a value stored at WIB midnight is not mistaken for a different day.
+A blank CSV cell means "unknown", never "clear this" — an empty cell leaves a populated column alone, so blanking a field still has to be done in the database. Only `name`, `acronym`, `description`, `founding_date`, `ending_date`, `type`, `major`, `field` and `member_count` are ever written; a name change also updates `users.name`, which is what the logged-in sidebar shows. Dates compare on their **Jakarta calendar date**, so a value stored at WIB midnight is not mistaken for a different day.
 
 **Remove an account.** The seed never deletes — do it in the database directly.
+
+## Import from a Google Form (acronym / description)
+
+Profile fields collected from lembaga through a Google Form (e.g. `acronym` /
+nama singkatan, `description`) load through this same seed — **no xlsx step**. The
+form's response sheet becomes a CSV the seed reads directly via `LEMBAGA_CSV`, so
+you never have to touch the committed `lembaga-official.csv`.
+
+1. In the responses Google Sheet: **File → Download → Comma-separated values (.csv)**.
+2. Rename the columns so the headers match the seed's names: **`email`** (required —
+   the join key) plus any of **`acronym`**, **`description`**. Columns the form does
+   not collect can be left out entirely; a blank cell means "leave the stored value
+   alone", never "clear it".
+3. Load it, pointing `LEMBAGA_CSV` at your file (dry-run first — the CSV wins and
+   overwrites app edits for any field it fills):
+
+```
+LEMBAGA_CSV=/path/to/form-responses.csv npm run db:seed-lembaga -- --dry-run   # review every old -> new
+LEMBAGA_CSV=/path/to/form-responses.csv npm run db:seed-lembaga                # write for real
+```
+
+**`email` is the join key** — it must exactly match the email on the lembaga's
+account, or the seed treats the row as a brand-new org (a duplicate account), not
+an update. Pre-fill or validate the email question in the form.
+
+**Logo is not imported this way.** A Google Form file upload lands in Drive as a URL
+that will not render, and the logo lives on `users.image`, not a `lembaga` column.
+Have each lembaga upload their logo through the in-app profile form instead.
 
 ## How this CSV was built (one-shot pipeline)
 
