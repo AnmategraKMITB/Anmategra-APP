@@ -8,8 +8,10 @@ import {
   GetAllReportsAdminOutputSchema,
   SetReportStatusInputSchema,
   SetReportStatusOutputSchema,
+  UploadAlumniCsvInputSchema,
+  UploadAlumniCsvOutputSchema,
 } from '~/server/api/types/admin.type';
-import { users, verifiedUsers } from '~/server/db/schema';
+import { alumniPending, mahasiswa, users, verifiedUsers } from '~/server/db/schema';
 import { support } from '~/server/db/schema';
 
 export const adminRouter = createTRPCRouter({
@@ -130,5 +132,50 @@ export const adminRouter = createTRPCRouter({
         .set({ status: input.status })
         .where(eq(support.id, input.id));
       return { success: true, message: 'Status laporan berhasil diperbarui' };
+    }),
+
+  // H-03: upload CSV wisuda. NIM yang match akun terdaftar langsung jadi
+  // alumni; NIM yang belum terdaftar disimpan sebagai pending dan otomatis
+  // diterapkan saat mahasiswa itu sign-in pertama kali (lihat auth.ts).
+  uploadAlumniCsv: adminProcedure
+    .input(UploadAlumniCsvInputSchema)
+    .output(UploadAlumniCsvOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existingMahasiswa = await ctx.db.query.mahasiswa.findMany({
+        where: inArray(mahasiswa.nim, input.nims),
+        columns: { nim: true },
+      });
+      const registeredNims = new Set(existingMahasiswa.map((m) => m.nim));
+      const pendingNims = input.nims.filter((nim) => !registeredNims.has(nim));
+
+      if (registeredNims.size > 0) {
+        await ctx.db
+          .update(mahasiswa)
+          .set({ status: 'alumni' })
+          .where(inArray(mahasiswa.nim, Array.from(registeredNims)));
+      }
+
+      for (const nim of pendingNims) {
+        await ctx.db
+          .insert(alumniPending)
+          .values({
+            nim,
+            wisudaBatch: input.wisudaBatch,
+            uploadedBy: ctx.session.user.id,
+          })
+          .onConflictDoUpdate({
+            target: alumniPending.nim,
+            set: {
+              wisudaBatch: input.wisudaBatch,
+              uploadedBy: ctx.session.user.id,
+            },
+          });
+      }
+
+      return {
+        success: true,
+        updatedCount: registeredNims.size,
+        pendingCount: pendingNims.length,
+      };
     }),
 });

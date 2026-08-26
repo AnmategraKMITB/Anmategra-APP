@@ -44,3 +44,16 @@ export const SetReportStatusOutputSchema = z.object({
   success: z.boolean(),
   message: z.string(),
 });
+
+// Alumni CSV upload (H-03): NIM lulusan per batch wisuda. Yang belum
+// terdaftar disimpan sebagai pending, otomatis di-apply saat sign-in pertama.
+export const UploadAlumniCsvInputSchema = z.object({
+  nims: z.array(z.number().int().positive()).min(1),
+  wisudaBatch: z.string().optional(),
+});
+
+export const UploadAlumniCsvOutputSchema = z.object({
+  success: z.boolean(),
+  updatedCount: z.number(),
+  pendingCount: z.number(),
+});

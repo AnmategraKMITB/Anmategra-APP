@@ -1,6 +1,7 @@
 import { profileRouter } from '~/server/api/routers/profile';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 
+import { adminGrantRouter } from './routers/admin-grant';
 import { adminRouter } from './routers/admin';
 import { eventRouter } from './routers/event';
 import { kegiatanRouter } from './routers/kegiatan';
@@ -8,6 +9,7 @@ import { landingRouter } from './routers/landing';
 import { lembagaRouter } from './routers/lembaga';
 import { profilRouter } from './routers/profil';
 import { raporRouter } from './routers/rapor';
+import { riwayatRouter } from './routers/riwayat';
 import { userRouter } from './routers/user';
 
 /**
@@ -17,6 +19,7 @@ import { userRouter } from './routers/user';
  */
 export const appRouter = createTRPCRouter({
   admin: adminRouter,
+  adminGrant: adminGrantRouter,
   landing: landingRouter,
   lembaga: lembagaRouter,
   event: eventRouter,
@@ -25,6 +28,7 @@ export const appRouter = createTRPCRouter({
   users: userRouter,
   profil: profilRouter,
   rapor: raporRouter,
+  riwayat: riwayatRouter,
 });
 
 // export type definition of API
