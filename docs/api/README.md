@@ -8,8 +8,8 @@ Ada dua artefak:
 
 | Artefak | Isi | Dilihat lewat |
 |---|---|---|
-| `openapi.json` | 115 procedure tRPC + 5 endpoint REST | Scalar di `http://localhost:3000/api/docs` |
-| `schema.dbml` | 32 tabel Drizzle beserta relasinya | dbdocs.io (`npm run docs:db:publish`) |
+| `openapi.json` | Procedure tRPC + Endpoint REST | Scalar di `http://localhost:3000/api/docs` |
+| `schema.dbml` | Tabel Drizzle beserta relasinya | dbdocs.io (`npm run docs:db:publish`) |
 
 ---
 
@@ -223,6 +223,3 @@ tanpa regenerate docs akan gagal. Perbaikannya selalu sama: `npm run docs`, lalu
   Ganti ke `z.object({ ... })` kalau endpoint-nya perlu terdokumentasi utuh.
 - Prosa manual masih tipis: baru sebagian procedure yang punya deskripsi di
   `api-notes.json`, dan catatan per-kolom di `schema-notes.json` baru sedikit.
-- Dokumen manual lama (`API_REFERENCE.md`, `DATABASE_REFERENCE.md`) sudah dipensiunkan
-  karena isinya keburu basi — prosanya sudah diserap ke file notes di atas. Berkasnya
-  tidak pernah di-track git; di mesin yang sudah punya, sekarang ada di `docs/archive/`.
