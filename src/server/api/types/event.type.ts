@@ -1,8 +1,42 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
-import type { events } from '~/server/db/schema';
+import { eventStatusEnum, type events } from '~/server/db/schema';
+
+import { LembagaRowSchema } from './lembaga.type';
 
 type Event = InferSelectModel<typeof events>;
+
+/** Bentuk satu baris tabel `event` apa adanya. */
+export const EventRowSchema = z.object({
+  id: z.string(),
+  org_id: z.string().nullable(),
+  name: z.string(),
+  description: z.string().nullable(),
+  image: z.string().nullable(),
+  background_image: z.string().nullable(),
+  start_date: z.date(),
+  end_date: z.date().nullable(),
+  status: z.enum(eventStatusEnum.enumValues),
+  oprec_link: z.string().nullable(),
+  location: z.string().nullable(),
+  participant_limit: z.number(),
+  participant_count: z.number(),
+  is_highlighted: z.boolean(),
+  is_organogram: z.boolean(),
+  organogram_image: z.string().nullable(),
+  rapor_visible: z.boolean(),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
+
+/** Varian publik: `org_id` sengaja tidak diambil oleh query-nya. */
+export const EventPublicRowSchema = EventRowSchema.omit({ org_id: true });
+
+export const GetEventByIdInputSchema = z.object({ id: z.string() });
+
+export const GetEventByIdOutputSchema = EventRowSchema.extend({
+  lembaga: LembagaRowSchema.nullable(),
+}).optional();
 
 export const CreateEventInputSchema = z.object({
   name: z.string().min(1, 'Nama kegiatan wajib diisi'),
