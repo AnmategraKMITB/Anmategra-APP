@@ -1,0 +1,104 @@
+{
+  "anmategra_user": {
+    "note": "Akun pengguna inti. Satu baris per akun, terlepas dari peran (admin/lembaga/mahasiswa)."
+  },
+  "anmategra_account": {
+    "note": "OAuth account linking (Auth.js adapter table)."
+  },
+  "anmategra_session": {
+    "note": "Session aktif Auth.js."
+  },
+  "anmategra_verification_token": {
+    "note": "Token verifikasi email/login Auth.js."
+  },
+  "anmategra_mahasiswa": {
+    "note": "Profil mahasiswa, 1:1 terhadap `anmategra_user` (untuk akun ber-role `mahasiswa`)."
+  },
+  "anmategra_alumni_pending": {
+    "note": "Fallback upload CSV alumni: NIM lulus yang belum punya akun. Diterapkan otomatis lalu dihapus saat mahasiswa dengan NIM ini sign-in pertama kali."
+  },
+  "anmategra_lembaga": {
+    "note": "Organisasi/institusi (Himpunan, UKM, atau Kepanitiaan/event-organizer)."
+  },
+  "anmategra_event": {
+    "note": "Kegiatan/acara yang diselenggarakan oleh sebuah lembaga."
+  },
+  "anmategra_keanggotaan": {
+    "note": "Membership mahasiswa dalam sebuah event/kepanitiaan (posisi struktural)."
+  },
+  "anmategra_kehimpunan": {
+    "note": "Membership mahasiswa dalam sebuah lembaga (posisi struktural, analog `keanggotaan` tapi level lembaga, bukan event)."
+  },
+  "anmategra_association_request": {
+    "note": "Permintaan mahasiswa untuk bergabung ke sebuah event/kepanitiaan (alur oprec)."
+  },
+  "anmategra_association_request_lembaga": {
+    "note": "Permintaan mahasiswa untuk bergabung langsung ke sebuah lembaga (di luar konteks event tertentu — mis. Himpunan/UKM)."
+  },
+  "anmategra_lembaga_admin": {
+    "note": "RO-03. Grant akses kelola lembaga ke akun lain (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka. Owner tetap lembaga.user_id.",
+    "columns": {
+      "status": "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
+    }
+  },
+  "anmategra_event_admin": {
+    "note": "RO-03. Grant akses kelola satu kepanitiaan. Owner/Admin lembaga induk otomatis punya akses tanpa baris di sini.",
+    "columns": {
+      "status": "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
+    }
+  },
+  "anmategra_riwayat_organisasi": {
+    "note": "H-03. Snapshot permanen keanggotaan lembaga, di-insert oleh aplikasi (bukan DB trigger) saat user keluar, supaya histori tetap ada walau row kehimpunan dihapus."
+  },
+  "anmategra_riwayat_kepanitiaan": {
+    "note": "H-03. Snapshot permanen keanggotaan kepanitiaan, di-insert oleh aplikasi saat user keluar, supaya histori tetap ada walau row keanggotaan dihapus."
+  },
+  "anmategra_profil_km": {
+    "note": "Master daftar profil/kompetensi Kampus Merdeka — akar taksonomi penilaian."
+  },
+  "anmategra_profil_kegiatan": {
+    "note": "Profil/kriteria penilaian spesifik milik satu event."
+  },
+  "anmategra_profil_lembaga": {
+    "note": "Profil/kriteria penilaian spesifik milik satu lembaga."
+  },
+  "anmategra_pemetaan_profil_kegiatan": {
+    "note": "Tabel junction: memetakan `profil_kegiatan` ke `profil_km` (many-to-many antara profil event dan taksonomi kompetensi)."
+  },
+  "anmategra_pemetaan_profil_lembaga": {
+    "note": "Tabel junction: memetakan `profil_lembaga` ke `profil_km`."
+  },
+  "anmategra_nilai_profil_kegiatan": {
+    "note": "Nilai mahasiswa terhadap suatu profil kegiatan."
+  },
+  "anmategra_nilai_profil_lembaga": {
+    "note": "Nilai mahasiswa terhadap suatu profil lembaga."
+  },
+  "anmategra_best_staff_kegiatan": {
+    "note": "Penghargaan \"best staff\" untuk mahasiswa pada suatu event."
+  },
+  "anmategra_best_staff_lembaga": {
+    "note": "Penghargaan \"best staff\" untuk mahasiswa pada suatu lembaga."
+  },
+  "anmategra_organization_structure": {
+    "note": "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role)."
+  },
+  "anmategra_organization_unit": {
+    "note": "Divisi/bidang di dalam sebuah struktur organisasi."
+  },
+  "anmategra_organization_role": {
+    "note": "Posisi/jabatan di dalam sebuah organization unit."
+  },
+  "anmategra_support": {
+    "note": "Tiket dukungan/pengaduan dari pengguna."
+  },
+  "anmategra_support_reply": {
+    "note": "Balasan/thread pada tiket support."
+  },
+  "anmategra_notification": {
+    "note": "Notifikasi in-app per pengguna."
+  },
+  "anmategra_verified_user": {
+    "note": "Whitelist email yang diizinkan mendaftar."
+  }
+}

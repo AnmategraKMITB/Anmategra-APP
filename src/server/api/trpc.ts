@@ -43,37 +43,56 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    // Customize message for Zod validation errors
-    if (error.cause instanceof ZodError) {
-      const zodError = error.cause;
-      const formattedMessage = zodError.errors
-        .map((e) => {
-          return e.message;
-        })
-        .join('; ');
+/**
+ * Per-procedure metadata. `access` is set once on each procedure builder below
+ * instead of on every procedure, so routers stay untouched; the OpenAPI
+ * generator (`scripts/gen-openapi.cts`) reads it to document who may call what.
+ */
+export type ApiMeta = {
+  access:
+    | 'public'
+    | 'authenticated'
+    | 'admin'
+    | 'lembaga'
+    | 'lembaga-scoped'
+    | 'lembaga-owner'
+    | 'event-scoped';
+};
+
+const t = initTRPC
+  .context<typeof createTRPCContext>()
+  .meta<ApiMeta>()
+  .create({
+    transformer: superjson,
+    errorFormatter({ shape, error }) {
+      // Customize message for Zod validation errors
+      if (error.cause instanceof ZodError) {
+        const zodError = error.cause;
+        const formattedMessage = zodError.errors
+          .map((e) => {
+            return e.message;
+          })
+          .join('; ');
+
+        return {
+          ...shape,
+          message: formattedMessage,
+          data: {
+            ...shape.data,
+            zodError: zodError.flatten(),
+          },
+        };
+      }
 
       return {
         ...shape,
-        message: formattedMessage,
         data: {
           ...shape.data,
-          zodError: zodError.flatten(),
+          zodError: null,
         },
       };
-    }
-
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError: null,
-      },
-    };
-  },
-});
+    },
+  });
 
 /**
  * Create a server-side caller.
@@ -144,7 +163,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure
+  .meta({ access: 'public' })
+  .use(timingMiddleware);
 
 /**
  * Protected (authenticated) procedure
@@ -155,6 +176,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure
+  .meta({ access: 'authenticated' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session?.user) {
@@ -169,6 +191,7 @@ export const protectedProcedure = t.procedure
   });
 
 export const adminProcedure = t.procedure
+  .meta({ access: 'admin' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (
@@ -194,6 +217,7 @@ export const isLembaga = t.middleware(async ({ ctx, next }) => {
 });
 
 export const lembagaProcedure = protectedProcedure
+  .meta({ access: 'lembaga' })
   .use(timingMiddleware)
   .use(isLembaga);
 
@@ -275,6 +299,7 @@ export async function canManageEvent(
  * perlu dimigrasi sekaligus — migrasi dilakukan bertahap per-endpoint.
  */
 export const lembagaScopedProcedure = protectedProcedure
+  .meta({ access: 'lembaga-scoped' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { lembagaId?: unknown };
@@ -300,8 +325,9 @@ export const lembagaScopedProcedure = protectedProcedure
   });
 
 /** Owner-only: kelola/grant/revoke admin lain — bukan operasional biasa. */
-export const lembagaOwnerProcedure = lembagaScopedProcedure.use(
-  ({ ctx, next }) => {
+export const lembagaOwnerProcedure = lembagaScopedProcedure
+  .meta({ access: 'lembaga-owner' })
+  .use(({ ctx, next }) => {
     if (ctx.lembagaAccess !== 'owner') {
       throw new TRPCError({
         code: 'FORBIDDEN',
@@ -309,8 +335,7 @@ export const lembagaOwnerProcedure = lembagaScopedProcedure.use(
       });
     }
     return next();
-  },
-);
+  });
 
 /**
  * Analog `lembagaScopedProcedure` tapi di-scope oleh `eventId`. Owner/Admin
@@ -318,11 +343,11 @@ export const lembagaOwnerProcedure = lembagaScopedProcedure.use(
  * cuma boleh kelola event yang di-grant ke dia secara spesifik.
  */
 export const eventScopedProcedure = protectedProcedure
+  .meta({ access: 'event-scoped' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { eventId?: unknown };
-    const eventId =
-      typeof raw?.eventId === 'string' ? raw.eventId : undefined;
+    const eventId = typeof raw?.eventId === 'string' ? raw.eventId : undefined;
     if (!eventId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',

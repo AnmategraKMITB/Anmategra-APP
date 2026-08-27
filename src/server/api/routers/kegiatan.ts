@@ -8,22 +8,31 @@ import {
 } from '~/server/api/trpc';
 
 import { EventIdSchema } from '../types/event.type';
+import {
+  GetAllKegiatanByLembagaOutputSchema,
+  GetAllKegiatanPublicOutputSchema,
+  GetKegiatanByIdPublicInputSchema,
+  GetKegiatanByIdPublicOutputSchema,
+} from '../types/kegiatan.type';
 import { GetPosisiBidangOptionsOutputSchema } from '../types/lembaga.type';
 
 export const kegiatanRouter = createTRPCRouter({
   // Public Procedures
-  getAllPublic: publicProcedure.query(async ({ ctx }) => {
-    const kegiatan = await ctx.db.query.events.findMany({
-      orderBy: (events, { desc }) => desc(events.start_date),
-      columns: {
-        org_id: false,
-      },
-    });
-    return kegiatan;
-  }),
+  getAllPublic: publicProcedure
+    .output(GetAllKegiatanPublicOutputSchema)
+    .query(async ({ ctx }) => {
+      const kegiatan = await ctx.db.query.events.findMany({
+        orderBy: (events, { desc }) => desc(events.start_date),
+        columns: {
+          org_id: false,
+        },
+      });
+      return kegiatan;
+    }),
 
   getByIdPublic: publicProcedure
-    .input(z.object({ event_id: z.string() }))
+    .input(GetKegiatanByIdPublicInputSchema)
+    .output(GetKegiatanByIdPublicOutputSchema)
     .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findFirst({
         where: (events, { eq }) => eq(events.id, input.event_id),
@@ -45,23 +54,28 @@ export const kegiatanRouter = createTRPCRouter({
         },
         columns: { org_id: false },
       });
-      return kegiatan;
+      // Sama seperti event.getByID: tipe relasi `with` dari Drizzle terlalu lebar,
+      // bentuk aslinya dijaga `.output()` saat runtime.
+      return kegiatan as z.infer<typeof GetKegiatanByIdPublicOutputSchema>;
     }),
 
   // lembaga procedure
-  getAllByLembaga: lembagaProcedure.query(async ({ ctx }) => {
-    const kegiatan = await ctx.db.query.events.findMany({
-      where: (events, { eq }) => eq(events.org_id, ctx.session.user.lembagaId!),
-      orderBy: (events, { desc }) => [
-        desc(events.is_highlighted),
-        desc(events.start_date),
-      ],
-      columns: {
-        org_id: false,
-      },
-    });
-    return kegiatan;
-  }),
+  getAllByLembaga: lembagaProcedure
+    .output(GetAllKegiatanByLembagaOutputSchema)
+    .query(async ({ ctx }) => {
+      const kegiatan = await ctx.db.query.events.findMany({
+        where: (events, { eq }) =>
+          eq(events.org_id, ctx.session.user.lembagaId!),
+        orderBy: (events, { desc }) => [
+          desc(events.is_highlighted),
+          desc(events.start_date),
+        ],
+        columns: {
+          org_id: false,
+        },
+      });
+      return kegiatan;
+    }),
 
   getPosisiBidangOptions: lembagaProcedure
     .input(EventIdSchema)
@@ -73,7 +87,10 @@ export const kegiatanRouter = createTRPCRouter({
       });
 
       if (!kegiatan) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Kegiatan tidak ditemukan' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Kegiatan tidak ditemukan',
+        });
       }
 
       if (kegiatan.org_id !== ctx.session.user.lembagaId) {

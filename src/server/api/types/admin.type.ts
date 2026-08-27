@@ -1,12 +1,47 @@
 import { type InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 import {
+  roleEnum,
   supportStatusEnum,
   supportUrgentEnum,
   type users,
 } from '~/server/db/schema';
 
 export type Admin = InferSelectModel<typeof users>;
+
+/** Bentuk satu baris tabel `user` apa adanya. */
+export const UserRowSchema = z.object({
+  id: z.string(),
+  name: z.string().nullable(),
+  email: z.string(),
+  emailVerified: z.date().nullable(),
+  image: z.string().nullable(),
+  role: z.enum(roleEnum.enumValues),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
+
+/** Bentuk satu baris tabel `verified_user` apa adanya. */
+export const VerifiedUserRowSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+});
+
+export const AddVerifiedEmailInputSchema = z.object({ email: z.string() });
+
+/** `.returning()` selalu mengembalikan array, walau hanya satu row yang di-insert. */
+export const AddVerifiedEmailOutputSchema = z.array(VerifiedUserRowSchema);
+
+export const DeleteVerifiedEmailInputSchema = z.object({ email: z.string() });
+
+/**
+ * Bentuk responsnya memang tidak seragam: kalau email-nya sudah punya akun,
+ * yang dikembalikan adalah row `user` yang dihapus; kalau belum, array row
+ * `verified_user`; kalau tidak ada dua-duanya, `undefined`.
+ */
+export const DeleteVerifiedEmailOutputSchema = z
+  .union([UserRowSchema, z.array(VerifiedUserRowSchema)])
+  .optional();
 
 export const adminSchema = z.object({
   id: z.number(),
