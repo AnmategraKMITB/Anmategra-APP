@@ -15,7 +15,10 @@ const PUBLIC_ROUTES = [
   '/profile-lembaga',
   '/profile-kegiatan',
   '/404',
-]
+];
+// Authenticated-only routes shared by all roles. These stay unprefixed so the
+// same documentation URL works for lembaga, mahasiswa, and admin users.
+const AUTHENTICATED_SHARED_ROUTES = ['/manual'];
 
 export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
@@ -26,11 +29,23 @@ export default async function middleware(req: NextRequest) {
   }
 
   const { pathname } = req.nextUrl;
-  
-    // Allow public routes without redirection
-    if (PUBLIC_ROUTES.some(route => pathname.startsWith(route)) && !token) {
-      return NextResponse.next();
+
+  // The manual is available after login but uses one shared URL for all roles.
+  if (
+    AUTHENTICATED_SHARED_ROUTES.some(
+      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    )
+  ) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/authentication', req.url));
     }
+    return NextResponse.next();
+  }
+
+  // Allow public routes without redirection
+  if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route)) && !token) {
+    return NextResponse.next();
+  }
 
   // Redirect to authentication if not logged in (except for root and auth page)
   if (pathname !== '/' && pathname !== '/authentication' && pathname !== '/auth-error' && !token) {

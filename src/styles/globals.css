@@ -27,7 +27,7 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-    --radius: 0.5rem
+    --radius: 0.5rem;
   }
   .dark {
     --background: 0 0% 3.9%;
@@ -53,7 +53,7 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%
+    --chart-5: 340 75% 55%;
   }
 }
 @layer base {
@@ -67,4 +67,322 @@
     width: var(--radix-popover-trigger-width);
     max-height: var(--radix-popover-content-available-height);
   }
+}
+
+/* ===================================================================== */
+/* Manual / documentation content                                        */
+/* ===================================================================== */
+.docs-content {
+  color: #474e50;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.docs-content > *:first-child {
+  margin-top: 0;
+}
+.docs-content h1 {
+  font-size: 2rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: #475569;
+  margin: 0 0 1.25rem;
+  scroll-margin-top: 6rem;
+}
+.docs-content h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 2.5rem 0 1rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid #c4cace;
+  scroll-margin-top: 6rem;
+}
+.docs-content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 1.75rem 0 0.75rem;
+  scroll-margin-top: 6rem;
+}
+.docs-content p {
+  margin: 1rem 0;
+}
+.docs-content a {
+  color: #2b6282;
+  text-decoration: none;
+  font-weight: 500;
+}
+.docs-content a:hover {
+  text-decoration: underline;
+}
+.docs-content ul,
+.docs-content ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+.docs-content ul {
+  list-style: disc;
+}
+.docs-content ol {
+  list-style: decimal;
+}
+.docs-content li {
+  margin: 0.4rem 0;
+}
+.docs-content li > ul,
+.docs-content li > ol {
+  margin: 0.4rem 0;
+}
+.docs-content blockquote {
+  margin: 1.25rem 0;
+  padding: 0.25rem 0 0.25rem 1rem;
+  border-left: 3px solid #c4cace;
+  color: #636a6d;
+}
+.docs-content :not(pre) > code {
+  background: #f1f5f9;
+  color: #b91c1c;
+  padding: 0.15em 0.4em;
+  border-radius: 0.3rem;
+  font-size: 0.875em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.docs-content pre {
+  margin: 1.25rem 0;
+  padding: 1rem 1.25rem;
+  background: #f6f8fa;
+  border: 1px solid #e9edf1;
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.docs-content pre code {
+  background: transparent;
+  padding: 0;
+  color: #24292e;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.docs-content table {
+  width: 100%;
+  margin: 1.25rem 0;
+  border-collapse: collapse;
+  font-size: 0.925rem;
+}
+.docs-content th,
+.docs-content td {
+  border: 1px solid #c4cace;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+}
+.docs-content thead th {
+  background: #dfe7ec;
+  font-weight: 600;
+  color: #2b6282;
+}
+.docs-content tbody td {
+  background: #ffffff;
+  color: #474e50;
+}
+.docs-content table code {
+  background: #dfe7ec;
+  color: #2b6282;
+  padding: 0.1em 0.35em;
+  border-radius: 0.2rem;
+  font-weight: 600;
+}
+.docs-content img {
+  border-radius: 0.5rem;
+  border: 1px solid #e9edf1;
+  margin: 1.25rem 0;
+}
+.docs-content hr {
+  margin: 2rem 0;
+  border: 0;
+  border-top: 1px solid #e9edf1;
+}
+
+/* Callouts (GitHub-style alerts) */
+.docs-content .callout {
+  margin: 1.25rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid;
+  border-left-width: 4px;
+  border-radius: 0;
+  color: #1f2937;
+}
+.docs-content .callout > *:first-child {
+  margin-top: 0;
+}
+.docs-content .callout > *:last-child {
+  margin-bottom: 0;
+}
+.docs-content .callout::before {
+  display: block;
+  width: fit-content;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid currentColor;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.docs-content .callout-note {
+  background: #dbeafe;
+  border-color: #2563eb;
+}
+.docs-content .callout-note::before {
+  content: 'Catatan';
+  color: #1d4ed8;
+}
+.docs-content .callout-tip {
+  background: #d1fae5;
+  border-color: #059669;
+}
+.docs-content .callout-tip::before {
+  content: 'Tips';
+  color: #047857;
+}
+.docs-content .callout-important {
+  background: #ede9fe;
+  border-color: #7c3aed;
+}
+.docs-content .callout-important::before {
+  content: 'Penting';
+  color: #6d28d9;
+}
+.docs-content .callout-warning {
+  background: #fef3c7;
+  border-color: #d97706;
+}
+.docs-content .callout-warning::before {
+  content: 'Peringatan';
+  color: #b45309;
+}
+.docs-content .callout-caution {
+  background: #fee2e2;
+  border-color: #dc2626;
+}
+.docs-content .callout-caution::before {
+  content: 'Perhatian';
+  color: #b91c1c;
+}
+
+/* Syntax highlighting tokens (highlight.js, GitHub-ish light) */
+.docs-content .hljs-comment,
+.docs-content .hljs-quote {
+  color: #6a737d;
+  font-style: italic;
+}
+.docs-content .hljs-keyword,
+.docs-content .hljs-selector-tag,
+.docs-content .hljs-doctag {
+  color: #d73a49;
+}
+.docs-content .hljs-string,
+.docs-content .hljs-attr,
+.docs-content .hljs-regexp,
+.docs-content .hljs-addition {
+  color: #032f62;
+}
+.docs-content .hljs-number,
+.docs-content .hljs-literal,
+.docs-content .hljs-built_in,
+.docs-content .hljs-builtin-name {
+  color: #005cc5;
+}
+.docs-content .hljs-title,
+.docs-content .hljs-section,
+.docs-content .hljs-name {
+  color: #6f42c1;
+}
+.docs-content .hljs-type {
+  color: #22863a;
+}
+.docs-content .hljs-variable,
+.docs-content .hljs-template-variable {
+  color: #e36209;
+}
+.docs-content .hljs-tag {
+  color: #22863a;
+}
+.docs-content .hljs-meta {
+  color: #6a737d;
+}
+.docs-content .hljs-deletion {
+  color: #b31d28;
+}
+
+/* Dark mode */
+.dark .docs-content {
+  color: #cbd5e1;
+}
+.dark .docs-content h1,
+.dark .docs-content h2,
+.dark .docs-content h3 {
+  color: #f1f5f9;
+}
+.dark .docs-content a {
+  color: #7fbfd8;
+}
+.dark .docs-content :not(pre) > code {
+  background: #1f2937;
+  color: #fca5a5;
+}
+.dark .docs-content pre {
+  background: #0d1117;
+}
+.dark .docs-content pre code {
+  color: #c9d1d9;
+}
+.dark .docs-content thead th {
+  background: #1f2937;
+  color: #f1f5f9;
+}
+.dark .docs-content tbody td {
+  background: #111827;
+  color: #e5e7eb;
+}
+.dark .docs-content table code {
+  background: #374151;
+  color: #bfdbfe;
+}
+.dark .docs-content .callout {
+  color: #e5e7eb;
+}
+.dark .docs-content .callout-note {
+  background: #172554;
+  border-color: #60a5fa;
+}
+.dark .docs-content .callout-note::before {
+  color: #93c5fd;
+}
+.dark .docs-content .callout-tip {
+  background: #064e3b;
+  border-color: #34d399;
+}
+.dark .docs-content .callout-tip::before {
+  color: #6ee7b7;
+}
+.dark .docs-content .callout-important {
+  background: #2e1065;
+  border-color: #a78bfa;
+}
+.dark .docs-content .callout-important::before {
+  color: #c4b5fd;
+}
+.dark .docs-content .callout-warning {
+  background: #78350f;
+  border-color: #fbbf24;
+}
+.dark .docs-content .callout-warning::before {
+  color: #fcd34d;
+}
+.dark .docs-content .callout-caution {
+  background: #7f1d1d;
+  border-color: #f87171;
+}
+.dark .docs-content .callout-caution::before {
+  color: #fca5a5;
 }
