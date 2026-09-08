@@ -77,6 +77,18 @@ export const markdownComponents: Components = {
   },
   img: ({ src, alt }) => (
     // eslint-disable-next-line @next/next/no-img-element -- markdown images lack intrinsic dimensions
-    <img src={typeof src === 'string' ? src : ''} alt={alt ?? ''} loading="lazy" />
+    <img
+      src={typeof src === 'string' ? src : ''}
+      alt={alt ?? ''}
+      loading="lazy"
+      className="block h-auto max-w-full"
+    />
+  ),
+  // Wide tables scroll inside their own container instead of stretching the
+  // page, so future content with many columns stays readable on mobile.
+  table: ({ children }) => (
+    <div className="overflow-x-auto">
+      <table>{children}</table>
+    </div>
   ),
 };

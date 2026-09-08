@@ -104,6 +104,21 @@
   margin: 1.75rem 0 0.75rem;
   scroll-margin-top: 6rem;
 }
+.docs-content h4 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 1.5rem 0 0.6rem;
+  scroll-margin-top: 6rem;
+}
+.docs-content h5,
+.docs-content h6 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #475569;
+  margin: 1.25rem 0 0.5rem;
+  scroll-margin-top: 6rem;
+}
 .docs-content p {
   margin: 1rem 0;
 }
@@ -111,9 +126,15 @@
   color: #2b6282;
   text-decoration: none;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 .docs-content a:hover {
   text-decoration: underline;
+}
+.docs-content a:focus-visible {
+  outline: 2px solid #2b6282;
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 .docs-content ul,
 .docs-content ol {
@@ -146,6 +167,7 @@
   border-radius: 0.3rem;
   font-size: 0.875em;
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  overflow-wrap: anywhere;
 }
 .docs-content pre {
   margin: 1.25rem 0;
@@ -320,11 +342,24 @@
 }
 .dark .docs-content h1,
 .dark .docs-content h2,
-.dark .docs-content h3 {
+.dark .docs-content h3,
+.dark .docs-content h4,
+.dark .docs-content h5,
+.dark .docs-content h6 {
   color: #f1f5f9;
 }
 .dark .docs-content a {
   color: #7fbfd8;
+}
+.dark .docs-content a:focus-visible {
+  outline-color: #7fbfd8;
+}
+.dark .docs-content blockquote {
+  border-left-color: #4b5563;
+  color: #9ca3af;
+}
+.dark .docs-content hr {
+  border-top-color: #374151;
 }
 .dark .docs-content :not(pre) > code {
   background: #1f2937;
@@ -340,9 +375,16 @@
   background: #1f2937;
   color: #f1f5f9;
 }
+.dark .docs-content th,
+.dark .docs-content td {
+  border-color: #374151;
+}
 .dark .docs-content tbody td {
   background: #111827;
   color: #e5e7eb;
+}
+.dark .docs-content img {
+  border-color: #374151;
 }
 .dark .docs-content table code {
   background: #374151;

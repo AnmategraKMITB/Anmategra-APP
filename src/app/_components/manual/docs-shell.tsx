@@ -1,11 +1,18 @@
 'use client';
 
 // Library Import
-import { ChevronLeft, ChevronRight, Download, Menu, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Menu } from 'lucide-react';
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 // Components Import
 import { Button } from '~/components/ui/button';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetTitle,
+} from '~/components/ui/sheet';
 // Type Import
 import { type DocNav, type DocPage } from '~/types/manual';
 
@@ -35,6 +42,10 @@ function flattenPages(nav: DocNav, basePath: string): FlatPage[] {
   return pages;
 }
 
+// Accessible light+dark styling shared by the manual's outline buttons.
+const manualOutlineButton =
+  'dark:border-[#7FBFD8] dark:text-[#7FBFD8] dark:hover:bg-[#7FBFD8]/10 dark:hover:text-[#7FBFD8] dark:active:bg-[#7FBFD8]/10 dark:active:text-[#7FBFD8]';
+
 export function DocsShell({
   nav,
   page,
@@ -48,6 +59,12 @@ export function DocsShell({
 }) {
   const articleRef = useRef<HTMLElement>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const pathname = usePathname();
+
+  // Close the drawer whenever the route changes (e.g. browser back/forward).
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
 
   const contentKey = page.meta.slug.join('/');
   const flat = flattenPages(nav, basePath);
@@ -66,7 +83,9 @@ export function DocsShell({
         <Button
           variant="dark_blue_outline"
           size="sm"
-          className="gap-2 lg:hidden"
+          className={`gap-2 lg:hidden ${manualOutlineButton}`}
+          aria-haspopup="dialog"
+          aria-expanded={mobileNavOpen}
           onClick={() => setMobileNavOpen(true)}
         >
           <Menu className="h-4 w-4" />
@@ -76,7 +95,7 @@ export function DocsShell({
           <Button
             variant="dark_blue_outline"
             size="sm"
-            className="gap-2"
+            className={`gap-2 ${manualOutlineButton}`}
             asChild
           >
             <a href={pdfHref} target="_blank" rel="noopener noreferrer">
@@ -96,21 +115,21 @@ export function DocsShell({
         </aside>
 
         {/* Content */}
-        <main ref={articleRef} className="min-w-0 flex-1">
+        <main ref={articleRef} className="min-w-0 max-w-3xl flex-1">
           <DocsArticle content={page.content} />
 
           {(prev ?? next) && (
-            <div className="mt-12 flex flex-col gap-4 border-t border-[#C4CACE] pt-6 sm:flex-row sm:justify-between">
+            <div className="mt-12 flex flex-col gap-4 border-t border-[#C4CACE] pt-6 dark:border-slate-700 sm:flex-row sm:justify-between">
               {prev ? (
                 <Link
                   href={prev.href}
-                  className="group flex flex-1 flex-col rounded-lg border border-[#C4CACE] p-4 transition-colors hover:border-[#2B6282]"
+                  className="group flex flex-1 flex-col rounded-lg border border-[#C4CACE] p-4 transition-colors hover:border-[#2B6282] dark:border-slate-700 dark:hover:border-[#7FBFD8]"
                 >
-                  <span className="flex items-center gap-1 text-xs text-neutral-700">
+                  <span className="flex items-center gap-1 text-xs text-neutral-700 dark:text-slate-400">
                     <ChevronLeft className="h-3 w-3" />
                     Sebelumnya
                   </span>
-                  <span className="mt-1 font-medium text-neutral-800 group-hover:text-[#2B6282]">
+                  <span className="mt-1 font-medium text-neutral-800 group-hover:text-[#2B6282] dark:text-slate-200 dark:group-hover:text-[#7FBFD8]">
                     {prev.title}
                   </span>
                 </Link>
@@ -120,13 +139,13 @@ export function DocsShell({
               {next ? (
                 <Link
                   href={next.href}
-                  className="group flex flex-1 flex-col rounded-lg border border-[#C4CACE] p-4 text-right transition-colors hover:border-[#2B6282]"
+                  className="group flex flex-1 flex-col rounded-lg border border-[#C4CACE] p-4 text-right transition-colors hover:border-[#2B6282] dark:border-slate-700 dark:hover:border-[#7FBFD8]"
                 >
-                  <span className="flex items-center justify-end gap-1 text-xs text-neutral-700">
+                  <span className="flex items-center justify-end gap-1 text-xs text-neutral-700 dark:text-slate-400">
                     Selanjutnya
                     <ChevronRight className="h-3 w-3" />
                   </span>
-                  <span className="mt-1 font-medium text-neutral-800 group-hover:text-[#2B6282]">
+                  <span className="mt-1 font-medium text-neutral-800 group-hover:text-[#2B6282] dark:text-slate-200 dark:group-hover:text-[#7FBFD8]">
                     {next.title}
                   </span>
                 </Link>
@@ -146,32 +165,24 @@ export function DocsShell({
       </div>
 
       {/* Mobile navigation drawer */}
-      {mobileNavOpen && (
-        <div className="fixed inset-0 z-[70] lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setMobileNavOpen(false)}
-          />
-          <div className="absolute left-0 top-0 h-full w-72 max-w-[80%] overflow-y-auto bg-white p-6 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <p className="font-semibold text-neutral-900">Daftar isi</p>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8"
-                onClick={() => setMobileNavOpen(false)}
-              >
-                <X className="h-5 w-5" />
-              </Button>
-            </div>
+      <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
+        <SheetContent
+          side="left"
+          className="w-80 max-w-[85vw] overflow-y-auto p-6"
+        >
+          <SheetTitle>Daftar isi</SheetTitle>
+          <SheetDescription className="sr-only">
+            Navigasi manual Anmategra
+          </SheetDescription>
+          <div className="mt-4">
             <DocsNav
               nav={nav}
               basePath={basePath}
               onNavigate={() => setMobileNavOpen(false)}
             />
           </div>
-        </div>
-      )}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

@@ -68,17 +68,20 @@ export function DocsToc({
 
   return (
     <nav aria-label="Di halaman ini" className="text-sm">
-      <p className="mb-3 font-semibold text-neutral-900">Di halaman ini</p>
-      <ul className="space-y-2 border-l border-[#C4CACE]">
+      <p className="mb-3 font-semibold text-neutral-900 dark:text-slate-100">Di halaman ini</p>
+      <ul className="space-y-2 border-l border-[#C4CACE] dark:border-slate-700">
         {items.map((item) => (
           <li key={item.id}>
             <a
               href={`#${item.id}`}
+              aria-current={activeId === item.id ? 'location' : undefined}
               className={cn(
                 '-ml-px block border-l border-transparent py-0.5 text-neutral-700 transition-colors hover:text-[#2B6282]',
+                'dark:text-slate-400 dark:hover:text-[#7FBFD8]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6282] focus-visible:ring-offset-1 focus-visible:ring-offset-background dark:focus-visible:ring-[#7FBFD8]',
                 item.level === 3 ? 'pl-7' : 'pl-4',
                 activeId === item.id &&
-                  'border-[#2B6282] font-medium text-[#2B6282]',
+                  'border-[#2B6282] font-medium text-[#2B6282] dark:border-[#7FBFD8] dark:text-[#7FBFD8]',
               )}
             >
               {item.text}

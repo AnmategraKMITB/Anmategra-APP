@@ -29,9 +29,13 @@ export function DocsNav({
       <Link
         href={href}
         onClick={onNavigate}
+        aria-current={active ? 'page' : undefined}
         className={cn(
           'block rounded-md px-3 py-1.5 text-[15px] text-neutral-600 transition-colors hover:bg-[#DFE7EC] hover:text-[#2B6282]',
-          active && 'bg-[#DFE7EC] font-medium text-[#2B6282]',
+          'dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-[#7FBFD8]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2B6282] focus-visible:ring-offset-1 focus-visible:ring-offset-background dark:focus-visible:ring-[#7FBFD8]',
+          active &&
+            'bg-[#DFE7EC] font-medium text-[#2B6282] dark:bg-slate-800 dark:text-[#7FBFD8]',
         )}
       >
         {label}
@@ -40,7 +44,7 @@ export function DocsNav({
   };
 
   return (
-    <nav className="flex flex-col gap-6">
+    <nav aria-label="Dokumentasi" className="flex flex-col gap-6">
       {nav.index && (
         <NavLink
           href={hrefFor(basePath, nav.index.slug)}
@@ -50,7 +54,7 @@ export function DocsNav({
 
       {nav.categories.map((category) => (
         <div key={category.label} className="flex flex-col gap-1">
-          <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-neutral-700">
+          <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-neutral-700 dark:text-slate-500">
             {category.label}
           </p>
           {category.pages.map((page) => (
