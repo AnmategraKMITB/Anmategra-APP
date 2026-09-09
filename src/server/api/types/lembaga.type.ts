@@ -1,4 +1,26 @@
 import { z } from 'zod';
+import { lembagaTypeEnum } from '~/server/db/schema';
+
+/**
+ * Bentuk satu baris tabel `lembaga` apa adanya. Dipakai endpoint yang memang
+ * mengembalikan row mentah, supaya schema-nya bisa dirender di dokumentasi
+ * (`z.custom` menghasilkan schema kosong di OpenAPI).
+ */
+export const LembagaRowSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  foundingDate: z.date().nullable(),
+  endingDate: z.date().nullable(),
+  type: z.enum(lembagaTypeEnum.enumValues).nullable(),
+  major: z.string().nullable(),
+  field: z.string().nullable(),
+  memberCount: z.number().nullable(),
+  raporVisible: z.boolean(),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
 
 export const GetInfoLembagaInputSchema = z.object({
   lembagaId: z.string().nonempty(),

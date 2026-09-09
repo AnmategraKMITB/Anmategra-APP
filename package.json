@@ -17,6 +17,11 @@
     "db:backfill-lembaga-descriptions": "tsx src/server/db/seeding/backfill-lembaga-descriptions.ts",
     "db:summarize-lembaga": "tsx scripts/km-summarize.ts --all",
     "db:refresh-lembaga": "bash scripts/refresh-lembaga.sh",
+    "docs:api": "SKIP_ENV_VALIDATION=1 tsx scripts/gen-openapi.cts",
+    "docs:db": "tsx scripts/gen-dbml.ts",
+    "docs": "npm run docs:api && npm run docs:db",
+    "docs:check": "bash scripts/docs-check.sh",
+    "docs:db:publish": "npx -y dbdocs build docs/api/schema.dbml --project anmategra",
     "dev": "next dev",
     "lint": "next lint",
     "start": "next start",
@@ -95,6 +100,7 @@
     "@types/react-dom": "^18.3.0",
     "@typescript-eslint/eslint-plugin": "^8.1.0",
     "@typescript-eslint/parser": "^8.1.0",
+    "drizzle-dbml-generator": "^0.9.0",
     "drizzle-kit": "^0.24.2",
     "eslint": "^9.0.0",
     "eslint-config-next": "^16.1.1",
@@ -106,7 +112,8 @@
     "prettier-plugin-tailwindcss": "^0.6.5",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.5",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "zod-to-json-schema": "^3.25.2"
   },
   "ct3aMetadata": {
     "initVersion": "7.37.0"

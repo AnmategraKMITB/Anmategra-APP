@@ -6,3 +6,6 @@ node_modules
 .next
 dist
 build
+# Artefak generate — biar tidak bentrok dengan format keluaran generator.
+docs/api/openapi.json
+docs/api/schema.dbml

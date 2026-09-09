@@ -7,10 +7,12 @@
  * need to use are documented accordingly near the end.
  */
 import { TRPCError, initTRPC } from '@trpc/server';
+import { and, eq } from 'drizzle-orm';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
+import { eventAdmin, events, lembagaAdmin } from '~/server/db/schema';
 
 /**
  * 1. CONTEXT
@@ -41,37 +43,56 @@ export const createTRPCContext = async (opts: { headers: Headers }) => {
  * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
  * errors on the backend.
  */
-const t = initTRPC.context<typeof createTRPCContext>().create({
-  transformer: superjson,
-  errorFormatter({ shape, error }) {
-    // Customize message for Zod validation errors
-    if (error.cause instanceof ZodError) {
-      const zodError = error.cause;
-      const formattedMessage = zodError.errors
-        .map((e) => {
-          return e.message;
-        })
-        .join('; ');
+/**
+ * Per-procedure metadata. `access` is set once on each procedure builder below
+ * instead of on every procedure, so routers stay untouched; the OpenAPI
+ * generator (`scripts/gen-openapi.cts`) reads it to document who may call what.
+ */
+export type ApiMeta = {
+  access:
+    | 'public'
+    | 'authenticated'
+    | 'admin'
+    | 'lembaga'
+    | 'lembaga-scoped'
+    | 'lembaga-owner'
+    | 'event-scoped';
+};
+
+const t = initTRPC
+  .context<typeof createTRPCContext>()
+  .meta<ApiMeta>()
+  .create({
+    transformer: superjson,
+    errorFormatter({ shape, error }) {
+      // Customize message for Zod validation errors
+      if (error.cause instanceof ZodError) {
+        const zodError = error.cause;
+        const formattedMessage = zodError.errors
+          .map((e) => {
+            return e.message;
+          })
+          .join('; ');
+
+        return {
+          ...shape,
+          message: formattedMessage,
+          data: {
+            ...shape.data,
+            zodError: zodError.flatten(),
+          },
+        };
+      }
 
       return {
         ...shape,
-        message: formattedMessage,
         data: {
           ...shape.data,
-          zodError: zodError.flatten(),
+          zodError: null,
         },
       };
-    }
-
-    return {
-      ...shape,
-      data: {
-        ...shape.data,
-        zodError: null,
-      },
-    };
-  },
-});
+    },
+  });
 
 /**
  * Create a server-side caller.
@@ -142,7 +163,9 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure.use(timingMiddleware);
+export const publicProcedure = t.procedure
+  .meta({ access: 'public' })
+  .use(timingMiddleware);
 
 /**
  * Protected (authenticated) procedure
@@ -153,6 +176,7 @@ export const publicProcedure = t.procedure.use(timingMiddleware);
  * @see https://trpc.io/docs/procedures
  */
 export const protectedProcedure = t.procedure
+  .meta({ access: 'authenticated' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (!ctx.session?.user) {
@@ -167,6 +191,7 @@ export const protectedProcedure = t.procedure
   });
 
 export const adminProcedure = t.procedure
+  .meta({ access: 'admin' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
     if (
@@ -192,5 +217,152 @@ export const isLembaga = t.middleware(async ({ ctx, next }) => {
 });
 
 export const lembagaProcedure = protectedProcedure
+  .meta({ access: 'lembaga' })
   .use(timingMiddleware)
   .use(isLembaga);
+
+/**
+ * RO-03: Owner/Admin Lembaga & Kepanitiaan.
+ *
+ * Owner Lembaga tetap akun `role==='lembaga'` yang memiliki lembaga tsb
+ * (dicek via `session.user.lembagaId`). Admin Lembaga adalah akun lain
+ * (biasanya `role==='mahasiswa'`) yang di-grant akses lewat tabel
+ * `lembagaAdmin` tanpa mengubah role top-level mereka — makanya
+ * permission check ini di-scope oleh `lembagaId` yang ada di *input*
+ * procedure, bukan cuma dari JWT.
+ */
+type LembagaAccess = 'owner' | 'admin';
+
+export async function canManageLembaga(
+  database: typeof db,
+  userId: string,
+  role: string,
+  sessionLembagaId: string | null | undefined,
+  lembagaId: string,
+): Promise<LembagaAccess | null> {
+  if (role === 'lembaga' && sessionLembagaId === lembagaId) {
+    return 'owner';
+  }
+  const grant = await database.query.lembagaAdmin.findFirst({
+    where: and(
+      eq(lembagaAdmin.lembagaId, lembagaId),
+      eq(lembagaAdmin.userId, userId),
+      eq(lembagaAdmin.status, 'active'),
+    ),
+  });
+  return grant ? 'admin' : null;
+}
+
+/**
+ * Kepanitiaan (event) tidak punya Owner sendiri — Owner Lembaga induknya
+ * otomatis jadi Owner Kepanitiaan. Admin Kepanitiaan bisa di-grant scoped
+ * ke 1 event lewat tabel `eventAdmin`, terpisah dari Admin Lembaga.
+ */
+export async function canManageEvent(
+  database: typeof db,
+  userId: string,
+  role: string,
+  sessionLembagaId: string | null | undefined,
+  eventId: string,
+): Promise<LembagaAccess | null> {
+  const event = await database.query.events.findFirst({
+    where: eq(events.id, eventId),
+    columns: { id: true, org_id: true },
+  });
+  if (!event) return null;
+
+  if (event.org_id) {
+    const lembagaAccess = await canManageLembaga(
+      database,
+      userId,
+      role,
+      sessionLembagaId,
+      event.org_id,
+    );
+    if (lembagaAccess) return lembagaAccess;
+  }
+
+  const grant = await database.query.eventAdmin.findFirst({
+    where: and(
+      eq(eventAdmin.eventId, eventId),
+      eq(eventAdmin.userId, userId),
+      eq(eventAdmin.status, 'active'),
+    ),
+  });
+  return grant ? 'admin' : null;
+}
+
+/**
+ * Procedure baru untuk mutation/query yang menerima `lembagaId` di input
+ * dan boleh diakses Owner ATAU Admin Lembaga. Endpoint lama yang masih
+ * pakai `lembagaProcedure` (Owner-only via role, tanpa cek input) TIDAK
+ * perlu dimigrasi sekaligus — migrasi dilakukan bertahap per-endpoint.
+ */
+export const lembagaScopedProcedure = protectedProcedure
+  .meta({ access: 'lembaga-scoped' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { lembagaId?: unknown };
+    const lembagaId =
+      typeof raw?.lembagaId === 'string' ? raw.lembagaId : undefined;
+    if (!lembagaId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'lembagaId is required',
+      });
+    }
+    const access = await canManageLembaga(
+      ctx.db,
+      ctx.session.user.id,
+      ctx.session.user.role,
+      ctx.session.user.lembagaId,
+      lembagaId,
+    );
+    if (!access) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
+  });
+
+/** Owner-only: kelola/grant/revoke admin lain — bukan operasional biasa. */
+export const lembagaOwnerProcedure = lembagaScopedProcedure
+  .meta({ access: 'lembaga-owner' })
+  .use(({ ctx, next }) => {
+    if (ctx.lembagaAccess !== 'owner') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Hanya Owner Lembaga yang dapat melakukan aksi ini.',
+      });
+    }
+    return next();
+  });
+
+/**
+ * Analog `lembagaScopedProcedure` tapi di-scope oleh `eventId`. Owner/Admin
+ * Lembaga otomatis boleh kelola event di bawah lembaganya; Admin Kepanitiaan
+ * cuma boleh kelola event yang di-grant ke dia secara spesifik.
+ */
+export const eventScopedProcedure = protectedProcedure
+  .meta({ access: 'event-scoped' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { eventId?: unknown };
+    const eventId = typeof raw?.eventId === 'string' ? raw.eventId : undefined;
+    if (!eventId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'eventId is required',
+      });
+    }
+    const access = await canManageEvent(
+      ctx.db,
+      ctx.session.user.id,
+      ctx.session.user.role,
+      ctx.session.user.lembagaId,
+      eventId,
+    );
+    if (!access) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, eventAccess: access, eventId } });
+  });

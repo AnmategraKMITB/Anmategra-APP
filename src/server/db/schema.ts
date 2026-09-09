@@ -64,6 +64,10 @@ export const usersRelations = relations(users, ({ many }) => ({
   supportReplies: many(supportReplies),
   notifications: many(notifications),
   lembaga: many(lembaga),
+  riwayatOrganisasi: many(riwayatOrganisasi),
+  riwayatKepanitiaan: many(riwayatKepanitiaan),
+  lembagaAdminGrants: many(lembagaAdmin),
+  eventAdminGrants: many(eventAdmin),
 }));
 
 export const accounts = createTable(
@@ -137,6 +141,11 @@ export const verificationTokens = createTable(
   }),
 );
 
+export const mahasiswaStatusEnum = pgEnum('mahasiswa_status', [
+  'aktif',
+  'alumni',
+]);
+
 export const mahasiswa = createTable('mahasiswa', {
   userId: varchar('user_id', { length: 255 })
     .primaryKey()
@@ -149,8 +158,30 @@ export const mahasiswa = createTable('mahasiswa', {
   lineId: varchar('line_id', { length: 255 }),
   whatsapp: varchar('whatsapp', { length: 255 }),
   raporVisible: boolean('rapor_visible').notNull().default(true),
+  status: mahasiswaStatusEnum('status').notNull().default('aktif'),
   ...timestamps,
 });
+
+// Alumni CSV upload fallback: NIM lulus yang belum punya akun terdaftar.
+// Diterapkan otomatis (lalu dihapus) saat mahasiswa dengan NIM ini sign-in pertama kali.
+export const alumniPending = createTable(
+  'alumni_pending',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    nim: integer('nim').notNull(),
+    wisudaBatch: varchar('wisuda_batch', { length: 100 }),
+    uploadedBy: varchar('uploaded_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    ...timestamps,
+  },
+  (table) => ({
+    nimUnique: uniqueIndex('alumni_pending_nim_unique').on(table.nim),
+  }),
+);
 
 export const mahasiswaRelations = relations(mahasiswa, ({ one, many }) => ({
   users: one(users, {
@@ -206,6 +237,8 @@ export const lembagaRelations = relations(lembaga, ({ one, many }) => ({
   bestStaffLembaga: many(bestStaffLembaga),
   profilLembaga: many(profilLembaga),
   organizationStructures: many(organizationStructure),
+  riwayatOrganisasi: many(riwayatOrganisasi),
+  lembagaAdmins: many(lembagaAdmin),
 }));
 
 export const eventStatusEnum = pgEnum('event_status', [
@@ -253,6 +286,8 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
   bestStaffKegiatan: many(bestStaffKegiatan),
   profilKegiatan: many(profilKegiatan),
   organizationStructures: many(organizationStructure),
+  riwayatKepanitiaan: many(riwayatKepanitiaan),
+  eventAdmins: many(eventAdmin),
 }));
 
 // Enum for association request status
@@ -278,6 +313,7 @@ export const keanggotaan = createTable(
     division: varchar('division', { length: 255 }).notNull(),
     index: integer('index').notNull().default(0),
     description: text('description'),
+    ...timestamps,
   },
   (table) => ({
     uniqueEventUser: uniqueIndex('keanggotaan_event_user_unique').on(
@@ -477,6 +513,7 @@ export const kehimpunan = createTable(
     division: varchar('division', { length: 255 }).notNull(),
     position: varchar('position', { length: 255 }).notNull(),
     index: integer('index').notNull().default(0),
+    ...timestamps,
   },
   (table) => ({
     uniqueEventUser: uniqueIndex('kehimpunan_lembaga_user_unique').on(
@@ -877,3 +914,219 @@ export const nilaiProfilLembagaRelations = relations(
     }),
   }),
 );
+
+// Riwayat (Histori Permanen) - H-03
+//
+// Snapshot yang di-insert di aplikasi (bukan DB trigger) setiap kali user
+// keluar dari kehimpunan/keanggotaan, supaya histori tetap ada walau row
+// membership-nya dihapus.
+export const riwayatEndReasonEnum = pgEnum('riwayat_end_reason', [
+  'removed',
+  'left',
+]);
+
+export const riwayatOrganisasi = createTable(
+  'riwayat_organisasi',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    lembagaId: varchar('lembaga_id', { length: 255 }).references(
+      () => lembaga.id,
+      { onDelete: 'set null' },
+    ),
+    lembagaNama: varchar('lembaga_nama', { length: 255 }).notNull(),
+    lembagaTipe: lembagaTypeEnum('lembaga_tipe'),
+    division: varchar('division', { length: 255 }).notNull(),
+    position: varchar('position', { length: 255 }).notNull(),
+    startedAt: timestamp('started_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    endedAt: timestamp('ended_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    endReason: riwayatEndReasonEnum('end_reason').notNull(),
+    ...timestamps,
+  },
+  (table) => ({
+    userIdIdx: index('riwayat_organisasi_user_id_idx').on(table.userId),
+  }),
+);
+
+export const riwayatOrganisasiRelations = relations(
+  riwayatOrganisasi,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [riwayatOrganisasi.userId],
+      references: [users.id],
+    }),
+    lembaga: one(lembaga, {
+      fields: [riwayatOrganisasi.lembagaId],
+      references: [lembaga.id],
+    }),
+  }),
+);
+
+export const riwayatKepanitiaan = createTable(
+  'riwayat_kepanitiaan',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    eventId: varchar('event_id', { length: 255 }).references(
+      () => events.id,
+      { onDelete: 'set null' },
+    ),
+    eventNama: varchar('event_nama', { length: 255 }).notNull(),
+    lembagaId: varchar('lembaga_id', { length: 255 }).references(
+      () => lembaga.id,
+      { onDelete: 'set null' },
+    ),
+    lembagaNama: varchar('lembaga_nama', { length: 255 }),
+    division: varchar('division', { length: 255 }).notNull(),
+    position: varchar('position', { length: 255 }).notNull(),
+    startedAt: timestamp('started_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    endedAt: timestamp('ended_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    endReason: riwayatEndReasonEnum('end_reason').notNull(),
+    ...timestamps,
+  },
+  (table) => ({
+    userIdIdx: index('riwayat_kepanitiaan_user_id_idx').on(table.userId),
+  }),
+);
+
+export const riwayatKepanitiaanRelations = relations(
+  riwayatKepanitiaan,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [riwayatKepanitiaan.userId],
+      references: [users.id],
+    }),
+    event: one(events, {
+      fields: [riwayatKepanitiaan.eventId],
+      references: [events.id],
+    }),
+    lembaga: one(lembaga, {
+      fields: [riwayatKepanitiaan.lembagaId],
+      references: [lembaga.id],
+    }),
+  }),
+);
+
+// Admin Grant (Owner/Admin Lembaga & Kepanitiaan) - RO-03
+//
+// Owner Lembaga tetap akun `lembaga` existing (lembaga.userId). Admin adalah
+// akun existing lain (biasanya role 'mahasiswa') yang di-grant akses kelola
+// lembaga/event tertentu tanpa mengubah role top-level mereka.
+export const adminGrantStatusEnum = pgEnum('admin_grant_status', [
+  'active',
+  'revoked',
+]);
+
+export const lembagaAdmin = createTable(
+  'lembaga_admin',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    lembagaId: varchar('lembaga_id', { length: 255 })
+      .notNull()
+      .references(() => lembaga.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    grantedBy: varchar('granted_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    status: adminGrantStatusEnum('status').notNull().default('active'),
+    revokedAt: timestamp('revoked_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    revokedBy: varchar('revoked_by', { length: 255 }).references(
+      () => users.id,
+    ),
+    ...timestamps,
+  },
+  (table) => ({
+    lembagaUserUnique: uniqueIndex('lembaga_admin_lembaga_user_unique').on(
+      table.lembagaId,
+      table.userId,
+    ),
+    userIdIdx: index('lembaga_admin_user_id_idx').on(table.userId),
+  }),
+);
+
+export const lembagaAdminRelations = relations(lembagaAdmin, ({ one }) => ({
+  lembaga: one(lembaga, {
+    fields: [lembagaAdmin.lembagaId],
+    references: [lembaga.id],
+  }),
+  user: one(users, {
+    fields: [lembagaAdmin.userId],
+    references: [users.id],
+  }),
+}));
+
+export const eventAdmin = createTable(
+  'event_admin',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    eventId: varchar('event_id', { length: 255 })
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    grantedBy: varchar('granted_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    status: adminGrantStatusEnum('status').notNull().default('active'),
+    revokedAt: timestamp('revoked_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    revokedBy: varchar('revoked_by', { length: 255 }).references(
+      () => users.id,
+    ),
+    ...timestamps,
+  },
+  (table) => ({
+    eventUserUnique: uniqueIndex('event_admin_event_user_unique').on(
+      table.eventId,
+      table.userId,
+    ),
+    userIdIdx: index('event_admin_user_id_idx').on(table.userId),
+  }),
+);
+
+export const eventAdminRelations = relations(eventAdmin, ({ one }) => ({
+  event: one(events, {
+    fields: [eventAdmin.eventId],
+    references: [events.id],
+  }),
+  user: one(users, {
+    fields: [eventAdmin.userId],
+    references: [users.id],
+  }),
+}));

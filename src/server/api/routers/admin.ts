@@ -4,17 +4,29 @@ import { and, desc, or } from 'drizzle-orm';
 import { z } from 'zod';
 import { adminProcedure, createTRPCRouter } from '~/server/api/trpc';
 import {
+  AddVerifiedEmailInputSchema,
+  AddVerifiedEmailOutputSchema,
+  DeleteVerifiedEmailInputSchema,
+  DeleteVerifiedEmailOutputSchema,
   GetAllReportsAdminInputSchema,
   GetAllReportsAdminOutputSchema,
   SetReportStatusInputSchema,
   SetReportStatusOutputSchema,
+  UploadAlumniCsvInputSchema,
+  UploadAlumniCsvOutputSchema,
 } from '~/server/api/types/admin.type';
-import { users, verifiedUsers } from '~/server/db/schema';
+import {
+  alumniPending,
+  mahasiswa,
+  users,
+  verifiedUsers,
+} from '~/server/db/schema';
 import { support } from '~/server/db/schema';
 
 export const adminRouter = createTRPCRouter({
   addVerifiedEmail: adminProcedure
-    .input(z.object({ email: z.string() }))
+    .input(AddVerifiedEmailInputSchema)
+    .output(AddVerifiedEmailOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const user = await ctx.db
         .insert(verifiedUsers)
@@ -26,7 +38,8 @@ export const adminRouter = createTRPCRouter({
     }),
 
   deleteVerifiedEmail: adminProcedure
-    .input(z.object({ email: z.string() }))
+    .input(DeleteVerifiedEmailInputSchema)
+    .output(DeleteVerifiedEmailOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const verified_user = await ctx.db.query.verifiedUsers.findFirst({
         where: eq(verifiedUsers.email, input.email),
@@ -104,21 +117,24 @@ export const adminRouter = createTRPCRouter({
         });
       }
 
-      if (existingReport.status === input.status) {     
-        return { success: true, message: 'Status laporan sudah diatur ke nilai yang diinginkan' };
+      if (existingReport.status === input.status) {
+        return {
+          success: true,
+          message: 'Status laporan sudah diatur ke nilai yang diinginkan',
+        };
       }
-      
+
       const statusOrder = {
-        'Draft': 0,
-        'Reported': 1,
+        Draft: 0,
+        Reported: 1,
         'In Progress': 2,
-        'Resolved': 3,
+        Resolved: 3,
       } as const;
 
       const currentOrder = statusOrder[existingReport.status];
       const newOrder = statusOrder[input.status];
 
-      // Prevent going backward 
+      // Prevent going backward
       if (newOrder < currentOrder) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -130,5 +146,50 @@ export const adminRouter = createTRPCRouter({
         .set({ status: input.status })
         .where(eq(support.id, input.id));
       return { success: true, message: 'Status laporan berhasil diperbarui' };
+    }),
+
+  // H-03: upload CSV wisuda. NIM yang match akun terdaftar langsung jadi
+  // alumni; NIM yang belum terdaftar disimpan sebagai pending dan otomatis
+  // diterapkan saat mahasiswa itu sign-in pertama kali (lihat auth.ts).
+  uploadAlumniCsv: adminProcedure
+    .input(UploadAlumniCsvInputSchema)
+    .output(UploadAlumniCsvOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const existingMahasiswa = await ctx.db.query.mahasiswa.findMany({
+        where: inArray(mahasiswa.nim, input.nims),
+        columns: { nim: true },
+      });
+      const registeredNims = new Set(existingMahasiswa.map((m) => m.nim));
+      const pendingNims = input.nims.filter((nim) => !registeredNims.has(nim));
+
+      if (registeredNims.size > 0) {
+        await ctx.db
+          .update(mahasiswa)
+          .set({ status: 'alumni' })
+          .where(inArray(mahasiswa.nim, Array.from(registeredNims)));
+      }
+
+      for (const nim of pendingNims) {
+        await ctx.db
+          .insert(alumniPending)
+          .values({
+            nim,
+            wisudaBatch: input.wisudaBatch,
+            uploadedBy: ctx.session.user.id,
+          })
+          .onConflictDoUpdate({
+            target: alumniPending.nim,
+            set: {
+              wisudaBatch: input.wisudaBatch,
+              uploadedBy: ctx.session.user.id,
+            },
+          });
+      }
+
+      return {
+        success: true,
+        updatedCount: registeredNims.size,
+        pendingCount: pendingNims.length,
+      };
     }),
 });
