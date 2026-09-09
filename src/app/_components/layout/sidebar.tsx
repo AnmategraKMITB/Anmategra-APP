@@ -61,7 +61,7 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
   },
   {
     label: 'Manual',
-    href: '/api/manual',
+    href: '/manual',
     icon: <BookOpen className="w-5 h-5" />,
   },
 ];
@@ -77,7 +77,7 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
   { label: 'Inbox', href: '/mahasiswa/inbox', icon: <EnvelopeOpenIcon /> },
   {
     label: 'Manual',
-    href: '/api/manual',
+    href: '/manual',
     icon: <BookOpen className="w-5 h-5" />,
   },
 ];
