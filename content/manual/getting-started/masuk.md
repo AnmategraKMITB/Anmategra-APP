@@ -25,14 +25,12 @@ terpisah untuk aplikasi.
 
 > [!IMPORTANT]
 > Pilih penyedia akun sesuai peran Anda. Akun mahasiswa menggunakan Microsoft,
-> sedangkan akun lembaga menggunakan Google KM ITB.
+> sedangkan akun lembaga menggunakan Google KM ITB atau email yang diberikan ke pihak Anmategra.
 
-## Keluar
+## Keluar (Logout)
 
 1. Buka sidebar dengan tombol menu jika sidebar belum terlihat.
 2. Klik **Keluar** di bagian bawah sidebar.
 3. Sesi Anda dihapus dan Anda diarahkan keluar dari aplikasi.
 
-Jika menu yang terlihat tidak sesuai dengan peran Anda, keluar lalu masuk
-kembali menggunakan akun institusi yang benar. Untuk mengenal menu setelah masuk,
-lihat [Navigasi dan pencarian](/manual/getting-started/navigasi).
+Jika menu yang terlihat tidak sesuai dengan peran Anda, keluar lalu masuk kembali menggunakan akun institusi yang benar.

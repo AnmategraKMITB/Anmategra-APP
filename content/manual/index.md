@@ -55,10 +55,6 @@ digunakan.
 [Masuk](/manual/getting-started/masuk) → [Buat kegiatan](/manual/kegiatan/membuat-kegiatan)
 → [Tambah anggota](/manual/anggota/mengelola-anggota) → [Kelola rapor](/manual/lembaga/rapor)
 
-> [!TIP]
-> Anda tidak perlu menghafal URL. Menu **Manual** tersedia di sidebar setelah
-> Anda masuk.
-
 > [!NOTE]
 > Versi PDF tetap dapat diunduh melalui tombol **Unduh PDF** di bagian atas
 > halaman manual.

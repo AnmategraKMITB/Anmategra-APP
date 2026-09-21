@@ -23,8 +23,8 @@ Sidebar mahasiswa berisi:
 
 Sidebar lembaga berisi semua menu mahasiswa, ditambah:
 
-- **Anggota** — mengelola anggota lembaga.
-- **Kegiatan** — mengelola kegiatan milik lembaga.
+- **Anggota** — mengelola anggota yang terasosiasi dengan lembaga.
+- **Kegiatan** — mengelola kegiatan yang diselenggarakan lembaga.
 - **Inbox** — memproses pengajuan asosiasi yang masuk.
 
 Di bagian bawah sidebar terdapat nama dan foto profil. Klik bagian tersebut
