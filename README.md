@@ -174,10 +174,9 @@ commit hasilnya — CI menolak PR yang dokumentasinya sudah tidak sinkron.
 Panduan lengkap (cara menulis penjelasan, aturan `.meta({ access })`, cara memanggil
 endpoint dari luar): **[`docs/api/README.md`](docs/api/README.md)**.
 
-## TRPC Panel
+## Mencoba Endpoint
 
-- [Anmategra Panel](http://localhost:3000/api/panel)
-
-Buat mencoba endpoint dengan sesi login kamu. Untuk membaca kontrak API-nya, pakai
-`/api/docs` di atas.
+tRPC Panel (`/api/panel`) sudah dihapus: paketnya tidak dirawat lagi dan mengunci Zod 3.
+Kontrak API dibaca di `/api/docs`, dan cara memanggil endpoint (termasuk dengan sesi login)
+ada di [`docs/api/README.md`](docs/api/README.md) bagian 2.
 

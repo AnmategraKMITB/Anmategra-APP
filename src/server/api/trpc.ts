@@ -9,7 +9,7 @@
 import { TRPCError, initTRPC } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
 import superjson from 'superjson';
-import { ZodError } from 'zod';
+import { ZodError, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { eventAdmin, events, lembagaAdmin } from '~/server/db/schema';
@@ -68,7 +68,7 @@ const t = initTRPC
       // Customize message for Zod validation errors
       if (error.cause instanceof ZodError) {
         const zodError = error.cause;
-        const formattedMessage = zodError.errors
+        const formattedMessage = zodError.issues
           .map((e) => {
             return e.message;
           })
@@ -79,7 +79,7 @@ const t = initTRPC
           message: formattedMessage,
           data: {
             ...shape.data,
-            zodError: zodError.flatten(),
+            zodError: z.flattenError(zodError),
           },
         };
       }

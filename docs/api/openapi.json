@@ -17157,8 +17157,7 @@
         },
         "required": [
           "email"
-        ],
-        "additionalProperties": false
+        ]
       },
       "admin_addVerifiedEmail_output": {
         "type": "array",
@@ -17188,87 +17187,79 @@
         },
         "required": [
           "email"
-        ],
-        "additionalProperties": false
+        ]
       },
       "admin_deleteVerifiedEmail_output": {
         "anyOf": [
           {
-            "not": {}
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "nullable": true,
+                "type": "string"
+              },
+              "email": {
+                "type": "string"
+              },
+              "emailVerified": {
+                "nullable": true,
+                "type": "string",
+                "format": "date-time"
+              },
+              "image": {
+                "nullable": true,
+                "type": "string"
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "admin",
+                  "lembaga",
+                  "mahasiswa"
+                ]
+              },
+              "created_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "updated_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "email",
+              "emailVerified",
+              "image",
+              "role",
+              "created_at",
+              "updated_at"
+            ],
+            "additionalProperties": false
           },
           {
-            "anyOf": [
-              {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "email": {
-                    "type": "string"
-                  },
-                  "emailVerified": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
-                  },
-                  "image": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "role": {
-                    "type": "string",
-                    "enum": [
-                      "admin",
-                      "lembaga",
-                      "mahasiswa"
-                    ]
-                  },
-                  "created_at": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
                 },
-                "required": [
-                  "id",
-                  "name",
-                  "email",
-                  "emailVerified",
-                  "image",
-                  "role",
-                  "created_at",
-                  "updated_at"
-                ],
-                "additionalProperties": false
-              },
-              {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "id": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    }
-                  },
-                  "required": [
-                    "id",
-                    "email"
-                  ],
-                  "additionalProperties": false
+                "email": {
+                  "type": "string"
                 }
-              }
-            ]
+              },
+              "required": [
+                "id",
+                "email"
+              ],
+              "additionalProperties": false
+            }
           }
         ]
       },
@@ -17290,8 +17281,7 @@
               "Reported"
             ]
           }
-        },
-        "additionalProperties": false
+        }
       },
       "admin_getAllReportsAdmin_output": {
         "type": "object",
@@ -17380,8 +17370,7 @@
         "required": [
           "id",
           "status"
-        ],
-        "additionalProperties": false
+        ]
       },
       "admin_setReportStatus_output": {
         "type": "object",
@@ -17403,13 +17392,14 @@
         "type": "object",
         "properties": {
           "nims": {
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "integer",
+              "minimum": 0,
               "exclusiveMinimum": true,
-              "minimum": 0
-            },
-            "minItems": 1
+              "maximum": 9007199254740991
+            }
           },
           "wisudaBatch": {
             "type": "string"
@@ -17417,8 +17407,7 @@
         },
         "required": [
           "nims"
-        ],
-        "additionalProperties": false
+        ]
       },
       "admin_uploadAlumniCsv_output": {
         "type": "object",
@@ -17452,8 +17441,8 @@
               "type": "string"
             },
             "lembagaId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "access": {
               "type": "string",
@@ -17519,8 +17508,7 @@
           "lembagaId",
           "eventId",
           "identifier"
-        ],
-        "additionalProperties": false
+        ]
       },
       "adminGrant_grantEventAdmin_output": {
         "type": "object",
@@ -17549,8 +17537,7 @@
         "required": [
           "lembagaId",
           "identifier"
-        ],
-        "additionalProperties": false
+        ]
       },
       "adminGrant_grantLembagaAdmin_output": {
         "type": "object",
@@ -17574,8 +17561,7 @@
         },
         "required": [
           "eventId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "adminGrant_listEventAdmins_output": {
         "type": "array",
@@ -17586,15 +17572,15 @@
               "type": "string"
             },
             "name": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "email": {
               "type": "string"
             },
             "nim": {
-              "type": "number",
-              "nullable": true
+              "nullable": true,
+              "type": "number"
             },
             "grantedAt": {
               "type": "string",
@@ -17621,8 +17607,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "adminGrant_listLembagaAdmins_output": {
         "type": "array",
@@ -17633,15 +17618,15 @@
               "type": "string"
             },
             "name": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "email": {
               "type": "string"
             },
             "nim": {
-              "type": "number",
-              "nullable": true
+              "nullable": true,
+              "type": "number"
             },
             "grantedAt": {
               "type": "string",
@@ -17678,8 +17663,7 @@
           "lembagaId",
           "eventId",
           "userId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "adminGrant_revokeEventAdmin_output": {
         "type": "object",
@@ -17708,8 +17692,7 @@
         "required": [
           "lembagaId",
           "userId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "adminGrant_revokeLembagaAdmin_output": {
         "type": "object",
@@ -17752,8 +17735,7 @@
           "user_id",
           "position",
           "division"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_addNewPanitia_output": {
         "type": "object",
@@ -17808,8 +17790,7 @@
           "nim",
           "position",
           "division"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_addNewPanitiaManual_output": {
         "type": "object",
@@ -17845,12 +17826,14 @@
           },
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
+            "nullable": true,
             "type": "string",
             "format": "date-time",
-            "nullable": true
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "status": {
             "type": "string",
@@ -17911,8 +17894,7 @@
           "image",
           "start_date",
           "status"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_create_output": {},
       "event_delete_input": {
@@ -17924,8 +17906,7 @@
         },
         "required": [
           "id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_delete_output": {
         "type": "object",
@@ -17972,8 +17953,7 @@
           "user_id",
           "position",
           "division"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_editPanitia_output": {
         "type": "object",
@@ -18002,8 +17982,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_getAllAnggota_output": {
         "type": "array",
@@ -18045,81 +18024,135 @@
         },
         "required": [
           "id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_getByID_output": {
-        "anyOf": [
-          {
-            "not": {}
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          {
+          "org_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image": {
+            "nullable": true,
+            "type": "string"
+          },
+          "background_image": {
+            "nullable": true,
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_date": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Coming Soon",
+              "On going",
+              "Ended"
+            ]
+          },
+          "oprec_link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "location": {
+            "nullable": true,
+            "type": "string"
+          },
+          "participant_limit": {
+            "type": "number"
+          },
+          "participant_count": {
+            "type": "number"
+          },
+          "is_highlighted": {
+            "type": "boolean"
+          },
+          "is_organogram": {
+            "type": "boolean"
+          },
+          "organogram_image": {
+            "nullable": true,
+            "type": "string"
+          },
+          "rapor_visible": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lembaga": {
+            "nullable": true,
             "type": "object",
             "properties": {
               "id": {
                 "type": "string"
               },
-              "org_id": {
-                "type": "string",
-                "nullable": true
+              "userId": {
+                "type": "string"
               },
               "name": {
                 "type": "string"
               },
               "description": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
-              "image": {
-                "type": "string",
-                "nullable": true
-              },
-              "background_image": {
-                "type": "string",
-                "nullable": true
-              },
-              "start_date": {
+              "foundingDate": {
+                "nullable": true,
                 "type": "string",
                 "format": "date-time"
               },
-              "end_date": {
+              "endingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
-              "status": {
+              "type": {
+                "nullable": true,
                 "type": "string",
                 "enum": [
-                  "Coming Soon",
-                  "On going",
-                  "Ended"
+                  "Himpunan",
+                  "UKM",
+                  "Kepanitiaan",
+                  "BSO"
                 ]
               },
-              "oprec_link": {
-                "type": "string",
-                "nullable": true
+              "major": {
+                "nullable": true,
+                "type": "string"
               },
-              "location": {
-                "type": "string",
-                "nullable": true
+              "field": {
+                "nullable": true,
+                "type": "string"
               },
-              "participant_limit": {
+              "memberCount": {
+                "nullable": true,
                 "type": "number"
               },
-              "participant_count": {
-                "type": "number"
-              },
-              "is_highlighted": {
-                "type": "boolean"
-              },
-              "is_organogram": {
-                "type": "boolean"
-              },
-              "organogram_image": {
-                "type": "string",
-                "nullable": true
-              },
-              "rapor_visible": {
+              "raporVisible": {
                 "type": "boolean"
               },
               "created_at": {
@@ -18129,111 +18162,49 @@
               "updated_at": {
                 "type": "string",
                 "format": "date-time"
-              },
-              "lembaga": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "userId": {
-                    "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "foundingDate": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
-                  },
-                  "endingDate": {
-                    "type": "string",
-                    "format": "date-time",
-                    "nullable": true
-                  },
-                  "type": {
-                    "type": "string",
-                    "enum": [
-                      "Himpunan",
-                      "UKM",
-                      "Kepanitiaan",
-                      "BSO"
-                    ],
-                    "nullable": true
-                  },
-                  "major": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "field": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "memberCount": {
-                    "type": "number",
-                    "nullable": true
-                  },
-                  "raporVisible": {
-                    "type": "boolean"
-                  },
-                  "created_at": {
-                    "type": "string",
-                    "format": "date-time"
-                  },
-                  "updated_at": {
-                    "type": "string",
-                    "format": "date-time"
-                  }
-                },
-                "required": [
-                  "id",
-                  "userId",
-                  "name",
-                  "description",
-                  "foundingDate",
-                  "endingDate",
-                  "type",
-                  "major",
-                  "field",
-                  "memberCount",
-                  "raporVisible",
-                  "created_at",
-                  "updated_at"
-                ],
-                "additionalProperties": false,
-                "nullable": true
               }
             },
             "required": [
               "id",
-              "org_id",
+              "userId",
               "name",
               "description",
-              "image",
-              "background_image",
-              "start_date",
-              "end_date",
-              "status",
-              "oprec_link",
-              "location",
-              "participant_limit",
-              "participant_count",
-              "is_highlighted",
-              "is_organogram",
-              "organogram_image",
-              "rapor_visible",
+              "foundingDate",
+              "endingDate",
+              "type",
+              "major",
+              "field",
+              "memberCount",
+              "raporVisible",
               "created_at",
-              "updated_at",
-              "lembaga"
+              "updated_at"
             ],
             "additionalProperties": false
           }
-        ]
+        },
+        "required": [
+          "id",
+          "org_id",
+          "name",
+          "description",
+          "image",
+          "background_image",
+          "start_date",
+          "end_date",
+          "status",
+          "oprec_link",
+          "location",
+          "participant_limit",
+          "participant_count",
+          "is_highlighted",
+          "is_organogram",
+          "organogram_image",
+          "rapor_visible",
+          "created_at",
+          "updated_at",
+          "lembaga"
+        ],
+        "additionalProperties": false
       },
       "event_removePanitia_input": {
         "type": "object",
@@ -18248,8 +18219,7 @@
         "required": [
           "event_id",
           "id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_removePanitia_output": {
         "type": "object",
@@ -18280,8 +18250,7 @@
         "required": [
           "id",
           "is_highlighted"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_toggleHighlight_output": {
         "type": "object",
@@ -18312,8 +18281,7 @@
         "required": [
           "id",
           "rapor_visible"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_toggleRaporVisibility_output": {
         "type": "object",
@@ -18349,12 +18317,14 @@
           },
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
+            "nullable": true,
             "type": "string",
             "format": "date-time",
-            "nullable": true
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "status": {
             "type": "string",
@@ -18414,8 +18384,7 @@
         },
         "required": [
           "id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "event_update_output": {},
       "kegiatan_getAllByLembaga_output": {
@@ -18430,25 +18399,25 @@
               "type": "string"
             },
             "description": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "image": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "background_image": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "start_date": {
               "type": "string",
               "format": "date-time"
             },
             "end_date": {
+              "nullable": true,
               "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "format": "date-time"
             },
             "status": {
               "type": "string",
@@ -18459,12 +18428,12 @@
               ]
             },
             "oprec_link": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "location": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "participant_limit": {
               "type": "number"
@@ -18479,8 +18448,8 @@
               "type": "boolean"
             },
             "organogram_image": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "rapor_visible": {
               "type": "boolean"
@@ -18529,25 +18498,25 @@
               "type": "string"
             },
             "description": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "image": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "background_image": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "start_date": {
               "type": "string",
               "format": "date-time"
             },
             "end_date": {
+              "nullable": true,
               "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "format": "date-time"
             },
             "status": {
               "type": "string",
@@ -18558,12 +18527,12 @@
               ]
             },
             "oprec_link": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "location": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "participant_limit": {
               "type": "number"
@@ -18578,8 +18547,8 @@
               "type": "boolean"
             },
             "organogram_image": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "rapor_visible": {
               "type": "boolean"
@@ -18625,15 +18594,83 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "kegiatan_getByIdPublic_output": {
-        "anyOf": [
-          {
-            "not": {}
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
           },
-          {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image": {
+            "nullable": true,
+            "type": "string"
+          },
+          "background_image": {
+            "nullable": true,
+            "type": "string"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "end_date": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Coming Soon",
+              "On going",
+              "Ended"
+            ]
+          },
+          "oprec_link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "location": {
+            "nullable": true,
+            "type": "string"
+          },
+          "participant_limit": {
+            "type": "number"
+          },
+          "participant_count": {
+            "type": "number"
+          },
+          "is_highlighted": {
+            "type": "boolean"
+          },
+          "is_organogram": {
+            "type": "boolean"
+          },
+          "organogram_image": {
+            "nullable": true,
+            "type": "string"
+          },
+          "rapor_visible": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lembaga": {
+            "nullable": true,
             "type": "object",
             "properties": {
               "id": {
@@ -18643,130 +18680,54 @@
                 "type": "string"
               },
               "description": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
-              "image": {
-                "type": "string",
-                "nullable": true
-              },
-              "background_image": {
-                "type": "string",
-                "nullable": true
-              },
-              "start_date": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "end_date": {
-                "type": "string",
-                "format": "date-time",
-                "nullable": true
-              },
-              "status": {
-                "type": "string",
-                "enum": [
-                  "Coming Soon",
-                  "On going",
-                  "Ended"
-                ]
-              },
-              "oprec_link": {
-                "type": "string",
-                "nullable": true
-              },
-              "location": {
-                "type": "string",
-                "nullable": true
-              },
-              "participant_limit": {
-                "type": "number"
-              },
-              "participant_count": {
-                "type": "number"
-              },
-              "is_highlighted": {
-                "type": "boolean"
-              },
-              "is_organogram": {
-                "type": "boolean"
-              },
-              "organogram_image": {
-                "type": "string",
-                "nullable": true
-              },
-              "rapor_visible": {
-                "type": "boolean"
-              },
-              "created_at": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "updated_at": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "lembaga": {
+              "users": {
                 "type": "object",
                 "properties": {
-                  "id": {
+                  "image": {
+                    "nullable": true,
                     "type": "string"
-                  },
-                  "name": {
-                    "type": "string"
-                  },
-                  "description": {
-                    "type": "string",
-                    "nullable": true
-                  },
-                  "users": {
-                    "type": "object",
-                    "properties": {
-                      "image": {
-                        "type": "string",
-                        "nullable": true
-                      }
-                    },
-                    "required": [
-                      "image"
-                    ],
-                    "additionalProperties": false
                   }
                 },
                 "required": [
-                  "id",
-                  "name",
-                  "description",
-                  "users"
+                  "image"
                 ],
-                "additionalProperties": false,
-                "nullable": true
+                "additionalProperties": false
               }
             },
             "required": [
               "id",
               "name",
               "description",
-              "image",
-              "background_image",
-              "start_date",
-              "end_date",
-              "status",
-              "oprec_link",
-              "location",
-              "participant_limit",
-              "participant_count",
-              "is_highlighted",
-              "is_organogram",
-              "organogram_image",
-              "rapor_visible",
-              "created_at",
-              "updated_at",
-              "lembaga"
+              "users"
             ],
             "additionalProperties": false
           }
-        ]
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "image",
+          "background_image",
+          "start_date",
+          "end_date",
+          "status",
+          "oprec_link",
+          "location",
+          "participant_limit",
+          "participant_count",
+          "is_highlighted",
+          "is_organogram",
+          "organogram_image",
+          "rapor_visible",
+          "created_at",
+          "updated_at",
+          "lembaga"
+        ],
+        "additionalProperties": false
       },
       "kegiatan_getPosisiBidangOptions_input": {
         "type": "object",
@@ -18777,8 +18738,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "kegiatan_getPosisiBidangOptions_output": {
         "type": "object",
@@ -18832,16 +18792,15 @@
         "type": "object",
         "properties": {
           "limit": {
+            "default": 100,
             "type": "number",
             "minimum": 1,
-            "maximum": 100,
-            "default": 100
+            "maximum": 100
           },
           "cursor": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "landing_getAllEventIds_output": {
         "type": "object",
@@ -18874,10 +18833,10 @@
         "type": "object",
         "properties": {
           "limit": {
+            "default": 8,
             "type": "number",
             "minimum": 1,
-            "maximum": 24,
-            "default": 8
+            "maximum": 24
           },
           "cursor": {
             "type": "string"
@@ -18902,18 +18861,18 @@
               "most_participants"
             ]
           }
-        },
-        "additionalProperties": false
+        }
       },
       "landing_getAllEvents_output": {
         "type": "object",
         "properties": {
           "events": {
-            "type": "array"
+            "type": "array",
+            "items": {}
           },
           "nextCursor": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
@@ -18926,16 +18885,15 @@
         "type": "object",
         "properties": {
           "limit": {
+            "default": 100,
             "type": "number",
             "minimum": 1,
-            "maximum": 100,
-            "default": 100
+            "maximum": 100
           },
           "cursor": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "landing_getAllLembagaIds_output": {
         "type": "object",
@@ -18966,11 +18924,13 @@
       },
       "landing_getRecentEvents_input": {},
       "landing_getRecentEvents_output": {
-        "type": "array"
+        "type": "array",
+        "items": {}
       },
       "landing_getTopEvents_input": {},
       "landing_getTopEvents_output": {
-        "type": "array"
+        "type": "array",
+        "items": {}
       },
       "landing_searchAll_input": {
         "type": "object",
@@ -18981,8 +18941,7 @@
         },
         "required": [
           "query"
-        ],
-        "additionalProperties": false
+        ]
       },
       "landing_searchAll_output": {
         "type": "object",
@@ -19019,10 +18978,12 @@
             }
           },
           "lembaga": {
-            "type": "array"
+            "type": "array",
+            "items": {}
           },
           "kegiatan": {
-            "type": "array"
+            "type": "array",
+            "items": {}
           }
         },
         "required": [
@@ -19041,8 +19002,7 @@
         },
         "required": [
           "query"
-        ],
-        "additionalProperties": false
+        ]
       },
       "landing_searchPreview_output": {
         "type": "object",
@@ -19141,8 +19101,7 @@
           "user_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_acceptRequestAssociation_output": {
         "type": "object",
@@ -19176,8 +19135,7 @@
           "user_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_acceptRequestAssociationLembaga_output": {
         "type": "object",
@@ -19222,8 +19180,7 @@
           "user_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_addAnggota_output": {
         "type": "object",
@@ -19273,8 +19230,7 @@
           "nim",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_addAnggotaManual_output": {
         "type": "object",
@@ -19300,11 +19256,13 @@
           },
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "best_staff_list": {
             "type": "array",
@@ -19321,8 +19279,7 @@
               "required": [
                 "user_id",
                 "division"
-              ],
-              "additionalProperties": false
+              ]
             }
           }
         },
@@ -19331,8 +19288,7 @@
           "start_date",
           "end_date",
           "best_staff_list"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_chooseBestStaffKegiatan_output": {
         "type": "object",
@@ -19355,11 +19311,13 @@
           },
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "best_staff_list": {
             "type": "array",
@@ -19376,8 +19334,7 @@
               "required": [
                 "user_id",
                 "division"
-              ],
-              "additionalProperties": false
+              ]
             }
           }
         },
@@ -19386,8 +19343,7 @@
           "start_date",
           "end_date",
           "best_staff_list"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_chooseBestStaffLembaga_output": {
         "type": "object",
@@ -19416,8 +19372,7 @@
         "required": [
           "event_id",
           "user_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_declineRequestAssociation_output": {
         "type": "object",
@@ -19451,8 +19406,7 @@
           "user_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_declineRequestAssociationLembaga_output": {
         "type": "object",
@@ -19482,18 +19436,19 @@
           },
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           }
         },
         "required": [
           "start_date",
           "end_date"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_deleteBestStaffPeriode_output": {
         "type": "object",
@@ -19535,8 +19490,7 @@
           "user_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_editAnggota_output": {
         "type": "object",
@@ -19583,8 +19537,7 @@
         },
         "required": [
           "nama"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_editProfil_output": {
         "type": "object",
@@ -19614,8 +19567,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllAnggota_output": {
         "type": "array",
@@ -19658,8 +19610,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllHistoryBestStaffKegiatan_output": {
         "type": "object",
@@ -19671,11 +19622,13 @@
               "properties": {
                 "start_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "end_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "best_staff_list": {
                   "type": "array",
@@ -19689,8 +19642,8 @@
                         "type": "string"
                       },
                       "image": {
-                        "type": "string",
-                        "nullable": true
+                        "nullable": true,
+                        "type": "string"
                       },
                       "nim": {
                         "type": "string"
@@ -19738,8 +19691,7 @@
         },
         "required": [
           "lembaga_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllHistoryBestStaffLembaga_output": {
         "type": "object",
@@ -19751,11 +19703,13 @@
               "properties": {
                 "start_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "end_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "best_staff_list": {
                   "type": "array",
@@ -19769,8 +19723,8 @@
                         "type": "string"
                       },
                       "image": {
-                        "type": "string",
-                        "nullable": true
+                        "nullable": true,
+                        "type": "string"
                       },
                       "nim": {
                         "type": "string"
@@ -19818,8 +19772,7 @@
         },
         "required": [
           "mahasiswa_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllHistoryBestStaffMahasiswa_output": {
         "type": "object",
@@ -19837,11 +19790,13 @@
                 },
                 "start_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "end_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "division": {
                   "type": "string"
@@ -19870,11 +19825,13 @@
                 },
                 "start_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "end_date": {
                   "type": "string",
-                  "format": "date-time"
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 },
                 "division": {
                   "type": "string"
@@ -19907,8 +19864,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllKegiatanDivision_output": {
         "type": "object",
@@ -19935,8 +19891,7 @@
         },
         "required": [
           "lembaga_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllLembagaDivision_output": {
         "type": "object",
@@ -19969,8 +19924,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getAllRequestAssociation_output": {
         "type": "array",
@@ -19987,9 +19941,9 @@
               "type": "string"
             },
             "image": {
+              "nullable": true,
               "type": "string",
-              "format": "uri",
-              "nullable": true
+              "format": "uri"
             },
             "mahasiswa_name": {
               "type": "string"
@@ -20022,8 +19976,7 @@
               "type": "string"
             }
           }
-        },
-        "additionalProperties": false
+        }
       },
       "lembaga_getAllRequestAssociationLembaga_output": {
         "type": "object",
@@ -20037,9 +19990,9 @@
                   "type": "string"
                 },
                 "image": {
+                  "nullable": true,
                   "type": "string",
-                  "format": "uri",
-                  "nullable": true
+                  "format": "uri"
                 },
                 "mahasiswa_name": {
                   "type": "string"
@@ -20073,8 +20026,7 @@
           "name": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "lembaga_getAllRequestAssociationSummary_output": {
         "type": "array",
@@ -20095,9 +20047,9 @@
               "type": "string"
             },
             "image": {
+              "nullable": true,
               "type": "string",
-              "format": "uri",
-              "nullable": true
+              "format": "uri"
             }
           },
           "required": [
@@ -20125,8 +20077,7 @@
         "required": [
           "lembaga_id",
           "division"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getBestStaffLembagaOptions_output": {
         "type": "object",
@@ -20171,8 +20122,7 @@
         "required": [
           "event_id",
           "division"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getBestStaffOptions_output": {
         "type": "object",
@@ -20210,15 +20160,14 @@
             "minLength": 1
           },
           "page": {
+            "default": 1,
             "type": "number",
-            "minimum": 1,
-            "default": 1
+            "minimum": 1
           }
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getEvents_output": {
         "type": "object",
@@ -20235,13 +20184,13 @@
                   "type": "string"
                 },
                 "deskripsi": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "poster": {
+                  "nullable": true,
                   "type": "string",
-                  "format": "uri",
-                  "nullable": true
+                  "format": "uri"
                 },
                 "start_date": {
                   "type": "string",
@@ -20279,10 +20228,10 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getHighlightedEvent_output": {
+        "nullable": true,
         "type": "object",
         "properties": {
           "id": {
@@ -20292,13 +20241,13 @@
             "type": "string"
           },
           "deskripsi": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "poster": {
+            "nullable": true,
             "type": "string",
-            "format": "uri",
-            "nullable": true
+            "format": "uri"
           }
         },
         "required": [
@@ -20307,8 +20256,7 @@
           "deskripsi",
           "poster"
         ],
-        "additionalProperties": false,
-        "nullable": true
+        "additionalProperties": false
       },
       "lembaga_getInfo_input": {
         "type": "object",
@@ -20320,8 +20268,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getInfo_output": {
         "type": "object",
@@ -20333,42 +20280,42 @@
             "type": "string"
           },
           "foto": {
+            "nullable": true,
             "type": "string",
-            "format": "uri",
-            "nullable": true
+            "format": "uri"
           },
           "deskripsi": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "tanggal_berdiri": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "tipe_lembaga": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "raporVisible": {
-            "type": "boolean",
-            "nullable": true
+            "nullable": true,
+            "type": "boolean"
           },
           "detail_tambahan": {
             "type": "object",
             "properties": {
               "jurusan": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "bidang": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "jumlah_anggota": {
+                "nullable": true,
                 "type": "number",
-                "minimum": 0,
-                "nullable": true
+                "minimum": 0
               }
             },
             "required": [
@@ -20401,19 +20348,20 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getLatestBestStaffKegiatan_output": {
         "type": "object",
         "properties": {
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "best_staff_list": {
             "type": "array",
@@ -20427,8 +20375,8 @@
                   "type": "string"
                 },
                 "image": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "nim": {
                   "type": "string"
@@ -20469,19 +20417,20 @@
         },
         "required": [
           "lembaga_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_getLatestBestStaffLembaga_output": {
         "type": "object",
         "properties": {
           "start_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "end_date": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           },
           "best_staff_list": {
             "type": "array",
@@ -20495,8 +20444,8 @@
                   "type": "string"
                 },
                 "image": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "nim": {
                   "type": "string"
@@ -20585,8 +20534,7 @@
         },
         "required": [
           "user_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_removeAnggota_output": {
         "type": "object",
@@ -20616,8 +20564,7 @@
         "required": [
           "event_id",
           "user_ids"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_reorderAnggotaKegiatan_output": {
         "type": "object",
@@ -20647,8 +20594,7 @@
         "required": [
           "lembaga_id",
           "user_ids"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_reorderAnggotaLembaga_output": {
         "type": "object",
@@ -20671,8 +20617,7 @@
         },
         "required": [
           "rapor_visible"
-        ],
-        "additionalProperties": false
+        ]
       },
       "lembaga_toggleRaporVisibility_output": {
         "type": "object",
@@ -20708,8 +20653,7 @@
         },
         "required": [
           "user_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_assignment_assignAnggotaLembaga_output": {
         "type": "object",
@@ -20746,8 +20690,7 @@
         "required": [
           "event_id",
           "user_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_assignment_assignPanitiaKegiatan_output": {
         "type": "object",
@@ -20771,8 +20714,7 @@
         },
         "required": [
           "user_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_assignment_unassignAnggotaLembaga_output": {
         "type": "object",
@@ -20801,8 +20743,7 @@
         "required": [
           "event_id",
           "user_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_assignment_unassignPanitiaKegiatan_output": {
         "type": "object",
@@ -20830,15 +20771,15 @@
           },
           "ring_level": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "maximum": 9007199254740991
           }
         },
         "required": [
           "structure_id",
           "name",
           "ring_level"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_role_create_output": {
         "type": "object",
@@ -20866,8 +20807,7 @@
         },
         "required": [
           "role_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_role_delete_output": {
         "type": "object",
@@ -20891,8 +20831,7 @@
         },
         "required": [
           "structure_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_role_getAll_output": {
         "type": "object",
@@ -20912,10 +20851,14 @@
                   "type": "string"
                 },
                 "ring_level": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "sort_order": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -20942,19 +20885,18 @@
             "minLength": 1
           },
           "role_ids": {
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "string",
               "minLength": 1
-            },
-            "minItems": 1
+            }
           }
         },
         "required": [
           "structure_id",
           "role_ids"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_role_reorder_output": {
         "type": "object",
@@ -20982,13 +20924,13 @@
           },
           "ring_level": {
             "type": "integer",
-            "minimum": 1
+            "minimum": 1,
+            "maximum": 9007199254740991
           }
         },
         "required": [
           "role_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_role_update_output": {
         "type": "object",
@@ -21017,8 +20959,7 @@
         },
         "required": [
           "name"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_structure_create_output": {
         "type": "object",
@@ -21046,8 +20987,7 @@
         },
         "required": [
           "structure_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_structure_delete_output": {
         "type": "object",
@@ -21068,8 +21008,7 @@
             "type": "string",
             "minLength": 1
           }
-        },
-        "additionalProperties": false
+        }
       },
       "organization_structure_getAll_output": {
         "type": "object",
@@ -21083,12 +21022,12 @@
                   "type": "string"
                 },
                 "lembaga_id": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "event_id": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "name": {
                   "type": "string"
@@ -21133,8 +21072,7 @@
         },
         "required": [
           "structure_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_structure_getTree_output": {
         "type": "object",
@@ -21146,12 +21084,12 @@
                 "type": "string"
               },
               "lembaga_id": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "event_id": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "name": {
                 "type": "string"
@@ -21191,8 +21129,8 @@
                   "type": "string"
                 },
                 "parent_id": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "name": {
                   "type": "string"
@@ -21206,13 +21144,19 @@
                   ]
                 },
                 "level": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "sort_order": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "member_count": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "children": {
                   "type": "array",
@@ -21226,8 +21170,8 @@
                         "type": "string"
                       },
                       "parent_id": {
-                        "type": "string",
-                        "nullable": true
+                        "nullable": true,
+                        "type": "string"
                       },
                       "name": {
                         "type": "string"
@@ -21241,13 +21185,19 @@
                         ]
                       },
                       "level": {
-                        "type": "integer"
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       },
                       "sort_order": {
-                        "type": "integer"
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       },
                       "member_count": {
-                        "type": "integer"
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       },
                       "children": {
                         "type": "array",
@@ -21261,8 +21211,8 @@
                               "type": "string"
                             },
                             "parent_id": {
-                              "type": "string",
-                              "nullable": true
+                              "nullable": true,
+                              "type": "string"
                             },
                             "name": {
                               "type": "string"
@@ -21276,18 +21226,24 @@
                               ]
                             },
                             "level": {
-                              "type": "integer"
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
                             },
                             "sort_order": {
-                              "type": "integer"
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
                             },
                             "member_count": {
-                              "type": "integer"
+                              "type": "integer",
+                              "minimum": -9007199254740991,
+                              "maximum": 9007199254740991
                             },
                             "children": {
+                              "maxItems": 0,
                               "type": "array",
-                              "items": {},
-                              "maxItems": 0
+                              "items": {}
                             }
                           },
                           "required": [
@@ -21348,10 +21304,14 @@
                   "type": "string"
                 },
                 "ring_level": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "sort_order": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -21390,8 +21350,7 @@
         },
         "required": [
           "structure_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_structure_update_output": {
         "type": "object",
@@ -21434,8 +21393,7 @@
           "structure_id",
           "name",
           "kind"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_unit_create_output": {
         "type": "object",
@@ -21463,8 +21421,7 @@
         },
         "required": [
           "unit_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_unit_delete_output": {
         "type": "object",
@@ -21488,8 +21445,7 @@
         },
         "required": [
           "structure_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_unit_getAll_output": {
         "type": "object",
@@ -21506,8 +21462,8 @@
                   "type": "string"
                 },
                 "parent_id": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "name": {
                   "type": "string"
@@ -21521,10 +21477,14 @@
                   ]
                 },
                 "level": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "sort_order": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "path_label": {
                   "type": "string"
@@ -21557,16 +21517,15 @@
             "minLength": 1
           },
           "parent_id": {
+            "nullable": true,
             "type": "string",
-            "minLength": 1,
-            "nullable": true
+            "minLength": 1
           }
         },
         "required": [
           "unit_id",
           "parent_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_unit_move_output": {
         "type": "object",
@@ -21588,25 +21547,24 @@
             "minLength": 1
           },
           "parent_id": {
+            "nullable": true,
             "type": "string",
-            "minLength": 1,
-            "nullable": true
+            "minLength": 1
           },
           "unit_ids": {
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "string",
               "minLength": 1
-            },
-            "minItems": 1
+            }
           }
         },
         "required": [
           "structure_id",
           "parent_id",
           "unit_ids"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_unit_reorder_output": {
         "type": "object",
@@ -21636,8 +21594,7 @@
         "required": [
           "unit_id",
           "name"
-        ],
-        "additionalProperties": false
+        ]
       },
       "organization_unit_update_output": {
         "type": "object",
@@ -21667,12 +21624,12 @@
             "minLength": 1
           },
           "profil_km_id": {
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "string",
               "minLength": 1
-            },
-            "minItems": 1
+            }
           }
         },
         "required": [
@@ -21680,8 +21637,7 @@
           "name",
           "description",
           "profil_km_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_createProfilKegiatan_output": {
         "type": "object",
@@ -21730,12 +21686,12 @@
             "minLength": 1
           },
           "profil_km_id": {
+            "minItems": 1,
             "type": "array",
             "items": {
               "type": "string",
               "minLength": 1
-            },
-            "minItems": 1
+            }
           }
         },
         "required": [
@@ -21743,8 +21699,7 @@
           "name",
           "description",
           "profil_km_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_createProfilLembaga_output": {
         "type": "object",
@@ -21786,8 +21741,7 @@
         },
         "required": [
           "profil_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_deleteProfilKegiatan_output": {
         "type": "object",
@@ -21810,8 +21764,7 @@
         },
         "required": [
           "profil_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_deleteProfilLembaga_output": {
         "type": "object",
@@ -21849,8 +21802,7 @@
           "name",
           "description",
           "profil_km_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_editProfilKegiatan_output": {
         "type": "object",
@@ -21888,8 +21840,7 @@
           "name",
           "description",
           "profil_km_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_editProfilLembaga_output": {
         "type": "object",
@@ -21912,8 +21863,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_getAllProfilKegiatan_output": {
         "type": "object",
@@ -21991,8 +21941,7 @@
         },
         "required": [
           "lembaga_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profil_getAllProfilLembaga_output": {
         "type": "object",
@@ -22042,8 +21991,7 @@
         },
         "required": [
           "kegiatanId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profile_getKegiatan_output": {
         "type": "object",
@@ -22059,31 +22007,31 @@
                 "type": "string"
               },
               "description": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "image": {
+                "nullable": true,
                 "type": "string",
-                "format": "uri",
-                "nullable": true
+                "format": "uri"
               },
               "memberCount": {
-                "type": "number",
-                "nullable": true
+                "nullable": true,
+                "type": "number"
               },
               "foundingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "endingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "type": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               }
             },
             "required": [
@@ -22116,17 +22064,17 @@
                   "type": "string"
                 },
                 "image": {
+                  "nullable": true,
                   "type": "string",
-                  "format": "uri",
-                  "nullable": true
+                  "format": "uri"
                 },
                 "divisi": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "posisi": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 }
               },
               "required": [
@@ -22143,6 +22091,7 @@
           }
         },
         "required": [
+          "kegiatan",
           "lembaga",
           "participant"
         ],
@@ -22157,8 +22106,7 @@
         },
         "required": [
           "kegiatanId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profile_getKegiatanPublic_output": {
         "type": "object",
@@ -22174,31 +22122,31 @@
                 "type": "string"
               },
               "description": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "image": {
+                "nullable": true,
                 "type": "string",
-                "format": "uri",
-                "nullable": true
+                "format": "uri"
               },
               "memberCount": {
-                "type": "number",
-                "nullable": true
+                "nullable": true,
+                "type": "number"
               },
               "foundingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "endingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "type": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               }
             },
             "required": [
@@ -22215,6 +22163,7 @@
           }
         },
         "required": [
+          "kegiatan",
           "lembaga"
         ],
         "additionalProperties": false
@@ -22228,8 +22177,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profile_getLembaga_output": {
         "type": "object",
@@ -22244,30 +22192,30 @@
                 "type": "string"
               },
               "acronym": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "description": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "memberCount": {
-                "type": "number",
-                "nullable": true
+                "nullable": true,
+                "type": "number"
               },
               "foundingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "endingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "type": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "users": {
                 "type": "object",
@@ -22276,9 +22224,9 @@
                     "type": "string"
                   },
                   "image": {
+                    "nullable": true,
                     "type": "string",
-                    "format": "uri",
-                    "nullable": true
+                    "format": "uri"
                   }
                 },
                 "required": [
@@ -22306,9 +22254,12 @@
             "additionalProperties": false
           },
           "newestEvent": {
-            "type": "array"
+            "type": "array",
+            "items": {}
           },
-          "highlightedEvent": {},
+          "highlightedEvent": {
+            "nullable": true
+          },
           "anggota": {
             "type": "array",
             "items": {
@@ -22327,17 +22278,17 @@
                   "type": "string"
                 },
                 "image": {
+                  "nullable": true,
                   "type": "string",
-                  "format": "uri",
-                  "nullable": true
+                  "format": "uri"
                 },
                 "divisi": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "posisi": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 }
               },
               "required": [
@@ -22356,6 +22307,7 @@
         "required": [
           "lembagaData",
           "newestEvent",
+          "highlightedEvent",
           "anggota"
         ],
         "additionalProperties": false
@@ -22369,8 +22321,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profile_getLembagaPublic_output": {
         "type": "object",
@@ -22385,30 +22336,30 @@
                 "type": "string"
               },
               "acronym": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "description": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "memberCount": {
-                "type": "number",
-                "nullable": true
+                "nullable": true,
+                "type": "number"
               },
               "foundingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "endingDate": {
+                "nullable": true,
                 "type": "string",
-                "format": "date-time",
-                "nullable": true
+                "format": "date-time"
               },
               "type": {
-                "type": "string",
-                "nullable": true
+                "nullable": true,
+                "type": "string"
               },
               "users": {
                 "type": "object",
@@ -22417,9 +22368,9 @@
                     "type": "string"
                   },
                   "image": {
+                    "nullable": true,
                     "type": "string",
-                    "format": "uri",
-                    "nullable": true
+                    "format": "uri"
                   }
                 },
                 "required": [
@@ -22447,13 +22398,17 @@
             "additionalProperties": false
           },
           "newestEvent": {
-            "type": "array"
+            "type": "array",
+            "items": {}
           },
-          "highlightedEvent": {}
+          "highlightedEvent": {
+            "nullable": true
+          }
         },
         "required": [
           "lembagaData",
-          "newestEvent"
+          "newestEvent",
+          "highlightedEvent"
         ],
         "additionalProperties": false
       },
@@ -22466,8 +22421,7 @@
         },
         "required": [
           "mahasiswaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "profile_getMahasiswa_output": {
         "type": "object",
@@ -22478,10 +22432,15 @@
               "mahasiswa": {},
               "user": {}
             },
+            "required": [
+              "mahasiswa",
+              "user"
+            ],
             "additionalProperties": false
           },
           "newestEvent": {
-            "type": "array"
+            "type": "array",
+            "items": {}
           },
           "memberLembaga": {
             "type": "array",
@@ -22495,21 +22454,21 @@
                   "type": "string"
                 },
                 "description": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "image": {
+                  "nullable": true,
                   "type": "string",
-                  "format": "uri",
-                  "nullable": true
+                  "format": "uri"
                 },
                 "memberCount": {
-                  "type": "number",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "number"
                 },
                 "type": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "position": {
                   "type": "string"
@@ -22548,8 +22507,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_getAllNilaiProfilKegiatan_output": {
         "type": "object",
@@ -22612,8 +22570,7 @@
         },
         "required": [
           "lembaga_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_getAllNilaiProfilLembaga_output": {
         "type": "object",
@@ -22680,8 +22637,7 @@
         "required": [
           "event_id",
           "mahasiswa_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_getNilaiKegiatanIndividu_output": {
         "type": "object",
@@ -22760,8 +22716,7 @@
         "required": [
           "event_id",
           "mahasiswa_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_getNilaiKegiatanIndividuPublic_output": {
         "type": "object",
@@ -22840,8 +22795,7 @@
         "required": [
           "lembaga_id",
           "mahasiswa_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_getNilaiLembagaIndividu_output": {
         "type": "object",
@@ -22920,8 +22874,7 @@
         "required": [
           "lembaga_id",
           "mahasiswa_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_getNilaiLembagaIndividuPublic_output": {
         "type": "object",
@@ -23018,24 +22971,21 @@
                     "required": [
                       "profil_id",
                       "nilai"
-                    ],
-                    "additionalProperties": false
+                    ]
                   }
                 }
               },
               "required": [
                 "user_id",
                 "nilai"
-              ],
-              "additionalProperties": false
+              ]
             }
           }
         },
         "required": [
           "event_id",
           "mahasiswa"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_upsertNilaiMahasiswaKegiatan_output": {
         "type": "object",
@@ -23077,23 +23027,20 @@
                     "required": [
                       "profil_id",
                       "nilai"
-                    ],
-                    "additionalProperties": false
+                    ]
                   }
                 }
               },
               "required": [
                 "user_id",
                 "nilai"
-              ],
-              "additionalProperties": false
+              ]
             }
           }
         },
         "required": [
           "mahasiswa"
-        ],
-        "additionalProperties": false
+        ]
       },
       "rapor_upsertNilaiMahasiswaLembaga_output": {
         "type": "object",
@@ -23113,8 +23060,7 @@
           "userId": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "riwayat_getRiwayatKepanitiaan_output": {
         "type": "array",
@@ -23125,19 +23071,19 @@
               "type": "string"
             },
             "eventId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "eventNama": {
               "type": "string"
             },
             "lembagaId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "lembagaNama": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "division": {
               "type": "string"
@@ -23178,8 +23124,7 @@
           "userId": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "riwayat_getRiwayatOrganisasi_output": {
         "type": "array",
@@ -23190,15 +23135,15 @@
               "type": "string"
             },
             "lembagaId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "lembagaNama": {
               "type": "string"
             },
             "lembagaTipe": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "division": {
               "type": "string"
@@ -23257,8 +23202,7 @@
           "subject",
           "urgent",
           "description"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_createDraft_output": {
         "type": "object",
@@ -23322,8 +23266,7 @@
         },
         "required": [
           "id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_deleteReport_output": {
         "type": "object",
@@ -23346,8 +23289,7 @@
         },
         "required": [
           "event_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_deleteRequestAssociation_output": {
         "type": "object",
@@ -23373,8 +23315,7 @@
         },
         "required": [
           "lembaga_id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_deleteRequestAssociationLembaga_output": {
         "type": "object",
@@ -23420,8 +23361,7 @@
           "subject",
           "urgent",
           "description"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_editDraft_output": {
         "type": "object",
@@ -23489,8 +23429,7 @@
           "noWhatsapp": {
             "type": "string"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "users_editProfilMahasiswa_output": {},
       "users_editRequestAssociation_input": {
@@ -23510,8 +23449,7 @@
           "event_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_editRequestAssociation_output": {
         "type": "object",
@@ -23545,8 +23483,7 @@
           "lembaga_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_editRequestAssociationLembaga_output": {
         "type": "object",
@@ -23581,8 +23518,7 @@
               "Reported"
             ]
           }
-        },
-        "additionalProperties": false
+        }
       },
       "users_getAllReportsUser_output": {
         "type": "object",
@@ -23662,8 +23598,7 @@
         "required": [
           "userId",
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getAnggotaById_output": {
         "type": "object",
@@ -23706,8 +23641,7 @@
         "required": [
           "name",
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getAnggotaByName_output": {
         "type": "object",
@@ -23746,8 +23680,7 @@
         },
         "required": [
           "userId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getMahasiswaById_output": {
         "type": "object",
@@ -23758,6 +23691,10 @@
               "mahasiswa": {},
               "user": {}
             },
+            "required": [
+              "mahasiswa",
+              "user"
+            ],
             "additionalProperties": false
           }
         },
@@ -23776,8 +23713,7 @@
         },
         "required": [
           "nim"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getMahasiswaByNim_output": {
         "type": "object",
@@ -23788,6 +23724,10 @@
               "mahasiswa": {},
               "user": {}
             },
+            "required": [
+              "mahasiswa",
+              "user"
+            ],
             "additionalProperties": false
           }
         },
@@ -23805,17 +23745,17 @@
               "type": "string"
             },
             "event_id": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "image": {
+              "nullable": true,
               "type": "string",
-              "format": "uri",
-              "nullable": true
+              "format": "uri"
             },
             "event_name": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "position": {
               "type": "string"
@@ -23853,17 +23793,17 @@
               "type": "string"
             },
             "lembaga_id": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "image": {
+              "nullable": true,
               "type": "string",
-              "format": "uri",
-              "nullable": true
+              "format": "uri"
             },
             "lembaga_name": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "position": {
               "type": "string"
@@ -23905,8 +23845,7 @@
         "required": [
           "userId",
           "kegiatanId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getPanitiaById_output": {
         "type": "object",
@@ -23949,8 +23888,7 @@
         "required": [
           "name",
           "kegiatanId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getPanitiaByName_output": {
         "type": "object",
@@ -23989,8 +23927,7 @@
         },
         "required": [
           "kegiatanId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getTambahAnggotaKegiatanOptions_output": {
         "type": "object",
@@ -24049,8 +23986,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_getTambahAnggotaLembagaOptions_output": {
         "type": "object",
@@ -24157,8 +24093,7 @@
           "event_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_requestAssociation_output": {
         "type": "object",
@@ -24189,8 +24124,7 @@
           "lembaga_id",
           "division",
           "position"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_requestAssociationLembaga_output": {
         "type": "object",
@@ -24220,15 +24154,14 @@
             "type": "boolean"
           },
           "limit": {
-            "type": "number",
-            "default": 10
+            "default": 10,
+            "type": "number"
           }
         },
         "required": [
           "query",
           "isKegiatan"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_searchMahasiswa_output": {
         "type": "object",
@@ -24271,8 +24204,7 @@
         },
         "required": [
           "id"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_submitReport_output": {
         "type": "object",
@@ -24299,8 +24231,7 @@
         },
         "required": [
           "rapor_visible"
-        ],
-        "additionalProperties": false
+        ]
       },
       "users_toggleRaporVisibility_output": {
         "type": "object",
