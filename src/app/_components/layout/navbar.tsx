@@ -46,7 +46,10 @@ const Navbar = ({ session }: { session: Session | null }) => {
   useEffect(() => {
     if (
       session?.user.role === 'lembaga' &&
-      !window.location.pathname.startsWith('/lembaga')
+      !window.location.pathname.startsWith('/lembaga') &&
+      // /manual is available to authenticated users at a shared URL;
+      // don't bounce lembaga users away from it.
+      !window.location.pathname.startsWith('/manual')
     ) {
       router.push('/lembaga');
     }
