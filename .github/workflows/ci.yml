@@ -24,6 +24,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Docs di docs/api/ di-generate dari router tRPC dan schema Drizzle.
+      # Kalau ada procedure/tabel baru tapi docs belum di-regenerate, step ini gagal.
+      # Perbaikannya: jalankan `npm run docs` lalu commit hasilnya.
+      - name: Check generated docs are up to date
+        run: npm run docs:check
+        env:
+          SKIP_ENV_VALIDATION: 1
+
       - name: Build Project
         run: npm run build
         env:

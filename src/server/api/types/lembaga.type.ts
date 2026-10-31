@@ -1,4 +1,26 @@
 import { z } from 'zod';
+import { lembagaTypeEnum } from '~/server/db/schema';
+
+/**
+ * Bentuk satu baris tabel `lembaga` apa adanya. Dipakai endpoint yang memang
+ * mengembalikan row mentah, supaya schema-nya bisa dirender di dokumentasi
+ * (`z.custom` menghasilkan schema kosong di OpenAPI).
+ */
+export const LembagaRowSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  foundingDate: z.date().nullable(),
+  endingDate: z.date().nullable(),
+  type: z.enum(lembagaTypeEnum.enumValues).nullable(),
+  major: z.string().nullable(),
+  field: z.string().nullable(),
+  memberCount: z.number().nullable(),
+  raporVisible: z.boolean(),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
 
 export const GetInfoLembagaInputSchema = z.object({
   lembagaId: z.string().nonempty(),
@@ -120,16 +142,27 @@ export const editAnggotaLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
+// Limits track the real data: `lembaga.name` is varchar(255) (longest seeded
+// name is 73 chars), `lembaga.description` is text (longest seeded is 227).
+// The previous 30/100 caps rejected 62 of 135 names and 134 of 135
+// descriptions, so a seeded lembaga could not save its own profile at all.
 export const EditProfilLembagaInputSchema = z.object({
   nama: z
     .string()
+    .trim()
     .min(1, 'Nama wajib diisi')
-    .max(30, 'Nama maksimal 30 karakter'),
+    .max(255, 'Nama maksimal 255 karakter'),
+  singkatan: z
+    .string()
+    .trim()
+    .max(50, 'Singkatan maksimal 50 karakter')
+    .optional(),
   tipe: z.enum(['Himpunan', 'UKM', 'Kepanitiaan', 'BSO']).optional(),
   deskripsi: z
     .string()
+    .trim()
     .min(10, 'Deskripsi minimal 10 karakter')
-    .max(100, 'Deskripsi maksimal 100 karakter')
+    .max(500, 'Deskripsi maksimal 500 karakter')
     .optional(),
   gambar: z.string().url().optional(),
 });

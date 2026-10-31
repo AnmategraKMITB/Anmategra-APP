@@ -43,6 +43,7 @@ export const GetLembagaOutputSchema = z.object({
   lembagaData: z.object({
     id: z.string(),
     name: z.string(),
+    acronym: z.string().nullable(),
     description: z.string().nullable(),
     memberCount: z.number().nullable(),
     foundingDate: z.date().nullable(),

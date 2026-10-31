@@ -52,6 +52,15 @@ Opsi B — pakai Docker (lihat `scripts/start-database.sh`):
 npm run db:push
 ```
 
+Opsi C — app + database sekaligus di Docker (`compose.local.yml`):
+```
+docker compose -f compose.local.yml up --build
+```
+- Postgres 15 jalan di port host `5433`, app (`next dev`, hot reload) di `3000`. Ubah lewat `APP_PORT` / `DB_PORT`.
+- Kalau ada `anmategra.dump` di folder induk repo, dump itu dipulihkan saat pertama kali jalan, lalu `db:migrate` menyusulkan migrasi yang belum ada. Lokasi lain: set `DB_DUMP_DIR` / `DB_DUMP_FILE`.
+- Kredensial OAuth boleh dibiarkan kosong (diisi placeholder), tetapi login baru berfungsi dengan kredensial sungguhan di `.env`.
+- Ulang dari dump: `docker compose -f compose.local.yml down -v`.
+
 Perintah db lain yang tersedia:
 - `npm run db:generate` — generate migration dari schema (drizzle-kit generate)
 - `npm run db:migrate` — jalanin migration (drizzle-kit migrate)
@@ -73,6 +82,7 @@ Script lain:
 - `npm run build` — build production
 - `npm run start` — jalanin hasil build
 - `npm run lint` — cek lint (next lint)
+- `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
 
 ## Struktur Project
 
@@ -94,7 +104,7 @@ Script lain:
 │   └── utils/            # Fungsi utility lain
 ├── drizzle/              # Migration SQL & snapshot (hasil drizzle-kit generate)
 ├── scripts/              # Script dev/data: start-database.sh, refresh-lembaga.sh, dll
-├── docs/                 # Dokumentasi tambahan (API reference, sprint backlog, dll)
+├── docs/api/             # Dokumentasi API & DB hasil generate (OpenAPI + DBML)
 ├── public/                # Static assets
 ├── Dockerfile              # Build image production
 ├── docker-entrypoint.sh    # Entry container: jalanin db:migrate lalu npm run start
@@ -142,7 +152,30 @@ Contoh : `fix(api): resolve CORS issue`
 - Format : `kebab-case`
 - Contoh : `user-profile.tsx`, `nav-bar.tsx`, `api-enpoint.ts`
 
+## Dokumentasi API & Database
+
+Dokumentasinya di-generate dari kode, jadi tidak bisa basi selama di-regenerate.
+
+```bash
+npm run dev
+# buka http://localhost:3000/api/docs
+```
+
+- **API** — Scalar di [`/api/docs`](http://localhost:3000/api/docs): seluruh procedure tRPC
+  dan endpoint REST, lengkap dengan level akses, bentuk input/output, dan daftar error.
+- **Database** — `docs/api/schema.dbml`, bisa di-publish ke dbdocs.io lewat
+  `npm run docs:db:publish` atau di-paste ke [dbdiagram.io](https://dbdiagram.io).
+
+Setelah mengubah router tRPC atau `src/server/db/schema.ts`, jalankan `npm run docs` dan
+commit hasilnya — CI menolak PR yang dokumentasinya sudah tidak sinkron.
+
+Panduan lengkap (cara menulis penjelasan, aturan `.meta({ access })`, cara memanggil
+endpoint dari luar): **[`docs/api/README.md`](docs/api/README.md)**.
+
 ## TRPC Panel
 
 - [Anmategra Panel](http://localhost:3000/api/panel)
+
+Buat mencoba endpoint dengan sesi login kamu. Untuk membaca kontrak API-nya, pakai
+`/api/docs` di atas.
 

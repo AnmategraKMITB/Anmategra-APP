@@ -119,6 +119,7 @@ export const profileRouter = createTRPCRouter({
         columns: {
           id: true,
           name: true,
+          acronym: true,
           description: true,
           memberCount: true,
           foundingDate: true,
@@ -306,6 +307,7 @@ export const profileRouter = createTRPCRouter({
         columns: {
           id: true,
           name: true,
+          acronym: true,
           description: true,
           memberCount: true,
           foundingDate: true,

@@ -28,6 +28,7 @@ import {
   kehimpunan,
   lembaga,
   mahasiswa,
+  riwayatOrganisasi,
   users,
 } from '~/server/db/schema';
 
@@ -591,14 +592,33 @@ export const lembagaRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db
-        .delete(kehimpunan)
-        .where(
-          and(
-            eq(kehimpunan.userId, input.user_id),
-            eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
-          ),
-        );
+      const lembagaRow = await ctx.db.query.lembaga.findFirst({
+        where: eq(lembaga.id, ctx.session.user.lembagaId!),
+        columns: { id: true, name: true, type: true },
+      });
+
+      await ctx.db.transaction(async (tx) => {
+        await tx.insert(riwayatOrganisasi).values({
+          userId: existingKehimpunan.userId,
+          lembagaId: existingKehimpunan.lembagaId,
+          lembagaNama: lembagaRow?.name ?? 'Lembaga',
+          lembagaTipe: lembagaRow?.type ?? null,
+          division: existingKehimpunan.division,
+          position: existingKehimpunan.position,
+          startedAt: existingKehimpunan.created_at,
+          endedAt: new Date(),
+          endReason: 'removed',
+        });
+
+        await tx
+          .delete(kehimpunan)
+          .where(
+            and(
+              eq(kehimpunan.userId, input.user_id),
+              eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
+            ),
+          );
+      });
 
       return {
         success: true,
@@ -677,6 +697,9 @@ export const lembagaRouter = createTRPCRouter({
           name: input.nama,
           description: input.deskripsi,
           ...(input.tipe ? { type: input.tipe } : {}),
+          ...(input.singkatan !== undefined
+            ? { acronym: input.singkatan || null }
+            : {}),
         })
         .where(eq(lembaga.id, ctx.session.user.lembagaId!));
 

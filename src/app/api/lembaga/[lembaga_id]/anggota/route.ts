@@ -1,8 +1,15 @@
 import { eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
+import { canManageLembaga } from '~/server/api/trpc';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { kehimpunan, mahasiswa, users } from '~/server/db/schema';
+import {
+  kehimpunan,
+  lembaga,
+  mahasiswa,
+  riwayatOrganisasi,
+  users,
+} from '~/server/db/schema';
 import { apiError } from '~/utils/api-error';
 
 export async function GET(
@@ -14,25 +21,28 @@ export async function GET(
   if (!session) {
     return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
-  if (session.user.role !== 'lembaga') {
-    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
-  }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
     return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
-  // --- Validate lembaga ownership ---
+  // --- Validate Owner/Admin access to this lembaga ---
   const userLembaga = await db.query.lembaga.findFirst({
-    where: (l, { eq }) => eq(l.userId, session.user.id),
+    where: eq(lembaga.id, lembaga_id),
   });
   if (!userLembaga) {
     return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
-  // --- Validate lembaga_id matches user's lembaga ---
-  if (userLembaga.id !== lembaga_id) {
+  const access = await canManageLembaga(
+    db,
+    session.user.id,
+    session.user.role,
+    session.user.lembagaId,
+    lembaga_id,
+  );
+  if (!access) {
     return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
@@ -134,25 +144,28 @@ export async function POST(
   if (!session) {
     return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
-  if (session.user.role !== 'lembaga') {
-    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
-  }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
     return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
-  // --- Validate lembaga ownership ---
+  // --- Validate Owner/Admin access to this lembaga ---
   const userLembaga = await db.query.lembaga.findFirst({
-    where: (l, { eq }) => eq(l.userId, session.user.id),
+    where: eq(lembaga.id, lembaga_id),
   });
   if (!userLembaga) {
     return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
-  // --- Validate lembaga_id matches user's lembaga ---
-  if (userLembaga.id !== lembaga_id) {
+  const access = await canManageLembaga(
+    db,
+    session.user.id,
+    session.user.role,
+    session.user.lembagaId,
+    lembaga_id,
+  );
+  if (!access) {
     return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
@@ -255,6 +268,26 @@ export async function POST(
     // --- Find users and insert kehimpunan ---
     let insertedCount = 0;
     await db.transaction(async (tx) => {
+      // --- Snapshot existing members to riwayat before wiping (H-03) ---
+      const existingMembers = await tx.query.kehimpunan.findMany({
+        where: eq(kehimpunan.lembagaId, lembaga_id),
+      });
+      if (existingMembers.length > 0) {
+        await tx.insert(riwayatOrganisasi).values(
+          existingMembers.map((member) => ({
+            userId: member.userId,
+            lembagaId: member.lembagaId,
+            lembagaNama: userLembaga.name,
+            lembagaTipe: userLembaga.type,
+            division: member.division,
+            position: member.position,
+            startedAt: member.created_at,
+            endedAt: new Date(),
+            endReason: 'removed' as const,
+          })),
+        );
+      }
+
       // --- Delete existing data for this lembaga ---
       await tx.delete(kehimpunan).where(eq(kehimpunan.lembagaId, lembaga_id));
 
