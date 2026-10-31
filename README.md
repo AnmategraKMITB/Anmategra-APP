@@ -82,7 +82,8 @@ Buka [http://localhost:3000](http://localhost:3000).
 Script lain:
 - `npm run build` — build production
 - `npm run start` — jalanin hasil build
-- `npm run lint` — cek lint (next lint)
+- `npm run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `npm run lint:prune` dan commit perubahan file itu.
+- `npm run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
 - `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
 
 ## Struktur Project

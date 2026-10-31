@@ -1,0 +1,287 @@
+{
+  "scripts/km-summarize.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 3
+    }
+  },
+  "src/app/(public)/profile-kegiatan/[profileKegiatanId]/page.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/app/(public)/profile-lembaga/[lembagaId]/page.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/_components/card/lembaga-card.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/app/_components/landing/hero.tsx": {
+    "@typescript-eslint/no-inferrable-types": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/footer.tsx": {
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "src/app/_components/layout/navbar.tsx": {
+    "@typescript-eslint/prefer-optional-chain": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/search-bar.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/docs-nav.tsx": {
+    "react-hooks/static-components": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/docs-shell.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/markdown-components.tsx": {
+    "@typescript-eslint/prefer-optional-chain": {
+      "count": 1
+    }
+  },
+  "src/app/_components/placeholder/event-header.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/profile-kegiatan/profil-kegiatan-comp.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/individu/rapor-individu-header.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/profil-menu.tsx": {
+    "@typescript-eslint/prefer-optional-chain": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/rapor-table.tsx": {
+    "@typescript-eslint/prefer-optional-chain": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/rapor-visibility-switch.tsx": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 3
+    }
+  },
+  "src/app/lembaga/_components/best-staff-form.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/anggota/_components/anggota-content.tsx": {
+    "@typescript-eslint/no-floating-promises": {
+      "count": 1
+    },
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/anggota/_components/table/mahasiswa-card-table.tsx": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-call": {
+      "count": 3
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 7
+    }
+  },
+  "src/app/lembaga/kegiatan/[kegiatanId]/panitia/[raporId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/kegiatan/[kegiatanId]/profil/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 10
+    }
+  },
+  "src/app/lembaga/kegiatan/_components/form/tambah-edit-kegiatan-form.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/[profileKegiatanId]/rapor/[raporId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/_components/ajuan-asosiasi-form.tsx": {
+    "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/profile-lembaga-content.tsx": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 2
+    },
+    "@typescript-eslint/no-unsafe-call": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 16
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/rapor/[raporId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-mahasiswa/[mahasiswaId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-kegiatan/[profileKegiatanId]/page.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-kegiatan/[profileKegiatanId]/rapor/[raporId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-lembaga/[lembagaId]/page.tsx": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/app/mahasiswa/profile-lembaga/[lembagaId]/rapor/[raporId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-mahasiswa/[mahasiswaId]/page.tsx": {
+    "react-hooks/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/landing.ts": {
+    "@typescript-eslint/no-unsafe-call": {
+      "count": 6
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 6
+    },
+    "@typescript-eslint/non-nullable-type-assertion-style": {
+      "count": 5
+    }
+  },
+  "src/server/api/routers/organization/services.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 7
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 10
+    }
+  },
+  "src/server/api/routers/organization/structure.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 3
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 11
+    }
+  },
+  "src/server/api/routers/organization/unit.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 12
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 31
+    }
+  },
+  "src/server/api/routers/profile.ts": {
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 3
+    }
+  },
+  "src/server/auth.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unused-expressions": {
+      "count": 1
+    },
+    "@typescript-eslint/prefer-optional-chain": {
+      "count": 1
+    }
+  },
+  "src/server/db/schema.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 8
+    }
+  },
+  "src/server/db/seeding/backfill-lembaga-descriptions.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/db/seeding/seed-lembaga.ts": {
+    "@typescript-eslint/no-base-to-string": {
+      "count": 1
+    },
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "@typescript-eslint/prefer-nullish-coalescing": {
+      "count": 4
+    }
+  },
+  "src/server/manual/docs.ts": {
+    "@typescript-eslint/no-unsafe-argument": {
+      "count": 4
+    },
+    "@typescript-eslint/no-unsafe-call": {
+      "count": 2
+    },
+    "@typescript-eslint/no-unsafe-member-access": {
+      "count": 7
+    }
+  },
+  "tailwind.config.ts": {
+    "@typescript-eslint/no-require-imports": {
+      "count": 1
+    }
+  }
+}

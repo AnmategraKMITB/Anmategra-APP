@@ -6,6 +6,11 @@ await import('./src/env.js');
 
 /** @type {import("next").NextConfig} */
 const config = {
+  // Lint dijalankan terpisah (`npm run lint`, job "Lint" di CI). Lint bawaan
+  // `next build` di Next 14 tidak kompatibel dengan ESLint 9 / flat config.
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   experimental: {
     optimizeCss: true,
   },
