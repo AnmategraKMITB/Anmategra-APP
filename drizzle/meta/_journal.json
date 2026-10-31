@@ -176,6 +176,13 @@
       "when": 1787709720971,
       "tag": "0024_cute_dragon_man",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793461287353,
+      "tag": "0025_lembaga_acronym",
+      "breakpoints": true
     }
   ]
 }
