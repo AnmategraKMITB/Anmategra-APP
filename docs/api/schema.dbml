@@ -201,6 +201,8 @@ table anmategra_keanggotaan {
 
   indexes {
     (event_id, user_id) [name: 'keanggotaan_event_user_unique', unique]
+    org_unit_id [name: 'keanggotaan_org_unit_idx']
+    org_role_id [name: 'keanggotaan_org_role_idx']
   }
   Note: "Membership mahasiswa dalam sebuah event/kepanitiaan (posisi struktural)."
 }
@@ -219,6 +221,8 @@ table anmategra_kehimpunan {
 
   indexes {
     (lembaga_id, user_id) [name: 'kehimpunan_lembaga_user_unique', unique]
+    org_unit_id [name: 'kehimpunan_org_unit_idx']
+    org_role_id [name: 'kehimpunan_org_role_idx']
   }
   Note: "Membership mahasiswa dalam sebuah lembaga (posisi struktural, analog `keanggotaan` tapi level lembaga, bukan event)."
 }
@@ -319,6 +323,10 @@ table anmategra_organization_role {
   sort_order integer [not null, default: 0]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    structure_id [name: 'organization_role_structure_idx']
+  }
   Note: "Posisi/jabatan di dalam sebuah organization unit."
 }
 
@@ -330,6 +338,11 @@ table anmategra_organization_structure {
   is_active boolean [not null, default: true]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    lembaga_id [name: 'organization_structure_active_lembaga_unique', unique]
+    event_id [name: 'organization_structure_active_event_unique', unique]
+  }
   Note: "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role)."
 }
 
@@ -343,6 +356,12 @@ table anmategra_organization_unit {
   sort_order integer [not null, default: 0]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    structure_id [name: 'organization_unit_structure_idx']
+    parent_id [name: 'organization_unit_parent_idx']
+    (structure_id, parent_id, sort_order) [name: 'organization_unit_sibling_order_idx']
+  }
   Note: "Divisi/bidang di dalam sebuah struktur organisasi."
 }
 
