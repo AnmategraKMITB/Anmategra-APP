@@ -88,6 +88,11 @@ export default function ProfileLembagaContent({
                       <p className="text-xl md:text-3xl text-slate-600 font-semibold">
                         {lembagaData?.name}
                       </p>
+                      {lembagaData?.acronym && (
+                        <p className="text-base md:text-lg text-slate-400 font-medium">
+                          {lembagaData.acronym}
+                        </p>
+                      )}
                       <p className="text-sm md:text-xl text-slate-400">
                         {lembagaData?.description}
                       </p>

@@ -227,6 +227,7 @@ table anmategra_lembaga {
   id varchar(255) [pk, not null]
   user_id varchar(255) [not null]
   name varchar(255) [not null]
+  acronym varchar(50)
   description text
   founding_date "timestamp with time zone"
   ending_date "timestamp with time zone"
