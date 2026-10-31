@@ -61,7 +61,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "critters": "^0.0.23",
-    "csv-parse": "^6.1.0",
+    "csv-parse": "^7.0.3",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.2",
@@ -85,7 +85,7 @@
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "server-only": "^0.0.1",
-    "sharp": "^0.34.4",
+    "sharp": "^0.35.5",
     "sonner": "^1.5.0",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.4",
@@ -136,6 +136,9 @@
     },
     "@esbuild-kit/core-utils": {
       "esbuild": "^0.25.0"
+    },
+    "next": {
+      "postcss": "^8.5.23"
     }
   }
 }
