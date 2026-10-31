@@ -104,6 +104,8 @@ export const AddAnggotaLembagaInputSchema = z.object({
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const AddAnggotaManualLembagaInputSchema = z.object({
@@ -111,6 +113,8 @@ export const AddAnggotaManualLembagaInputSchema = z.object({
   nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const AddAnggotaLembagaOutputSchema = z.object({
@@ -130,6 +134,8 @@ export const editAnggotaLembagaInputSchema = z.object({
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const editAnggotaLembagaOutputSchema = z.object({

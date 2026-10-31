@@ -96,6 +96,7 @@ import {
   editAnggotaLembagaInputSchema,
   editAnggotaLembagaOutputSchema,
 } from '../types/lembaga.type';
+import { resolveOrgAssignment } from './organization/services';
 
 export const lembagaRouter = createTRPCRouter({
   // Fetch lembaga general information
@@ -420,18 +421,41 @@ export const lembagaRouter = createTRPCRouter({
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
+        const assignment = await resolveOrgAssignment(ctx.db, {
+          ownerType: 'lembaga',
+          ownerId: ctx.session.user.lembagaId!,
+          org_unit_id: input.org_unit_id,
+          org_role_id: input.org_role_id,
+        });
+
         await ctx.db.insert(kehimpunan).values({
           id: input.user_id + '_' + ctx.session.user.id,
           lembagaId: ctx.session.user.lembagaId!,
           userId: input.user_id,
-          division: input.division,
-          position: input.position,
+          org_unit_id: assignment.org_unit_id,
+          org_role_id: assignment.org_role_id,
+          division: assignment.division ?? input.division,
+          position: assignment.position ?? input.position,
         });
 
         return {
           success: true,
         };
       } catch (error) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        if (
+          error &&
+          typeof error === 'object' &&
+          'code' in error &&
+          error.code === '23505'
+        ) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
+          });
+        }
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Gagal menambahkan anggota',
@@ -444,6 +468,13 @@ export const lembagaRouter = createTRPCRouter({
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
+        const assignment = await resolveOrgAssignment(ctx.db, {
+          ownerType: 'lembaga',
+          ownerId: ctx.session.user.lembagaId!,
+          org_unit_id: input.org_unit_id,
+          org_role_id: input.org_role_id,
+        });
+
         // Check if user already exists by email (primary identifier)
         const email = `${input.nim}@mahasiswa.itb.ac.id`;
         const existingUser = await ctx.db.query.users.findFirst({
@@ -464,8 +495,10 @@ export const lembagaRouter = createTRPCRouter({
             id: existingUser.id + '_' + ctx.session.user.id,
             lembagaId: ctx.session.user.lembagaId!,
             userId: existingUser.id,
-            division: input.division,
-            position: input.position,
+            org_unit_id: assignment.org_unit_id,
+            org_role_id: assignment.org_role_id,
+            division: assignment.division ?? input.division,
+            position: assignment.position ?? input.position,
           });
 
           return { success: true };
@@ -501,8 +534,10 @@ export const lembagaRouter = createTRPCRouter({
             id: user[0]!.id + '_' + ctx.session.user.id,
             lembagaId: ctx.session.user.lembagaId!,
             userId: user[0]!.id,
-            division: input.division,
-            position: input.position,
+            org_unit_id: assignment.org_unit_id,
+            org_role_id: assignment.org_role_id,
+            division: assignment.division ?? input.division,
+            position: assignment.position ?? input.position,
           });
         });
 
@@ -510,6 +545,22 @@ export const lembagaRouter = createTRPCRouter({
           success: true,
         };
       } catch (error) {
+        // TRPCError extends Error, so this must stay above the `instanceof Error`
+        // branch below — otherwise every thrown code is downgraded to a 500.
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        if (
+          error &&
+          typeof error === 'object' &&
+          'code' in error &&
+          error.code === '23505'
+        ) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
+          });
+        }
         if (error instanceof Error) {
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
@@ -579,11 +630,24 @@ export const lembagaRouter = createTRPCRouter({
     .output(editAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
+        const hasOrgAssignmentInput =
+          input.org_unit_id !== undefined || input.org_role_id !== undefined;
+        const assignment = await resolveOrgAssignment(ctx.db, {
+          ownerType: 'lembaga',
+          ownerId: ctx.session.user.lembagaId!,
+          org_unit_id: input.org_unit_id,
+          org_role_id: input.org_role_id,
+        });
+
         const updated = await ctx.db
           .update(kehimpunan)
           .set({
-            position: input.position,
-            division: input.division,
+            ...(hasOrgAssignmentInput && {
+              org_unit_id: assignment.org_unit_id,
+              org_role_id: assignment.org_role_id,
+            }),
+            position: assignment.position ?? input.position,
+            division: assignment.division ?? input.division,
           })
           .where(
             and(

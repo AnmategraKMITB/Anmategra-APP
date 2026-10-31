@@ -183,6 +183,13 @@
       "when": 1793461287353,
       "tag": "0025_lembaga_acronym",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793462120132,
+      "tag": "0026_organization_constraints",
+      "breakpoints": true
     }
   ]
 }
