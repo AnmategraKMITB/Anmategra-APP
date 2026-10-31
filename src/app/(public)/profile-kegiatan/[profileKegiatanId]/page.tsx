@@ -18,11 +18,10 @@ import {
 } from '~/lib/seo';
 import { api } from '~/trpc/server';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { profileKegiatanId: string };
+export async function generateMetadata(props: {
+  params: Promise<{ profileKegiatanId: string }>;
 }): Promise<Metadata> {
+  const params = await props.params;
   const path = `/profile-kegiatan/${params.profileKegiatanId}`;
 
   try {

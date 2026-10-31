@@ -14,11 +14,12 @@ const formatDate = (dateString: string) =>
     minute: '2-digit',
   });
 
-export default async function ReportDetail({
-  params,
-}: {
-  params: { laporanId: string };
-}) {
+export default async function ReportDetail(
+  props: {
+    params: Promise<{ laporanId: string }>;
+  }
+) {
+  const params = await props.params;
   const laporanId = params.laporanId;
   const { reports } = await api.admin.getAllReportsAdmin({});
   const report = reports.find((r) => r.id === laporanId);

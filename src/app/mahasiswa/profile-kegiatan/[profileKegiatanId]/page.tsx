@@ -15,11 +15,10 @@ import { Button } from '~/components/ui/button';
 import { getServerAuthSession } from '~/server/auth';
 import { api } from '~/trpc/server';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { profileKegiatanId: string };
+export async function generateMetadata(props: {
+  params: Promise<{ profileKegiatanId: string }>;
 }): Promise<Metadata> {
+  const params = await props.params;
   const { kegiatan } = await api.profile.getKegiatan({
     kegiatanId: params.profileKegiatanId,
   });

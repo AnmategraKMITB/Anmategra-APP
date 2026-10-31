@@ -10,15 +10,14 @@ type NilaiKegiatanOutput = z.infer<typeof GetNilaiKegiatanIndividuOutputSchema>;
 export type ProfilOutput = z.infer<typeof GetAllProfilOutputSchema>;
 
 interface RaporIndividuMahasiswaKegiatanPageProps {
-  params: {
+  params: Promise<{
     profileKegiatanId: string;
     raporId: string;
-  };
+  }>;
 }
 
-export default async function RaporIndividuMahasiswaKegiatanPage({
-  params,
-}: RaporIndividuMahasiswaKegiatanPageProps) {
+export default async function RaporIndividuMahasiswaKegiatanPage(props: RaporIndividuMahasiswaKegiatanPageProps) {
+  const params = await props.params;
   const { profileKegiatanId, raporId } = params;
 
   try {

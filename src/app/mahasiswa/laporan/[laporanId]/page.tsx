@@ -7,7 +7,8 @@ import { api } from "~/trpc/server";
 import { RaporBreadcrumb } from "~/app/_components/breadcrumb";
 import { formatTanggal } from "~/utils/utils";
 
-export default async function ReportDetail({params}: {params: { laporanId: string }}) {
+export default async function ReportDetail(props: {params: Promise<{ laporanId: string }>}) {
+  const params = await props.params;
   const data = await api.users.getAllReportsUser({});
   const report = data.reports.find((r) => r.id === params.laporanId);
 

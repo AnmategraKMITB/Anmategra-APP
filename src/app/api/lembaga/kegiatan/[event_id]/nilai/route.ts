@@ -11,10 +11,8 @@ import {
 } from '~/server/db/schema';
 import { apiError } from '~/utils/api-error';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { event_id: string } },
-) {
+export async function GET(request: Request, props: { params: Promise<{ event_id: string }> }) {
+  const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
@@ -187,10 +185,8 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { event_id: string } },
-) {
+export async function POST(request: Request, props: { params: Promise<{ event_id: string }> }) {
+  const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {

@@ -5,12 +5,13 @@ import HistoriBestStaffContent from '~/app/lembaga/_components/histori-best-staf
 import { HistoriBreadCrumb } from '~/app/lembaga/profile-lembaga/[lembagaId]/histori/_components/histori-breadcrumb';
 
 interface Props {
-  params: {
+  params: Promise<{
     profileKegiatanId: string;
-  };
+  }>;
 }
 
-const HistoriBestStaffKegiatanMahasiswaPage = async ({ params }: Props) => {
+const HistoriBestStaffKegiatanMahasiswaPage = async (props: Props) => {
+  const params = await props.params;
   const session = await getServerAuthSession();
   const { profileKegiatanId } = params;
 

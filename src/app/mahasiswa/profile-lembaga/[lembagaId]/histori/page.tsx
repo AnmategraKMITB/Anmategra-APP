@@ -6,12 +6,13 @@ import { HistoriBreadCrumb } from '~/app/lembaga/profile-lembaga/[lembagaId]/his
 import { redirect } from 'next/navigation';
 
 interface Props {
-  params: {
+  params: Promise<{
     lembagaId: string;
-  };
+  }>;
 }
 
-const HistoriBestStaffLembagaMahasiswaPage = async ({ params }: Props) => {
+const HistoriBestStaffLembagaMahasiswaPage = async (props: Props) => {
+  const params = await props.params;
   const session = await getServerAuthSession();
 
   if (!session?.user?.id) {

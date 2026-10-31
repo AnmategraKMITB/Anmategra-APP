@@ -21,11 +21,10 @@ import { getServerAuthSession } from '~/server/auth';
 // TRPC Import
 import { api } from '~/trpc/server';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { lembagaId: string };
+export async function generateMetadata(props: {
+  params: Promise<{ lembagaId: string }>;
 }): Promise<Metadata> {
+  const params = await props.params;
   const { lembagaData } = await api.profile.getLembaga({
     lembagaId: params.lembagaId,
   });
