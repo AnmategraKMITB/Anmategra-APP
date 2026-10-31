@@ -4,8 +4,8 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
-ALTER TYPE "support_status" ADD VALUE 'Draft';--> statement-breakpoint
-ALTER TYPE "support_status" ADD VALUE 'Backlog';--> statement-breakpoint
+ALTER TYPE "support_status" ADD VALUE IF NOT EXISTS 'Draft';--> statement-breakpoint
+ALTER TYPE "support_status" ADD VALUE IF NOT EXISTS 'Backlog';--> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "anmategra_association_request_lembaga" (
 	"id" varchar(255) PRIMARY KEY NOT NULL,
 	"lembaga_id" varchar(255),

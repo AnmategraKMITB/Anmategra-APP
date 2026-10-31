@@ -1,39 +1,137 @@
-name: CI - Build Check
+name: CI
 
 on:
   pull_request:
-    branches: [ "main", "develop" ]
+    branches: ['main', 'develop']
   push:
-    branches: [ "main", "develop" ]
+    branches: ['main', 'develop']
+
+# Push baru ke PR yang sama membatalkan run sebelumnya. Run di main/develop
+# tidak dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+env:
+  SKIP_ENV_VALIDATION: 1
 
 jobs:
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      # Pelanggaran lama dicatat di eslint-suppressions.json; pelanggaran baru gagal.
+      # Kalau kamu memperbaiki pelanggaran lama, jalankan `npm run lint:prune`.
+      - run: npm run lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
   build:
+    # Nama ini dipakai sebagai required status check di branch protection.
     name: Build and Check
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
-          node-version: 20
-          cache: "npm"
-
-      - name: Install dependencies
-        run: npm ci
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
 
       # Docs di docs/api/ di-generate dari router tRPC dan schema Drizzle.
       # Kalau ada procedure/tabel baru tapi docs belum di-regenerate, step ini gagal.
       # Perbaikannya: jalankan `npm run docs` lalu commit hasilnya.
       - name: Check generated docs are up to date
         run: npm run docs:check
-        env:
-          SKIP_ENV_VALIDATION: 1
 
-      - name: Build Project
+      - uses: actions/cache@v6
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'content/**') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
+      - name: Build
         run: npm run build
         env:
-          SKIP_ENV_VALIDATION: 1
-          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+          # PR dari fork tidak mendapat secrets; build tetap butuh URL (robots/sitemap).
+          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'https://anmategra.com' }}
+
+  migrations:
+    name: Migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        # Samakan dengan versi Postgres di production.
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: anmategra
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+
+      # Semua migrasi harus bisa dijalankan dari database kosong (developer baru,
+      # environment baru), bukan hanya di atas database yang sudah ada.
+      - name: Apply all migrations to an empty database
+        run: npm run db:migrate
+
+      # Snapshot terakhir di drizzle/meta harus sama dengan src/server/db/schema.ts.
+      # Kalau gagal: jalankan `npm run db:generate`, lalu commit migrasi barunya.
+      - name: Check schema.ts has no ungenerated changes
+        run: |
+          npx drizzle-kit generate
+          if [ -n "$(git status --porcelain drizzle)" ]; then
+            echo "::error::schema.ts berubah tanpa migrasi. Jalankan 'npm run db:generate' lalu commit hasilnya."
+            git status --porcelain drizzle
+            exit 1
+          fi
+
+  dependency-review:
+    name: Dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      # Menolak PR yang menambah dependency dengan kerentanan high/critical.
+      # Kerentanan yang sudah ada di develop tidak membuat PR gagal.
+      - uses: actions/dependency-review-action@v5
+        with:
+          fail-on-severity: high
