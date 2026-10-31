@@ -59,6 +59,7 @@ docker compose -f compose.local.yml up --build
 - Postgres 15 jalan di port host `5433`, app (`next dev`, hot reload) di `3000`. Ubah lewat `APP_PORT` / `DB_PORT`.
 - Kalau ada `anmategra.dump` di folder induk repo, dump itu dipulihkan saat pertama kali jalan, lalu `db:migrate` menyusulkan migrasi yang belum ada. Lokasi lain: set `DB_DUMP_DIR` / `DB_DUMP_FILE`.
 - Kredensial OAuth boleh dibiarkan kosong (diisi placeholder), tetapi login baru berfungsi dengan kredensial sungguhan di `.env`.
+- Masuk tanpa OAuth: `docker compose -f compose.local.yml exec app node docker/local/dev-login.mjs <admin|lembaga|mahasiswa> [email]`, lalu tempel baris yang dicetak ke console browser. Dump tidak berisi admin, jadi ubah dulu role satu user di database lokal.
 - Ulang dari dump: `docker compose -f compose.local.yml down -v`.
 
 Perintah db lain yang tersedia:
