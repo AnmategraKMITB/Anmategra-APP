@@ -13,6 +13,7 @@ import { env } from '~/env';
 import { db } from '~/server/db';
 import {
   accounts,
+  alumniPending,
   lembaga,
   mahasiswa,
   sessions,
@@ -292,6 +293,13 @@ const insertMahasiswa = async (
   });
   if (mahasiswaExists) return mahasiswaExists;
 
+  // H-03 fallback: NIM ini sudah pernah di-upload di CSV wisuda sebelum
+  // akunnya pernah login sama sekali — langsung tandai alumni & bersihkan
+  // pending-nya.
+  const pending = await db.query.alumniPending.findFirst({
+    where: eq(alumniPending.nim, nim),
+  });
+
   const newMahasiswa = await db
     .insert(mahasiswa)
     .values({
@@ -299,8 +307,14 @@ const insertMahasiswa = async (
       nim: nim,
       jurusan: jurusan,
       angkatan: angkatan,
+      status: pending ? 'alumni' : 'aktif',
     })
     .returning();
+
+  if (pending) {
+    await db.delete(alumniPending).where(eq(alumniPending.id, pending.id));
+  }
+
   return newMahasiswa;
 };
 

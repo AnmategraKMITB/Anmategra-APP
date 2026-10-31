@@ -21,8 +21,12 @@ import { events, lembaga, mahasiswa, users } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
 
 import {
+  GetAllEventIdsInputSchema,
+  GetAllEventIdsOutputSchema,
   GetAllEventsInputSchema,
   GetAllEventsOutputSchema,
+  GetAllLembagaIdsInputSchema,
+  GetAllLembagaIdsOutputSchema,
   GetRecentEventsOutputSchema,
   GetTopEventsOutputSchema,
   SearchAllOutputSchema,
@@ -63,9 +67,10 @@ export const landingRouter = createTRPCRouter({
       });
 
       const formattedEvents: Kepanitiaan[] = events.map((item) => {
-        const lembaga = item.lembaga as
-          | { name: string | null; users: { image: string | null } }
-          | null;
+        const lembaga = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
         return {
           lembaga: {
             name: lembaga?.name ?? '',
@@ -198,9 +203,10 @@ export const landingRouter = createTRPCRouter({
       const sliced = hasMore ? list.slice(0, limit) : list;
 
       const formattedEvents: Kepanitiaan[] = sliced.map((item) => {
-        const lembaga = item.lembaga as
-          | { name: string | null; users: { image: string | null } }
-          | null;
+        const lembaga = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
         return {
           lembaga: {
             name: lembaga?.name ?? '',
@@ -262,9 +268,10 @@ export const landingRouter = createTRPCRouter({
       });
 
       const formattedEvents: Kepanitiaan[] = events.map((item) => {
-        const lembaga = item.lembaga as
-          | { name: string | null; users: { image: string | null } }
-          | null;
+        const lembaga = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
         return {
           lembaga: {
             name: lembaga?.name ?? '',
@@ -368,9 +375,10 @@ export const landingRouter = createTRPCRouter({
       });
 
       const formattedKepanitiaan: Kepanitiaan[] = event.map((item) => {
-        const lembagaItem = item.lembaga as
-          | { name: string | null; users: { image: string | null } }
-          | null;
+        const lembagaItem = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
         return {
           lembaga: {
             name: lembagaItem?.name ?? '',
@@ -495,18 +503,16 @@ export const landingRouter = createTRPCRouter({
     }),
 
   getAllEventIds: publicProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(100).default(100),
-        cursor: z.string().optional(),
-      }),
-    )
+    .input(GetAllEventIdsInputSchema)
+    .output(GetAllEventIdsOutputSchema)
     .query(async ({ ctx, input }) => {
       const items = await ctx.db.query.events.findMany({
         columns: {
           id: true,
         },
-        where: input.cursor ? (e, { gt }) => gt(e.id, input.cursor!) : undefined,
+        where: input.cursor
+          ? (e, { gt }) => gt(e.id, input.cursor!)
+          : undefined,
         orderBy: (e, { asc }) => [asc(e.id)],
         limit: input.limit,
       });
@@ -518,18 +524,16 @@ export const landingRouter = createTRPCRouter({
     }),
 
   getAllLembagaIds: publicProcedure
-    .input(
-      z.object({
-        limit: z.number().min(1).max(100).default(100),
-        cursor: z.string().optional(),
-      }),
-    )
+    .input(GetAllLembagaIdsInputSchema)
+    .output(GetAllLembagaIdsOutputSchema)
     .query(async ({ ctx, input }) => {
       const items = await ctx.db.query.lembaga.findMany({
         columns: {
           id: true,
         },
-        where: input.cursor ? (l, { gt }) => gt(l.id, input.cursor!) : undefined,
+        where: input.cursor
+          ? (l, { gt }) => gt(l.id, input.cursor!)
+          : undefined,
         orderBy: (l, { asc }) => [asc(l.id)],
         limit: input.limit,
       });

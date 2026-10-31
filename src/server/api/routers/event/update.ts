@@ -1,7 +1,14 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
 import { type Prodi } from '~/server/auth';
-import { events, keanggotaan, mahasiswa, users } from '~/server/db/schema';
+import {
+  events,
+  keanggotaan,
+  lembaga,
+  mahasiswa,
+  riwayatKepanitiaan,
+  users,
+} from '~/server/db/schema';
 
 import daftarProdi from '../../../db/kode-program-studi.json';
 import { lembagaProcedure } from '../../trpc';
@@ -144,6 +151,8 @@ export const removePanitia = lembagaProcedure
         ),
         columns: {
           id: true,
+          name: true,
+          org_id: true,
           participant_count: true,
         },
       });
@@ -156,14 +165,50 @@ export const removePanitia = lembagaProcedure
         });
       }
 
-      await ctx.db
-        .delete(keanggotaan)
-        .where(
-          and(
-            eq(keanggotaan.user_id, input.id),
-            eq(keanggotaan.event_id, input.event_id),
-          ),
-        );
+      const lembagaRow = eventToUpdate.org_id
+        ? await ctx.db.query.lembaga.findFirst({
+            where: eq(lembaga.id, eventToUpdate.org_id),
+            columns: { name: true },
+          })
+        : null;
+
+      const existingKeanggotaan = await ctx.db.query.keanggotaan.findFirst({
+        where: and(
+          eq(keanggotaan.user_id, input.id),
+          eq(keanggotaan.event_id, input.event_id),
+        ),
+      });
+
+      if (!existingKeanggotaan) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Panitia tidak ditemukan.',
+        });
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        await tx.insert(riwayatKepanitiaan).values({
+          userId: existingKeanggotaan.user_id,
+          eventId: eventToUpdate.id,
+          eventNama: eventToUpdate.name,
+          lembagaId: eventToUpdate.org_id,
+          lembagaNama: lembagaRow?.name,
+          division: existingKeanggotaan.division,
+          position: existingKeanggotaan.position,
+          startedAt: existingKeanggotaan.created_at,
+          endedAt: new Date(),
+          endReason: 'removed',
+        });
+
+        await tx
+          .delete(keanggotaan)
+          .where(
+            and(
+              eq(keanggotaan.user_id, input.id),
+              eq(keanggotaan.event_id, input.event_id),
+            ),
+          );
+      });
 
       return {
         success: true,

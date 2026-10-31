@@ -1,0 +1,86 @@
+{
+  "_README": "Prose per-procedure untuk dokumentasi API. Key = path tRPC (`router.procedure`). Field yang didukung: summary, description, deprecated. File ini ditulis manual dan tidak pernah ditimpa oleh scripts/gen-openapi.cts.",
+  "riwayat.getRiwayatOrganisasi": {
+    "summary": "Riwayat keanggotaan lembaga seorang mahasiswa",
+    "description": "Tanpa `userId`, mengembalikan riwayat milik pemanggil sendiri. Untuk melihat riwayat orang lain, `rapor_visible` mahasiswa tersebut harus aktif — kalau tidak, responsnya `FORBIDDEN`."
+  },
+  "riwayat.getRiwayatKepanitiaan": {
+    "summary": "Riwayat keanggotaan kepanitiaan seorang mahasiswa",
+    "description": "Aturan visibilitasnya sama dengan `riwayat.getRiwayatOrganisasi`."
+  },
+  "admin.addVerifiedEmail": {
+    "description": "Menambahkan email ke whitelist `verified_user` agar email tsb diizinkan mendaftar di sistem."
+  },
+  "admin.deleteVerifiedEmail": {
+    "description": "Menghapus email dari whitelist `verified_user`. Jika email tsb sudah terhubung ke akun aktif, seluruh akun `users` ikut dihapus (hard delete — cascade ke semua tabel berelasi FK `ON DELETE CASCADE`: account, mahasiswa, lembaga, dst). - ⚠️ perlu konfirmasi: bentuk output tidak konsisten antar 3 skenario di atas dan tidak divalidasi `.output()` — client harus menangani union type secara manual."
+  },
+  "admin.getAllReportsAdmin": {
+    "description": "Mengambil daftar laporan/tiket support yang **bukan** status `Draft` (hanya `In Progress`/`Resolved`/`Reported`), dengan filter status tambahan opsional dan pencarian substring (ILIKE) pada `subject`/`description`. Diurutkan `created_at` terbaru dulu. Error DB dibungkus jadi `INTERNAL_SERVER_ERROR`."
+  },
+  "admin.setReportStatus": {
+    "description": "Mengubah status tiket support. Progres status ditegakkan searah: `Draft`(0) → `Reported`(1) → `In Progress`(2) → `Resolved`(3). Mengubah ke status yang sama = no-op sukses. Mencoba mundur (mis. `Resolved` → `Draft`) ditolak dengan `BAD_REQUEST`."
+  },
+  "landing.getRecentEvents": {
+    "description": "Kegiatan yang `start_date`-nya dalam 6 bulan terakhir, diurutkan terbaru dulu, dibatasi 8 item — untuk landing page."
+  },
+  "landing.getAllEvents": {
+    "description": "Listing event dengan cursor-based pagination. Status `Open Recruitment` adalah status semu (bukan kolom DB) — dihitung dari `oprec_link` tidak null, `end_date` tidak null & belum lewat, dan `status !== 'Ended'`. Fetch `limit+1` baris untuk mendeteksi `hasMore`."
+  },
+  "landing.getTopEvents": {
+    "description": "Event dalam 6 bulan terakhir, diurutkan `participant_count` terbanyak, limit 8 — \"kegiatan terpopuler\" di landing page."
+  },
+  "landing.searchAll": {
+    "description": "Pencarian global. Jika `query` seluruhnya digit → mahasiswa dicari via `nim::text ILIKE` ATAU nama ILIKE; jika tidak, hanya nama ILIKE. Lembaga & kegiatan dicari via nama ILIKE. Tiap kategori dibatasi 10 hasil, dijalankan paralel."
+  },
+  "landing.searchPreview": {
+    "description": "Preview pencarian ringkas (dropdown search-as-you-type). Jika query (setelah trim) < 2 karakter, langsung balas kosong. Jika numerik: prefix-match (`LIKE 'q%'`) di `nim`, fallback ke `nim_tpb` bila tidak ada hasil di `nim` — masing-masing limit 2, `lembaga`/`kegiatan` kosong. Jika bukan numerik: substring-match (`ILIKE '%q%'`) paralel pada nama mahasiswa, nama lembaga, nama event — masing-masing limit 2."
+  },
+  "landing.getAllEventIds": {
+    "description": "Daftar ID seluruh event — dipakai kemungkinan untuk `generateStaticParams`/SSG halaman detail event. - ⚠️ perlu konfirmasi: tidak ada pagination selain `limit` flat (tanpa cursor/offset) — di atas 100 total event, sisanya tidak terjangkau lewat endpoint ini."
+  },
+  "landing.getAllLembagaIds": {
+    "description": "Daftar ID seluruh lembaga, analog `getAllEventIds`."
+  },
+  "kegiatan.getAllPublic": {
+    "description": "Daftar seluruh kegiatan (semua lembaga), diurutkan `start_date` terbaru dulu, tanpa expose `org_id` mentah."
+  },
+  "kegiatan.getByIdPublic": {
+    "description": "Berdasarkan kode, endpoint ini hanya mengembalikan info lembaga penyelenggara dari sebuah event, bukan detail event itu sendiri. - ⚠️ perlu konfirmasi: nama endpoint `getByIdPublic` mengesankan pengambilan detail kegiatan, tapi hasil aktualnya cuma objek `lembaga` bersarang. Ini terlihat seperti bug, bukan desain yang disengaja."
+  },
+  "kegiatan.getAllByLembaga": {
+    "description": "Daftar seluruh kegiatan milik lembaga yang sedang login, diurutkan: event `is_highlighted` dulu, lalu `start_date` terbaru. - ⚠️ perlu konfirmasi: memakai non-null assertion `ctx.session.user.lembagaId!` — tidak ada guard eksplisit jika `lembagaId` ternyata kosong."
+  },
+  "kegiatan.getPosisiBidangOptions": {
+    "description": "Daftar posisi & divisi unik yang pernah dipakai di `keanggotaan` untuk suatu event. - ⚠️ perlu konfirmasi: tidak ada pengecekan bahwa `event_id` benar-benar milik lembaga yang sedang login. Lembaga manapun berpotensi menarik data posisi/bidang milik event lembaga lain jika mengetahui `event_id`-nya."
+  },
+  "profil.getAllProfilKegiatan": {
+    "description": "Daftar kriteria penilaian (profil) milik suatu kegiatan, tiap item disertai daftar ID Profil KM yang dipetakan ke kriteria tsb. - ⚠️ perlu konfirmasi: `GetAllProfilOutputSchema` adalah union antara bentuk `profil_lembaga` dan `profil_kegiatan`, dipakai identik oleh `getAllProfilKegiatan` maupun `getAllProfilLembaga` — validasi tidak benar-benar memastikan endpoint kegiatan mengembalikan kunci `profil_kegiatan`."
+  },
+  "profil.createProfilKegiatan": {
+    "description": "Membuat kriteria penilaian baru untuk kegiatan. Alur: (1) `event.org_id` harus sama dengan `lembagaId` sesi → `FORBIDDEN` jika tidak; (2) event harus ada → `NOT_FOUND`; (3) semua `profil_km_id` harus ada di `profil_km` → `BAD_REQUEST` dengan daftar id tidak valid; (4) transaksi: insert `profil_kegiatan` + insert mapping `pemetaan_profil_kegiatan` per `profil_km_id`."
+  },
+  "profil.deleteProfilKegiatan": {
+    "description": "Menghapus kriteria penilaian kegiatan. Ownership dicek via profil → event → `org_id` harus sama dengan `lembagaId` sesi (`FORBIDDEN` jika tidak); profil harus ada (`NOT_FOUND`). Delete `profil_kegiatan` cascade ke `pemetaan_profil_kegiatan` dan `nilai_profil_kegiatan`."
+  },
+  "profil.editProfilKegiatan": {
+    "description": "Mengubah nama/deskripsi profil kegiatan. `profil_km_id` divalidasi terhadap `profil_km` (`BAD_REQUEST` jika ada id invalid), lalu — **hanya jika array tidak kosong** — mapping lama dihapus semua dan diganti mapping baru dalam satu transaksi. - ⚠️ perlu konfirmasi: jika `profil_km_id: []` dikirim, mapping lama TIDAK dihapus/diubah sama sekali — tidak ada cara mengosongkan seluruh pemetaan profil KM lewat endpoint ini."
+  },
+  "profil.getAllProfilLembaga": {
+    "description": "Analog `getAllProfilKegiatan`, tapi untuk kriteria penilaian tingkat lembaga."
+  },
+  "profil.createProfilLembaga": {
+    "description": "Analog `createProfilKegiatan`. Ownership: `lembagaId` sesi harus sama dengan `input.lembaga_id` → `FORBIDDEN`; lembaga harus ada (`NOT_FOUND`); validasi `profil_km_id`; insert `profil_lembaga` + mapping dalam transaksi."
+  },
+  "profil.deleteProfilLembaga": {
+    "description": "Analog `deleteProfilKegiatan`. Cascade delete ke `pemetaan_profil_lembaga` dan `nilai_profil_lembaga`."
+  },
+  "profil.editProfilLembaga": {
+    "description": "Analog `editProfilKegiatan` untuk profil lembaga. - ⚠️ perlu konfirmasi: caveat sama — `profil_km_id: []` tidak mengosongkan mapping yang ada."
+  },
+  "profil.getAllProfilKM": {
+    "description": "Daftar master seluruh Profil Kampus Merdeka (taksonomi kompetensi akar, tabel `profil_km`) — dipakai untuk populate dropdown saat membuat/mengedit profil kegiatan atau profil lembaga."
+  },
+  "rapor.getNilaiLembagaIndividuPublic": {
+    "description": "`imageUploader` dipakai untuk foto profil/logo (`onUploadComplete` mengembalikan `{ uploadedBy }`); `reportAttachment` untuk lampiran tiket support (`onUploadComplete` mengembalikan `{ uploadedBy, fileUrl, fileName }` — `fileUrl` inilah yang dikirim ke `users.createDraft`/`editDraft` sebagai field `attachment`)."
+  }
+}

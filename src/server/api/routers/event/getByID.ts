@@ -7,14 +7,13 @@ import { protectedProcedure } from '../../trpc';
 import {
   GetAllAnggotaKegiatanInputSchema,
   GetAllAnggotaKegiatanOutputSchema,
+  GetEventByIdInputSchema,
+  GetEventByIdOutputSchema,
 } from '../../types/event.type';
 
 export const getEvent = protectedProcedure
-  .input(
-    z.object({
-      id: z.string(),
-    }),
-  )
+  .input(GetEventByIdInputSchema)
+  .output(GetEventByIdOutputSchema)
   .query(async ({ ctx, input }) => {
     const event = await ctx.db.query.events.findFirst({
       where: (event, { eq }) => eq(event.id, input.id),
@@ -22,7 +21,9 @@ export const getEvent = protectedProcedure
         lembaga: true,
       },
     });
-    return event;
+    // Drizzle melebarkan tipe relasi `with` jadi `Record<string, any>`, jadi tipenya
+    // tidak bisa dibuktikan tsc. Bentuk aslinya tetap dijaga `.output()` saat runtime.
+    return event as z.infer<typeof GetEventByIdOutputSchema>;
   });
 
 export const getAllAnggota = protectedProcedure

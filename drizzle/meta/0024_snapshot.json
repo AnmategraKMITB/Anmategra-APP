@@ -1,5 +1,5 @@
 {
-  "id": "f779ba38-7a01-47c8-96df-1596ef405702",
+  "id": "d3330740-aea1-4bb5-a26c-705293b394f5",
   "prevId": "2ee10c41-ce21-4143-ae2d-a5e63c858eaf",
   "version": "7",
   "dialect": "postgresql",
@@ -116,6 +116,84 @@
           ]
         }
       },
+      "uniqueConstraints": {}
+    },
+    "public.anmategra_alumni_pending": {
+      "name": "anmategra_alumni_pending",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "nim": {
+          "name": "nim",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "wisuda_batch": {
+          "name": "wisuda_batch",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "uploaded_by": {
+          "name": "uploaded_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "alumni_pending_nim_unique": {
+          "name": "alumni_pending_nim_unique",
+          "columns": [
+            {
+              "expression": "nim",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "anmategra_alumni_pending_uploaded_by_anmategra_user_id_fk": {
+          "name": "anmategra_alumni_pending_uploaded_by_anmategra_user_id_fk",
+          "tableFrom": "anmategra_alumni_pending",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "uploaded_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
     "public.anmategra_association_request": {
@@ -466,6 +544,164 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "public.anmategra_event_admin": {
+      "name": "anmategra_event_admin",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "granted_by": {
+          "name": "granted_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "admin_grant_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revoked_by": {
+          "name": "revoked_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "event_admin_event_user_unique": {
+          "name": "event_admin_event_user_unique",
+          "columns": [
+            {
+              "expression": "event_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "event_admin_user_id_idx": {
+          "name": "event_admin_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "anmategra_event_admin_event_id_anmategra_event_id_fk": {
+          "name": "anmategra_event_admin_event_id_anmategra_event_id_fk",
+          "tableFrom": "anmategra_event_admin",
+          "tableTo": "anmategra_event",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_event_admin_user_id_anmategra_user_id_fk": {
+          "name": "anmategra_event_admin_user_id_anmategra_user_id_fk",
+          "tableFrom": "anmategra_event_admin",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_event_admin_granted_by_anmategra_user_id_fk": {
+          "name": "anmategra_event_admin_granted_by_anmategra_user_id_fk",
+          "tableFrom": "anmategra_event_admin",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "granted_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "anmategra_event_admin_revoked_by_anmategra_user_id_fk": {
+          "name": "anmategra_event_admin_revoked_by_anmategra_user_id_fk",
+          "tableFrom": "anmategra_event_admin",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "revoked_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.anmategra_event": {
       "name": "anmategra_event",
       "schema": "",
@@ -687,6 +923,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -795,6 +1045,20 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
         }
       },
       "indexes": {
@@ -872,12 +1136,6 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true
-        },
-        "acronym": {
-          "name": "acronym",
-          "type": "varchar(50)",
-          "primaryKey": false,
-          "notNull": false
         },
         "description": {
           "name": "description",
@@ -963,6 +1221,164 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "public.anmategra_lembaga_admin": {
+      "name": "anmategra_lembaga_admin",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "lembaga_id": {
+          "name": "lembaga_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "granted_by": {
+          "name": "granted_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "admin_grant_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "revoked_at": {
+          "name": "revoked_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "revoked_by": {
+          "name": "revoked_by",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "lembaga_admin_lembaga_user_unique": {
+          "name": "lembaga_admin_lembaga_user_unique",
+          "columns": [
+            {
+              "expression": "lembaga_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "lembaga_admin_user_id_idx": {
+          "name": "lembaga_admin_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "anmategra_lembaga_admin_lembaga_id_anmategra_lembaga_id_fk": {
+          "name": "anmategra_lembaga_admin_lembaga_id_anmategra_lembaga_id_fk",
+          "tableFrom": "anmategra_lembaga_admin",
+          "tableTo": "anmategra_lembaga",
+          "columnsFrom": [
+            "lembaga_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_lembaga_admin_user_id_anmategra_user_id_fk": {
+          "name": "anmategra_lembaga_admin_user_id_anmategra_user_id_fk",
+          "tableFrom": "anmategra_lembaga_admin",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_lembaga_admin_granted_by_anmategra_user_id_fk": {
+          "name": "anmategra_lembaga_admin_granted_by_anmategra_user_id_fk",
+          "tableFrom": "anmategra_lembaga_admin",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "granted_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "anmategra_lembaga_admin_revoked_by_anmategra_user_id_fk": {
+          "name": "anmategra_lembaga_admin_revoked_by_anmategra_user_id_fk",
+          "tableFrom": "anmategra_lembaga_admin",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "revoked_by"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.anmategra_mahasiswa": {
       "name": "anmategra_mahasiswa",
       "schema": "",
@@ -1021,6 +1437,14 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "status": {
+          "name": "status",
+          "type": "mahasiswa_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'aktif'"
         },
         "created_at": {
           "name": "created_at",
@@ -1815,6 +2239,282 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
+    "public.anmategra_riwayat_kepanitiaan": {
+      "name": "anmategra_riwayat_kepanitiaan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "event_id": {
+          "name": "event_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "event_nama": {
+          "name": "event_nama",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lembaga_id": {
+          "name": "lembaga_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lembaga_nama": {
+          "name": "lembaga_nama",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "division": {
+          "name": "division",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_reason": {
+          "name": "end_reason",
+          "type": "riwayat_end_reason",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "riwayat_kepanitiaan_user_id_idx": {
+          "name": "riwayat_kepanitiaan_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "anmategra_riwayat_kepanitiaan_user_id_anmategra_user_id_fk": {
+          "name": "anmategra_riwayat_kepanitiaan_user_id_anmategra_user_id_fk",
+          "tableFrom": "anmategra_riwayat_kepanitiaan",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_riwayat_kepanitiaan_event_id_anmategra_event_id_fk": {
+          "name": "anmategra_riwayat_kepanitiaan_event_id_anmategra_event_id_fk",
+          "tableFrom": "anmategra_riwayat_kepanitiaan",
+          "tableTo": "anmategra_event",
+          "columnsFrom": [
+            "event_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "anmategra_riwayat_kepanitiaan_lembaga_id_anmategra_lembaga_id_fk": {
+          "name": "anmategra_riwayat_kepanitiaan_lembaga_id_anmategra_lembaga_id_fk",
+          "tableFrom": "anmategra_riwayat_kepanitiaan",
+          "tableTo": "anmategra_lembaga",
+          "columnsFrom": [
+            "lembaga_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.anmategra_riwayat_organisasi": {
+      "name": "anmategra_riwayat_organisasi",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lembaga_id": {
+          "name": "lembaga_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lembaga_nama": {
+          "name": "lembaga_nama",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lembaga_tipe": {
+          "name": "lembaga_tipe",
+          "type": "lembaga_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "division": {
+          "name": "division",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "position": {
+          "name": "position",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "started_at": {
+          "name": "started_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ended_at": {
+          "name": "ended_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_reason": {
+          "name": "end_reason",
+          "type": "riwayat_end_reason",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "riwayat_organisasi_user_id_idx": {
+          "name": "riwayat_organisasi_user_id_idx",
+          "columns": [
+            {
+              "expression": "user_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "anmategra_riwayat_organisasi_user_id_anmategra_user_id_fk": {
+          "name": "anmategra_riwayat_organisasi_user_id_anmategra_user_id_fk",
+          "tableFrom": "anmategra_riwayat_organisasi",
+          "tableTo": "anmategra_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "anmategra_riwayat_organisasi_lembaga_id_anmategra_lembaga_id_fk": {
+          "name": "anmategra_riwayat_organisasi_lembaga_id_anmategra_lembaga_id_fk",
+          "tableFrom": "anmategra_riwayat_organisasi",
+          "tableTo": "anmategra_lembaga",
+          "columnsFrom": [
+            "lembaga_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
     "public.anmategra_session": {
       "name": "anmategra_session",
       "schema": "",
@@ -2163,6 +2863,14 @@
     }
   },
   "enums": {
+    "public.admin_grant_status": {
+      "name": "admin_grant_status",
+      "schema": "public",
+      "values": [
+        "active",
+        "revoked"
+      ]
+    },
     "public.association_request_status": {
       "name": "association_request_status",
       "schema": "public",
@@ -2191,12 +2899,28 @@
         "BSO"
       ]
     },
+    "public.mahasiswa_status": {
+      "name": "mahasiswa_status",
+      "schema": "public",
+      "values": [
+        "aktif",
+        "alumni"
+      ]
+    },
     "public.notification_type": {
       "name": "notification_type",
       "schema": "public",
       "values": [
         "Association Request",
         "System"
+      ]
+    },
+    "public.riwayat_end_reason": {
+      "name": "riwayat_end_reason",
+      "schema": "public",
+      "values": [
+        "removed",
+        "left"
       ]
     },
     "public.role": {

@@ -1,1 +1,0 @@
-ALTER TABLE "anmategra_lembaga" ADD COLUMN "acronym" varchar(50);

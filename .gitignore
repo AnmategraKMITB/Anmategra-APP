@@ -1,6 +1,11 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-docs/
+# Catatan lokal tidak di-track, tapi dokumentasi API/DB yang di-generate ikut di-commit.
+docs/*
+!docs/api/
+
+# artefak parser @dbml/core
+dbml-error.log
 
 # dependencies
 /node_modules

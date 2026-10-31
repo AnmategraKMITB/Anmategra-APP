@@ -19,6 +19,26 @@ export const GetAllEventsOutputSchema = z.object({
   nextCursor: z.string().nullable(),
 });
 
+/** Paginasi id-only yang dipakai sitemap. */
+const IdCursorPageInputSchema = z.object({
+  limit: z.number().min(1).max(100).default(100),
+  cursor: z.string().optional(),
+});
+
+export const GetAllEventIdsInputSchema = IdCursorPageInputSchema;
+
+export const GetAllEventIdsOutputSchema = z.object({
+  items: z.array(z.object({ id: z.string() })),
+  nextCursor: z.string().optional(),
+});
+
+export const GetAllLembagaIdsInputSchema = IdCursorPageInputSchema;
+
+export const GetAllLembagaIdsOutputSchema = z.object({
+  items: z.array(z.object({ id: z.string() })),
+  nextCursor: z.string().optional(),
+});
+
 export const SearchAllQueryInputSchema = z.object({ query: z.string() });
 
 export const MahasiswaSchema = z.object({
