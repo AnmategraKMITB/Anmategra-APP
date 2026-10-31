@@ -52,6 +52,15 @@ Opsi B — pakai Docker (lihat `scripts/start-database.sh`):
 npm run db:push
 ```
 
+Opsi C — app + database sekaligus di Docker (`compose.local.yml`):
+```
+docker compose -f compose.local.yml up --build
+```
+- Postgres 15 jalan di port host `5433`, app (`next dev`, hot reload) di `3000`. Ubah lewat `APP_PORT` / `DB_PORT`.
+- Kalau ada `anmategra.dump` di folder induk repo, dump itu dipulihkan saat pertama kali jalan, lalu `db:migrate` menyusulkan migrasi yang belum ada. Lokasi lain: set `DB_DUMP_DIR` / `DB_DUMP_FILE`.
+- Kredensial OAuth boleh dibiarkan kosong (diisi placeholder), tetapi login baru berfungsi dengan kredensial sungguhan di `.env`.
+- Ulang dari dump: `docker compose -f compose.local.yml down -v`.
+
 Perintah db lain yang tersedia:
 - `npm run db:generate` — generate migration dari schema (drizzle-kit generate)
 - `npm run db:migrate` — jalanin migration (drizzle-kit migrate)
