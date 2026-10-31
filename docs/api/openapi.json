@@ -17064,7 +17064,11 @@
           "nama": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 30
+            "maxLength": 255
+          },
+          "singkatan": {
+            "type": "string",
+            "maxLength": 50
           },
           "tipe": {
             "type": "string",
@@ -17078,7 +17082,7 @@
           "deskripsi": {
             "type": "string",
             "minLength": 10,
-            "maxLength": 100
+            "maxLength": 500
           },
           "gambar": {
             "type": "string",
@@ -18786,6 +18790,10 @@
               "name": {
                 "type": "string"
               },
+              "acronym": {
+                "type": "string",
+                "nullable": true
+              },
               "description": {
                 "type": "string",
                 "nullable": true
@@ -18833,6 +18841,7 @@
             "required": [
               "id",
               "name",
+              "acronym",
               "description",
               "memberCount",
               "foundingDate",
@@ -18922,6 +18931,10 @@
               "name": {
                 "type": "string"
               },
+              "acronym": {
+                "type": "string",
+                "nullable": true
+              },
               "description": {
                 "type": "string",
                 "nullable": true
@@ -18969,6 +18982,7 @@
             "required": [
               "id",
               "name",
+              "acronym",
               "description",
               "memberCount",
               "foundingDate",
