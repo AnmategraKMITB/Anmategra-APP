@@ -3,6 +3,7 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTableCreator,
   primaryKey,
@@ -1219,5 +1220,240 @@ export const eventAdminRelations = relations(eventAdmin, ({ one }) => ({
   user: one(users, {
     fields: [eventAdmin.userId],
     references: [users.id],
+  }),
+}));
+
+// ---------------------------------------------------------------------------
+// Dynamic Form Builder (#210)
+//
+// `status` and `type` are varchar + a hand-written CHECK (see the migration),
+// not pgEnum: adding a value to a pgEnum and using it in the same migration
+// batch fails on an empty database (the 0005/0006 incident), and new field
+// types are expected later.
+// ---------------------------------------------------------------------------
+
+export const FORM_STATUSES = ['Draft', 'Published', 'Closed'] as const;
+export type FormStatus = (typeof FORM_STATUSES)[number];
+
+export const FORM_FIELD_TYPES = [
+  'short_text',
+  'long_text',
+  'number',
+  'date',
+  'single_choice',
+  'multiple_choice',
+  'checkbox',
+] as const;
+export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
+
+export const form = createTable(
+  'form',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // Exactly one of lembagaId / eventId is set (CHECK form_owner_xor).
+    lembagaId: varchar('lembaga_id', { length: 255 }).references(
+      () => lembaga.id,
+      { onDelete: 'cascade' },
+    ),
+    eventId: varchar('event_id', { length: 255 }).references(() => events.id, {
+      onDelete: 'cascade',
+    }),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    status: varchar('status', { length: 16 })
+      .$type<FormStatus>()
+      .notNull()
+      .default('Draft'),
+    closesAt: timestamp('closes_at', { mode: 'date', withTimezone: true }),
+    allowMultipleSubmissions: boolean('allow_multiple_submissions')
+      .notNull()
+      .default(false),
+    publishedAt: timestamp('published_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    createdBy: varchar('created_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    ...timestamps,
+  },
+  (table) => ({
+    lembagaIdx: index('form_lembaga_id_idx').on(table.lembagaId),
+    eventIdx: index('form_event_id_idx').on(table.eventId),
+  }),
+);
+
+export const formField = createTable(
+  'form_field',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'cascade' }),
+    type: varchar('type', { length: 32 }).$type<FormFieldType>().notNull(),
+    label: varchar('label', { length: 500 }).notNull(),
+    description: text('description'),
+    required: boolean('required').notNull().default(false),
+    // Per-type validation rules; the shape is enforced by Zod in form.type.ts.
+    config: jsonb('config')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    // No UNIQUE: reordering rewrites every row inside one transaction.
+    sortOrder: integer('sort_order').notNull(),
+    // Set instead of deleting once the field has answers.
+    archivedAt: timestamp('archived_at', { mode: 'date', withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => ({
+    formOrderIdx: index('form_field_form_order_idx').on(
+      table.formId,
+      table.sortOrder,
+    ),
+  }),
+);
+
+export const formFieldOption = createTable(
+  'form_field_option',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    fieldId: varchar('field_id', { length: 255 })
+      .notNull()
+      .references(() => formField.id, { onDelete: 'cascade' }),
+    label: varchar('label', { length: 255 }).notNull(),
+    sortOrder: integer('sort_order').notNull(),
+    archivedAt: timestamp('archived_at', { mode: 'date', withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => ({
+    fieldOrderIdx: index('form_field_option_field_order_idx').on(
+      table.fieldId,
+      table.sortOrder,
+    ),
+  }),
+);
+
+export const formSubmission = createTable(
+  'form_submission',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    submittedAt: timestamp('submitted_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    formUserIdx: index('form_submission_form_user_idx').on(
+      table.formId,
+      table.userId,
+    ),
+  }),
+);
+
+/**
+ * One row per answered field. `fieldLabel` / `fieldType` and the option labels
+ * inside `value` are snapshots taken at submit time, so an answer stays
+ * readable after its field is edited, archived or deleted.
+ */
+export const formAnswer = createTable(
+  'form_answer',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    submissionId: varchar('submission_id', { length: 255 })
+      .notNull()
+      .references(() => formSubmission.id, { onDelete: 'cascade' }),
+    fieldId: varchar('field_id', { length: 255 }).references(
+      () => formField.id,
+      { onDelete: 'set null' },
+    ),
+    fieldLabel: varchar('field_label', { length: 500 }).notNull(),
+    fieldType: varchar('field_type', { length: 32 })
+      .$type<FormFieldType>()
+      .notNull(),
+    value: jsonb('value').notNull(),
+  },
+  (table) => ({
+    submissionFieldUnique: uniqueIndex(
+      'form_answer_submission_field_unique',
+    ).on(table.submissionId, table.fieldId),
+    fieldIdx: index('form_answer_field_id_idx').on(table.fieldId),
+  }),
+);
+
+export const formRelations = relations(form, ({ one, many }) => ({
+  lembaga: one(lembaga, {
+    fields: [form.lembagaId],
+    references: [lembaga.id],
+  }),
+  event: one(events, {
+    fields: [form.eventId],
+    references: [events.id],
+  }),
+  fields: many(formField),
+  submissions: many(formSubmission),
+}));
+
+export const formFieldRelations = relations(formField, ({ one, many }) => ({
+  form: one(form, {
+    fields: [formField.formId],
+    references: [form.id],
+  }),
+  options: many(formFieldOption),
+}));
+
+export const formFieldOptionRelations = relations(
+  formFieldOption,
+  ({ one }) => ({
+    field: one(formField, {
+      fields: [formFieldOption.fieldId],
+      references: [formField.id],
+    }),
+  }),
+);
+
+export const formSubmissionRelations = relations(
+  formSubmission,
+  ({ one, many }) => ({
+    form: one(form, {
+      fields: [formSubmission.formId],
+      references: [form.id],
+    }),
+    user: one(users, {
+      fields: [formSubmission.userId],
+      references: [users.id],
+    }),
+    answers: many(formAnswer),
+  }),
+);
+
+export const formAnswerRelations = relations(formAnswer, ({ one }) => ({
+  submission: one(formSubmission, {
+    fields: [formAnswer.submissionId],
+    references: [formSubmission.id],
+  }),
+  field: one(formField, {
+    fields: [formAnswer.fieldId],
+    references: [formField.id],
   }),
 }));
