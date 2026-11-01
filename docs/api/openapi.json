@@ -38,6 +38,10 @@
       "description": "Endpoint REST (non-tRPC) untuk ekspor/impor anggota dan nilai lewat berkas Excel."
     },
     {
+      "name": "form",
+      "description": "Dynamic Form Builder: kelola formulir lembaga/kegiatan, pertanyaannya, dan pengisian oleh mahasiswa (#210)."
+    },
+    {
       "name": "kegiatan",
       "description": "Query kegiatan dari sisi konsumen (listing, detail, pencarian)."
     },
@@ -2948,6 +2952,1696 @@
                 "properties": {
                   "json": {
                     "$ref": "#/components/schemas/event_update_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.createForEvent": {
+      "post": {
+        "operationId": "form_createForEvent",
+        "tags": [
+          "form"
+        ],
+        "summary": "Buat formulir milik kegiatan",
+        "description": "Sama seperti `form.createForLembaga`, tetapi dimiliki satu kegiatan.\n\n**Akses:** Owner / Admin Kepanitiaan — Butuh `eventId` di input. Boleh diakses Owner/Admin lembaga induk, atau Admin Kepanitiaan yang di-grant untuk event tersebut.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_createForEvent_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Kepanitiaan (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_createForEvent_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.createForLembaga": {
+      "post": {
+        "operationId": "form_createForLembaga",
+        "tags": [
+          "form"
+        ],
+        "summary": "Buat formulir milik lembaga",
+        "description": "Formulir selalu dibuat sebagai `Draft`. Pemilik tidak bisa dipindah setelah dibuat.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_createForLembaga_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_createForLembaga_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.delete": {
+      "post": {
+        "operationId": "form_delete",
+        "tags": [
+          "form"
+        ],
+        "summary": "Hapus formulir",
+        "description": "Hanya untuk formulir yang belum punya jawaban (`CONFLICT` jika sudah). Formulir berjawaban cukup ditutup.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_delete_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_delete_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.field.create": {
+      "post": {
+        "operationId": "form_field_create",
+        "tags": [
+          "form"
+        ],
+        "summary": "Tambah pertanyaan",
+        "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Maksimal 100 pertanyaan per formulir.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_field_create_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_field_create_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.field.delete": {
+      "post": {
+        "operationId": "form_field_delete",
+        "tags": [
+          "form"
+        ],
+        "summary": "Hapus pertanyaan",
+        "description": "Diarsipkan (`result: archived`) jika sudah dijawab, sehingga jawaban lama tetap utuh; selain itu dihapus permanen. Formulir yang sedang dirilis tidak boleh kehilangan pertanyaan terakhirnya.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_field_delete_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_field_delete_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.field.reorder": {
+      "post": {
+        "operationId": "form_field_reorder",
+        "tags": [
+          "form"
+        ],
+        "summary": "Atur ulang urutan pertanyaan",
+        "description": "`fieldIds` harus memuat semua pertanyaan aktif formulir tepat satu kali.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_field_reorder_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_field_reorder_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.field.update": {
+      "post": {
+        "operationId": "form_field_update",
+        "tags": [
+          "form"
+        ],
+        "summary": "Ubah satu pertanyaan (penggantian utuh)",
+        "description": "Kirim seluruh isi kartu pertanyaan. `options` adalah daftar lengkap: sertakan `id` untuk opsi lama, tanpa `id` untuk opsi baru; opsi yang tidak dikirim dihapus (diarsipkan jika sudah pernah dipilih). `type` tidak bisa diubah setelah pertanyaan dijawab (`CONFLICT`).\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_field_update_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_field_update_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.getById": {
+      "get": {
+        "operationId": "form_getById",
+        "tags": [
+          "form"
+        ],
+        "summary": "Detail formulir untuk pengelola",
+        "description": "Berisi pertanyaan aktif beserta opsinya, terurut. Pertanyaan/opsi yang diarsipkan tidak ditampilkan.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_getById_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/form_getById_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/form.getPublic": {
+      "get": {
+        "operationId": "form_getPublic",
+        "tags": [
+          "form"
+        ],
+        "summary": "Formulir untuk diisi",
+        "description": "Publik. Formulir `Draft` dibalas `NOT_FOUND`. `isAcceptingResponses` = `Published` dan belum lewat tenggat. `hasSubmitted` bernilai `null` jika pemanggil belum login.\n\n**Akses:** Public — Tidak butuh login.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_getPublic_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/form_getPublic_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/form.listByEvent": {
+      "get": {
+        "operationId": "form_listByEvent",
+        "tags": [
+          "form"
+        ],
+        "summary": "Daftar formulir milik kegiatan",
+        "description": "**Akses:** Owner / Admin Kepanitiaan — Butuh `eventId` di input. Boleh diakses Owner/Admin lembaga induk, atau Admin Kepanitiaan yang di-grant untuk event tersebut.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_listByEvent_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Kepanitiaan (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/form_listByEvent_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/form.listByLembaga": {
+      "get": {
+        "operationId": "form_listByLembaga",
+        "tags": [
+          "form"
+        ],
+        "summary": "Daftar formulir milik lembaga",
+        "description": "Hanya formulir yang dimiliki lembaga langsung, tidak termasuk formulir kegiatannya. Terbaru dulu. Daftar jawaban tidak disertakan, hanya `submissionCount`.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_listByLembaga_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/form_listByLembaga_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/form.setStatus": {
+      "post": {
+        "operationId": "form_setStatus",
+        "tags": [
+          "form"
+        ],
+        "summary": "Ubah status formulir",
+        "description": "Transisi: `Draft → Published`, `Published → Closed`, `Closed → Published`, dan kembali ke `Draft` hanya jika belum ada jawaban. Publish mensyaratkan minimal satu pertanyaan, setiap pertanyaan pilihan punya opsi, dan tenggat (jika ada) di masa depan. Mengirim status yang sama tidak mengubah apa pun.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_setStatus_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_setStatus_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.submit": {
+      "post": {
+        "operationId": "form_submit",
+        "tags": [
+          "form"
+        ],
+        "summary": "Kirim jawaban formulir",
+        "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Pola (`pattern`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif.\n\n**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_submit_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_submit_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/form.update": {
+      "post": {
+        "operationId": "form_update",
+        "tags": [
+          "form"
+        ],
+        "summary": "Ubah judul, deskripsi, tenggat, atau izin submit berulang",
+        "description": "Kirim `null` untuk mengosongkan `description`/`closesAt`; key yang tidak dikirim tidak diubah. Saat `Published`, tenggat tidak boleh dipindah ke masa lalu — tutup formulir lewat `form.setStatus`.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_update_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Formulir (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_update_input"
                   },
                   "meta": {
                     "type": "object",
@@ -18418,6 +20112,2105 @@
         "additionalProperties": false
       },
       "event_update_output": {},
+      "form_createForEvent_input": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "nullable": true
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "eventId",
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "form_createForEvent_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lembagaId",
+          "eventId",
+          "title",
+          "description",
+          "status",
+          "closesAt",
+          "allowMultipleSubmissions",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "form_createForLembaga_input": {
+        "type": "object",
+        "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "nullable": true
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "lembagaId",
+          "title"
+        ],
+        "additionalProperties": false
+      },
+      "form_createForLembaga_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lembagaId",
+          "eventId",
+          "title",
+          "description",
+          "status",
+          "closesAt",
+          "allowMultipleSubmissions",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "form_delete_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "formId"
+        ],
+        "additionalProperties": false
+      },
+      "form_delete_output": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "form_field_create_input": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "short_text"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "minLength": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 500
+                  },
+                  "maxLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 500
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "long_text"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "minLength": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5000
+                  },
+                  "maxLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5000
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "number"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "date"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "single_choice"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "default": {}
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "options",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "multiple_choice"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "minSelections": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maxSelections": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "options",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "checkbox"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "form_field_create_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "short_text",
+              "long_text",
+              "number",
+              "date",
+              "single_choice",
+              "multiple_choice",
+              "checkbox"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "minLength": {
+                "type": "integer"
+              },
+              "maxLength": {
+                "type": "integer"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "minSelections": {
+                "type": "integer"
+              },
+              "maxSelections": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "sortOrder": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "sortOrder"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label",
+          "description",
+          "required",
+          "config",
+          "sortOrder",
+          "options"
+        ],
+        "additionalProperties": false
+      },
+      "form_field_delete_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fieldId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "formId",
+          "fieldId"
+        ],
+        "additionalProperties": false
+      },
+      "form_field_delete_output": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": [
+              "archived",
+              "deleted"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "message",
+          "result"
+        ],
+        "additionalProperties": false
+      },
+      "form_field_reorder_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fieldIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "formId",
+          "fieldIds"
+        ],
+        "additionalProperties": false
+      },
+      "form_field_reorder_output": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "enum": [
+              true
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "success",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "form_field_update_input": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "short_text"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "minLength": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 500
+                  },
+                  "maxLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 500
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "long_text"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "minLength": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 5000
+                  },
+                  "maxLength": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 5000
+                  },
+                  "pattern": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "number"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "date"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "single_choice"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "default": {}
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "options",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "multiple_choice"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "minSelections": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "maxSelections": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "options": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "label": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 255
+                    }
+                  },
+                  "required": [
+                    "label"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 100
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "options",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "checkbox"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "default": {}
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 2000,
+                "nullable": true
+              },
+              "required": {
+                "type": "boolean",
+                "default": false
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "type",
+              "label",
+              "formId",
+              "fieldId"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "form_field_update_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "short_text",
+              "long_text",
+              "number",
+              "date",
+              "single_choice",
+              "multiple_choice",
+              "checkbox"
+            ]
+          },
+          "label": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "config": {
+            "type": "object",
+            "properties": {
+              "minLength": {
+                "type": "integer"
+              },
+              "maxLength": {
+                "type": "integer"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "min": {
+                "type": "number"
+              },
+              "max": {
+                "type": "number"
+              },
+              "minSelections": {
+                "type": "integer"
+              },
+              "maxSelections": {
+                "type": "integer"
+              }
+            },
+            "additionalProperties": false
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "sortOrder": {
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "id",
+                "label",
+                "sortOrder"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "type",
+          "label",
+          "description",
+          "required",
+          "config",
+          "sortOrder",
+          "options"
+        ],
+        "additionalProperties": false
+      },
+      "form_getById_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "formId"
+        ],
+        "additionalProperties": false
+      },
+      "form_getById_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "submissionCount": {
+            "type": "integer"
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "short_text",
+                    "long_text",
+                    "number",
+                    "date",
+                    "single_choice",
+                    "multiple_choice",
+                    "checkbox"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "config": {
+                  "type": "object",
+                  "properties": {
+                    "minLength": {
+                      "type": "integer"
+                    },
+                    "maxLength": {
+                      "type": "integer"
+                    },
+                    "pattern": {
+                      "type": "string"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "minSelections": {
+                      "type": "integer"
+                    },
+                    "maxSelections": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "sortOrder": {
+                  "type": "integer"
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "sortOrder": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label",
+                      "sortOrder"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "label",
+                "description",
+                "required",
+                "config",
+                "sortOrder",
+                "options"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "lembagaId",
+          "eventId",
+          "title",
+          "description",
+          "status",
+          "closesAt",
+          "allowMultipleSubmissions",
+          "publishedAt",
+          "createdAt",
+          "updatedAt",
+          "submissionCount",
+          "fields"
+        ],
+        "additionalProperties": false
+      },
+      "form_getPublic_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "formId"
+        ],
+        "additionalProperties": false
+      },
+      "form_getPublic_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "owner": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "lembaga",
+                  "event"
+                ]
+              },
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type",
+              "id",
+              "name"
+            ],
+            "additionalProperties": false
+          },
+          "isAcceptingResponses": {
+            "type": "boolean"
+          },
+          "hasSubmitted": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "fields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "short_text",
+                    "long_text",
+                    "number",
+                    "date",
+                    "single_choice",
+                    "multiple_choice",
+                    "checkbox"
+                  ]
+                },
+                "label": {
+                  "type": "string"
+                },
+                "description": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "config": {
+                  "type": "object",
+                  "properties": {
+                    "minLength": {
+                      "type": "integer"
+                    },
+                    "maxLength": {
+                      "type": "integer"
+                    },
+                    "pattern": {
+                      "type": "string"
+                    },
+                    "min": {
+                      "type": "number"
+                    },
+                    "max": {
+                      "type": "number"
+                    },
+                    "minSelections": {
+                      "type": "integer"
+                    },
+                    "maxSelections": {
+                      "type": "integer"
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "label": {
+                        "type": "string"
+                      },
+                      "sortOrder": {
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "label",
+                      "sortOrder"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "type",
+                "label",
+                "description",
+                "required",
+                "config",
+                "options"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "description",
+          "status",
+          "closesAt",
+          "allowMultipleSubmissions",
+          "owner",
+          "isAcceptingResponses",
+          "hasSubmitted",
+          "fields"
+        ],
+        "additionalProperties": false
+      },
+      "form_listByEvent_input": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "eventId"
+        ],
+        "additionalProperties": false
+      },
+      "form_listByEvent_output": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "lembagaId": {
+              "type": "string",
+              "nullable": true
+            },
+            "eventId": {
+              "type": "string",
+              "nullable": true
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "Draft",
+                "Published",
+                "Closed"
+              ]
+            },
+            "closesAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "allowMultipleSubmissions": {
+              "type": "boolean"
+            },
+            "publishedAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "submissionCount": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "id",
+            "lembagaId",
+            "eventId",
+            "title",
+            "description",
+            "status",
+            "closesAt",
+            "allowMultipleSubmissions",
+            "publishedAt",
+            "createdAt",
+            "updatedAt",
+            "submissionCount"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "form_listByLembaga_input": {
+        "type": "object",
+        "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "lembagaId"
+        ],
+        "additionalProperties": false
+      },
+      "form_listByLembaga_output": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string"
+            },
+            "lembagaId": {
+              "type": "string",
+              "nullable": true
+            },
+            "eventId": {
+              "type": "string",
+              "nullable": true
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string",
+              "nullable": true
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "Draft",
+                "Published",
+                "Closed"
+              ]
+            },
+            "closesAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "allowMultipleSubmissions": {
+              "type": "boolean"
+            },
+            "publishedAt": {
+              "type": "string",
+              "format": "date-time",
+              "nullable": true
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "updatedAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "submissionCount": {
+              "type": "integer"
+            }
+          },
+          "required": [
+            "id",
+            "lembagaId",
+            "eventId",
+            "title",
+            "description",
+            "status",
+            "closesAt",
+            "allowMultipleSubmissions",
+            "publishedAt",
+            "createdAt",
+            "updatedAt",
+            "submissionCount"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "form_setStatus_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          }
+        },
+        "required": [
+          "formId",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "form_setStatus_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lembagaId",
+          "eventId",
+          "title",
+          "description",
+          "status",
+          "closesAt",
+          "allowMultipleSubmissions",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "form_submit_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fieldId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "fieldId",
+                "value"
+              ],
+              "additionalProperties": false
+            },
+            "maxItems": 100
+          }
+        },
+        "required": [
+          "formId",
+          "answers"
+        ],
+        "additionalProperties": false
+      },
+      "form_submit_output": {
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "submissionId",
+          "submittedAt"
+        ],
+        "additionalProperties": false
+      },
+      "form_update_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 5000,
+            "nullable": true
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "formId"
+        ],
+        "additionalProperties": false
+      },
+      "form_update_output": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventId": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "Draft",
+              "Published",
+              "Closed"
+            ]
+          },
+          "closesAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "lembagaId",
+          "eventId",
+          "title",
+          "description",
+          "status",
+          "closesAt",
+          "allowMultipleSubmissions",
+          "publishedAt",
+          "createdAt",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
       "kegiatan_getAllByLembaga_output": {
         "type": "array",
         "items": {

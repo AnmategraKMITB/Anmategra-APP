@@ -82,5 +82,60 @@
   },
   "rapor.getNilaiLembagaIndividuPublic": {
     "description": "`imageUploader` dipakai untuk foto profil/logo (`onUploadComplete` mengembalikan `{ uploadedBy }`); `reportAttachment` untuk lampiran tiket support (`onUploadComplete` mengembalikan `{ uploadedBy, fileUrl, fileName }` — `fileUrl` inilah yang dikirim ke `users.createDraft`/`editDraft` sebagai field `attachment`)."
+  },
+  "form.createForLembaga": {
+    "summary": "Buat formulir milik lembaga",
+    "description": "Formulir selalu dibuat sebagai `Draft`. Pemilik tidak bisa dipindah setelah dibuat."
+  },
+  "form.createForEvent": {
+    "summary": "Buat formulir milik kegiatan",
+    "description": "Sama seperti `form.createForLembaga`, tetapi dimiliki satu kegiatan."
+  },
+  "form.listByLembaga": {
+    "summary": "Daftar formulir milik lembaga",
+    "description": "Hanya formulir yang dimiliki lembaga langsung, tidak termasuk formulir kegiatannya. Terbaru dulu. Daftar jawaban tidak disertakan, hanya `submissionCount`."
+  },
+  "form.listByEvent": {
+    "summary": "Daftar formulir milik kegiatan"
+  },
+  "form.getById": {
+    "summary": "Detail formulir untuk pengelola",
+    "description": "Berisi pertanyaan aktif beserta opsinya, terurut. Pertanyaan/opsi yang diarsipkan tidak ditampilkan."
+  },
+  "form.update": {
+    "summary": "Ubah judul, deskripsi, tenggat, atau izin submit berulang",
+    "description": "Kirim `null` untuk mengosongkan `description`/`closesAt`; key yang tidak dikirim tidak diubah. Saat `Published`, tenggat tidak boleh dipindah ke masa lalu — tutup formulir lewat `form.setStatus`."
+  },
+  "form.delete": {
+    "summary": "Hapus formulir",
+    "description": "Hanya untuk formulir yang belum punya jawaban (`CONFLICT` jika sudah). Formulir berjawaban cukup ditutup."
+  },
+  "form.setStatus": {
+    "summary": "Ubah status formulir",
+    "description": "Transisi: `Draft → Published`, `Published → Closed`, `Closed → Published`, dan kembali ke `Draft` hanya jika belum ada jawaban. Publish mensyaratkan minimal satu pertanyaan, setiap pertanyaan pilihan punya opsi, dan tenggat (jika ada) di masa depan. Mengirim status yang sama tidak mengubah apa pun."
+  },
+  "form.field.create": {
+    "summary": "Tambah pertanyaan",
+    "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Maksimal 100 pertanyaan per formulir."
+  },
+  "form.field.update": {
+    "summary": "Ubah satu pertanyaan (penggantian utuh)",
+    "description": "Kirim seluruh isi kartu pertanyaan. `options` adalah daftar lengkap: sertakan `id` untuk opsi lama, tanpa `id` untuk opsi baru; opsi yang tidak dikirim dihapus (diarsipkan jika sudah pernah dipilih). `type` tidak bisa diubah setelah pertanyaan dijawab (`CONFLICT`)."
+  },
+  "form.field.delete": {
+    "summary": "Hapus pertanyaan",
+    "description": "Diarsipkan (`result: archived`) jika sudah dijawab, sehingga jawaban lama tetap utuh; selain itu dihapus permanen. Formulir yang sedang dirilis tidak boleh kehilangan pertanyaan terakhirnya."
+  },
+  "form.field.reorder": {
+    "summary": "Atur ulang urutan pertanyaan",
+    "description": "`fieldIds` harus memuat semua pertanyaan aktif formulir tepat satu kali."
+  },
+  "form.getPublic": {
+    "summary": "Formulir untuk diisi",
+    "description": "Publik. Formulir `Draft` dibalas `NOT_FOUND`. `isAcceptingResponses` = `Published` dan belum lewat tenggat. `hasSubmitted` bernilai `null` jika pemanggil belum login."
+  },
+  "form.submit": {
+    "summary": "Kirim jawaban formulir",
+    "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Pola (`pattern`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif."
   }
 }
