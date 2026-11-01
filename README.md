@@ -86,6 +86,26 @@ Script lain:
 - `npm run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
 - `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
 
+### Login Microsoft (SSO ITB)
+
+Mahasiswa login dengan akun `@mahasiswa.itb.ac.id` lewat Microsoft Entra ID milik ITB. Anmategra
+punya app registration sendiri di directory ITB:
+
+- **Supported account types:** *Accounts in any organizational directory* (multitenant).
+- **Redirect URI** (platform **Web**): `https://anmategra.com/api/auth/callback/azure-ad`, ditambah
+  `http://localhost:<APP_PORT>/api/auth/callback/azure-ad` untuk lokal.
+- **Client secret** dibuat di *Certificates & secrets* lalu diisi ke `AZURE_AD_CLIENT_SECRET`.
+  Secret punya tanggal kedaluwarsa: catat tanggalnya dan perbarui sebelum lewat. Secret yang
+  kedaluwarsa membuat login Microsoft gagal dengan `?error=OAuthCallback`.
+- `AZURE_AD_TENANT_ID` = `db6e1183-4c65-405c-82ce-7cd53fa6e9dc` (directory ITB). Token dari tenant
+  lain ditolak, walaupun email-nya berakhiran `@mahasiswa.itb.ac.id`.
+- Pastikan app registration punya minimal 2 owner supaya aksesnya tidak hilang saat pengurus
+  berganti.
+
+Kalau login gagal, log server mencetak `[next-auth][error][OAUTH_CALLBACK_ERROR]` beserta kode
+`AADSTS…` dari Microsoft. Kode itu yang menjelaskan penyebabnya, misalnya `AADSTS7000222` (secret
+kedaluwarsa), `AADSTS7000215` (secret salah), atau `AADSTS50011` (redirect URI belum didaftarkan).
+
 ## Struktur Project
 
 ```
