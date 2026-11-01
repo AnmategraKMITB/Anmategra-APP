@@ -2,7 +2,7 @@
 import { type Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import React from 'react';
+import React, { cache } from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { JsonLd } from '~/app/_components/json-ld';
 // Components Import
@@ -18,6 +18,11 @@ import {
 } from '~/lib/seo';
 import { api } from '~/trpc/server';
 
+// Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
+const getKegiatanPublic = cache((kegiatanId: string) =>
+  api.profile.getKegiatanPublic({ kegiatanId }),
+);
+
 export async function generateMetadata(props: {
   params: Promise<{ profileKegiatanId: string }>;
 }): Promise<Metadata> {
@@ -25,9 +30,9 @@ export async function generateMetadata(props: {
   const path = `/profile-kegiatan/${params.profileKegiatanId}`;
 
   try {
-    const { kegiatan, lembaga } = await api.profile.getKegiatanPublic({
-      kegiatanId: params.profileKegiatanId,
-    });
+    const { kegiatan, lembaga } = await getKegiatanPublic(
+      params.profileKegiatanId,
+    );
 
     const title = kegiatan.name;
     const description =
@@ -69,9 +74,7 @@ const ProfileKegiatan = async ({
 }) => {
   const query = (await params).profileKegiatanId;
   try {
-    const { kegiatan, lembaga } = await api.profile.getKegiatanPublic({
-      kegiatanId: query,
-    });
+    const { kegiatan, lembaga } = await getKegiatanPublic(query);
 
     const path = `/profile-kegiatan/${query}`;
     const lembagaPath = `/profile-lembaga/${lembaga.id}`;

@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 // Asset Import
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import DummyFotoEvent from 'public/images/placeholder/profile-lembaga-kegiatan.png';
-import React from 'react';
+import React, { cache } from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
@@ -21,13 +21,16 @@ import { getServerAuthSession } from '~/server/auth';
 // TRPC Import
 import { api } from '~/trpc/server';
 
+// Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
+const getLembaga = cache((lembagaId: string) =>
+  api.profile.getLembaga({ lembagaId }),
+);
+
 export async function generateMetadata(props: {
   params: Promise<{ lembagaId: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  const { lembagaData } = await api.profile.getLembaga({
-    lembagaId: params.lembagaId,
-  });
+  const { lembagaData } = await getLembaga(params.lembagaId);
 
   return {
     // Suffix '| Anmategra' datang dari title.template di root layout.
@@ -52,7 +55,7 @@ const DetailLembagaPage = async ({
   try {
     const lembagaId = (await params).lembagaId;
     const { lembagaData, newestEvent, highlightedEvent, anggota } =
-      await api.profile.getLembaga({ lembagaId: lembagaId });
+      await getLembaga(lembagaId);
 
     const session = await getServerAuthSession();
 
