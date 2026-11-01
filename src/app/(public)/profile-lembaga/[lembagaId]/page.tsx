@@ -8,7 +8,7 @@ import { redirect } from 'next/navigation';
 // Asset Import
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import DummyFotoEvent from 'public/images/placeholder/profile-lembaga-kegiatan.png';
-import React from 'react';
+import React, { cache } from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import { JsonLd } from '~/app/_components/json-ld';
@@ -26,6 +26,11 @@ import {
 // TRPC Import
 import { api } from '~/trpc/server';
 
+// Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
+const getLembagaPublic = cache((lembagaId: string) =>
+  api.profile.getLembagaPublic({ lembagaId }),
+);
+
 export async function generateMetadata(props: {
   params: Promise<{ lembagaId: string }>;
 }): Promise<Metadata> {
@@ -33,9 +38,7 @@ export async function generateMetadata(props: {
   const path = `/profile-lembaga/${params.lembagaId}`;
 
   try {
-    const { lembagaData } = await api.profile.getLembagaPublic({
-      lembagaId: params.lembagaId,
-    });
+    const { lembagaData } = await getLembagaPublic(params.lembagaId);
 
     const title = lembagaData.name;
     const description =
@@ -72,7 +75,7 @@ const DetailLembagaPage = async ({
   try {
     const lembagaId = (await params).lembagaId;
     const { lembagaData, newestEvent, highlightedEvent } =
-      await api.profile.getLembagaPublic({ lembagaId: lembagaId });
+      await getLembagaPublic(lembagaId);
 
     const path = `/profile-lembaga/${lembagaId}`;
 

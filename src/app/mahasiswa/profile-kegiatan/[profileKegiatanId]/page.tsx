@@ -3,7 +3,7 @@ import { ChevronRight } from 'lucide-react';
 import { type Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import React from 'react';
+import React, { cache } from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
 // Components Import
@@ -15,13 +15,16 @@ import { Button } from '~/components/ui/button';
 import { getServerAuthSession } from '~/server/auth';
 import { api } from '~/trpc/server';
 
+// Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
+const getKegiatan = cache((kegiatanId: string) =>
+  api.profile.getKegiatan({ kegiatanId }),
+);
+
 export async function generateMetadata(props: {
   params: Promise<{ profileKegiatanId: string }>;
 }): Promise<Metadata> {
   const params = await props.params;
-  const { kegiatan } = await api.profile.getKegiatan({
-    kegiatanId: params.profileKegiatanId,
-  });
+  const { kegiatan } = await getKegiatan(params.profileKegiatanId);
 
   return {
     // Suffix '| Anmategra' datang dari title.template di root layout.
@@ -46,9 +49,7 @@ const ProfileKegiatan = async ({
 }) => {
   try {
     const query = (await params).profileKegiatanId;
-    const { kegiatan, lembaga, participant } = await api.profile.getKegiatan({
-      kegiatanId: query,
-    });
+    const { kegiatan, lembaga, participant } = await getKegiatan(query);
 
     const session = await getServerAuthSession();
     const userId = session?.user?.id;

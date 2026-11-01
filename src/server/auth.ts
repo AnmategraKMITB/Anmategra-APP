@@ -1,5 +1,6 @@
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { eq } from 'drizzle-orm';
+import { cache } from 'react';
 import {
   type DefaultSession,
   type NextAuthOptions,
@@ -322,5 +323,9 @@ const insertMahasiswa = async (
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
  *
  * @see https://next-auth.js.org/configuration/nextjs
+ *
+ * Dibungkus `cache` supaya cookie sesi cukup didekripsi sekali per request walaupun dipanggil
+ * dari banyak tempat (halaman, `generateMetadata`, konteks tRPC). Di luar render React
+ * (misalnya route handler), `cache` tidak menyimpan apa-apa dan fungsi tetap dipanggil biasa.
  */
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = cache(() => getServerSession(authOptions));
