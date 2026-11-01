@@ -12,7 +12,7 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { eventAdmin, events, lembagaAdmin } from '~/server/db/schema';
+import { eventAdmin, events, form, lembagaAdmin } from '~/server/db/schema';
 
 /**
  * 1. CONTEXT
@@ -56,7 +56,8 @@ export type ApiMeta = {
     | 'lembaga'
     | 'lembaga-scoped'
     | 'lembaga-owner'
-    | 'event-scoped';
+    | 'event-scoped'
+    | 'form-scoped';
 };
 
 const t = initTRPC
@@ -365,4 +366,60 @@ export const eventScopedProcedure = protectedProcedure
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, eventAccess: access, eventId } });
+  });
+
+/**
+ * Di-scope oleh `formId` (#210). Form dimiliki tepat satu lembaga ATAU satu
+ * event, jadi aksesnya diturunkan dari pemiliknya: Owner/Admin Lembaga untuk
+ * form lembaga, dan aturan `canManageEvent` untuk form kepanitiaan.
+ *
+ * Form yang tidak ada → NOT_FOUND, bukan milik → FORBIDDEN. Membedakan
+ * keduanya aman karena `formId` adalah UUID yang tidak bisa ditebak.
+ *
+ * Endpoint yang juga menerima `fieldId` WAJIB memastikan field itu milik
+ * `ctx.form.id` — builder ini hanya membuktikan akses ke form-nya.
+ */
+export const formScopedProcedure = protectedProcedure
+  .meta({ access: 'form-scoped' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { formId?: unknown };
+    const formId = typeof raw?.formId === 'string' ? raw.formId : undefined;
+    if (!formId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'formId is required',
+      });
+    }
+    const found = await ctx.db.query.form.findFirst({
+      where: eq(form.id, formId),
+    });
+    if (!found) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Formulir tidak ditemukan.',
+      });
+    }
+    const { id: userId, role, lembagaId: sessionLembagaId } = ctx.session.user;
+    const access = found.lembagaId
+      ? await canManageLembaga(
+          ctx.db,
+          userId,
+          role,
+          sessionLembagaId,
+          found.lembagaId,
+        )
+      : found.eventId
+        ? await canManageEvent(
+            ctx.db,
+            userId,
+            role,
+            sessionLembagaId,
+            found.eventId,
+          )
+        : null;
+    if (!access) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, form: found, formAccess: access } });
   });

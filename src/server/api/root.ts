@@ -4,6 +4,7 @@ import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 import { adminGrantRouter } from './routers/admin-grant';
 import { adminRouter } from './routers/admin';
 import { eventRouter } from './routers/event';
+import { formRouter } from './routers/form';
 import { kegiatanRouter } from './routers/kegiatan';
 import { landingRouter } from './routers/landing';
 import { lembagaRouter } from './routers/lembaga';
@@ -31,6 +32,7 @@ export const appRouter = createTRPCRouter({
   rapor: raporRouter,
   riwayat: riwayatRouter,
   organization: organizationRouter,
+  form: formRouter,
 });
 
 // export type definition of API

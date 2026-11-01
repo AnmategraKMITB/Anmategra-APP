@@ -186,6 +186,83 @@ table anmategra_event {
   Note: "Kegiatan/acara yang diselenggarakan oleh sebuah lembaga."
 }
 
+table anmategra_form {
+  id varchar(255) [pk, not null]
+  lembaga_id varchar(255)
+  event_id varchar(255)
+  title varchar(255) [not null]
+  description text
+  status varchar(16) [not null, default: 'Draft']
+  closes_at "timestamp with time zone"
+  allow_multiple_submissions boolean [not null, default: false]
+  published_at "timestamp with time zone"
+  created_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    lembaga_id [name: 'form_lembaga_id_idx']
+    event_id [name: 'form_event_id_idx']
+  }
+}
+
+table anmategra_form_answer {
+  id varchar(255) [pk, not null]
+  submission_id varchar(255) [not null]
+  field_id varchar(255)
+  field_label varchar(500) [not null]
+  field_type varchar(32) [not null]
+  value jsonb [not null]
+
+  indexes {
+    (submission_id, field_id) [name: 'form_answer_submission_field_unique', unique]
+    field_id [name: 'form_answer_field_id_idx']
+  }
+}
+
+table anmategra_form_field {
+  id varchar(255) [pk, not null]
+  form_id varchar(255) [not null]
+  type varchar(32) [not null]
+  label varchar(500) [not null]
+  description text
+  required boolean [not null, default: false]
+  config jsonb [not null, default: `{}`]
+  sort_order integer [not null]
+  archived_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (form_id, sort_order) [name: 'form_field_form_order_idx']
+  }
+}
+
+table anmategra_form_field_option {
+  id varchar(255) [pk, not null]
+  field_id varchar(255) [not null]
+  label varchar(255) [not null]
+  sort_order integer [not null]
+  archived_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (field_id, sort_order) [name: 'form_field_option_field_order_idx']
+  }
+}
+
+table anmategra_form_submission {
+  id varchar(255) [pk, not null]
+  form_id varchar(255) [not null]
+  user_id varchar(255) [not null]
+  submitted_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (form_id, user_id) [name: 'form_submission_form_user_idx']
+  }
+}
+
 table anmategra_keanggotaan {
   id varchar(255) [pk, not null]
   event_id varchar(255) [not null]
@@ -536,6 +613,22 @@ ref: anmategra_event_admin.event_id > anmategra_event.id
 ref: anmategra_event_admin.user_id > anmategra_user.id
 
 ref: anmategra_event.org_id > anmategra_lembaga.id
+
+ref: anmategra_form_answer.submission_id > anmategra_form_submission.id
+
+ref: anmategra_form_answer.field_id - anmategra_form_field.id
+
+ref: anmategra_form_field_option.field_id > anmategra_form_field.id
+
+ref: anmategra_form_field.form_id > anmategra_form.id
+
+ref: anmategra_form.lembaga_id - anmategra_lembaga.id
+
+ref: anmategra_form.event_id - anmategra_event.id
+
+ref: anmategra_form_submission.form_id > anmategra_form.id
+
+ref: anmategra_form_submission.user_id - anmategra_user.id
 
 ref: anmategra_keanggotaan.event_id > anmategra_event.id
 
