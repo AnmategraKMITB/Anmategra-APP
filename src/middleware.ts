@@ -21,12 +21,12 @@ const PUBLIC_ROUTES = [
 const AUTHENTICATED_SHARED_ROUTES = ['/manual'];
 
 export default async function middleware(req: NextRequest) {
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
   // Skip static files and API routes
   if (STATIC.some((route) => req.nextUrl.pathname.startsWith(route))) {
     return NextResponse.next();
   }
+
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   const { pathname } = req.nextUrl;
 
@@ -85,3 +85,12 @@ export default async function middleware(req: NextRequest) {
 
   return NextResponse.next();
 }
+
+// Prefiks yang sama dengan STATIC di atas: request ke sana tidak perlu masuk middleware sama
+// sekali (route API mengecek sesinya sendiri). Tanpa matcher, setiap file JS/CSS, gambar, dan
+// panggilan tRPC tetap menjalankan middleware dulu sebelum dilewatkan.
+export const config = {
+  matcher: [
+    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml).*)',
+  ],
+};
