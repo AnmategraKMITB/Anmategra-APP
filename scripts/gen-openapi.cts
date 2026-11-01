@@ -78,12 +78,18 @@ const ACCESS: Record<
     description:
       'Butuh `eventId` di input. Boleh diakses Owner/Admin lembaga induk, atau Admin Kepanitiaan yang di-grant untuk event tersebut.',
   },
+  'form-scoped': {
+    label: 'Pengelola Formulir',
+    description:
+      'Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.',
+  },
 };
 
 const TAG_DESCRIPTIONS: Record<string, string> = {
   admin: 'Operasi khusus admin sistem: verifikasi user, kelola data master.',
   adminGrant: 'Grant dan revoke Owner/Admin Lembaga & Kepanitiaan (RO-03).',
   event: 'CRUD kepanitiaan/kegiatan beserta anggotanya.',
+  form: 'Dynamic Form Builder: kelola formulir lembaga/kegiatan, pertanyaannya, dan pengisian oleh mahasiswa (#210).',
   kegiatan: 'Query kegiatan dari sisi konsumen (listing, detail, pencarian).',
   landing: 'Data agregat untuk halaman publik/landing.',
   lembaga: 'CRUD lembaga (himpunan, UKM, BSO) beserta anggota dan strukturnya.',

@@ -100,5 +100,37 @@
   },
   "anmategra_verified_user": {
     "note": "Whitelist email yang diizinkan mendaftar."
+  },
+  "anmategra_form": {
+    "note": "Formulir dinamis (#210), mis. open recruitment. Dimiliki tepat satu lembaga ATAU satu event (CHECK `form_owner_xor`, ditulis tangan di migrasi 0027).",
+    "columns": {
+      "status": "Draft | Published | Closed (CHECK `form_status_check`).",
+      "closes_at": "Tenggat opsional. Formulir menerima jawaban jika Published dan belum lewat tenggat.",
+      "published_at": "Waktu pertama kali dirilis; tidak berubah saat dibuka ulang."
+    }
+  },
+  "anmategra_form_field": {
+    "note": "Pertanyaan pada formulir.",
+    "columns": {
+      "type": "short_text | long_text | number | date | single_choice | multiple_choice | checkbox (CHECK `form_field_type_check`). varchar, bukan pgEnum, supaya tipe baru mudah ditambah.",
+      "config": "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`.",
+      "archived_at": "Diisi saat pertanyaan yang sudah dijawab dihapus, supaya jawaban lama tetap merujuk ke baris nyata."
+    }
+  },
+  "anmategra_form_field_option": {
+    "note": "Opsi untuk pertanyaan single_choice / multiple_choice.",
+    "columns": {
+      "archived_at": "Diisi saat opsi yang sudah pernah dipilih dihapus."
+    }
+  },
+  "anmategra_form_submission": {
+    "note": "Satu kali pengiriman formulir oleh satu mahasiswa. Default satu per mahasiswa per formulir, kecuali `allow_multiple_submissions`."
+  },
+  "anmategra_form_answer": {
+    "note": "Satu baris per pertanyaan yang dijawab. `field_label`, `field_type`, dan label opsi di `value` adalah salinan saat submit, sehingga jawaban tetap terbaca setelah pertanyaannya diubah atau dihapus.",
+    "columns": {
+      "field_id": "ON DELETE SET NULL: jawaban tidak ikut terhapus.",
+      "value": "Teks/tanggal = string, number = angka, checkbox = boolean, single_choice = {optionId, label}, multiple_choice = [{optionId, label}]."
+    }
   }
 }

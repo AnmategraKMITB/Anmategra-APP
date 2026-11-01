@@ -8,6 +8,11 @@ import {
   bestStaffKegiatan,
   bestStaffLembaga,
   events,
+  form,
+  formAnswer,
+  formField,
+  formFieldOption,
+  formSubmission,
   keanggotaan,
   kehimpunan,
   lembaga,
@@ -58,6 +63,11 @@ async function clearAllTables() {
     };
 
     // Clear tables in dependency order
+    await safeDelete(formAnswer, 'formAnswer');
+    await safeDelete(formSubmission, 'formSubmission');
+    await safeDelete(formFieldOption, 'formFieldOption');
+    await safeDelete(formField, 'formField');
+    await safeDelete(form, 'form');
     await safeDelete(nilaiProfilLembaga, 'nilaiProfilLembaga');
     await safeDelete(nilaiProfilKegiatan, 'nilaiProfilKegiatan');
     await safeDelete(pemetaanProfilLembaga, 'pemetaanProfilLembaga');
