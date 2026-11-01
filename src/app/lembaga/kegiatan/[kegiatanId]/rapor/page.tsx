@@ -5,12 +5,13 @@ import { getServerAuthSession } from '~/server/auth';
 import { api } from '~/trpc/server';
 
 interface RaporPageProps {
-  params: {
+  params: Promise<{
     kegiatanId: string;
-  };
+  }>;
 }
 
-export default async function RaporPage({ params }: RaporPageProps) {
+export default async function RaporPage(props: RaporPageProps) {
+  const params = await props.params;
   const session = await getServerAuthSession();
   const event_id = params.kegiatanId;
 

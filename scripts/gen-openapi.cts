@@ -16,8 +16,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import type { ZodTypeAny } from 'zod';
-import { zodToJsonSchema } from 'zod-to-json-schema';
+import { type ZodType, z } from 'zod';
 import { appRouter } from '~/server/api/root';
 import type { ApiMeta } from '~/server/api/trpc';
 
@@ -36,8 +35,8 @@ const pkg = JSON.parse(
 type ProcedureDef = {
   type: 'query' | 'mutation' | 'subscription';
   meta?: ApiMeta;
-  inputs?: ZodTypeAny[];
-  output?: ZodTypeAny;
+  inputs?: ZodType[];
+  output?: ZodType;
 };
 
 type Note = { summary?: string; description?: string; deprecated?: boolean };
@@ -119,37 +118,35 @@ function superjsonEnvelope(schema: unknown) {
 }
 
 /**
- * zod-to-json-schema can emit a bare `nullable: true` (e.g. for a nullable
- * `z.any()`), which OpenAPI 3.0 rejects because `nullable` needs a sibling
- * `type`. Drop those; the field stays documented, just untyped.
+ * Bentuk JSON Schema dari skema Zod, dengan target OpenAPI 3.0.
+ *
+ * `io: 'input'` dipakai untuk input supaya field ber-`.default()` tercatat opsional,
+ * seperti yang memang diterima procedure. `z.date()` tidak punya padanan di JSON
+ * Schema; superjson mengirimnya sebagai string ISO, jadi dicatat sebagai
+ * `string` + `format: date-time`. Tipe lain yang tidak bisa direpresentasikan
+ * (transform, custom) jadi skema kosong alih-alih menggagalkan seluruh docs.
  */
-function stripDanglingNullable(node: unknown): unknown {
-  if (Array.isArray(node)) return node.map(stripDanglingNullable);
-  if (!node || typeof node !== 'object') return node;
-
-  const obj = node as Record<string, unknown>;
-  const typed =
-    'type' in obj ||
-    '$ref' in obj ||
-    'allOf' in obj ||
-    'anyOf' in obj ||
-    'oneOf' in obj;
-  if ('nullable' in obj && !typed) delete obj.nullable;
-
-  for (const [key, value] of Object.entries(obj))
-    obj[key] = stripDanglingNullable(value);
-  return obj;
-}
-
-function toJsonSchema(schema: ZodTypeAny | undefined, name: string) {
+function toJsonSchema(
+  schema: ZodType | undefined,
+  name: string,
+  io: 'input' | 'output',
+) {
   if (!schema) return undefined;
   try {
-    const json = zodToJsonSchema(schema, {
-      target: 'openApi3',
-      $refStrategy: 'none',
+    const json = z.toJSONSchema(schema, {
+      target: 'openapi-3.0',
+      io,
+      reused: 'inline',
+      unrepresentable: 'any',
+      override: (ctx) => {
+        if (ctx.zodSchema._zod.def.type === 'date') {
+          ctx.jsonSchema.type = 'string';
+          ctx.jsonSchema.format = 'date-time';
+        }
+      },
     }) as Record<string, unknown>;
     delete json.$schema;
-    return stripDanglingNullable(json) as Record<string, unknown>;
+    return json;
   } catch (error) {
     console.warn(
       `[openapi] cannot convert schema for ${name}: ${String(error)}`,
@@ -248,8 +245,12 @@ for (const [procPath, procedure] of Object.entries(procedures).sort(
   const operationId = procPath.replace(/\./g, '_');
   const note = notes[procPath] ?? {};
 
-  const inputSchema = toJsonSchema(def.inputs?.[0], `${procPath} input`);
-  const outputSchema = toJsonSchema(def.output, `${procPath} output`);
+  const inputSchema = toJsonSchema(
+    def.inputs?.[0],
+    `${procPath} input`,
+    'input',
+  );
+  const outputSchema = toJsonSchema(def.output, `${procPath} output`, 'output');
 
   if (inputSchema) schemas[`${operationId}_input`] = inputSchema;
   if (outputSchema) schemas[`${operationId}_output`] = outputSchema;

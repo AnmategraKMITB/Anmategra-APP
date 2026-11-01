@@ -26,11 +26,10 @@ import {
 // TRPC Import
 import { api } from '~/trpc/server';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { lembagaId: string };
+export async function generateMetadata(props: {
+  params: Promise<{ lembagaId: string }>;
 }): Promise<Metadata> {
+  const params = await props.params;
   const path = `/profile-lembaga/${params.lembagaId}`;
 
   try {

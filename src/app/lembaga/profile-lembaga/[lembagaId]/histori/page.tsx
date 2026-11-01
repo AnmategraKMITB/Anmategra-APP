@@ -8,12 +8,13 @@ import { Button } from '~/components/ui/button';
 import { Plus } from 'lucide-react';
 
 interface Props {
-  params: {
+  params: Promise<{
     lembagaId: string;
-  };
+  }>;
 }
 
-const HistoriBestStaffPage = async ({ params }: Props) => {
+const HistoriBestStaffPage = async (props: Props) => {
+  const params = await props.params;
   const session = await getServerAuthSession();
   const { lembagaId } = params;
 
@@ -23,7 +24,7 @@ const HistoriBestStaffPage = async ({ params }: Props) => {
 
   const lembagaInfo = await api.profile.getLembaga({ lembagaId });
   const namaLembaga = lembagaInfo?.lembagaData?.name ?? 'Lembaga';
-  
+
   const isOwner = session?.user?.lembagaId === lembagaId;
 
   return (
