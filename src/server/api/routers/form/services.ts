@@ -1,10 +1,11 @@
 import { TRPCError } from '@trpc/server';
 import type { inferAsyncReturnType } from '@trpc/server';
-import { and, asc, count, eq, inArray, isNull } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import { type createTRPCContext } from '~/server/api/trpc';
 import {
   type FormFieldType,
   form,
+  formAnswer,
   formField,
   formFieldOption,
   formSubmission,
@@ -159,6 +160,83 @@ export async function lockForm(tx: Tx, formId: string): Promise<FormRow> {
     });
   }
   return row;
+}
+
+/** Active field that belongs to `formId`, or NOT_FOUND. */
+export async function getActiveField(
+  db: Queryable,
+  formId: string,
+  fieldId: string,
+) {
+  const [row] = await db
+    .select()
+    .from(formField)
+    .where(
+      and(
+        eq(formField.id, fieldId),
+        // Scoping by formId is the cross-tenant guard: formScopedProcedure
+        // only proved access to the form, not to an arbitrary fieldId.
+        eq(formField.formId, formId),
+        isNull(formField.archivedAt),
+      ),
+    );
+  if (!row) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Pertanyaan tidak ditemukan pada formulir ini.',
+    });
+  }
+  return row;
+}
+
+export async function fieldHasAnswers(db: Queryable, fieldId: string) {
+  const [row] = await db
+    .select({ id: formAnswer.id })
+    .from(formAnswer)
+    .where(eq(formAnswer.fieldId, fieldId))
+    .limit(1);
+  return !!row;
+}
+
+/** Whether any answer picked this option (single or multiple choice). */
+export async function optionHasAnswers(
+  db: Queryable,
+  fieldId: string,
+  optionId: string,
+) {
+  const single = JSON.stringify({ optionId });
+  const multiple = JSON.stringify([{ optionId }]);
+  const [row] = await db
+    .select({ id: formAnswer.id })
+    .from(formAnswer)
+    .where(
+      and(
+        eq(formAnswer.fieldId, fieldId),
+        or(
+          sql`${formAnswer.value} @> ${single}::jsonb`,
+          sql`${formAnswer.value} @> ${multiple}::jsonb`,
+        ),
+      ),
+    )
+    .limit(1);
+  return !!row;
+}
+
+/** Fetches one field in output shape (active options only). */
+export async function loadFieldOutput(
+  db: Queryable,
+  formId: string,
+  fieldId: string,
+): Promise<FieldOutput> {
+  const fields = await loadActiveFields(db, formId);
+  const found = fields.find((f) => f.id === fieldId);
+  if (!found) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Pertanyaan tidak ditemukan pada formulir ini.',
+    });
+  }
+  return found;
 }
 
 /** Re-throws TRPCErrors untouched; anything else becomes a generic 500. */
