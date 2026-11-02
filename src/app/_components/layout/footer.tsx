@@ -17,9 +17,10 @@ import React from 'react';
 const Footer = () => {
   const pathname = usePathname();
 
-  // if (pathname.startsWith('/lembaga')) {
-  //   return;
-  // }
+  // Purwarupa memakai layout layar penuh sendiri.
+  if (pathname.startsWith('/prototype')) {
+    return null;
+  }
 
   return (
     <div className="w-full h-full mt-auto px-4 sm:px-8 md:px-12 lg:px-16 py-6 md:py-8 flex flex-col items-center justify-start border-t-2 border-slate-100 bg-white">
