@@ -9,7 +9,7 @@
 import { TRPCError, initTRPC } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
 import superjson from 'superjson';
-import { ZodError, z } from 'zod';
+import { type ZodError, type ZodIssue, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { eventAdmin, events, form, lembagaAdmin } from '~/server/db/schema';
@@ -60,6 +60,34 @@ export type ApiMeta = {
     | 'form-scoped';
 };
 
+/**
+ * Mengambil `issues` Zod dari `cause` sebuah TRPCError.
+ *
+ * Di Zod 4 `ZodError` tidak lagi mewarisi `Error`, jadi tRPC tidak
+ * mengenalinya dan menyalin isinya ke `UnknownCauseError` dengan
+ * `Object.assign` (`getCauseFromUnknown` di @trpc/server). `issues` adalah own
+ * property yang **non-enumerable**, jadi ikut hilang di penyalinan itu — yang
+ * tersisa hanya `name` dan `message`, dan `message` Zod 4 kebetulan berisi JSON
+ * dari issues. Tanpa ini `data.zodError` selalu null sejak repo naik ke Zod 4,
+ * baik untuk error validasi input maupun `cause` kiriman endpoint.
+ */
+export function zodIssuesFromCause(cause: unknown): ZodIssue[] | null {
+  if (typeof cause !== 'object' || cause === null) return null;
+  const { issues, name, message } = cause as {
+    issues?: unknown;
+    name?: unknown;
+    message?: unknown;
+  };
+  if (Array.isArray(issues)) return issues as ZodIssue[];
+  if (name !== 'ZodError' || typeof message !== 'string') return null;
+  try {
+    const parsed: unknown = JSON.parse(message);
+    return Array.isArray(parsed) ? (parsed as ZodIssue[]) : null;
+  } catch {
+    return null;
+  }
+}
+
 const t = initTRPC
   .context<typeof createTRPCContext>()
   .meta<ApiMeta>()
@@ -67,9 +95,9 @@ const t = initTRPC
     transformer: superjson,
     errorFormatter({ shape, error }) {
       // Customize message for Zod validation errors
-      if (error.cause instanceof ZodError) {
-        const zodError = error.cause;
-        const formattedMessage = zodError.issues
+      const issues = zodIssuesFromCause(error.cause);
+      if (issues) {
+        const formattedMessage = issues
           .map((e) => {
             return e.message;
           })
@@ -80,7 +108,7 @@ const t = initTRPC
           message: formattedMessage,
           data: {
             ...shape.data,
-            zodError: z.flattenError(zodError),
+            zodError: z.flattenError({ issues } as unknown as ZodError),
           },
         };
       }
