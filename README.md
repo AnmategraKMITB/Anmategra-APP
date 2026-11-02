@@ -136,6 +136,20 @@ kedaluwarsa), `AADSTS7000215` (secret salah), atau `AADSTS50011` (redirect URI b
 
 Config tool lain (`next.config.js`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.cjs`, `.eslintrc.cjs`, `prettier.config.js`, `components.json`) sengaja ditaruh di root karena masing-masing tool nyari file itu di situ secara default.
 
+## Lisensi
+
+Kode sumber Anmategra dilisensikan di bawah **GNU Affero General Public License v3.0 atau
+yang lebih baru** (AGPL-3.0-or-later). Teks lengkapnya ada di [`LICENSE`](LICENSE).
+
+Intinya: siapa pun boleh memakai, mempelajari, mengubah, dan membagikan kode ini. Kalau kamu
+menjalankan versi yang sudah diubah sebagai layanan web (misalnya fork untuk kampus lain),
+kamu **wajib menyediakan kode sumber versi ubahanmu** kepada penggunanya dengan lisensi yang
+sama.
+
+Lisensi ini hanya berlaku untuk **kode**. Logo dan nama KM ITB, Kabinet, Kemenkoan PSDM, dan
+Anmategra (di `public/images/logo/`) milik masing-masing pemiliknya dan tidak ikut dilisensikan
+di bawah AGPL.
+
 ## Branch Name Convention
 ```
 <tipe>/<BE/FE> /<deskripsi>

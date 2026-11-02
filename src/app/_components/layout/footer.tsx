@@ -7,10 +7,11 @@ import { usePathname } from 'next/navigation';
 import InstagramLogo from 'public/icons/instagram-icon.png';
 import LineLogo from 'public/icons/line-icon.png';
 import TwitterLogo from 'public/icons/twitter-icon.png';
-import AnmategraLogo from 'public/images/logo/anmategra-logo.png';
+import AnmategraLogo from 'public/images/logo/anmategra-logo.svg';
 // Assets Import
 import KMLogo from 'public/images/logo/kmitb-logo.jpeg';
-import PSDMLogo from 'public/images/logo/psdm-logo.png';
+import KabinetLogo from 'public/images/logo/logo-kabinet.svg';
+import PSDMLogo from 'public/images/logo/logo-psdm.svg';
 import React from 'react';
 
 const Footer = () => {
@@ -24,41 +25,48 @@ const Footer = () => {
     <div className="w-full h-full mt-auto px-4 sm:px-8 md:px-12 lg:px-16 py-6 md:py-8 flex flex-col items-center justify-start border-t-2 border-slate-100 bg-white">
       <div className="h-full w-full flex flex-col md:flex-row items-start justify-between gap-6 md:gap-x-8">
         <div className="w-full flex flex-col gap-y-2 md:flex-[2]">
-          <div className="w-full h-full flex items-center gap-x-2 flex-wrap">
+          {/* Tinggi sama, lebar mengikuti proporsi tiap logo (logo Kabinet lebih lebar). */}
+          <div className="w-full h-full flex items-center gap-x-3 flex-wrap">
             <Image
               src={KMLogo}
-              alt="Logo KM ITB 2024/2025"
-              width={72}
-              height={72}
-              className="w-14 h-14 sm:w-16 sm:h-16 md:w-[72px] md:h-[72px]"
+              alt="Logo KM ITB"
+              className="h-14 w-auto sm:h-16 md:h-[72px]"
+            />
+            <Image
+              src={KabinetLogo}
+              alt="Logo Kabinet KM ITB 2026/2027 Bermakna"
+              className="h-14 w-auto sm:h-16 md:h-[72px]"
             />
             <Image
               src={PSDMLogo}
-              alt="Logo PSDM 2024/2025"
-              width={72}
-              height={72}
-              className="w-14 h-14 sm:w-16 sm:h-16 md:w-[72px] md:h-[72px]"
+              alt="Logo Kemenkoan PSDM KM ITB"
+              className="h-14 w-auto sm:h-16 md:h-[72px]"
             />
             <Image
               src={AnmategraLogo}
-              alt="Logo Anmategra 2024/2025"
-              width={72}
-              height={72}
-              className="w-14 h-14 sm:w-16 sm:h-16 md:w-[72px] md:h-[72px]"
+              alt="Logo Anmategra"
+              className="h-14 w-auto sm:h-16 md:h-[72px]"
             />
           </div>
           <div>
             <h3 className="text-lg sm:text-xl md:text-2xl text-Blue-Dark font-semibold my-2">
-              Kementerian Sinergi Kaderisasi<br className="hidden sm:block" />
+              Kementerian Anmategra<br className="hidden sm:block" />
             </h3>
             <p className="text-sm md:text-base text-Blue-Dark leading-5">
-              Kemenkoan Pengembangan Sumber Daya Manusia <br className="hidden sm:block" /> Kabinet
-              "Ameliorasi" KM ITB 2025/2026
+              Kemenkoan Pengembangan Sumber Daya Manusia (PSDM) <br className="hidden sm:block" /> Kabinet
+              KM ITB 2026/2027 "Bermakna" 
             </p>
           </div>
           <div className="py-2">
             <p className="text-Blue-Dark text-sm md:text-[16px]">
-              Copyright © Anmategra 2025
+              © 2026 Kementerian Anmategra KM ITB. Kode sumber terbuka di bawah{' '}
+              <Link
+                href="https://github.com/AnmategraKMITB/Anmategra-APP/blob/develop/LICENSE"
+                className="underline underline-offset-2 hover:opacity-80"
+              >
+                Lisensi AGPL-3.0
+              </Link>
+              .
             </p>
           </div>
         </div>
@@ -67,21 +75,21 @@ const Footer = () => {
             <h5 className="text-Blue-Dark text-lg md:text-xl font-medium">Narahubung</h5>
             <div>
               <p className="font-semibold text-Blue-Dark text-sm md:text-base">
-                Albertus Christian Poandy
+                Z. Nayaka Athadiansyah
               </p>
               <div className="flex items-center gap-x-2">
                 <Image src={LineLogo} alt="Logo Line" width={16} height={16} />
-                <p className="text-Blue-Dark text-sm">chrisp15</p>
+                <p className="text-Blue-Dark text-sm">nayaka.zna</p>
               </div>
             </div>
             <div className="py-[1px]" />
             <div>
               <p className="font-semibold text-Blue-Dark text-sm md:text-base">
-                Grace Evelyn Simon
+                Narendra Dharma Wistara M.
               </p>
               <div className="flex items-center gap-x-2">
                 <Image src={LineLogo} alt="Logo Line" width={16} height={16} />
-                <p className="text-Blue-Dark text-sm">graceevelyns</p>
+                <p className="text-Blue-Dark text-sm">raulinns</p>
               </div>
             </div>
           </div>
