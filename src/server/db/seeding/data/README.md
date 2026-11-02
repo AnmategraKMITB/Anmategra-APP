@@ -101,6 +101,31 @@ second one and orphans the old (along with anything the org filled in through th
 app). Fix the email in the database first, then seed. Deletions are never
 automatic: a disbanded org stays until removed by hand.
 
+## Import mahasiswa (a new angkatan)
+
+`npm run db:seed-mahasiswa` pre-provisions students so lembaga and panitia can find them
+before their first login, and so their name and jurusan come from official data instead
+of being guessed at login.
+
+The CSV holds personal data (NIM, name), so **keep it outside the repo** and pass its path:
+
+```
+npm run db:seed-mahasiswa -- --file ~/maba26.csv --dry-run   # plan only
+npm run db:seed-mahasiswa -- --file ~/maba26.csv
+```
+
+| column | required | notes |
+|---|---|---|
+| `nim` | yes | 8 digits; the NIM the student currently logs in with (TPB NIM, or the jurusan NIM for programs that start in a jurusan, e.g. IUP) |
+| `name` | yes | `nama` is accepted too |
+| `email` | no | checked only: the account email is always `<nim>@mahasiswa.itb.ac.id`, which is what the Microsoft login matches on |
+| `prodi` | no | used only when the NIM's 3-digit code is not in `kode-program-studi.json`; otherwise differences are reported and the table's name is kept, so naming stays consistent with existing data |
+| `faculty` | no | ignored |
+
+`angkatan` comes from NIM digits 4–5. The seed only adds: an existing email or NIM is
+skipped and never changed, and everything is written in one transaction. Its output never
+prints names, emails or NIMs, only line numbers and counts.
+
 ## Cautions
 
 - **Order matters:** re-running `build-lembaga-csv.py` regenerates the baseline and **wipes emails** — step 2 is baseline-only, never run it after step 4.

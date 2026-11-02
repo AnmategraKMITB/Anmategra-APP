@@ -68,6 +68,7 @@ Perintah db lain yang tersedia:
 - `npm run db:studio` — buka Drizzle Studio buat liat data
 - `npm run db:seed` — generate csv + seed database (dev only)
 - `npm run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
+- `npm run db:seed-mahasiswa -- --file <csv>` — impor mahasiswa (misalnya satu angkatan baru); hanya menambah, format di `src/server/db/seeding/data/README.md`
 - `npm run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
 - `npm run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
 - `npm run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
