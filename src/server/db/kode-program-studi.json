@@ -109,7 +109,7 @@
   },
   {
     "kode": 136,
-    "jurusan": "Aeronotika dan Astronotika"
+    "jurusan": "Teknik Dirgantara"
   },
   {
     "kode": 137,
@@ -121,11 +121,11 @@
   },
   {
     "kode": 144,
-    "jurusan": "Manajemen Rekayasa Industri"
+    "jurusan": "Manajemen Rekayasa"
   },
   {
     "kode": 145,
-    "jurusan": "Manajemen Rekayasa Industri"
+    "jurusan": "Teknik Bioenergi dan Kemurgi"
   },
   {
     "kode": 150,
@@ -208,6 +208,10 @@
     "jurusan": "Seni Rupa"
   },
   {
+    "kode": 171,
+    "jurusan": "Kriya (Kampus Cirebon)"
+  },
+  {
     "kode": 172,
     "jurusan": "Kriya"
   },
@@ -250,6 +254,10 @@
   {
     "kode": 192,
     "jurusan": "Kewirausahaan"
+  },
+  {
+    "kode": 194,
+    "jurusan": "Teknik Industri (Kampus Cirebon)"
   },
   {
     "kode": 196,
@@ -308,6 +316,14 @@
     "jurusan": "Biomanajemen"
   },
   {
+    "kode": 217,
+    "jurusan": "Keolahragaan"
+  },
+  {
+    "kode": 218,
+    "jurusan": "Farmasi Industri"
+  },
+  {
     "kode": 220,
     "jurusan": "Teknik Geologi"
   },
@@ -333,7 +349,7 @@
   },
   {
     "kode": 226,
-    "jurusan": "Teknik Panas Bumi"
+    "jurusan": "Teknik Geotermal"
   },
   {
     "kode": 227,
@@ -365,7 +381,7 @@
   },
   {
     "kode": 236,
-    "jurusan": "Aeronotika dan Astronotika"
+    "jurusan": "Teknik Dirgantara"
   },
   {
     "kode": 237,
@@ -386,6 +402,18 @@
   {
     "kode": 242,
     "jurusan": "Transportasi"
+  },
+  {
+    "kode": 246,
+    "jurusan": "Pengajaran Matematika"
+  },
+  {
+    "kode": 247,
+    "jurusan": "Pengajaran Fisika"
+  },
+  {
+    "kode": 248,
+    "jurusan": "Pengajaran Kimia"
   },
   {
     "kode": 249,
@@ -420,6 +448,14 @@
     "jurusan": "Rancang Kota"
   },
   {
+    "kode": 257,
+    "jurusan": "Pengelolaan Infrastruktur Air Bersih dan Sanitasi"
+  },
+  {
+    "kode": 258,
+    "jurusan": "Pengelolaan Sumberdaya Air (PSDA)"
+  },
+  {
     "kode": 269,
     "jurusan": "Sistem dan Teknik Jalan Raya"
   },
@@ -432,6 +468,30 @@
     "jurusan": "Desain"
   },
   {
+    "kode": 279,
+    "jurusan": "Teknokultur"
+  },
+  {
+    "kode": 282,
+    "jurusan": "Sistem dan Teknologi Informasi"
+  },
+  {
+    "kode": 284,
+    "jurusan": "Kecerdasan Artifisial"
+  },
+  {
+    "kode": 285,
+    "jurusan": "Kecerdasan Sistem"
+  },
+  {
+    "kode": 287,
+    "jurusan": "Teknologi Nano"
+  },
+  {
+    "kode": 288,
+    "jurusan": "Perencanaan Kepariwisataan"
+  },
+  {
     "kode": 289,
     "jurusan": "Arsitektur Lanskap"
   },
@@ -442,6 +502,14 @@
   {
     "kode": 291,
     "jurusan": "Administrasi Bisnis"
+  },
+  {
+    "kode": 293,
+    "jurusan": "Administrasi Bisnis (Kampus Jakarta)"
+  },
+  {
+    "kode": 294,
+    "jurusan": "Logistik"
   },
   {
     "kode": 301,
@@ -488,6 +556,10 @@
     "jurusan": "Sains Kebumian"
   },
   {
+    "kode": 325,
+    "jurusan": "Teknik Metalurgi"
+  },
+  {
     "kode": 330,
     "jurusan": "Teknik Kimia"
   },
@@ -509,7 +581,7 @@
   },
   {
     "kode": 336,
-    "jurusan": "Aeronotika dan Astronotika"
+    "jurusan": "Teknik Dirgantara"
   },
   {
     "kode": 337,
@@ -552,8 +624,16 @@
     "jurusan": "Desain"
   },
   {
+    "kode": 387,
+    "jurusan": "Sains dan Teknologi Nano"
+  },
+  {
     "kode": 390,
     "jurusan": "Sains Manajemen"
+  },
+  {
+    "kode": 900,
+    "jurusan": "Profesi Insinyur"
   },
   {
     "kode": 901,
@@ -574,6 +654,10 @@
   {
     "kode": 950,
     "jurusan": "Pengelolaan Sumberdaya Air (PSDA)"
+  },
+  {
+    "kode": 952,
+    "jurusan": "Profesi Arsitek"
   },
   {
     "kode": 957,
