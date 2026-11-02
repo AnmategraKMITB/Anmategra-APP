@@ -30,7 +30,8 @@ import {
   type Queryable,
   isAcceptingResponses,
   loadActiveFields,
-  lockForm,
+  lockFormShared,
+  lockSubmitSlot,
   rethrow,
 } from './services';
 
@@ -320,9 +321,10 @@ export const formSubmissionRouter = createTRPCRouter({
         }
 
         return await ctx.db.transaction(async (tx) => {
-          // The row lock serialises submits per form, so two concurrent
-          // requests from one student cannot both pass the duplicate check.
-          const current = await lockForm(tx, input.formId);
+          // Shared lock: respondents do not block each other, but the form
+          // cannot be closed, deleted, or have fields rewritten underneath an
+          // in-flight submit.
+          const current = await lockFormShared(tx, input.formId);
           if (current.status === 'Draft') {
             throw new TRPCError({
               code: 'NOT_FOUND',
@@ -335,14 +337,16 @@ export const formSubmissionRouter = createTRPCRouter({
               message: 'Formulir sudah ditutup dan tidak menerima jawaban.',
             });
           }
-          if (
-            !current.allowMultipleSubmissions &&
-            (await hasSubmitted(tx, current.id, userId))
-          ) {
-            throw new TRPCError({
-              code: 'CONFLICT',
-              message: 'Kamu sudah mengisi formulir ini.',
-            });
+          if (!current.allowMultipleSubmissions) {
+            // Per-respondent lock, so the duplicate check below cannot be run
+            // twice concurrently by the same student.
+            await lockSubmitSlot(tx, current.id, userId);
+            if (await hasSubmitted(tx, current.id, userId)) {
+              throw new TRPCError({
+                code: 'CONFLICT',
+                message: 'Kamu sudah mengisi formulir ini.',
+              });
+            }
           }
 
           const fields = await loadActiveFields(tx, current.id);

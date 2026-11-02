@@ -146,13 +146,39 @@ export function assertPublishable(row: FormRow, fields: FieldOutput[]) {
   }
 }
 
-/** Locks the form row for the rest of the transaction. */
+/**
+ * Exclusive lock on the form row, for writes by its managers. Serialises
+ * managers against each other and against in-flight submits.
+ */
 export async function lockForm(tx: Tx, formId: string): Promise<FormRow> {
+  return selectFormLocked(tx, formId, 'update');
+}
+
+/**
+ * Shared lock on the form row, for respondents.
+ *
+ * Submits must not queue behind one another: at an oprec deadline hundreds of
+ * students post at the same moment, and an exclusive lock would make them wait
+ * in line for the slowest one. `FOR SHARE` does not conflict with itself, so
+ * submits run in parallel — but it does conflict with the `FOR UPDATE` taken
+ * by `delete`/`setStatus`/field writes, so a form still cannot be closed or
+ * deleted in the middle of a submit (its answers would vanish with the
+ * cascade).
+ */
+export async function lockFormShared(tx: Tx, formId: string): Promise<FormRow> {
+  return selectFormLocked(tx, formId, 'share');
+}
+
+async function selectFormLocked(
+  tx: Tx,
+  formId: string,
+  mode: 'update' | 'share',
+): Promise<FormRow> {
   const [row] = await tx
     .select()
     .from(form)
     .where(eq(form.id, formId))
-    .for('update');
+    .for(mode);
   if (!row) {
     throw new TRPCError({
       code: 'NOT_FOUND',
@@ -160,6 +186,25 @@ export async function lockForm(tx: Tx, formId: string): Promise<FormRow> {
     });
   }
   return row;
+}
+
+/**
+ * Serialises one respondent's submits to one form, and nobody else's.
+ *
+ * The duplicate check below reads the submission rows; without this, two
+ * concurrent submits from the same student could both find none and both
+ * insert. A transaction-scoped advisory lock keyed on (form, user) is released
+ * on commit or rollback, and students who are not this student never wait.
+ *
+ * A UNIQUE index would also stop the race, but `(form_id, user_id)` cannot be
+ * unique outright: `allow_multiple_submissions` legitimately permits repeats,
+ * and it lives on `form`, which an index predicate on `form_submission` cannot
+ * read.
+ */
+export async function lockSubmitSlot(tx: Tx, formId: string, userId: string) {
+  await tx.execute(
+    sql`SELECT pg_advisory_xact_lock(hashtext(${formId}), hashtext(${userId}))`,
+  );
 }
 
 /** Active field that belongs to `formId`, or NOT_FOUND. */
