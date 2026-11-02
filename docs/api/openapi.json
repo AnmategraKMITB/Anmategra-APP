@@ -20094,14 +20094,14 @@
             "maxLength": 255
           },
           "description": {
+            "nullable": true,
             "type": "string",
-            "maxLength": 5000,
-            "nullable": true
+            "maxLength": 5000
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
@@ -20110,8 +20110,7 @@
         "required": [
           "eventId",
           "title"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_createForEvent_output": {
         "type": "object",
@@ -20120,19 +20119,19 @@
             "type": "string"
           },
           "lembagaId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "eventId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -20143,17 +20142,17 @@
             ]
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
           "publishedAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "createdAt": {
             "type": "string",
@@ -20192,14 +20191,14 @@
             "maxLength": 255
           },
           "description": {
+            "nullable": true,
             "type": "string",
-            "maxLength": 5000,
-            "nullable": true
+            "maxLength": 5000
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
@@ -20208,8 +20207,7 @@
         "required": [
           "lembagaId",
           "title"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_createForLembaga_output": {
         "type": "object",
@@ -20218,19 +20216,19 @@
             "type": "string"
           },
           "lembagaId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "eventId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -20241,17 +20239,17 @@
             ]
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
           "publishedAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "createdAt": {
             "type": "string",
@@ -20287,8 +20285,7 @@
         },
         "required": [
           "formId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_delete_output": {
         "type": "object",
@@ -20310,7 +20307,7 @@
         "additionalProperties": false
       },
       "form_field_create_input": {
-        "anyOf": [
+        "oneOf": [
           {
             "type": "object",
             "properties": {
@@ -20321,6 +20318,7 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "minLength": {
@@ -20342,8 +20340,7 @@
                     ]
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20351,13 +20348,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20368,8 +20365,7 @@
               "type",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20381,6 +20377,7 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "minLength": {
@@ -20402,8 +20399,7 @@
                     ]
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20411,13 +20407,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20428,8 +20424,7 @@
               "type",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20441,6 +20436,7 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "min": {
@@ -20450,8 +20446,7 @@
                     "type": "number"
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20459,13 +20454,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20476,8 +20471,7 @@
               "type",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20489,10 +20483,10 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {},
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20500,13 +20494,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20517,8 +20511,7 @@
               "type",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20530,12 +20523,14 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {},
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "options": {
+                "minItems": 1,
+                "maxItems": 100,
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -20552,11 +20547,8 @@
                   },
                   "required": [
                     "label"
-                  ],
-                  "additionalProperties": false
-                },
-                "minItems": 1,
-                "maxItems": 100
+                  ]
+                }
               },
               "label": {
                 "type": "string",
@@ -20564,13 +20556,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20582,8 +20574,7 @@
               "options",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20595,21 +20586,25 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "minSelections": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 9007199254740991
                   },
                   "maxSelections": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "maximum": 9007199254740991
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "options": {
+                "minItems": 1,
+                "maxItems": 100,
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -20626,11 +20621,8 @@
                   },
                   "required": [
                     "label"
-                  ],
-                  "additionalProperties": false
-                },
-                "minItems": 1,
-                "maxItems": 100
+                  ]
+                }
               },
               "label": {
                 "type": "string",
@@ -20638,13 +20630,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20656,8 +20648,7 @@
               "options",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20669,10 +20660,10 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {},
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20680,13 +20671,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20697,8 +20688,7 @@
               "type",
               "label",
               "formId"
-            ],
-            "additionalProperties": false
+            ]
           }
         ]
       },
@@ -20724,8 +20714,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "required": {
             "type": "boolean"
@@ -20734,10 +20724,14 @@
             "type": "object",
             "properties": {
               "minLength": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "maxLength": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "pattern": {
                 "type": "string",
@@ -20754,16 +20748,22 @@
                 "type": "number"
               },
               "minSelections": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "maxSelections": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "additionalProperties": false
           },
           "sortOrder": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "options": {
             "type": "array",
@@ -20777,7 +20777,9 @@
                   "type": "string"
                 },
                 "sortOrder": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -20816,8 +20818,7 @@
         "required": [
           "formId",
           "fieldId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_field_delete_output": {
         "type": "object",
@@ -20854,20 +20855,19 @@
             "minLength": 1
           },
           "fieldIds": {
+            "minItems": 1,
+            "maxItems": 100,
             "type": "array",
             "items": {
               "type": "string",
               "minLength": 1
-            },
-            "minItems": 1,
-            "maxItems": 100
+            }
           }
         },
         "required": [
           "formId",
           "fieldIds"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_field_reorder_output": {
         "type": "object",
@@ -20889,7 +20889,7 @@
         "additionalProperties": false
       },
       "form_field_update_input": {
-        "anyOf": [
+        "oneOf": [
           {
             "type": "object",
             "properties": {
@@ -20900,6 +20900,7 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "minLength": {
@@ -20921,8 +20922,7 @@
                     ]
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20930,13 +20930,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -20952,8 +20952,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -20965,6 +20964,7 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "minLength": {
@@ -20986,8 +20986,7 @@
                     ]
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -20995,13 +20994,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -21017,8 +21016,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -21030,6 +21028,7 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "min": {
@@ -21039,8 +21038,7 @@
                     "type": "number"
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -21048,13 +21046,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -21070,8 +21068,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -21083,10 +21080,10 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {},
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -21094,13 +21091,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -21116,8 +21113,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -21129,12 +21125,14 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {},
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "options": {
+                "minItems": 1,
+                "maxItems": 100,
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -21151,11 +21149,8 @@
                   },
                   "required": [
                     "label"
-                  ],
-                  "additionalProperties": false
-                },
-                "minItems": 1,
-                "maxItems": 100
+                  ]
+                }
               },
               "label": {
                 "type": "string",
@@ -21163,13 +21158,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -21186,8 +21181,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -21199,21 +21193,25 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {
                   "minSelections": {
                     "type": "integer",
-                    "minimum": 0
+                    "minimum": 0,
+                    "maximum": 9007199254740991
                   },
                   "maxSelections": {
                     "type": "integer",
-                    "minimum": 1
+                    "minimum": 1,
+                    "maximum": 9007199254740991
                   }
                 },
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "options": {
+                "minItems": 1,
+                "maxItems": 100,
                 "type": "array",
                 "items": {
                   "type": "object",
@@ -21230,11 +21228,8 @@
                   },
                   "required": [
                     "label"
-                  ],
-                  "additionalProperties": false
-                },
-                "minItems": 1,
-                "maxItems": 100
+                  ]
+                }
               },
               "label": {
                 "type": "string",
@@ -21242,13 +21237,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -21265,8 +21260,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           },
           {
             "type": "object",
@@ -21278,10 +21272,10 @@
                 ]
               },
               "config": {
+                "default": {},
                 "type": "object",
                 "properties": {},
-                "additionalProperties": false,
-                "default": {}
+                "additionalProperties": false
               },
               "label": {
                 "type": "string",
@@ -21289,13 +21283,13 @@
                 "maxLength": 500
               },
               "description": {
+                "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
-                "nullable": true
+                "maxLength": 2000
               },
               "required": {
-                "type": "boolean",
-                "default": false
+                "default": false,
+                "type": "boolean"
               },
               "formId": {
                 "type": "string",
@@ -21311,8 +21305,7 @@
               "label",
               "formId",
               "fieldId"
-            ],
-            "additionalProperties": false
+            ]
           }
         ]
       },
@@ -21338,8 +21331,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "required": {
             "type": "boolean"
@@ -21348,10 +21341,14 @@
             "type": "object",
             "properties": {
               "minLength": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "maxLength": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "pattern": {
                 "type": "string",
@@ -21368,16 +21365,22 @@
                 "type": "number"
               },
               "minSelections": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               },
               "maxSelections": {
-                "type": "integer"
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "additionalProperties": false
           },
           "sortOrder": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "options": {
             "type": "array",
@@ -21391,7 +21394,9 @@
                   "type": "string"
                 },
                 "sortOrder": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 }
               },
               "required": [
@@ -21425,8 +21430,7 @@
         },
         "required": [
           "formId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_getById_output": {
         "type": "object",
@@ -21435,19 +21439,19 @@
             "type": "string"
           },
           "lembagaId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "eventId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -21458,17 +21462,17 @@
             ]
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
           "publishedAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "createdAt": {
             "type": "string",
@@ -21479,7 +21483,9 @@
             "format": "date-time"
           },
           "submissionCount": {
-            "type": "integer"
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "fields": {
             "type": "array",
@@ -21505,8 +21511,8 @@
                   "type": "string"
                 },
                 "description": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "required": {
                   "type": "boolean"
@@ -21515,10 +21521,14 @@
                   "type": "object",
                   "properties": {
                     "minLength": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "maxLength": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "pattern": {
                       "type": "string",
@@ -21535,16 +21545,22 @@
                       "type": "number"
                     },
                     "minSelections": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "maxSelections": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "additionalProperties": false
                 },
                 "sortOrder": {
-                  "type": "integer"
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
                 },
                 "options": {
                   "type": "array",
@@ -21558,7 +21574,9 @@
                         "type": "string"
                       },
                       "sortOrder": {
-                        "type": "integer"
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       }
                     },
                     "required": [
@@ -21611,8 +21629,7 @@
         },
         "required": [
           "formId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_getPublic_output": {
         "type": "object",
@@ -21624,8 +21641,8 @@
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -21636,9 +21653,9 @@
             ]
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
@@ -21671,8 +21688,8 @@
             "type": "boolean"
           },
           "hasSubmitted": {
-            "type": "boolean",
-            "nullable": true
+            "nullable": true,
+            "type": "boolean"
           },
           "fields": {
             "type": "array",
@@ -21698,8 +21715,8 @@
                   "type": "string"
                 },
                 "description": {
-                  "type": "string",
-                  "nullable": true
+                  "nullable": true,
+                  "type": "string"
                 },
                 "required": {
                   "type": "boolean"
@@ -21708,10 +21725,14 @@
                   "type": "object",
                   "properties": {
                     "minLength": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "maxLength": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "pattern": {
                       "type": "string",
@@ -21728,10 +21749,14 @@
                       "type": "number"
                     },
                     "minSelections": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     },
                     "maxSelections": {
-                      "type": "integer"
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "additionalProperties": false
@@ -21748,7 +21773,9 @@
                         "type": "string"
                       },
                       "sortOrder": {
-                        "type": "integer"
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       }
                     },
                     "required": [
@@ -21797,8 +21824,7 @@
         },
         "required": [
           "eventId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_listByEvent_output": {
         "type": "array",
@@ -21809,19 +21835,19 @@
               "type": "string"
             },
             "lembagaId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "eventId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "title": {
               "type": "string"
             },
             "description": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "status": {
               "type": "string",
@@ -21832,17 +21858,17 @@
               ]
             },
             "closesAt": {
+              "nullable": true,
               "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "format": "date-time"
             },
             "allowMultipleSubmissions": {
               "type": "boolean"
             },
             "publishedAt": {
+              "nullable": true,
               "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "format": "date-time"
             },
             "createdAt": {
               "type": "string",
@@ -21853,7 +21879,9 @@
               "format": "date-time"
             },
             "submissionCount": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             }
           },
           "required": [
@@ -21883,8 +21911,7 @@
         },
         "required": [
           "lembagaId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_listByLembaga_output": {
         "type": "array",
@@ -21895,19 +21922,19 @@
               "type": "string"
             },
             "lembagaId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "eventId": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "title": {
               "type": "string"
             },
             "description": {
-              "type": "string",
-              "nullable": true
+              "nullable": true,
+              "type": "string"
             },
             "status": {
               "type": "string",
@@ -21918,17 +21945,17 @@
               ]
             },
             "closesAt": {
+              "nullable": true,
               "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "format": "date-time"
             },
             "allowMultipleSubmissions": {
               "type": "boolean"
             },
             "publishedAt": {
+              "nullable": true,
               "type": "string",
-              "format": "date-time",
-              "nullable": true
+              "format": "date-time"
             },
             "createdAt": {
               "type": "string",
@@ -21939,7 +21966,9 @@
               "format": "date-time"
             },
             "submissionCount": {
-              "type": "integer"
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             }
           },
           "required": [
@@ -21978,8 +22007,7 @@
         "required": [
           "formId",
           "status"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_setStatus_output": {
         "type": "object",
@@ -21988,19 +22016,19 @@
             "type": "string"
           },
           "lembagaId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "eventId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -22011,17 +22039,17 @@
             ]
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
           "publishedAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "createdAt": {
             "type": "string",
@@ -22055,6 +22083,7 @@
             "minLength": 1
           },
           "answers": {
+            "maxItems": 100,
             "type": "array",
             "items": {
               "type": "object",
@@ -22086,17 +22115,14 @@
               "required": [
                 "fieldId",
                 "value"
-              ],
-              "additionalProperties": false
-            },
-            "maxItems": 100
+              ]
+            }
           }
         },
         "required": [
           "formId",
           "answers"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_submit_output": {
         "type": "object",
@@ -22128,14 +22154,14 @@
             "maxLength": 255
           },
           "description": {
+            "nullable": true,
             "type": "string",
-            "maxLength": 5000,
-            "nullable": true
+            "maxLength": 5000
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
@@ -22143,8 +22169,7 @@
         },
         "required": [
           "formId"
-        ],
-        "additionalProperties": false
+        ]
       },
       "form_update_output": {
         "type": "object",
@@ -22153,19 +22178,19 @@
             "type": "string"
           },
           "lembagaId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "eventId": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "title": {
             "type": "string"
           },
           "description": {
-            "type": "string",
-            "nullable": true
+            "nullable": true,
+            "type": "string"
           },
           "status": {
             "type": "string",
@@ -22176,17 +22201,17 @@
             ]
           },
           "closesAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
           "publishedAt": {
+            "nullable": true,
             "type": "string",
-            "format": "date-time",
-            "nullable": true
+            "format": "date-time"
           },
           "createdAt": {
             "type": "string",

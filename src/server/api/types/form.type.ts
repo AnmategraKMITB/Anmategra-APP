@@ -48,13 +48,13 @@ export const TEXT_PATTERN_RULES: Record<
 };
 
 const FormStatusSchema = z.enum(FORM_STATUSES, {
-  errorMap: () => ({ message: 'Status formulir tidak valid' }),
+  error: 'Status formulir tidak valid',
 });
 const FormFieldTypeSchema = z.enum(FORM_FIELD_TYPES, {
-  errorMap: () => ({ message: 'Tipe pertanyaan tidak valid' }),
+  error: 'Tipe pertanyaan tidak valid',
 });
 const TextPatternPresetSchema = z.enum(TEXT_PATTERN_PRESETS, {
-  errorMap: () => ({ message: 'Format teks tidak dikenali' }),
+  error: 'Format teks tidak dikenali',
 });
 
 const IdSchema = z.string().min(1);
