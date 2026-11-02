@@ -57,7 +57,8 @@ const TextPatternPresetSchema = z.enum(TEXT_PATTERN_PRESETS, {
   error: 'Format teks tidak dikenali',
 });
 
-const IdSchema = z.string().min(1);
+/** Semua kolom id di skema ini `varchar(255)`. */
+const IdSchema = z.string().min(1).max(255, 'Id terlalu panjang');
 
 // ---------------------------------------------------------------------------
 // Field config per type
@@ -420,12 +421,20 @@ export const GetPublicFormOutputSchema = z.object({
  * Validation failures come back as BAD_REQUEST with
  * `data.zodError.fieldErrors[<fieldId>]`, the same shape as input errors.
  */
-export const AnswerValueSchema = z.union([
-  z.string(),
-  z.number(),
-  z.boolean(),
-  z.array(z.string()),
-]);
+export const AnswerValueSchema = z.union(
+  [
+    // Batas atas kasar, bukan aturan per pertanyaan: `validateAnswers` yang
+    // menegakkan `maxLength` tiap field. Tanpa batas di sini, payload sebesar
+    // apa pun tetap diparse dan divalidasi lebih dulu.
+    z.string().max(LONG_TEXT_MAX_LENGTH, 'Jawaban teks terlalu panjang'),
+    z.number(),
+    z.boolean(),
+    z
+      .array(IdSchema)
+      .max(MAX_OPTIONS_PER_FIELD, 'Pilihan yang dikirim terlalu banyak'),
+  ],
+  { error: 'Bentuk jawaban tidak dikenali' },
+);
 
 export const SubmitFormInputSchema = z.object({
   formId: IdSchema,

@@ -20086,7 +20086,8 @@
         "properties": {
           "eventId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "title": {
             "type": "string",
@@ -20183,7 +20184,8 @@
         "properties": {
           "lembagaId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "title": {
             "type": "string",
@@ -20280,7 +20282,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
@@ -20358,7 +20361,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20417,7 +20421,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20464,7 +20469,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20504,7 +20510,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20537,7 +20544,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "maxLength": 255
                     },
                     "label": {
                       "type": "string",
@@ -20566,7 +20574,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20611,7 +20620,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "maxLength": 255
                     },
                     "label": {
                       "type": "string",
@@ -20640,7 +20650,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20681,7 +20692,8 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -20808,11 +20820,13 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "fieldId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
@@ -20852,7 +20866,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "fieldIds": {
             "minItems": 1,
@@ -20860,7 +20875,8 @@
             "type": "array",
             "items": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 255
             }
           }
         },
@@ -20940,11 +20956,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21004,11 +21022,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21056,11 +21076,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21101,11 +21123,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21139,7 +21163,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "maxLength": 255
                     },
                     "label": {
                       "type": "string",
@@ -21168,11 +21193,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21218,7 +21245,8 @@
                   "properties": {
                     "id": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "maxLength": 255
                     },
                     "label": {
                       "type": "string",
@@ -21247,11 +21275,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21293,11 +21323,13 @@
               },
               "formId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               },
               "fieldId": {
                 "type": "string",
-                "minLength": 1
+                "minLength": 1,
+                "maxLength": 255
               }
             },
             "required": [
@@ -21425,7 +21457,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
@@ -21624,7 +21657,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
@@ -21819,7 +21853,8 @@
         "properties": {
           "eventId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
@@ -21906,7 +21941,8 @@
         "properties": {
           "lembagaId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           }
         },
         "required": [
@@ -21993,7 +22029,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "status": {
             "type": "string",
@@ -22080,7 +22117,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "answers": {
             "maxItems": 100,
@@ -22090,12 +22128,14 @@
               "properties": {
                 "fieldId": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "maxLength": 255
                 },
                 "value": {
                   "anyOf": [
                     {
-                      "type": "string"
+                      "type": "string",
+                      "maxLength": 5000
                     },
                     {
                       "type": "number"
@@ -22104,9 +22144,12 @@
                       "type": "boolean"
                     },
                     {
+                      "maxItems": 100,
                       "type": "array",
                       "items": {
-                        "type": "string"
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
                       }
                     }
                   ]
@@ -22146,7 +22189,8 @@
         "properties": {
           "formId": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "maxLength": 255
           },
           "title": {
             "type": "string",
