@@ -10,6 +10,8 @@ const STATIC = [
   '/manifest.json',
   '/robots.txt',
   '/sitemap.xml',
+  // Purwarupa untuk dibagikan ke pengguna uji (mis. tim MSDM); tidak butuh login.
+  '/prototype',
 ];
 const PUBLIC_ROUTES = [
   '/profile-lembaga',
@@ -91,6 +93,6 @@ export default async function middleware(req: NextRequest) {
 // panggilan tRPC tetap menjalankan middleware dulu sebelum dilewatkan.
 export const config = {
   matcher: [
-    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml).*)',
+    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|prototype).*)',
   ],
 };

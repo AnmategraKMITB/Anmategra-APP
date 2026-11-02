@@ -14,6 +14,8 @@ export default tseslint.config(
       'docs/**',
       'drizzle/**',
       'public/**',
+      // Purwarupa satu-file (JS biasa, gaya kode berbeda); halaman & wizard prototipe tetap di-lint.
+      'src/app/prototype/oprec/_components/*.jsx',
     ],
   },
   ...nextVitals,
