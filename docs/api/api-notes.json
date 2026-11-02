@@ -116,7 +116,7 @@
   },
   "form.field.create": {
     "summary": "Tambah pertanyaan",
-    "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Maksimal 100 pertanyaan per formulir."
+    "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Untuk teks, `config.pattern` dipilih dari preset `email`, `nomor_hp`, atau `nim` — regex bebas tidak diterima. Maksimal 100 pertanyaan per formulir."
   },
   "form.field.update": {
     "summary": "Ubah satu pertanyaan (penggantian utuh)",
@@ -136,6 +136,6 @@
   },
   "form.submit": {
     "summary": "Kirim jawaban formulir",
-    "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Pola (`pattern`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif."
+    "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Preset `config.pattern` (`email`, `nomor_hp`, `nim`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif."
   }
 }

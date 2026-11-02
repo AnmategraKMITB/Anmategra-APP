@@ -229,7 +229,7 @@ table anmategra_form_field {
   label varchar(500) [not null]
   description text
   required boolean [not null, default: false]
-  config jsonb [not null, default: `{}`, note: "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`."]
+  config jsonb [not null, default: `{}`, note: "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`. `pattern` menyimpan nama preset (`email`, `nomor_hp`, `nim`), bukan regex: pola pembuat formulir dieksekusi di server saat orang lain mengisi, dan regex bebas membuka celah ReDoS."]
   sort_order integer [not null]
   archived_at "timestamp with time zone" [note: "Diisi saat pertanyaan yang sudah dijawab dihapus, supaya jawaban lama tetap merujuk ke baris nyata."]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]

@@ -24,6 +24,7 @@ import {
   type StoredAnswerValue,
   SubmitFormInputSchema,
   SubmitFormOutputSchema,
+  TEXT_PATTERN_RULES,
 } from '../../types/form.type';
 import {
   type Queryable,
@@ -137,13 +138,14 @@ export function validateAnswers(
           fail(field.id, `${label} minimal ${config.minLength} karakter.`);
           break;
         }
-        // Runs only on length-capped text; the pattern itself is capped and
-        // compile-checked when the field is saved. Anchored: whole answer.
-        if (
-          config.pattern !== undefined &&
-          !new RegExp(`^(?:${config.pattern})$`, 'u').test(text)
-        ) {
-          fail(field.id, `${label} tidak sesuai format yang diminta.`);
+        // Preset, bukan regex dari pembuat formulir: pola sudah di-compile
+        // sekali di `form.type.ts`, jadi tidak ada regex yang dibangun di
+        // jalur request dan tidak ada risiko ReDoS. Pola berjangkar penuh.
+        const rule = config.pattern
+          ? TEXT_PATTERN_RULES[config.pattern]
+          : undefined;
+        if (rule !== undefined && !rule.regex.test(text)) {
+          fail(field.id, `${label} harus berupa ${rule.description}.`);
           break;
         }
         push(text);

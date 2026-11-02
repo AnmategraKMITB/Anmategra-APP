@@ -3334,7 +3334,7 @@
           "form"
         ],
         "summary": "Tambah pertanyaan",
-        "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Maksimal 100 pertanyaan per formulir.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Untuk teks, `config.pattern` dipilih dari preset `email`, `nomor_hp`, atau `nim` — regex bebas tidak diterima. Maksimal 100 pertanyaan per formulir.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
         "security": [
           {
             "sessionCookie": []
@@ -4419,7 +4419,7 @@
           "form"
         ],
         "summary": "Kirim jawaban formulir",
-        "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Pola (`pattern`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif.\n\n**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Preset `config.pattern` (`email`, `nomor_hp`, `nim`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif.\n\n**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -20366,8 +20366,11 @@
                   },
                   "pattern": {
                     "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
+                    "enum": [
+                      "email",
+                      "nomor_hp",
+                      "nim"
+                    ]
                   }
                 },
                 "additionalProperties": false,
@@ -20423,8 +20426,11 @@
                   },
                   "pattern": {
                     "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
+                    "enum": [
+                      "email",
+                      "nomor_hp",
+                      "nim"
+                    ]
                   }
                 },
                 "additionalProperties": false,
@@ -20765,7 +20771,12 @@
                 "type": "integer"
               },
               "pattern": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "email",
+                  "nomor_hp",
+                  "nim"
+                ]
               },
               "min": {
                 "type": "number"
@@ -20934,8 +20945,11 @@
                   },
                   "pattern": {
                     "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
+                    "enum": [
+                      "email",
+                      "nomor_hp",
+                      "nim"
+                    ]
                   }
                 },
                 "additionalProperties": false,
@@ -20996,8 +21010,11 @@
                   },
                   "pattern": {
                     "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200
+                    "enum": [
+                      "email",
+                      "nomor_hp",
+                      "nim"
+                    ]
                   }
                 },
                 "additionalProperties": false,
@@ -21368,7 +21385,12 @@
                 "type": "integer"
               },
               "pattern": {
-                "type": "string"
+                "type": "string",
+                "enum": [
+                  "email",
+                  "nomor_hp",
+                  "nim"
+                ]
               },
               "min": {
                 "type": "number"
@@ -21530,7 +21552,12 @@
                       "type": "integer"
                     },
                     "pattern": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "email",
+                        "nomor_hp",
+                        "nim"
+                      ]
                     },
                     "min": {
                       "type": "number"
@@ -21718,7 +21745,12 @@
                       "type": "integer"
                     },
                     "pattern": {
-                      "type": "string"
+                      "type": "string",
+                      "enum": [
+                        "email",
+                        "nomor_hp",
+                        "nim"
+                      ]
                     },
                     "min": {
                       "type": "number"

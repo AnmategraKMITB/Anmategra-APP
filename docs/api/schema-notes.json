@@ -113,7 +113,7 @@
     "note": "Pertanyaan pada formulir.",
     "columns": {
       "type": "short_text | long_text | number | date | single_choice | multiple_choice | checkbox (CHECK `form_field_type_check`). varchar, bukan pgEnum, supaya tipe baru mudah ditambah.",
-      "config": "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`.",
+      "config": "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`. `pattern` menyimpan nama preset (`email`, `nomor_hp`, `nim`), bukan regex: pola pembuat formulir dieksekusi di server saat orang lain mengisi, dan regex bebas membuka celah ReDoS.",
       "archived_at": "Diisi saat pertanyaan yang sudah dijawab dihapus, supaya jawaban lama tetap merujuk ke baris nyata."
     }
   },

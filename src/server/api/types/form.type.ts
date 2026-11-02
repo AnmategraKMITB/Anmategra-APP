@@ -5,23 +5,56 @@ import { FORM_FIELD_TYPES, FORM_STATUSES } from '~/server/db/schema';
  * Dynamic Form Builder (#210).
  *
  * Field definitions are a discriminated union on `type`, so the docs show the
- * exact `config` each type accepts. Rules that span keys (min <= max, the
- * pattern compiles, selection limits fit the option count) live in
+ * exact `config` each type accepts. Rules that span keys (min <= max,
+ * selection limits fit the option count) live in
  * `refineFieldDefinition`, applied with `superRefine` on the outer schema:
  * a discriminated union cannot hold `ZodEffects` members.
  */
 
 export const SHORT_TEXT_MAX_LENGTH = 500;
 export const LONG_TEXT_MAX_LENGTH = 5000;
-export const PATTERN_MAX_LENGTH = 200;
 export const MAX_FIELDS_PER_FORM = 100;
 export const MAX_OPTIONS_PER_FIELD = 100;
+
+/**
+ * Format teks yang bisa dipilih pembuat formulir.
+ *
+ * Sengaja preset, bukan regex bebas. Pola milik pembuat formulir dieksekusi di
+ * server setiap kali orang lain mengisi formulir, dan pola seperti `(a+)+b`
+ * membuat satu jawaban pendek memakan CPU secara eksponensial (ReDoS) sampai
+ * seluruh proses Node ikut macet; batas panjang teks tidak menolong. Semua
+ * pola di bawah linear dan di-compile sekali di modul ini, bukan tiap jawaban.
+ */
+export const TEXT_PATTERN_PRESETS = ['email', 'nomor_hp', 'nim'] as const;
+
+export type TextPatternPreset = (typeof TEXT_PATTERN_PRESETS)[number];
+
+export const TEXT_PATTERN_RULES: Record<
+  TextPatternPreset,
+  { regex: RegExp; description: string }
+> = {
+  email: {
+    regex: /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/u,
+    description: 'alamat email yang valid',
+  },
+  nomor_hp: {
+    regex: /^(?:\+62|62|0)8\d{7,11}$/u,
+    description: 'nomor HP Indonesia, contoh 081234567890',
+  },
+  nim: {
+    regex: /^\d{8}$/u,
+    description: 'NIM 8 digit angka',
+  },
+};
 
 const FormStatusSchema = z.enum(FORM_STATUSES, {
   errorMap: () => ({ message: 'Status formulir tidak valid' }),
 });
 const FormFieldTypeSchema = z.enum(FORM_FIELD_TYPES, {
   errorMap: () => ({ message: 'Tipe pertanyaan tidak valid' }),
+});
+const TextPatternPresetSchema = z.enum(TEXT_PATTERN_PRESETS, {
+  errorMap: () => ({ message: 'Format teks tidak dikenali' }),
 });
 
 const IdSchema = z.string().min(1);
@@ -35,11 +68,7 @@ const textConfig = (cap: number) =>
     .object({
       minLength: z.number().int().min(0).max(cap).optional(),
       maxLength: z.number().int().min(1).max(cap).optional(),
-      pattern: z
-        .string()
-        .min(1)
-        .max(PATTERN_MAX_LENGTH, `Pola maksimal ${PATTERN_MAX_LENGTH} karakter`)
-        .optional(),
+      pattern: TextPatternPresetSchema.optional(),
     })
     .strict()
     .default({});
@@ -125,20 +154,13 @@ function refineFieldDefinition(field: FieldVariant, ctx: z.RefinementCtx) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: [path], message });
 
   if (field.type === 'short_text' || field.type === 'long_text') {
-    const { minLength, maxLength, pattern } = field.config;
+    const { minLength, maxLength } = field.config;
     if (
       minLength !== undefined &&
       maxLength !== undefined &&
       minLength > maxLength
     ) {
       issue('config', 'Panjang minimum melebihi panjang maksimum');
-    }
-    if (pattern !== undefined) {
-      try {
-        new RegExp(pattern, 'u');
-      } catch {
-        issue('config', 'Pola (regex) tidak valid');
-      }
     }
   }
 
@@ -208,7 +230,7 @@ const updateFieldVariants = [
 export type FieldConfig = {
   minLength?: number;
   maxLength?: number;
-  pattern?: string;
+  pattern?: TextPatternPreset;
   min?: number;
   max?: number;
   minSelections?: number;
@@ -222,7 +244,7 @@ export type FieldConfig = {
 const FieldConfigOutputSchema = z.object({
   minLength: z.number().int().optional(),
   maxLength: z.number().int().optional(),
-  pattern: z.string().optional(),
+  pattern: TextPatternPresetSchema.optional(),
   min: z.number().optional(),
   max: z.number().optional(),
   minSelections: z.number().int().optional(),
