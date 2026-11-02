@@ -26,7 +26,7 @@ type SidebarProps = {
   onClose?: () => void;
 };
 
-const Sidebar = Sidebars as (props: SidebarProps) => JSX.Element;
+const Sidebar = Sidebars as (props: SidebarProps) => React.JSX.Element;
 
 const Navbar = ({ session }: { session: Session | null }) => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);

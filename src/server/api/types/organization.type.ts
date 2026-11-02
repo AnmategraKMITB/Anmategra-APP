@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ORGANIZATION_UNIT_KINDS } from '~/server/db/schema';
 
 const OrganizationUnitKindSchema = z.enum(ORGANIZATION_UNIT_KINDS, {
-  errorMap: () => ({ message: 'Jenis unit tidak valid' }),
+  error: 'Jenis unit tidak valid',
 });
 
 const OrganizationStructureSchema = z.object({

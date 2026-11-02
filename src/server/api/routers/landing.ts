@@ -317,7 +317,6 @@ export const landingRouter = createTRPCRouter({
             isNumeric
               ? or(
                   // Jika query numerik: cari di kolom nim (integer) dan name (string)
-                  // @ts-expect-error Mahasiswa.nim adalah integer
                   ilike(sql`${mahasiswa.nim}::text`, `%${query}%`), // Cast integer ke text untuk ilike
                   ilike(users.name, `%${query}%`),
                 )

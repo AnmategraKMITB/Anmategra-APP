@@ -3,11 +3,12 @@ import { getServerAuthSession } from '~/server/auth';
 
 import InboxDetailContent from '../_components/inbox-detail-content';
 
-export default async function InboxPageWithParams({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function InboxPageWithParams(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   const session = await getServerAuthSession();
   const isLembagaRequest = params.slug === session?.user?.lembagaId;
 

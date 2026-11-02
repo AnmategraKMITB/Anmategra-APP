@@ -31,8 +31,8 @@ Halaman itu Scalar yang membaca `/api/docs/openapi.json`. Di sana kamu bisa:
   sama dengan yang divalidasi server.
 - **Baca daftar error** — 400/401/403/404 per endpoint, lengkap dengan kode tRPC-nya.
 
-> `/api/docs` dan `/api/docs/openapi.json` sengaja **balas 404 di production**, sama seperti
-> `/api/panel`, karena spec-nya memuat seluruh permukaan endpoint internal.
+> `/api/docs` dan `/api/docs/openapi.json` sengaja **balas 404 di production**, karena
+> spec-nya memuat seluruh permukaan endpoint internal.
 
 Kalau tim butuh URL yang bisa dibagikan tanpa menjalankan dev server, `openapi.json` bisa
 diunggah apa adanya ke Scalar Registry, Bump.sh, atau Redocly.
@@ -49,17 +49,10 @@ Di CI, `dbdocs` memakai env `DBDOCS_TOKEN` sebagai ganti `login`.
 Belum mau publish? `schema.dbml` bisa langsung di-paste ke [dbdiagram.io](https://dbdiagram.io)
 untuk melihat ERD-nya tanpa akun.
 
-### Scalar vs `/api/panel`
+### Tentang `/api/panel`
 
-Keduanya berguna, untuk hal berbeda:
-
-| | `/api/docs` (Scalar) | `/api/panel` (tRPC Panel) |
-|---|---|---|
-| Untuk | membaca kontrak: schema, akses, error | mencoba endpoint dengan sesi login kamu |
-| Tipe data | JSON Schema (bahasa-agnostik) | tipe TypeScript |
-| Bisa dibagikan ke luar | ya, `openapi.json` berdiri sendiri | tidak |
-
-Rule of thumb: **paham dulu di Scalar, coba di panel.**
+tRPC Panel dulu tersedia di `/api/panel`, tetapi sudah dihapus: paketnya tidak dirawat lagi
+sejak 2024 dan mengunci Zod 3. Untuk mencoba endpoint, ikuti bagian 2 di bawah.
 
 ---
 
@@ -204,7 +197,9 @@ tanpa regenerate docs akan gagal. Perbaikannya selalu sama: `npm run docs`, lalu
   bukan parsing file. Tidak ada satu pun router yang perlu diubah demi dokumentasi.
   Ekstensinya `.cts` (bukan `.ts`) karena `package.json` memakai `"type": "module"`,
   sementara provider NextAuth butuh interop CJS.
-- Zod → JSON Schema lewat `zod-to-json-schema` (`target: 'openApi3'`).
+- Zod → JSON Schema lewat `z.toJSONSchema` bawaan Zod 4 (`target: 'openapi-3.0'`). Input
+  memakai `io: 'input'` (field ber-`.default()` jadi opsional), dan `z.date()` dicatat
+  sebagai `string` + `format: date-time` karena superjson mengirimnya sebagai string ISO.
 - `scripts/gen-dbml.ts` memakai `drizzle-dbml-generator`, lalu menyisipkan isi
   `schema-notes.json` ke DBML hasilnya.
 - Output-nya sengaja dibuat deterministik (tidak baca env, versi diambil dari

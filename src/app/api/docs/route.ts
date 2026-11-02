@@ -10,7 +10,7 @@ const SCALAR_CDN = 'https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.66.1';
  * Scalar API reference over the generated OpenAPI document.
  *
  * Regenerate the spec with `npm run docs:api`, then open /api/docs.
- * Dev-only, mirroring /api/panel.
+ * Dev-only, like the OpenAPI document it renders.
  */
 export function GET() {
   if (env.NODE_ENV === 'production') {

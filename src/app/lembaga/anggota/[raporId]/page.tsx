@@ -11,14 +11,15 @@ type NilaiLembagaOutput = z.infer<typeof GetNilaiLembagaIndividuOutputSchema>;
 type ProfilLembagaOutput = z.infer<typeof GetAllProfilOutputSchema>;
 
 interface RaporIndividuLembagaPageProps {
-  params: {
+  params: Promise<{
     raporId: string;
-  };
+  }>;
 }
 
-export default async function RaporIndividuLembagaPage({
-  params,
-}: RaporIndividuLembagaPageProps) {
+export default async function RaporIndividuLembagaPage(
+  props: RaporIndividuLembagaPageProps,
+) {
+  const params = await props.params;
   const { raporId } = params;
 
   const session = await getServerAuthSession();

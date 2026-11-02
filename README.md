@@ -68,6 +68,7 @@ Perintah db lain yang tersedia:
 - `npm run db:studio` — buka Drizzle Studio buat liat data
 - `npm run db:seed` — generate csv + seed database (dev only)
 - `npm run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
+- `npm run db:seed-mahasiswa -- --file <csv>` — impor mahasiswa (misalnya satu angkatan baru); hanya menambah, format di `src/server/db/seeding/data/README.md`
 - `npm run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
 - `npm run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
 - `npm run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
@@ -85,6 +86,26 @@ Script lain:
 - `npm run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `npm run lint:prune` dan commit perubahan file itu.
 - `npm run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
 - `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
+
+### Login Microsoft (SSO ITB)
+
+Mahasiswa login dengan akun `@mahasiswa.itb.ac.id` lewat Microsoft Entra ID milik ITB. Anmategra
+punya app registration sendiri di directory ITB:
+
+- **Supported account types:** *Accounts in any organizational directory* (multitenant).
+- **Redirect URI** (platform **Web**): `https://anmategra.com/api/auth/callback/azure-ad`, ditambah
+  `http://localhost:<APP_PORT>/api/auth/callback/azure-ad` untuk lokal.
+- **Client secret** dibuat di *Certificates & secrets* lalu diisi ke `AZURE_AD_CLIENT_SECRET`.
+  Secret punya tanggal kedaluwarsa: catat tanggalnya dan perbarui sebelum lewat. Secret yang
+  kedaluwarsa membuat login Microsoft gagal dengan `?error=OAuthCallback`.
+- `AZURE_AD_TENANT_ID` = `db6e1183-4c65-405c-82ce-7cd53fa6e9dc` (directory ITB). Token dari tenant
+  lain ditolak, walaupun email-nya berakhiran `@mahasiswa.itb.ac.id`.
+- Pastikan app registration punya minimal 2 owner supaya aksesnya tidak hilang saat pengurus
+  berganti.
+
+Kalau login gagal, log server mencetak `[next-auth][error][OAUTH_CALLBACK_ERROR]` beserta kode
+`AADSTS…` dari Microsoft. Kode itu yang menjelaskan penyebabnya, misalnya `AADSTS7000222` (secret
+kedaluwarsa), `AADSTS7000215` (secret salah), atau `AADSTS50011` (redirect URI belum didaftarkan).
 
 ## Struktur Project
 
@@ -114,6 +135,20 @@ Script lain:
 ```
 
 Config tool lain (`next.config.js`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.cjs`, `.eslintrc.cjs`, `prettier.config.js`, `components.json`) sengaja ditaruh di root karena masing-masing tool nyari file itu di situ secara default.
+
+## Lisensi
+
+Kode sumber Anmategra dilisensikan di bawah **GNU Affero General Public License v3.0 atau
+yang lebih baru** (AGPL-3.0-or-later). Teks lengkapnya ada di [`LICENSE`](LICENSE).
+
+Intinya: siapa pun boleh memakai, mempelajari, mengubah, dan membagikan kode ini. Kalau kamu
+menjalankan versi yang sudah diubah sebagai layanan web (misalnya fork untuk kampus lain),
+kamu **wajib menyediakan kode sumber versi ubahanmu** kepada penggunanya dengan lisensi yang
+sama.
+
+Lisensi ini hanya berlaku untuk **kode**. Logo dan nama KM ITB, Kabinet, Kemenkoan PSDM, dan
+Anmategra (di `public/images/logo/`) milik masing-masing pemiliknya dan tidak ikut dilisensikan
+di bawah AGPL.
 
 ## Branch Name Convention
 ```
@@ -174,10 +209,9 @@ commit hasilnya — CI menolak PR yang dokumentasinya sudah tidak sinkron.
 Panduan lengkap (cara menulis penjelasan, aturan `.meta({ access })`, cara memanggil
 endpoint dari luar): **[`docs/api/README.md`](docs/api/README.md)**.
 
-## TRPC Panel
+## Mencoba Endpoint
 
-- [Anmategra Panel](http://localhost:3000/api/panel)
-
-Buat mencoba endpoint dengan sesi login kamu. Untuk membaca kontrak API-nya, pakai
-`/api/docs` di atas.
+tRPC Panel (`/api/panel`) sudah dihapus: paketnya tidak dirawat lagi dan mengunci Zod 3.
+Kontrak API dibaca di `/api/docs`, dan cara memanggil endpoint (termasuk dengan sesi login)
+ada di [`docs/api/README.md`](docs/api/README.md) bagian 2.
 

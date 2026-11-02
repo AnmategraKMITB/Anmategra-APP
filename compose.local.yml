@@ -53,7 +53,7 @@ services:
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-placeholder}
       AZURE_AD_CLIENT_ID: ${AZURE_AD_CLIENT_ID:-placeholder}
       AZURE_AD_CLIENT_SECRET: ${AZURE_AD_CLIENT_SECRET:-placeholder}
-      AZURE_AD_TENANT_ID: ${AZURE_AD_TENANT_ID:-placeholder}
+      AZURE_AD_TENANT_ID: ${AZURE_AD_TENANT_ID:-db6e1183-4c65-405c-82ce-7cd53fa6e9dc}
       # Aktifkan jika hot reload tidak jalan (umumnya Docker Desktop di Windows/macOS).
       # WATCHPACK_POLLING: "true"
     volumes:

@@ -1,5 +1,6 @@
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { cache } from 'react';
 import {
   type DefaultSession,
   type NextAuthOptions,
@@ -64,6 +65,8 @@ declare module 'next-auth/jwt' {
 }
 
 interface AzureADProfile {
+  /** Directory (tenant) penerbit token; akun ITB = AZURE_AD_TENANT_ID. */
+  tid: string;
   oid: string;
   name: string;
   email: string;
@@ -160,7 +163,7 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    signIn: async ({ user, account }) => {
+    signIn: async ({ user, account, profile }) => {
       // signin lembaga
       if (account?.provider === 'google') {
         const isValidLembaga = user.email?.endsWith('@km.itb.ac.id');
@@ -172,6 +175,12 @@ export const authOptions: NextAuthOptions = {
       }
       // signin mahasiswa
       else if (account?.provider === 'azure-ad') {
+        // Token harus diterbitkan directory ITB. Tanpa cek ini, akun dari tenant
+        // Microsoft mana pun bisa lolos asal klaim email-nya berakhiran
+        // @mahasiswa.itb.ac.id, padahal klaim itu bisa diisi bebas oleh admin
+        // tenant lain.
+        const tid = (profile as AzureADProfile | undefined)?.tid;
+        if (tid !== env.AZURE_AD_TENANT_ID) return false;
         // cek email mahasiswa
         if (!user.email?.endsWith('@mahasiswa.itb.ac.id')) return false;
         // cek nim valid
@@ -189,8 +198,10 @@ export const authOptions: NextAuthOptions = {
         // Check if account row already exists
         const existingAccount = await db.query.accounts.findFirst({
           where: (a) =>
-            eq(a.provider, account.provider) &&
-            eq(a.providerAccountId, account.providerAccountId),
+            and(
+              eq(a.provider, account.provider),
+              eq(a.providerAccountId, account.providerAccountId),
+            ),
         });
 
         if (!existingAccount) {
@@ -249,7 +260,9 @@ export const authOptions: NextAuthOptions = {
       clientId: env.AZURE_AD_CLIENT_ID,
       clientSecret: env.AZURE_AD_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
-      // tenantId: env.AZURE_AD_TENANT_ID,
+      // Pakai endpoint directory ITB, bukan /common, supaya hanya token dari
+      // tenant ITB yang lolos validasi issuer.
+      tenantId: env.AZURE_AD_TENANT_ID,
 
       profile: (profile: AzureADProfile) => {
         return {
@@ -322,5 +335,9 @@ const insertMahasiswa = async (
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
  *
  * @see https://next-auth.js.org/configuration/nextjs
+ *
+ * Dibungkus `cache` supaya cookie sesi cukup didekripsi sekali per request walaupun dipanggil
+ * dari banyak tempat (halaman, `generateMetadata`, konteks tRPC). Di luar render React
+ * (misalnya route handler), `cache` tidak menyimpan apa-apa dan fungsi tetap dipanggil biasa.
  */
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = cache(() => getServerSession(authOptions));

@@ -1,7 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import type { inferAsyncReturnType } from '@trpc/server';
 import { and, eq, isNull, sql } from 'drizzle-orm';
+import type { PgDatabase } from 'drizzle-orm/pg-core';
+import type { PostgresJsQueryResultHKT } from 'drizzle-orm/postgres-js';
 import { type createTRPCContext } from '~/server/api/trpc';
+import type * as schema from '~/server/db/schema';
 import {
   type OrganizationUnitKind,
   keanggotaan,
@@ -17,7 +20,8 @@ import {
 } from '../profil/services';
 
 type TRPCContext = inferAsyncReturnType<typeof createTRPCContext>;
-type Db = TRPCContext['db'];
+/** `ctx.db` atau transaksi `tx` di dalam `ctx.db.transaction(...)`. */
+type Db = PgDatabase<PostgresJsQueryResultHKT, typeof schema>;
 
 export const ORGANIZATION_UNIT_MAX_LEVEL = 3;
 

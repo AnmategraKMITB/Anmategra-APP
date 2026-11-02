@@ -6,9 +6,9 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
- * Serves the generated OpenAPI document. Gated the same way as the tRPC panel
- * (`/api/panel`): the spec enumerates every internal endpoint, so it stays off
- * in production even though each endpoint enforces its own access checks.
+ * Serves the generated OpenAPI document. Dev-only: the spec enumerates every
+ * internal endpoint, so it stays off in production even though each endpoint
+ * enforces its own access checks.
  */
 export async function GET() {
   if (env.NODE_ENV === 'production') {
