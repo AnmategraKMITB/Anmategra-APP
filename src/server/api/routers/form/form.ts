@@ -147,35 +147,44 @@ export const formFormRouter = createTRPCRouter({
     .output(UpdateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // A live form must not be silently closed by moving its deadline
-        // into the past; close it explicitly instead.
-        if (
-          ctx.form.status === 'Published' &&
-          input.closesAt &&
-          input.closesAt.getTime() <= Date.now()
-        ) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message:
-              'Tenggat penutupan harus di masa depan. Tutup formulir jika ingin menghentikan pengisian.',
-          });
-        }
+        const row = await ctx.db.transaction(async (tx) => {
+          // `ctx.form` dibaca middleware sebelum transaksi ini dibuka, jadi
+          // statusnya bisa sudah basi. Baca ulang di bawah lock: tanpa itu
+          // `update` yang berbarengan dengan `setStatus('Published')` bisa
+          // meloloskan formulir rilis yang tenggatnya sudah lewat.
+          const current = await lockForm(tx, ctx.form.id);
 
-        const [row] = await ctx.db
-          .update(form)
-          .set({
-            ...(input.title !== undefined && { title: input.title }),
-            ...(input.description !== undefined && {
-              description: input.description,
-            }),
-            ...(input.closesAt !== undefined && { closesAt: input.closesAt }),
-            ...(input.allowMultipleSubmissions !== undefined && {
-              allowMultipleSubmissions: input.allowMultipleSubmissions,
-            }),
-          })
-          .where(eq(form.id, ctx.form.id))
-          .returning();
-        return toFormOutput(row!);
+          // A live form must not be silently closed by moving its deadline
+          // into the past; close it explicitly instead.
+          if (
+            current.status === 'Published' &&
+            input.closesAt &&
+            input.closesAt.getTime() <= Date.now()
+          ) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message:
+                'Tenggat penutupan harus di masa depan. Tutup formulir jika ingin menghentikan pengisian.',
+            });
+          }
+
+          const [updated] = await tx
+            .update(form)
+            .set({
+              ...(input.title !== undefined && { title: input.title }),
+              ...(input.description !== undefined && {
+                description: input.description,
+              }),
+              ...(input.closesAt !== undefined && { closesAt: input.closesAt }),
+              ...(input.allowMultipleSubmissions !== undefined && {
+                allowMultipleSubmissions: input.allowMultipleSubmissions,
+              }),
+            })
+            .where(eq(form.id, current.id))
+            .returning();
+          return updated!;
+        });
+        return toFormOutput(row);
       } catch (error) {
         rethrow(error, 'Gagal memperbarui formulir.');
       }
