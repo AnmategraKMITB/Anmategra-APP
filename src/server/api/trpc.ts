@@ -61,31 +61,20 @@ export type ApiMeta = {
 };
 
 /**
- * Mengambil `issues` Zod dari `cause` sebuah TRPCError.
+ * Mengambil `issues` validasi dari `cause` sebuah TRPCError.
  *
- * Di Zod 4 `ZodError` tidak lagi mewarisi `Error`, jadi tRPC tidak
- * mengenalinya dan menyalin isinya ke `UnknownCauseError` dengan
- * `Object.assign` (`getCauseFromUnknown` di @trpc/server). `issues` adalah own
- * property yang **non-enumerable**, jadi ikut hilang di penyalinan itu — yang
- * tersisa hanya `name` dan `message`, dan `message` Zod 4 kebetulan berisi JSON
- * dari issues. Tanpa ini `data.zodError` selalu null sejak repo naik ke Zod 4,
- * baik untuk error validasi input maupun `cause` kiriman endpoint.
+ * Dicocokkan dari bentuknya, bukan `instanceof`. Error lemparan zod sendiri
+ * memang turunan `Error`, jadi tRPC meneruskannya apa adanya. Tapi `ZodError`
+ * yang dibangun manual bukan turunan `Error` di Zod 4, sehingga tRPC
+ * menyalinnya ke `UnknownCauseError` lewat `Object.assign` dan `issues` — own
+ * property yang non-enumerable — ikut hilang. Endpoint yang perlu mengirim
+ * issue sendiri karena itu memakai cause turunan `Error` dengan `issues`
+ * sebagai properti biasa (lihat `AnswerIssuesError` di router form).
  */
 export function zodIssuesFromCause(cause: unknown): ZodIssue[] | null {
   if (typeof cause !== 'object' || cause === null) return null;
-  const { issues, name, message } = cause as {
-    issues?: unknown;
-    name?: unknown;
-    message?: unknown;
-  };
-  if (Array.isArray(issues)) return issues as ZodIssue[];
-  if (name !== 'ZodError' || typeof message !== 'string') return null;
-  try {
-    const parsed: unknown = JSON.parse(message);
-    return Array.isArray(parsed) ? (parsed as ZodIssue[]) : null;
-  } catch {
-    return null;
-  }
+  const { issues } = cause as { issues?: unknown };
+  return Array.isArray(issues) ? (issues as ZodIssue[]) : null;
 }
 
 const t = initTRPC

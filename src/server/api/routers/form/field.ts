@@ -92,9 +92,10 @@ async function syncOptions(tx: Tx, fieldId: string, wanted: OptionInput[]) {
       ),
       sql`, `,
     );
+    // `updated_at` diset manual: lihat catatan di `reorder`.
     await tx.execute(
       sql`update ${formFieldOption} as o
-          set label = v.label, sort_order = v.sort_order
+          set label = v.label, sort_order = v.sort_order, updated_at = now()
           from (values ${nilai}) as v(id, label, sort_order)
           where o.id = v.id and o.field_id = ${fieldId}`,
     );
@@ -297,9 +298,11 @@ export const formFieldRouter = createTRPCRouter({
             ),
             sql`, `,
           );
+          // `updated_at` diset manual: `$onUpdate` milik Drizzle hanya jalan
+          // lewat `db.update()`, tidak lewat SQL mentah.
           await tx.execute(
             sql`update ${formField} as f
-                set sort_order = v.sort_order
+                set sort_order = v.sort_order, updated_at = now()
                 from (values ${urutan}) as v(id, sort_order)
                 where f.id = v.id and f.form_id = ${ctx.form.id}`,
           );

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
-import { ZodError, type ZodIssue, ZodIssueCode } from 'zod';
+import { type ZodIssue, ZodIssueCode } from 'zod';
 import {
   createTRPCRouter,
   protectedProcedure,
@@ -34,6 +34,21 @@ import {
   lockSubmitSlot,
   rethrow,
 } from './services';
+
+/**
+ * Pembawa issue per pertanyaan ke `errorFormatter`.
+ *
+ * Tidak memakai `ZodError`: di Zod 4 kelas itu tidak mewarisi `Error`, jadi
+ * tRPC menyalin isinya ke `UnknownCauseError` dan `issues` (non-enumerable)
+ * hilang di jalan. Error lemparan zod sendiri aman karena kelas internalnya
+ * memang turunan `Error`; yang dibangun manual tidak.
+ */
+class AnswerIssuesError extends Error {
+  constructor(readonly issues: ZodIssue[]) {
+    super(issues.map((i) => i.message).join('; '));
+    this.name = 'AnswerIssuesError';
+  }
+}
 
 type AnswerInput = { fieldId: string; value: unknown };
 type AnswerRow = {
@@ -352,12 +367,13 @@ export const formSubmissionRouter = createTRPCRouter({
           const fields = await loadActiveFields(tx, current.id);
           const { issues, rows } = validateAnswers(fields, input.answers);
           if (issues.length > 0) {
-            // A ZodError cause makes the error formatter expose
-            // data.zodError.fieldErrors[fieldId], same as input validation.
+            // Cause yang membawa `issues` membuat errorFormatter memaparkan
+            // data.zodError.fieldErrors[fieldId], sama seperti error validasi
+            // input.
             throw new TRPCError({
               code: 'BAD_REQUEST',
               message: issues.map((i) => i.message).join('; '),
-              cause: new ZodError(issues),
+              cause: new AnswerIssuesError(issues),
             });
           }
 
