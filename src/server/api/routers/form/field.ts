@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, isNull, max } from 'drizzle-orm';
+import { and, count, eq, isNull, max } from 'drizzle-orm';
 import { createTRPCRouter, formScopedProcedure } from '~/server/api/trpc';
 import { formField, formFieldOption } from '~/server/db/schema';
 
@@ -88,11 +88,11 @@ async function syncOptions(tx: Tx, fieldId: string, wanted: OptionInput[]) {
 }
 
 async function countActiveFields(tx: Tx, formId: string) {
-  const rows = await tx
-    .select({ id: formField.id })
+  const [row] = await tx
+    .select({ n: count() })
     .from(formField)
     .where(and(eq(formField.formId, formId), isNull(formField.archivedAt)));
-  return rows.length;
+  return row?.n ?? 0;
 }
 
 export const formFieldRouter = createTRPCRouter({
