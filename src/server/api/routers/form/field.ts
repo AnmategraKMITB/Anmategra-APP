@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, eq, isNull, max } from 'drizzle-orm';
+import { and, count, eq, isNull, max, sql } from 'drizzle-orm';
 import { createTRPCRouter, formScopedProcedure } from '~/server/api/trpc';
 import { formField, formFieldOption } from '~/server/db/schema';
 
@@ -264,14 +264,20 @@ export const formFieldRouter = createTRPCRouter({
             });
           }
 
-          for (const [sortOrder, id] of input.fieldIds.entries()) {
-            await tx
-              .update(formField)
-              .set({ sortOrder })
-              .where(
-                and(eq(formField.id, id), eq(formField.formId, ctx.form.id)),
-              );
-          }
+          // Satu UPDATE untuk semua baris. Casting eksplisit karena parameter
+          // di dalam VALUES tidak punya tipe yang bisa disimpulkan Postgres.
+          const urutan = sql.join(
+            input.fieldIds.map(
+              (id, i) => sql`(${id}::varchar, ${i}::integer)`,
+            ),
+            sql`, `,
+          );
+          await tx.execute(
+            sql`update ${formField} as f
+                set sort_order = v.sort_order
+                from (values ${urutan}) as v(id, sort_order)
+                where f.id = v.id and f.form_id = ${ctx.form.id}`,
+          );
         });
         return {
           success: true as const,
