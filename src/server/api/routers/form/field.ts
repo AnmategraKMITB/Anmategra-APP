@@ -148,6 +148,10 @@ export const formFieldRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.db.transaction(async (tx) => {
+          // Same lock as the other field writes: without it two concurrent
+          // updates (or an update racing a delete) read the same field state
+          // and the last writer silently wins.
+          await lockForm(tx, ctx.form.id);
           const field = await getActiveField(tx, ctx.form.id, input.fieldId);
 
           // Old answers were validated against the old type; reinterpreting
