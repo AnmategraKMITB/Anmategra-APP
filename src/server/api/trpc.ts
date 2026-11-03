@@ -251,6 +251,21 @@ export const lembagaProcedure = protectedProcedure
  */
 type LembagaAccess = 'owner' | 'admin';
 
+/**
+ * Id dari input mentah sebuah scoped procedure.
+ *
+ * Middleware tRPC berjalan **sebelum** schema `.input()` diparse, jadi nilai di
+ * sini belum tersentuh Zod padahal langsung dipakai menanyai database. Tanpa
+ * penjagaan bentuk, id yang memuat byte NUL membuat driver Postgres gagal dan
+ * muncul sebagai 500, bukan BAD_REQUEST. Panjangnya dibatasi selebar kolom id.
+ */
+function rawId(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  if (value.length === 0 || value.length > 255) return undefined;
+  if (value.includes('\u0000')) return undefined;
+  return value;
+}
+
 export async function canManageLembaga(
   database: typeof db,
   userId: string,
@@ -321,8 +336,7 @@ export const lembagaScopedProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { lembagaId?: unknown };
-    const lembagaId =
-      typeof raw?.lembagaId === 'string' ? raw.lembagaId : undefined;
+    const lembagaId = rawId(raw?.lembagaId);
     if (!lembagaId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -365,7 +379,7 @@ export const eventScopedProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { eventId?: unknown };
-    const eventId = typeof raw?.eventId === 'string' ? raw.eventId : undefined;
+    const eventId = rawId(raw?.eventId);
     if (!eventId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -401,7 +415,7 @@ export const formScopedProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { formId?: unknown };
-    const formId = typeof raw?.formId === 'string' ? raw.formId : undefined;
+    const formId = rawId(raw?.formId);
     if (!formId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
