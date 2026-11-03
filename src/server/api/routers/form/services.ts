@@ -71,6 +71,38 @@ export async function countSubmissions(
   return new Map(rows.map((r) => [r.formId, r.n]));
 }
 
+type FieldRow = typeof formField.$inferSelect;
+type OptionRow = typeof formFieldOption.$inferSelect;
+
+function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
+  return {
+    id: field.id,
+    type: field.type,
+    label: field.label,
+    description: field.description,
+    required: field.required,
+    config: field.config as FieldConfig,
+    sortOrder: field.sortOrder,
+    options: options
+      .filter((o) => o.fieldId === field.id)
+      .map((o) => ({ id: o.id, label: o.label, sortOrder: o.sortOrder })),
+  };
+}
+
+/** Active options of the given fields, in display order. */
+function loadActiveOptions(db: Queryable, fieldIds: string[]) {
+  return db
+    .select()
+    .from(formFieldOption)
+    .where(
+      and(
+        inArray(formFieldOption.fieldId, fieldIds),
+        isNull(formFieldOption.archivedAt),
+      ),
+    )
+    .orderBy(asc(formFieldOption.sortOrder), asc(formFieldOption.created_at));
+}
+
 /** Active (non-archived) fields with their active options, in display order. */
 export async function loadActiveFields(
   db: Queryable,
@@ -83,32 +115,12 @@ export async function loadActiveFields(
     .orderBy(asc(formField.sortOrder), asc(formField.created_at));
   if (fields.length === 0) return [];
 
-  const options = await db
-    .select()
-    .from(formFieldOption)
-    .where(
-      and(
-        inArray(
-          formFieldOption.fieldId,
-          fields.map((f) => f.id),
-        ),
-        isNull(formFieldOption.archivedAt),
-      ),
-    )
-    .orderBy(asc(formFieldOption.sortOrder), asc(formFieldOption.created_at));
+  const options = await loadActiveOptions(
+    db,
+    fields.map((f) => f.id),
+  );
 
-  return fields.map((f) => ({
-    id: f.id,
-    type: f.type,
-    label: f.label,
-    description: f.description,
-    required: f.required,
-    config: f.config as FieldConfig,
-    sortOrder: f.sortOrder,
-    options: options
-      .filter((o) => o.fieldId === f.id)
-      .map((o) => ({ id: o.id, label: o.label, sortOrder: o.sortOrder })),
-  }));
+  return fields.map((f) => toFieldOutput(f, options));
 }
 
 /**
@@ -273,15 +285,10 @@ export async function loadFieldOutput(
   formId: string,
   fieldId: string,
 ): Promise<FieldOutput> {
-  const fields = await loadActiveFields(db, formId);
-  const found = fields.find((f) => f.id === fieldId);
-  if (!found) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Pertanyaan tidak ditemukan pada formulir ini.',
-    });
-  }
-  return found;
+  // Scoped by formId inside getActiveField, which also raises NOT_FOUND.
+  const field = await getActiveField(db, formId, fieldId);
+  const options = await loadActiveOptions(db, [field.id]);
+  return toFieldOutput(field, options);
 }
 
 /** Re-throws TRPCErrors untouched; anything else becomes a generic 500. */
