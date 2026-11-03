@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import type { inferAsyncReturnType } from '@trpc/server';
-import { and, asc, count, eq, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type createTRPCContext } from '~/server/api/trpc';
 import {
   type FormFieldType,
@@ -255,28 +255,33 @@ export async function fieldHasAnswers(db: Queryable, fieldId: string) {
   return !!row;
 }
 
-/** Whether any answer picked this option (single or multiple choice). */
-export async function optionHasAnswers(
+/**
+ * Which of `optionIds` were picked by an answer (single or multiple choice).
+ *
+ * One query for the whole set: `syncOptions` needs the answer, option by
+ * option, and asking per option meant one round-trip each.
+ */
+export async function optionsWithAnswers(
   db: Queryable,
   fieldId: string,
-  optionId: string,
-) {
-  const single = JSON.stringify({ optionId });
-  const multiple = JSON.stringify([{ optionId }]);
-  const [row] = await db
-    .select({ id: formAnswer.id })
-    .from(formAnswer)
-    .where(
-      and(
-        eq(formAnswer.fieldId, fieldId),
-        or(
-          sql`${formAnswer.value} @> ${single}::jsonb`,
-          sql`${formAnswer.value} @> ${multiple}::jsonb`,
-        ),
-      ),
-    )
-    .limit(1);
-  return !!row;
+  optionIds: string[],
+): Promise<Set<string>> {
+  if (optionIds.length === 0) return new Set();
+  const daftar = sql.join(
+    optionIds.map((id) => sql`(${id}::varchar)`),
+    sql`, `,
+  );
+  const rows = await db.execute<{ id: string }>(
+    sql`select v.id from (values ${daftar}) as v(id)
+        where exists (
+          select 1
+          from ${formAnswer} a
+          where a.field_id = ${fieldId}
+            and (a.value @> jsonb_build_object('optionId', v.id)
+                 or a.value @> jsonb_build_array(jsonb_build_object('optionId', v.id)))
+        )`,
+  );
+  return new Set([...rows].map((r) => r.id));
 }
 
 /** Fetches one field in output shape (active options only). */
