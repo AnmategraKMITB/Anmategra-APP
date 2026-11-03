@@ -250,22 +250,23 @@ const updateFieldVariants = [
   fieldVariants.checkbox.extend(updateShape),
 ] as const;
 
-/** Normalised config as stored in `form_field.config`. */
-export type FieldConfig = {
-  minLength?: number;
-  maxLength?: number;
-  pattern?: TextPatternPreset;
-  min?: number;
-  max?: number;
-  minSelections?: number;
-  maxSelections?: number;
-};
+/**
+ * Bentuk `form_field.config` seperti tersimpan di jsonb. Diturunkan dari
+ * `FieldConfigSchema` supaya tipe dan validator tidak bisa berbeda diam-diam.
+ */
+export type FieldConfig = z.infer<typeof FieldConfigSchema>;
 
 // ---------------------------------------------------------------------------
 // Shared output pieces
 // ---------------------------------------------------------------------------
 
-const FieldConfigOutputSchema = z.object({
+/**
+ * Dipakai dua arah: menyusun bentuk output, dan memvalidasi `config` yang
+ * dibaca dari jsonb (lihat `parseFieldConfig` di router form). Kunci asing
+ * dibuang, bukan ditolak, supaya deploy lama tetap bisa membaca baris yang
+ * ditulis versi lebih baru.
+ */
+export const FieldConfigSchema = z.object({
   minLength: z.number().int().optional(),
   maxLength: z.number().int().optional(),
   pattern: TextPatternPresetSchema.optional(),
@@ -287,7 +288,7 @@ const FieldOutputSchema = z.object({
   label: z.string(),
   description: z.string().nullable(),
   required: z.boolean(),
-  config: FieldConfigOutputSchema,
+  config: FieldConfigSchema,
   sortOrder: z.number().int(),
   /** Empty for non-choice types. Archived options are never included. */
   options: z.array(FieldOptionOutputSchema),

@@ -11,10 +11,11 @@ import {
   formSubmission,
 } from '~/server/db/schema';
 
-import type {
-  FieldConfig,
-  FieldOutput,
-  FormOutput,
+import {
+  type FieldConfig,
+  FieldConfigSchema,
+  type FieldOutput,
+  type FormOutput,
 } from '../../types/form.type';
 
 type TRPCContext = inferAsyncReturnType<typeof createTRPCContext>;
@@ -74,6 +75,29 @@ export async function countSubmissions(
 type FieldRow = typeof formField.$inferSelect;
 type OptionRow = typeof formFieldOption.$inferSelect;
 
+/**
+ * `form_field.config` adalah jsonb, jadi isinya tidak dijamin oleh tipe apa
+ * pun — sebelumnya hanya di-cast. Baris yang bentuknya tak dikenal (misalnya
+ * ditulis tangan ke database, atau sisa dari versi skema lama) membuat aturan
+ * validasinya **dilewati diam-diam** saat jawaban diperiksa: pertanyaan yang
+ * seharusnya mewajibkan format tertentu jadi menerima apa saja. Lebih baik
+ * gagal terang-terangan daripada memvalidasi setengah-setengah.
+ */
+function parseFieldConfig(field: FieldRow): FieldConfig {
+  const hasil = FieldConfigSchema.safeParse(field.config);
+  if (!hasil.success) {
+    console.error('config pertanyaan tidak valid', {
+      fieldId: field.id,
+      issues: hasil.error.issues,
+    });
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: `Konfigurasi pertanyaan "${field.label}" tidak valid. Hubungi pengelola formulir.`,
+    });
+  }
+  return hasil.data;
+}
+
 function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
   return {
     id: field.id,
@@ -81,7 +105,7 @@ function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
     label: field.label,
     description: field.description,
     required: field.required,
-    config: field.config as FieldConfig,
+    config: parseFieldConfig(field),
     sortOrder: field.sortOrder,
     options: options
       .filter((o) => o.fieldId === field.id)
