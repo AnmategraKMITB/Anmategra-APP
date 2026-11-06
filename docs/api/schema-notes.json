@@ -87,13 +87,16 @@
     "columns": {
       "level_labels": "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan.",
       "rank_labels": "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}.",
-      "edit_locked": "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin."
+      "edit_locked": "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin. Pemilik/admin tidak terpengaruh kunci.",
+      "version": "Naik satu setiap penyimpanan pohon; klien mengirim kembali versi yang dibukanya untuk mendeteksi dua orang yang mengedit bersamaan."
     }
   },
   "anmategra_organization_unit": {
     "note": "Divisi/bidang di dalam sebuah struktur organisasi.",
     "columns": {
-      "type_label": "Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level` dibuang saat router organogram baru menggantikan yang lama.",
+      "kind": "Peninggalan model lama (Bidang/Divisi/Subdivisi); null untuk unit yang dibuat editor baru. Dibuang di Fase 2D.",
+      "level": "Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; dihitung ulang server saat pohon disimpan.",
+      "type_label": "Label bebas pengganti `kind`.",
       "layout": "Pengaturan tampilan editor (tata letak, tier, sisi)."
     }
   },

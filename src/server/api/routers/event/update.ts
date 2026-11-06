@@ -27,7 +27,10 @@ import {
   UpdateEventInputSchema,
   UpdateEventOutputSchema,
 } from '../../types/event.type';
-import { resolveOrgAssignment } from '../organization/services';
+import {
+  isUniqueViolation,
+  resolveOrgAssignment,
+} from '../organization/services';
 
 export const updateEvent = lembagaProcedure
   .input(UpdateEventInputSchema)
@@ -131,12 +134,7 @@ export const addNewPanitia = lembagaProcedure
       if (error instanceof TRPCError) {
         throw error;
       }
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
+      if (isUniqueViolation(error)) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
@@ -414,12 +412,7 @@ export const addNewPanitiaManual = lembagaProcedure
       if (error instanceof TRPCError) {
         throw error;
       }
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
+      if (isUniqueViolation(error)) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Anggota tersebut sudah terdaftar sebagai panitia.',

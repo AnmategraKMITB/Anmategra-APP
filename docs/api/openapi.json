@@ -9748,14 +9748,14 @@
         }
       }
     },
-    "/api/trpc/organization.assignment.assignAnggotaLembaga": {
+    "/api/trpc/organization.placement.add": {
       "post": {
-        "operationId": "organization_assignment_assignAnggotaLembaga",
+        "operationId": "organization_placement_add",
         "tags": [
           "organization"
         ],
-        "summary": "organization.assignment.assignAnggotaLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "summary": "organization.placement.add",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -9779,7 +9779,7 @@
                           ],
                           "properties": {
                             "json": {
-                              "$ref": "#/components/schemas/organization_assignment_assignAnggotaLembaga_output"
+                              "$ref": "#/components/schemas/organization_placement_add_output"
                             },
                             "meta": {
                               "type": "object",
@@ -9815,7 +9815,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -9856,7 +9856,7 @@
                 ],
                 "properties": {
                   "json": {
-                    "$ref": "#/components/schemas/organization_assignment_assignAnggotaLembaga_input"
+                    "$ref": "#/components/schemas/organization_placement_add_input"
                   },
                   "meta": {
                     "type": "object",
@@ -9869,14 +9869,14 @@
         }
       }
     },
-    "/api/trpc/organization.assignment.assignPanitiaKegiatan": {
+    "/api/trpc/organization.placement.move": {
       "post": {
-        "operationId": "organization_assignment_assignPanitiaKegiatan",
+        "operationId": "organization_placement_move",
         "tags": [
           "organization"
         ],
-        "summary": "organization.assignment.assignPanitiaKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "summary": "organization.placement.move",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -9900,7 +9900,7 @@
                           ],
                           "properties": {
                             "json": {
-                              "$ref": "#/components/schemas/organization_assignment_assignPanitiaKegiatan_output"
+                              "$ref": "#/components/schemas/organization_placement_move_output"
                             },
                             "meta": {
                               "type": "object",
@@ -9936,7 +9936,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -9977,7 +9977,7 @@
                 ],
                 "properties": {
                   "json": {
-                    "$ref": "#/components/schemas/organization_assignment_assignPanitiaKegiatan_input"
+                    "$ref": "#/components/schemas/organization_placement_move_input"
                   },
                   "meta": {
                     "type": "object",
@@ -9990,14 +9990,14 @@
         }
       }
     },
-    "/api/trpc/organization.assignment.unassignAnggotaLembaga": {
+    "/api/trpc/organization.placement.remove": {
       "post": {
-        "operationId": "organization_assignment_unassignAnggotaLembaga",
+        "operationId": "organization_placement_remove",
         "tags": [
           "organization"
         ],
-        "summary": "organization.assignment.unassignAnggotaLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "summary": "organization.placement.remove",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -10021,7 +10021,7 @@
                           ],
                           "properties": {
                             "json": {
-                              "$ref": "#/components/schemas/organization_assignment_unassignAnggotaLembaga_output"
+                              "$ref": "#/components/schemas/organization_placement_remove_output"
                             },
                             "meta": {
                               "type": "object",
@@ -10057,7 +10057,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -10098,738 +10098,7 @@
                 ],
                 "properties": {
                   "json": {
-                    "$ref": "#/components/schemas/organization_assignment_unassignAnggotaLembaga_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.assignment.unassignPanitiaKegiatan": {
-      "post": {
-        "operationId": "organization_assignment_unassignPanitiaKegiatan",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.assignment.unassignPanitiaKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_assignment_unassignPanitiaKegiatan_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_assignment_unassignPanitiaKegiatan_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.role.create": {
-      "post": {
-        "operationId": "organization_role_create",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.role.create",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_role_create_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_role_create_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.role.delete": {
-      "post": {
-        "operationId": "organization_role_delete",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.role.delete",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_role_delete_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_role_delete_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.role.getAll": {
-      "get": {
-        "operationId": "organization_role_getAll",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.role.getAll",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_role_getAll_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "input",
-            "in": "query",
-            "required": true,
-            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "json"
-                  ],
-                  "properties": {
-                    "json": {
-                      "$ref": "#/components/schemas/organization_role_getAll_input"
-                    },
-                    "meta": {
-                      "type": "object",
-                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    "/api/trpc/organization.role.reorder": {
-      "post": {
-        "operationId": "organization_role_reorder",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.role.reorder",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_role_reorder_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_role_reorder_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.role.update": {
-      "post": {
-        "operationId": "organization_role_update",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.role.update",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_role_update_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_role_update_input"
+                    "$ref": "#/components/schemas/organization_placement_remove_input"
                   },
                   "meta": {
                     "type": "object",
@@ -10849,7 +10118,7 @@
           "organization"
         ],
         "summary": "organization.structure.create",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -10909,7 +10178,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -10963,135 +10232,14 @@
         }
       }
     },
-    "/api/trpc/organization.structure.delete": {
-      "post": {
-        "operationId": "organization_structure_delete",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.structure.delete",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_structure_delete_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_structure_delete_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.structure.getAll": {
+    "/api/trpc/organization.structure.get": {
       "get": {
-        "operationId": "organization_structure_getAll",
+        "operationId": "organization_structure_get",
         "tags": [
           "organization"
         ],
-        "summary": "organization.structure.getAll",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "summary": "organization.structure.get",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -11115,7 +10263,7 @@
                           ],
                           "properties": {
                             "json": {
-                              "$ref": "#/components/schemas/organization_structure_getAll_output"
+                              "$ref": "#/components/schemas/organization_structure_get_output"
                             },
                             "meta": {
                               "type": "object",
@@ -11151,7 +10299,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -11196,7 +10344,7 @@
                   ],
                   "properties": {
                     "json": {
-                      "$ref": "#/components/schemas/organization_structure_getAll_input"
+                      "$ref": "#/components/schemas/organization_structure_get_input"
                     },
                     "meta": {
                       "type": "object",
@@ -11210,140 +10358,14 @@
         ]
       }
     },
-    "/api/trpc/organization.structure.getTree": {
-      "get": {
-        "operationId": "organization_structure_getTree",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.structure.getTree",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_structure_getTree_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "input",
-            "in": "query",
-            "required": true,
-            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "json"
-                  ],
-                  "properties": {
-                    "json": {
-                      "$ref": "#/components/schemas/organization_structure_getTree_input"
-                    },
-                    "meta": {
-                      "type": "object",
-                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    "/api/trpc/organization.structure.update": {
+    "/api/trpc/organization.structure.save": {
       "post": {
-        "operationId": "organization_structure_update",
+        "operationId": "organization_structure_save",
         "tags": [
           "organization"
         ],
-        "summary": "organization.structure.update",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "summary": "organization.structure.save",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -11367,7 +10389,7 @@
                           ],
                           "properties": {
                             "json": {
-                              "$ref": "#/components/schemas/organization_structure_update_output"
+                              "$ref": "#/components/schemas/organization_structure_save_output"
                             },
                             "meta": {
                               "type": "object",
@@ -11403,7 +10425,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -11444,7 +10466,7 @@
                 ],
                 "properties": {
                   "json": {
-                    "$ref": "#/components/schemas/organization_structure_update_input"
+                    "$ref": "#/components/schemas/organization_structure_save_input"
                   },
                   "meta": {
                     "type": "object",
@@ -11457,14 +10479,14 @@
         }
       }
     },
-    "/api/trpc/organization.unit.create": {
+    "/api/trpc/organization.structure.setLock": {
       "post": {
-        "operationId": "organization_unit_create",
+        "operationId": "organization_structure_setLock",
         "tags": [
           "organization"
         ],
-        "summary": "organization.unit.create",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "summary": "organization.structure.setLock",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
         "security": [
           {
             "sessionCookie": []
@@ -11488,7 +10510,7 @@
                           ],
                           "properties": {
                             "json": {
-                              "$ref": "#/components/schemas/organization_unit_create_output"
+                              "$ref": "#/components/schemas/organization_structure_setLock_output"
                             },
                             "meta": {
                               "type": "object",
@@ -11524,7 +10546,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -11565,617 +10587,7 @@
                 ],
                 "properties": {
                   "json": {
-                    "$ref": "#/components/schemas/organization_unit_create_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.unit.delete": {
-      "post": {
-        "operationId": "organization_unit_delete",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.unit.delete",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_unit_delete_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_unit_delete_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.unit.getAll": {
-      "get": {
-        "operationId": "organization_unit_getAll",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.unit.getAll",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_unit_getAll_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "input",
-            "in": "query",
-            "required": true,
-            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "required": [
-                    "json"
-                  ],
-                  "properties": {
-                    "json": {
-                      "$ref": "#/components/schemas/organization_unit_getAll_input"
-                    },
-                    "meta": {
-                      "type": "object",
-                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                    }
-                  }
-                }
-              }
-            }
-          }
-        ]
-      }
-    },
-    "/api/trpc/organization.unit.move": {
-      "post": {
-        "operationId": "organization_unit_move",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.unit.move",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_unit_move_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_unit_move_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.unit.reorder": {
-      "post": {
-        "operationId": "organization_unit_reorder",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.unit.reorder",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_unit_reorder_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_unit_reorder_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/organization.unit.update": {
-      "post": {
-        "operationId": "organization_unit_update",
-        "tags": [
-          "organization"
-        ],
-        "summary": "organization.unit.update",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/organization_unit_update_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/organization_unit_update_input"
+                    "$ref": "#/components/schemas/organization_structure_setLock_input"
                   },
                   "meta": {
                     "type": "object",
@@ -24532,304 +22944,190 @@
         ],
         "additionalProperties": false
       },
-      "organization_assignment_assignAnggotaLembaga_input": {
+      "organization_placement_add_input": {
         "type": "object",
         "properties": {
-          "user_id": {
+          "positionId": {
             "type": "string",
             "minLength": 1
           },
-          "org_unit_id": {
+          "userId": {
             "type": "string",
             "minLength": 1
           },
-          "org_role_id": {
+          "source": {
+            "default": "manual",
             "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "user_id"
-        ]
-      },
-      "organization_assignment_assignAnggotaLembaga_output": {
-        "type": "object",
-        "properties": {
-          "success": {
+            "enum": [
+              "oprec",
+              "closerec",
+              "manual",
+              "import"
+            ]
+          },
+          "note": {
+            "nullable": true,
+            "type": "string",
+            "maxLength": 1000
+          },
+          "allowOverQuota": {
+            "default": false,
             "type": "boolean"
           }
         },
         "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_assignment_assignPanitiaKegiatan_input": {
-        "type": "object",
-        "properties": {
-          "event_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "user_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "org_unit_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "org_role_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "event_id",
-          "user_id"
+          "positionId",
+          "userId"
         ]
       },
-      "organization_assignment_assignPanitiaKegiatan_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_assignment_unassignAnggotaLembaga_input": {
-        "type": "object",
-        "properties": {
-          "user_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "user_id"
-        ]
-      },
-      "organization_assignment_unassignAnggotaLembaga_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_assignment_unassignPanitiaKegiatan_input": {
-        "type": "object",
-        "properties": {
-          "event_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "user_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "event_id",
-          "user_id"
-        ]
-      },
-      "organization_assignment_unassignPanitiaKegiatan_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_role_create_input": {
-        "type": "object",
-        "properties": {
-          "structure_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255
-          },
-          "ring_level": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 9007199254740991
-          }
-        },
-        "required": [
-          "structure_id",
-          "name",
-          "ring_level"
-        ]
-      },
-      "organization_role_create_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "role_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "role_id"
-        ],
-        "additionalProperties": false
-      },
-      "organization_role_delete_input": {
-        "type": "object",
-        "properties": {
-          "role_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "role_id"
-        ]
-      },
-      "organization_role_delete_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_role_getAll_input": {
-        "type": "object",
-        "properties": {
-          "structure_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "structure_id"
-        ]
-      },
-      "organization_role_getAll_output": {
-        "type": "object",
-        "properties": {
-          "roles": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "structure_id": {
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "ring_level": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
-                },
-                "sort_order": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
-                }
+      "organization_placement_add_output": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
               },
-              "required": [
-                "id",
-                "structure_id",
-                "name",
-                "ring_level",
-                "sort_order"
-              ],
-              "additionalProperties": false
-            }
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ok",
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "quota_full"
+                ]
+              },
+              "count": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "quota": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "ok",
+              "reason",
+              "count",
+              "quota"
+            ],
+            "additionalProperties": false
           }
-        },
-        "required": [
-          "roles"
-        ],
-        "additionalProperties": false
+        ]
       },
-      "organization_role_reorder_input": {
+      "organization_placement_move_input": {
         "type": "object",
         "properties": {
-          "structure_id": {
+          "placementId": {
             "type": "string",
             "minLength": 1
           },
-          "role_ids": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        },
-        "required": [
-          "structure_id",
-          "role_ids"
-        ]
-      },
-      "organization_role_reorder_output": {
-        "type": "object",
-        "properties": {
-          "success": {
+          "toPositionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "allowOverQuota": {
+            "default": false,
             "type": "boolean"
           }
         },
         "required": [
-          "success"
-        ],
-        "additionalProperties": false
+          "placementId",
+          "toPositionId"
+        ]
       },
-      "organization_role_update_input": {
+      "organization_placement_move_output": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "enum": [
+                  true
+                ]
+              },
+              "id": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "ok",
+              "id"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ok": {
+                "type": "boolean",
+                "enum": [
+                  false
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "quota_full"
+                ]
+              },
+              "count": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "quota": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "ok",
+              "reason",
+              "count",
+              "quota"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "organization_placement_remove_input": {
         "type": "object",
         "properties": {
-          "role_id": {
+          "placementId": {
             "type": "string",
             "minLength": 1
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255
-          },
-          "ring_level": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 9007199254740991
           }
         },
         "required": [
-          "role_id"
+          "placementId"
         ]
       },
-      "organization_role_update_output": {
+      "organization_placement_remove_output": {
         "type": "object",
         "properties": {
           "success": {
@@ -24844,175 +23142,98 @@
       "organization_structure_create_input": {
         "type": "object",
         "properties": {
+          "periodId": {
+            "type": "string",
+            "minLength": 1
+          },
           "name": {
             "type": "string",
             "minLength": 1,
             "maxLength": 255
-          },
-          "event_id": {
-            "type": "string",
-            "minLength": 1
           }
         },
         "required": [
-          "name"
+          "periodId"
         ]
       },
       "organization_structure_create_output": {
         "type": "object",
         "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "structure_id": {
+          "id": {
             "type": "string"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           }
         },
         "required": [
-          "success",
-          "structure_id"
+          "id",
+          "version"
         ],
         "additionalProperties": false
       },
-      "organization_structure_delete_input": {
+      "organization_structure_get_input": {
         "type": "object",
         "properties": {
-          "structure_id": {
+          "periodId": {
             "type": "string",
             "minLength": 1
           }
         },
         "required": [
-          "structure_id"
+          "periodId"
         ]
       },
-      "organization_structure_delete_output": {
+      "organization_structure_get_output": {
+        "nullable": true,
         "type": "object",
         "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_structure_getAll_input": {
-        "type": "object",
-        "properties": {
-          "event_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        }
-      },
-      "organization_structure_getAll_output": {
-        "type": "object",
-        "properties": {
-          "structures": {
+          "id": {
+            "type": "string"
+          },
+          "periodId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "levelLabels": {
+            "nullable": true,
+            "maxItems": 16,
             "type": "array",
             "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "lembaga_id": {
-                  "nullable": true,
-                  "type": "string"
-                },
-                "event_id": {
-                  "nullable": true,
-                  "type": "string"
-                },
-                "name": {
-                  "type": "string"
-                },
-                "is_active": {
-                  "type": "boolean"
-                },
-                "created_at": {
-                  "type": "string",
-                  "format": "date-time"
-                },
-                "updated_at": {
-                  "type": "string",
-                  "format": "date-time"
-                }
-              },
-              "required": [
-                "id",
-                "lembaga_id",
-                "event_id",
-                "name",
-                "is_active",
-                "created_at",
-                "updated_at"
-              ],
-              "additionalProperties": false
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
             }
-          }
-        },
-        "required": [
-          "structures"
-        ],
-        "additionalProperties": false
-      },
-      "organization_structure_getTree_input": {
-        "type": "object",
-        "properties": {
-          "structure_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "structure_id"
-        ]
-      },
-      "organization_structure_getTree_output": {
-        "type": "object",
-        "properties": {
-          "structure": {
+          },
+          "rankLabels": {
+            "nullable": true,
             "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "lembaga_id": {
-                "nullable": true,
-                "type": "string"
-              },
-              "event_id": {
-                "nullable": true,
-                "type": "string"
-              },
-              "name": {
-                "type": "string"
-              },
-              "is_active": {
-                "type": "boolean"
-              },
-              "created_at": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "updated_at": {
-                "type": "string",
-                "format": "date-time"
-              }
-            },
-            "required": [
-              "id",
-              "lembaga_id",
-              "event_id",
-              "name",
-              "is_active",
-              "created_at",
-              "updated_at"
-            ],
-            "additionalProperties": false
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          "editLocked": {
+            "type": "boolean"
+          },
+          "lockedBy": {
+            "nullable": true,
+            "type": "string"
+          },
+          "lockedAt": {
+            "nullable": true,
+            "type": "string",
+            "format": "date-time"
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
           },
           "units": {
             "type": "array",
@@ -25022,40 +23243,88 @@
                 "id": {
                   "type": "string"
                 },
-                "structure_id": {
-                  "type": "string"
-                },
-                "parent_id": {
+                "parentId": {
                   "nullable": true,
                   "type": "string"
                 },
                 "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "typeLabel": {
+                  "nullable": true,
+                  "type": "string",
+                  "maxLength": 255
+                },
+                "sortOrder": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "layout": {
+                  "nullable": true,
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "id",
+                "parentId",
+                "name",
+                "typeLabel",
+                "sortOrder",
+                "layout"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "positions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
                   "type": "string"
+                },
+                "unitId": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "rank": {
+                  "type": "string",
+                  "enum": [
+                    "head",
+                    "vice",
+                    "coordinator",
+                    "staff"
+                  ]
                 },
                 "kind": {
                   "type": "string",
                   "enum": [
-                    "Bidang",
-                    "Divisi",
-                    "Subdivisi"
+                    "struktural",
+                    "nonstruktural"
                   ]
                 },
-                "level": {
+                "quota": {
                   "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "minimum": 0,
+                  "maximum": 100000
                 },
-                "sort_order": {
+                "hidden": {
+                  "type": "boolean"
+                },
+                "sortOrder": {
                   "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "minimum": 0,
+                  "maximum": 1000000
                 },
-                "member_count": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
-                },
-                "children": {
+                "placements": {
                   "type": "array",
                   "items": {
                     "type": "object",
@@ -25063,110 +23332,38 @@
                       "id": {
                         "type": "string"
                       },
-                      "structure_id": {
-                        "type": "string"
-                      },
-                      "parent_id": {
-                        "nullable": true,
+                      "userId": {
                         "type": "string"
                       },
                       "name": {
+                        "nullable": true,
                         "type": "string"
                       },
-                      "kind": {
+                      "image": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "source": {
                         "type": "string",
                         "enum": [
-                          "Bidang",
-                          "Divisi",
-                          "Subdivisi"
+                          "oprec",
+                          "closerec",
+                          "manual",
+                          "import"
                         ]
                       },
-                      "level": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991
-                      },
-                      "sort_order": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991
-                      },
-                      "member_count": {
-                        "type": "integer",
-                        "minimum": -9007199254740991,
-                        "maximum": 9007199254740991
-                      },
-                      "children": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string"
-                            },
-                            "structure_id": {
-                              "type": "string"
-                            },
-                            "parent_id": {
-                              "nullable": true,
-                              "type": "string"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "kind": {
-                              "type": "string",
-                              "enum": [
-                                "Bidang",
-                                "Divisi",
-                                "Subdivisi"
-                              ]
-                            },
-                            "level": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
-                            "sort_order": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
-                            "member_count": {
-                              "type": "integer",
-                              "minimum": -9007199254740991,
-                              "maximum": 9007199254740991
-                            },
-                            "children": {
-                              "maxItems": 0,
-                              "type": "array",
-                              "items": {}
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "structure_id",
-                            "parent_id",
-                            "name",
-                            "kind",
-                            "level",
-                            "sort_order",
-                            "member_count"
-                          ],
-                          "additionalProperties": false
-                        }
+                      "note": {
+                        "nullable": true,
+                        "type": "string"
                       }
                     },
                     "required": [
                       "id",
-                      "structure_id",
-                      "parent_id",
+                      "userId",
                       "name",
-                      "kind",
-                      "level",
-                      "sort_order",
-                      "member_count",
-                      "children"
+                      "image",
+                      "source",
+                      "note"
                     ],
                     "additionalProperties": false
                   }
@@ -25174,334 +23371,261 @@
               },
               "required": [
                 "id",
-                "structure_id",
-                "parent_id",
-                "name",
+                "unitId",
+                "title",
+                "rank",
                 "kind",
-                "level",
-                "sort_order",
-                "member_count",
-                "children"
+                "quota",
+                "hidden",
+                "sortOrder",
+                "placements"
               ],
               "additionalProperties": false
             }
           },
-          "roles": {
+          "access": {
+            "type": "object",
+            "properties": {
+              "canManage": {
+                "type": "boolean"
+              },
+              "canEdit": {
+                "type": "boolean"
+              },
+              "canLock": {
+                "type": "boolean"
+              },
+              "editableUnitIds": {
+                "nullable": true,
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "canManage",
+              "canEdit",
+              "canLock",
+              "editableUnitIds"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "id",
+          "periodId",
+          "name",
+          "levelLabels",
+          "rankLabels",
+          "editLocked",
+          "lockedBy",
+          "lockedAt",
+          "version",
+          "units",
+          "positions",
+          "access"
+        ],
+        "additionalProperties": false
+      },
+      "organization_structure_save_input": {
+        "type": "object",
+        "properties": {
+          "periodId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedVersion": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "levelLabels": {
+            "nullable": true,
+            "maxItems": 16,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          "rankLabels": {
+            "nullable": true,
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            }
+          },
+          "units": {
+            "maxItems": 2000,
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                 },
-                "structure_id": {
-                  "type": "string"
+                "parentId": {
+                  "nullable": true,
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                 },
                 "name": {
-                  "type": "string"
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
                 },
-                "ring_level": {
-                  "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                "typeLabel": {
+                  "nullable": true,
+                  "type": "string",
+                  "maxLength": 255
                 },
-                "sort_order": {
+                "sortOrder": {
                   "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "layout": {
+                  "nullable": true,
+                  "type": "object",
+                  "additionalProperties": {}
                 }
               },
               "required": [
                 "id",
-                "structure_id",
+                "parentId",
                 "name",
-                "ring_level",
-                "sort_order"
-              ],
-              "additionalProperties": false
+                "typeLabel",
+                "sortOrder",
+                "layout"
+              ]
             }
-          }
-        },
-        "required": [
-          "structure",
-          "units",
-          "roles"
-        ],
-        "additionalProperties": false
-      },
-      "organization_structure_update_input": {
-        "type": "object",
-        "properties": {
-          "structure_id": {
-            "type": "string",
-            "minLength": 1
           },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255
-          },
-          "is_active": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "structure_id"
-        ]
-      },
-      "organization_structure_update_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_unit_create_input": {
-        "type": "object",
-        "properties": {
-          "structure_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "Bidang",
-              "Divisi",
-              "Subdivisi"
-            ]
-          },
-          "parent_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "structure_id",
-          "name",
-          "kind"
-        ]
-      },
-      "organization_unit_create_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          },
-          "unit_id": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "success",
-          "unit_id"
-        ],
-        "additionalProperties": false
-      },
-      "organization_unit_delete_input": {
-        "type": "object",
-        "properties": {
-          "unit_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "unit_id"
-        ]
-      },
-      "organization_unit_delete_output": {
-        "type": "object",
-        "properties": {
-          "success": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_unit_getAll_input": {
-        "type": "object",
-        "properties": {
-          "structure_id": {
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "structure_id"
-        ]
-      },
-      "organization_unit_getAll_output": {
-        "type": "object",
-        "properties": {
-          "units": {
+          "positions": {
+            "maxItems": 10000,
             "type": "array",
             "items": {
               "type": "object",
               "properties": {
                 "id": {
-                  "type": "string"
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                 },
-                "structure_id": {
-                  "type": "string"
+                "unitId": {
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                 },
-                "parent_id": {
-                  "nullable": true,
-                  "type": "string"
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
                 },
-                "name": {
-                  "type": "string"
+                "rank": {
+                  "type": "string",
+                  "enum": [
+                    "head",
+                    "vice",
+                    "coordinator",
+                    "staff"
+                  ]
                 },
                 "kind": {
                   "type": "string",
                   "enum": [
-                    "Bidang",
-                    "Divisi",
-                    "Subdivisi"
+                    "struktural",
+                    "nonstruktural"
                   ]
                 },
-                "level": {
+                "quota": {
                   "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
+                  "minimum": 0,
+                  "maximum": 100000
                 },
-                "sort_order": {
+                "hidden": {
+                  "type": "boolean"
+                },
+                "sortOrder": {
                   "type": "integer",
-                  "minimum": -9007199254740991,
-                  "maximum": 9007199254740991
-                },
-                "path_label": {
-                  "type": "string"
+                  "minimum": 0,
+                  "maximum": 1000000
                 }
               },
               "required": [
                 "id",
-                "structure_id",
-                "parent_id",
-                "name",
+                "unitId",
+                "title",
+                "rank",
                 "kind",
-                "level",
-                "sort_order",
-                "path_label"
-              ],
-              "additionalProperties": false
+                "quota",
+                "hidden",
+                "sortOrder"
+              ]
             }
           }
         },
         "required": [
-          "units"
-        ],
-        "additionalProperties": false
-      },
-      "organization_unit_move_input": {
-        "type": "object",
-        "properties": {
-          "unit_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "parent_id": {
-            "nullable": true,
-            "type": "string",
-            "minLength": 1
-          }
-        },
-        "required": [
-          "unit_id",
-          "parent_id"
+          "periodId",
+          "expectedVersion",
+          "units",
+          "positions"
         ]
       },
-      "organization_unit_move_output": {
+      "organization_structure_save_output": {
         "type": "object",
         "properties": {
-          "success": {
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "changed": {
             "type": "boolean"
           }
         },
         "required": [
-          "success"
+          "version",
+          "changed"
         ],
         "additionalProperties": false
       },
-      "organization_unit_reorder_input": {
+      "organization_structure_setLock_input": {
         "type": "object",
         "properties": {
-          "structure_id": {
+          "periodId": {
             "type": "string",
             "minLength": 1
           },
-          "parent_id": {
-            "nullable": true,
-            "type": "string",
-            "minLength": 1
-          },
-          "unit_ids": {
-            "minItems": 1,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "minLength": 1
-            }
-          }
-        },
-        "required": [
-          "structure_id",
-          "parent_id",
-          "unit_ids"
-        ]
-      },
-      "organization_unit_reorder_output": {
-        "type": "object",
-        "properties": {
-          "success": {
+          "locked": {
             "type": "boolean"
           }
         },
         "required": [
-          "success"
-        ],
-        "additionalProperties": false
-      },
-      "organization_unit_update_input": {
-        "type": "object",
-        "properties": {
-          "unit_id": {
-            "type": "string",
-            "minLength": 1
-          },
-          "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 255
-          }
-        },
-        "required": [
-          "unit_id",
-          "name"
+          "periodId",
+          "locked"
         ]
       },
-      "organization_unit_update_output": {
+      "organization_structure_setLock_output": {
         "type": "object",
         "properties": {
-          "success": {
+          "editLocked": {
             "type": "boolean"
           }
         },
         "required": [
-          "success"
+          "editLocked"
         ],
         "additionalProperties": false
       },

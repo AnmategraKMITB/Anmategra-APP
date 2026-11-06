@@ -96,7 +96,10 @@ import {
   editAnggotaLembagaInputSchema,
   editAnggotaLembagaOutputSchema,
 } from '../types/lembaga.type';
-import { resolveOrgAssignment } from './organization/services';
+import {
+  isUniqueViolation,
+  resolveOrgAssignment,
+} from './organization/services';
 
 export const lembagaRouter = createTRPCRouter({
   // Fetch lembaga general information
@@ -445,12 +448,7 @@ export const lembagaRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        if (
-          error &&
-          typeof error === 'object' &&
-          'code' in error &&
-          error.code === '23505'
-        ) {
+        if (isUniqueViolation(error)) {
           throw new TRPCError({
             code: 'CONFLICT',
             message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
@@ -550,12 +548,7 @@ export const lembagaRouter = createTRPCRouter({
         if (error instanceof TRPCError) {
           throw error;
         }
-        if (
-          error &&
-          typeof error === 'object' &&
-          'code' in error &&
-          error.code === '23505'
-        ) {
+        if (isUniqueViolation(error)) {
           throw new TRPCError({
             code: 'CONFLICT',
             message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
