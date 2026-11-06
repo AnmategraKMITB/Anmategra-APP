@@ -660,6 +660,17 @@ export const organizationStructure = createTable(
     }),
     name: varchar('name', { length: 255 }).notNull(),
     is_active: boolean('is_active').notNull().default(true),
+    // Nama level per kedalaman, mis. ["Kemenkoan", "Kementerian"]; UI memakai
+    // nama ini, bukan kata "unit". Null = pakai bawaan.
+    levelLabels: jsonb('level_labels').$type<string[]>(),
+    // Label rank per struktur, mis. { head: "Ketua", staff: "Anggota" }.
+    rankLabels: jsonb('rank_labels').$type<Record<string, string>>(),
+    // Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah.
+    editLocked: boolean('edit_locked').notNull().default(false),
+    lockedBy: varchar('locked_by', { length: 255 }).references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    lockedAt: timestamp('locked_at', { mode: 'date', withTimezone: true }),
     ...timestamps,
   },
   (table) => ({
@@ -709,7 +720,7 @@ export const organizationUnit = createTable(
     // 23503 and make deleting a lembaga fail. `no action` defers the check to
     // end-of-statement, still rejecting a direct delete of a unit with children.
     parent_id: varchar('parent_id', { length: 255 }).references(
-      () => organizationUnit.id,
+      (): AnyPgColumn => organizationUnit.id,
       { onDelete: 'no action' },
     ),
     name: varchar('name', { length: 255 }).notNull(),
@@ -718,6 +729,11 @@ export const organizationUnit = createTable(
       .notNull(),
     level: integer('level').notNull(),
     sort_order: integer('sort_order').notNull().default(0),
+    // Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level`
+    // dibuang saat router baru menggantikan yang lama (Fase 2B).
+    typeLabel: varchar('type_label', { length: 255 }),
+    // Pengaturan tampilan editor (tata letak, tier, sisi, ...).
+    layout: jsonb('layout').$type<Record<string, unknown>>(),
     ...timestamps,
   },
   (table) => ({
@@ -755,6 +771,122 @@ export const organizationRole = createTable(
     ),
   }),
 );
+
+// Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode).
+// Menggantikan organization_role, yang menempel pada struktur dan bukan unit.
+export const ORGANIZATION_POSITION_RANKS = [
+  'head',
+  'vice',
+  'coordinator',
+  'staff',
+] as const;
+export type OrganizationPositionRank =
+  (typeof ORGANIZATION_POSITION_RANKS)[number];
+
+export const ORGANIZATION_POSITION_KINDS = [
+  'struktural',
+  'nonstruktural',
+] as const;
+export type OrganizationPositionKind =
+  (typeof ORGANIZATION_POSITION_KINDS)[number];
+
+export const organizationPosition = createTable(
+  'organization_position',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // Hapus unit menghapus posisinya, tetapi placement (on delete restrict)
+    // menahan penghapusan selama masih ada orang di posisi itu.
+    unitId: varchar('unit_id', { length: 255 })
+      .notNull()
+      .references(() => organizationUnit.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).notNull(),
+    rank: varchar('rank', { length: 32 })
+      .$type<OrganizationPositionRank>()
+      .notNull(),
+    kind: varchar('kind', { length: 32 })
+      .$type<OrganizationPositionKind>()
+      .notNull()
+      .default('struktural'),
+    // 0 = tanpa batas. CHECK quota >= 0 ditulis tangan di migrasi; penegakan
+    // batas dilakukan di aplikasi (di dalam transaksi), bukan trigger.
+    quota: integer('quota').notNull().default(0),
+    hidden: boolean('hidden').notNull().default(false),
+    sort_order: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    unitIdx: index('organization_position_unit_idx').on(table.unitId),
+  }),
+);
+
+export const placementSourceEnum = pgEnum('placement_source', [
+  'oprec',
+  'closerec',
+  'manual',
+  'import',
+]);
+
+// Orang sungguhan di sebuah posisi. Periode tidak disimpan: posisi > unit >
+// struktur > periode. Satu orang boleh memegang beberapa posisi. Menggantikan
+// keanggotaan dan kehimpunan (Fase 2D).
+export const placement = createTable(
+  'placement',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    positionId: varchar('position_id', { length: 255 })
+      .notNull()
+      .references(() => organizationPosition.id, { onDelete: 'restrict' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    source: placementSourceEnum('source').notNull(),
+    // Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum
+    // ada FK karena tabel oprec belum ada.
+    applicationChoiceId: varchar('application_choice_id', { length: 255 }),
+    note: text('note'),
+    // Nullable agar data hasil migrasi/impor tetap bisa masuk.
+    createdBy: varchar('created_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    ...timestamps,
+  },
+  (table) => ({
+    positionUserUnique: uniqueIndex('placement_position_user_unique').on(
+      table.positionId,
+      table.userId,
+    ),
+    userIdx: index('placement_user_idx').on(table.userId),
+  }),
+);
+
+export const organizationPositionRelations = relations(
+  organizationPosition,
+  ({ one, many }) => ({
+    unit: one(organizationUnit, {
+      fields: [organizationPosition.unitId],
+      references: [organizationUnit.id],
+    }),
+    placements: many(placement),
+  }),
+);
+
+export const placementRelations = relations(placement, ({ one }) => ({
+  position: one(organizationPosition, {
+    fields: [placement.positionId],
+    references: [organizationPosition.id],
+  }),
+  user: one(users, {
+    fields: [placement.userId],
+    references: [users.id],
+  }),
+}));
 
 // Best Staff
 export const bestStaffKegiatan = createTable('best_staff_kegiatan', {

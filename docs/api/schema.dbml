@@ -46,6 +46,13 @@ enum notification_type {
   System
 }
 
+enum placement_source {
+  oprec
+  closerec
+  manual
+  import
+}
+
 enum riwayat_end_reason {
   removed
   left
@@ -430,6 +437,24 @@ table anmategra_notification {
   Note: "Notifikasi in-app per pengguna."
 }
 
+table anmategra_organization_position {
+  id varchar(255) [pk, not null]
+  unit_id varchar(255) [not null]
+  title varchar(255) [not null]
+  rank varchar(32) [not null, note: "head | vice | coordinator | staff; label-nya dapat diubah per struktur lewat rank_labels."]
+  kind varchar(32) [not null, default: 'struktural']
+  quota integer [not null, default: 0, note: "0 = tanpa batas. Ditegakkan di aplikasi dalam transaksi, bukan trigger; placement closerec tidak dihitung."]
+  hidden boolean [not null, default: false]
+  sort_order integer [not null, default: 0]
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    unit_id [name: 'organization_position_unit_idx']
+  }
+  Note: "Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode); menggantikan organization_role. Menghapus unit menghapus posisinya, tetapi dibatalkan selama masih ada placement."
+}
+
 table anmategra_organization_role {
   id varchar(255) [pk, not null]
   structure_id varchar(255) [not null]
@@ -442,7 +467,7 @@ table anmategra_organization_role {
   indexes {
     structure_id [name: 'organization_role_structure_idx']
   }
-  Note: "Posisi/jabatan di dalam sebuah organization unit."
+  Note: "Posisi/jabatan di dalam sebuah organization unit. Akan digantikan oleh organization_position."
 }
 
 table anmategra_organization_structure {
@@ -451,6 +476,11 @@ table anmategra_organization_structure {
   period_id varchar(255)
   name varchar(255) [not null]
   is_active boolean [not null, default: true]
+  level_labels jsonb [note: "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan."]
+  rank_labels jsonb [note: "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}."]
+  edit_locked boolean [not null, default: false, note: "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin."]
+  locked_by varchar(255)
+  locked_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
@@ -469,6 +499,8 @@ table anmategra_organization_unit {
   kind varchar(255) [not null]
   level integer [not null]
   sort_order integer [not null, default: 0]
+  type_label varchar(255) [note: "Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level` dibuang saat router organogram baru menggantikan yang lama."]
+  layout jsonb [note: "Pengaturan tampilan editor (tata letak, tier, sisi)."]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
@@ -500,6 +532,24 @@ table anmategra_pemetaan_profil_lembaga {
     (profil_lembaga_id, profil_km_id) [name: 'pemetaan_profil_lembaga_profil_km_unique', unique]
   }
   Note: "Tabel junction: memetakan `profil_lembaga` ke `profil_km`."
+}
+
+table anmategra_placement {
+  id varchar(255) [pk, not null]
+  position_id varchar(255) [not null, note: "ON DELETE RESTRICT: posisi (dan unitnya) tidak bisa dihapus selama masih ada orang di dalamnya."]
+  user_id varchar(255) [not null]
+  source placement_source [not null]
+  application_choice_id varchar(255) [note: "Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum ada FK."]
+  note text
+  created_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (position_id, user_id) [name: 'placement_position_user_unique', unique]
+    user_id [name: 'placement_user_idx']
+  }
+  Note: "Orang sungguhan di sebuah posisi. Periode diturunkan: posisi > unit > struktur > periode. Satu orang boleh memegang beberapa posisi. Akan menggantikan keanggotaan dan kehimpunan."
 }
 
 table anmategra_profil_km {
@@ -696,6 +746,8 @@ ref: anmategra_nilai_profil_lembaga.mahasiswa_id > anmategra_mahasiswa.user_id
 
 ref: anmategra_notification.user_id > anmategra_user.id
 
+ref: anmategra_organization_position.unit_id - anmategra_organization_unit.id
+
 ref: anmategra_organization_role.structure_id > anmategra_organization_structure.id
 
 ref: anmategra_organization_structure.lembaga_id > anmategra_lembaga.id
@@ -713,6 +765,10 @@ ref: anmategra_pemetaan_profil_kegiatan.profil_km_id > anmategra_profil_km.id
 ref: anmategra_pemetaan_profil_lembaga.profil_lembaga_id > anmategra_profil_lembaga.id
 
 ref: anmategra_pemetaan_profil_lembaga.profil_km_id > anmategra_profil_km.id
+
+ref: anmategra_placement.position_id > anmategra_organization_position.id
+
+ref: anmategra_placement.user_id - anmategra_user.id
 
 ref: anmategra_profil_kegiatan.period_id > anmategra_lembaga_period.id
 
