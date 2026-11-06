@@ -83,13 +83,36 @@
     "note": "Penghargaan \"best staff\" untuk mahasiswa pada suatu lembaga."
   },
   "anmategra_organization_structure": {
-    "note": "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role)."
+    "note": "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role).",
+    "columns": {
+      "level_labels": "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan.",
+      "rank_labels": "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}.",
+      "edit_locked": "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin."
+    }
   },
   "anmategra_organization_unit": {
-    "note": "Divisi/bidang di dalam sebuah struktur organisasi."
+    "note": "Divisi/bidang di dalam sebuah struktur organisasi.",
+    "columns": {
+      "type_label": "Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level` dibuang saat router organogram baru menggantikan yang lama.",
+      "layout": "Pengaturan tampilan editor (tata letak, tier, sisi)."
+    }
   },
   "anmategra_organization_role": {
-    "note": "Posisi/jabatan di dalam sebuah organization unit."
+    "note": "Posisi/jabatan di dalam sebuah organization unit. Akan digantikan oleh organization_position."
+  },
+  "anmategra_organization_position": {
+    "note": "Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode); menggantikan organization_role. Menghapus unit menghapus posisinya, tetapi dibatalkan selama masih ada placement.",
+    "columns": {
+      "rank": "head | vice | coordinator | staff; label-nya dapat diubah per struktur lewat rank_labels.",
+      "quota": "0 = tanpa batas. Ditegakkan di aplikasi dalam transaksi, bukan trigger; placement closerec tidak dihitung."
+    }
+  },
+  "anmategra_placement": {
+    "note": "Orang sungguhan di sebuah posisi. Periode diturunkan: posisi > unit > struktur > periode. Satu orang boleh memegang beberapa posisi. Akan menggantikan keanggotaan dan kehimpunan.",
+    "columns": {
+      "position_id": "ON DELETE RESTRICT: posisi (dan unitnya) tidak bisa dihapus selama masih ada orang di dalamnya.",
+      "application_choice_id": "Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum ada FK."
+    }
   },
   "anmategra_support": {
     "note": "Tiket dukungan/pengaduan dari pengguna."
