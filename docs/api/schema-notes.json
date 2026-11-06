@@ -18,10 +18,10 @@
     "note": "Fallback upload CSV alumni: NIM lulus yang belum punya akun. Diterapkan otomatis lalu dihapus saat mahasiswa dengan NIM ini sign-in pertama kali."
   },
   "anmategra_lembaga": {
-    "note": "Organisasi/institusi (Himpunan, UKM, atau Kepanitiaan/event-organizer)."
+    "note": "Organisasi/institusi (Himpunan, UKM, Kepanitiaan, BSO, Badan, Pusat, atau Organisasi umum). Berbentuk pohon lewat `parent_id`."
   },
-  "anmategra_event": {
-    "note": "Kegiatan/acara yang diselenggarakan oleh sebuah lembaga."
+  "anmategra_lembaga_period": {
+    "note": "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."
   },
   "anmategra_keanggotaan": {
     "note": "Membership mahasiswa dalam sebuah event/kepanitiaan (posisi struktural)."

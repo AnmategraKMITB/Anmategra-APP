@@ -1,5 +1,6 @@
 import { relations, sql } from 'drizzle-orm';
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -201,33 +202,47 @@ export const lembagaTypeEnum = pgEnum('lembaga_type', [
   'UKM',
   'Kepanitiaan',
   'BSO',
+  'Badan',
+  'Pusat',
+  'Organisasi',
 ]);
 
-export const lembaga = createTable('lembaga', {
-  id: varchar('id', { length: 255 })
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  userId: varchar('user_id', { length: 255 })
-    .references(() => users.id, { onDelete: 'cascade' })
-    .notNull(),
-  name: varchar('name', { length: 255 }).notNull(),
-  acronym: varchar('acronym', { length: 50 }),
-  description: text('description'),
-  foundingDate: timestamp('founding_date', {
-    mode: 'date',
-    withTimezone: true,
+export const lembaga = createTable(
+  'lembaga',
+  {
+    id: varchar('id', { length: 255 })
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // null = lembaga paling atas; jika induk dihapus, anak naik menjadi akar.
+    parentId: varchar('parent_id', { length: 255 }).references(
+      (): AnyPgColumn => lembaga.id,
+      { onDelete: 'set null' },
+    ),
+    userId: varchar('user_id', { length: 255 })
+      .references(() => users.id, { onDelete: 'cascade' })
+      .notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
+    acronym: varchar('acronym', { length: 50 }),
+    description: text('description'),
+    foundingDate: timestamp('founding_date', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    endingDate: timestamp('ending_date', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    type: lembagaTypeEnum('type').notNull().default('Organisasi'),
+    major: varchar('major', { length: 255 }),
+    field: varchar('field', { length: 255 }),
+    memberCount: integer('member_count'),
+    raporVisible: boolean('rapor_visible').notNull().default(false),
+    ...timestamps,
+  },
+  (table) => ({
+    parentIdx: index('lembaga_parent_id_idx').on(table.parentId),
   }),
-  endingDate: timestamp('ending_date', {
-    mode: 'date',
-    withTimezone: true,
-  }),
-  type: lembagaTypeEnum('type'),
-  major: varchar('major', { length: 255 }),
-  field: varchar('field', { length: 255 }),
-  memberCount: integer('member_count'),
-  raporVisible: boolean('rapor_visible').notNull().default(false),
-  ...timestamps,
-});
+);
 
 export const lembagaRelations = relations(lembaga, ({ one, many }) => ({
   users: one(users, {
@@ -249,11 +264,15 @@ export const eventStatusEnum = pgEnum('event_status', [
   'Ended',
 ]);
 
+// Tabel basis data: lembaga_period (sebelumnya event). Nama simbol TypeScript
+// (`events`, `eventId`) sengaja dipertahankan di rilis 1A agar API tidak berubah.
 export const events = createTable(
-  'event',
+  'lembaga_period',
   {
     id: varchar('id', { length: 255 }).primaryKey(),
-    org_id: varchar('org_id', { length: 255 }).references(() => lembaga.id),
+    org_id: varchar('lembaga_id', { length: 255 }).references(() => lembaga.id),
+    // Label periode (mis. "2025/2026"); diisi migrasi, nullable sampai kode menulisnya.
+    label: varchar('label', { length: 255 }),
     name: varchar('name', { length: 255 }).notNull(),
     description: text('description'),
     image: varchar('image', { length: 255 }),
@@ -272,7 +291,7 @@ export const events = createTable(
     ...timestamps,
   },
   (table) => ({
-    uniqueHighlightedPerOrg: uniqueIndex('event_org_highlighted_unique')
+    uniqueHighlightedPerOrg: uniqueIndex('lembaga_period_highlighted_unique')
       .on(table.org_id)
       .where(sql`${table.is_highlighted} = true`),
   }),
@@ -303,7 +322,7 @@ export const keanggotaan = createTable(
   'keanggotaan',
   {
     id: varchar('id', { length: 255 }).primaryKey(),
-    event_id: varchar('event_id', { length: 255 })
+    event_id: varchar('period_id', { length: 255 })
       .references(() => events.id)
       .notNull(),
     user_id: varchar('user_id', { length: 255 })
@@ -324,7 +343,7 @@ export const keanggotaan = createTable(
     ...timestamps,
   },
   (table) => ({
-    uniqueEventUser: uniqueIndex('keanggotaan_event_user_unique').on(
+    uniqueEventUser: uniqueIndex('keanggotaan_period_user_unique').on(
       table.event_id,
       table.user_id,
     ),
@@ -338,7 +357,7 @@ export const keanggotaan = createTable(
 // Association Request Table
 export const associationRequests = createTable('association_request', {
   id: varchar('id', { length: 255 }).primaryKey(),
-  event_id: varchar('event_id', { length: 255 }).references(() => events.id, {
+  event_id: varchar('period_id', { length: 255 }).references(() => events.id, {
     onDelete: 'cascade',
   }),
   user_id: varchar('user_id', { length: 255 }).references(() => users.id, {
@@ -580,7 +599,7 @@ export const organizationStructure = createTable(
       () => lembaga.id,
       { onDelete: 'cascade' },
     ),
-    eventId: varchar('event_id', { length: 255 }).references(() => events.id, {
+    eventId: varchar('period_id', { length: 255 }).references(() => events.id, {
       onDelete: 'cascade',
     }),
     name: varchar('name', { length: 255 }).notNull(),
@@ -595,7 +614,9 @@ export const organizationStructure = createTable(
     )
       .on(table.lembagaId)
       .where(sql`${table.is_active} = true AND ${table.lembagaId} IS NOT NULL`),
-    activeEventUnique: uniqueIndex('organization_structure_active_event_unique')
+    activeEventUnique: uniqueIndex(
+      'organization_structure_active_period_unique',
+    )
       .on(table.eventId)
       .where(sql`${table.is_active} = true AND ${table.eventId} IS NOT NULL`),
   }),
@@ -685,7 +706,7 @@ export const bestStaffKegiatan = createTable('best_staff_kegiatan', {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  eventId: varchar('event_id', { length: 255 })
+  eventId: varchar('period_id', { length: 255 })
     .references(() => events.id, { onDelete: 'cascade' })
     .notNull(),
   mahasiswaId: varchar('mahasiswa_id', { length: 255 })
@@ -811,7 +832,7 @@ export const profilKegiatan = createTable('profil_kegiatan', {
     .notNull()
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  eventId: varchar('event_id', { length: 255 })
+  eventId: varchar('period_id', { length: 255 })
     .references(() => events.id, { onDelete: 'cascade' })
     .notNull(),
   name: varchar('name', { length: 255 }).notNull(),
@@ -1075,10 +1096,9 @@ export const riwayatKepanitiaan = createTable(
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    eventId: varchar('event_id', { length: 255 }).references(
-      () => events.id,
-      { onDelete: 'set null' },
-    ),
+    eventId: varchar('period_id', { length: 255 }).references(() => events.id, {
+      onDelete: 'set null',
+    }),
     eventNama: varchar('event_nama', { length: 255 }).notNull(),
     lembagaId: varchar('lembaga_id', { length: 255 }).references(
       () => lembaga.id,
@@ -1184,7 +1204,7 @@ export const eventAdmin = createTable(
       .notNull()
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    eventId: varchar('event_id', { length: 255 })
+    eventId: varchar('period_id', { length: 255 })
       .notNull()
       .references(() => events.id, { onDelete: 'cascade' }),
     userId: varchar('user_id', { length: 255 })
@@ -1204,7 +1224,7 @@ export const eventAdmin = createTable(
     ...timestamps,
   },
   (table) => ({
-    eventUserUnique: uniqueIndex('event_admin_event_user_unique').on(
+    eventUserUnique: uniqueIndex('event_admin_period_user_unique').on(
       table.eventId,
       table.userId,
     ),
@@ -1258,7 +1278,7 @@ export const form = createTable(
       () => lembaga.id,
       { onDelete: 'cascade' },
     ),
-    eventId: varchar('event_id', { length: 255 }).references(() => events.id, {
+    eventId: varchar('period_id', { length: 255 }).references(() => events.id, {
       onDelete: 'cascade',
     }),
     title: varchar('title', { length: 255 }).notNull(),
@@ -1283,7 +1303,7 @@ export const form = createTable(
   },
   (table) => ({
     lembagaIdx: index('form_lembaga_id_idx').on(table.lembagaId),
-    eventIdx: index('form_event_id_idx').on(table.eventId),
+    eventIdx: index('form_period_id_idx').on(table.eventId),
   }),
 );
 
