@@ -667,6 +667,9 @@ export const organizationStructure = createTable(
     rankLabels: jsonb('rank_labels').$type<Record<string, string>>(),
     // Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah.
     editLocked: boolean('edit_locked').notNull().default(false),
+    // Naik satu setiap penyimpanan pohon; dipakai untuk mendeteksi dua orang yang
+    // mengedit bersamaan (lebih andal daripada membandingkan timestamp).
+    version: integer('version').notNull().default(0),
     lockedBy: varchar('locked_by', { length: 255 }).references(() => users.id, {
       onDelete: 'set null',
     }),
@@ -724,9 +727,9 @@ export const organizationUnit = createTable(
       { onDelete: 'no action' },
     ),
     name: varchar('name', { length: 255 }).notNull(),
-    kind: varchar('kind', { length: 255 })
-      .$type<OrganizationUnitKind>()
-      .notNull(),
+    // Dibuang saat Fase 2D selesai; unit baru memakai `typeLabel` dan kolom ini null.
+    kind: varchar('kind', { length: 255 }).$type<OrganizationUnitKind>(),
+    // Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; diisi editor baru.
     level: integer('level').notNull(),
     sort_order: integer('sort_order').notNull().default(0),
     // Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level`

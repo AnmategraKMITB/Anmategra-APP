@@ -478,7 +478,8 @@ table anmategra_organization_structure {
   is_active boolean [not null, default: true]
   level_labels jsonb [note: "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan."]
   rank_labels jsonb [note: "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}."]
-  edit_locked boolean [not null, default: false, note: "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin."]
+  edit_locked boolean [not null, default: false, note: "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin. Pemilik/admin tidak terpengaruh kunci."]
+  version integer [not null, default: 0, note: "Naik satu setiap penyimpanan pohon; klien mengirim kembali versi yang dibukanya untuk mendeteksi dua orang yang mengedit bersamaan."]
   locked_by varchar(255)
   locked_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
@@ -496,10 +497,10 @@ table anmategra_organization_unit {
   structure_id varchar(255) [not null]
   parent_id varchar(255)
   name varchar(255) [not null]
-  kind varchar(255) [not null]
-  level integer [not null]
+  kind varchar(255) [note: "Peninggalan model lama (Bidang/Divisi/Subdivisi); null untuk unit yang dibuat editor baru. Dibuang di Fase 2D."]
+  level integer [not null, note: "Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; dihitung ulang server saat pohon disimpan."]
   sort_order integer [not null, default: 0]
-  type_label varchar(255) [note: "Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level` dibuang saat router organogram baru menggantikan yang lama."]
+  type_label varchar(255) [note: "Label bebas pengganti `kind`."]
   layout jsonb [note: "Pengaturan tampilan editor (tata letak, tier, sisi)."]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
