@@ -38,16 +38,15 @@
   "anmategra_association_request_lembaga": {
     "note": "Permintaan mahasiswa untuk bergabung langsung ke sebuah lembaga (di luar konteks event tertentu — mis. Himpunan/UKM)."
   },
-  "anmategra_lembaga_admin": {
-    "note": "RO-03. Grant akses kelola lembaga ke akun lain (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka. Owner tetap lembaga.user_id.",
+  "anmategra_access_grant": {
+    "note": "RO-03. Hibah akses ke akun personal (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka; menggantikan lembaga_admin dan event_admin. Scope tepat satu lembaga ATAU satu periode (CHECK access_grant_scope_xor). Owner tetap lembaga.user_id; Owner/Admin lembaga induk otomatis punya akses ke periodenya tanpa baris periode.",
     "columns": {
-      "status": "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
-    }
-  },
-  "anmategra_event_admin": {
-    "note": "RO-03. Grant akses kelola satu kepanitiaan. Owner/Admin lembaga induk otomatis punya akses tanpa baris di sini.",
-    "columns": {
-      "status": "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
+      "propagate": "Hanya bermakna untuk scope lembaga: true = hibah juga menjangkau semua lembaga turunan (lembaga.parent_id) beserta periodenya.",
+      "features": "Kunci fitur yang diberikan. 'admin' = semua kemampuan admin yang ada sekarang.",
+      "can_grant": "Disiapkan untuk pendelegasian ulang; belum dipakai kode.",
+      "parent_grant_id": "Disiapkan untuk pencabutan berantai; belum dipakai kode.",
+      "cascade_revoke": "Disiapkan untuk pencabutan berantai; belum dipakai kode.",
+      "status": "'active' = hibah berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
     }
   },
   "anmategra_riwayat_organisasi": {

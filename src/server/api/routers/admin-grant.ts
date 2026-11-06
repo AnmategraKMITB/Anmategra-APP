@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, isNotNull } from 'drizzle-orm';
 import {
   createTRPCRouter,
   eventScopedProcedure,
@@ -8,10 +8,9 @@ import {
   protectedProcedure,
 } from '~/server/api/trpc';
 import {
-  eventAdmin,
+  accessGrant,
   events,
   lembaga,
-  lembagaAdmin,
   mahasiswa,
   users,
 } from '~/server/db/schema';
@@ -116,25 +115,25 @@ export const adminGrantRouter = createTRPCRouter({
         });
       }
 
-      const existing = await ctx.db.query.lembagaAdmin.findFirst({
+      const existing = await ctx.db.query.accessGrant.findFirst({
         where: and(
-          eq(lembagaAdmin.lembagaId, input.lembagaId),
-          eq(lembagaAdmin.userId, target.id),
+          eq(accessGrant.lembagaId, input.lembagaId),
+          eq(accessGrant.userId, target.id),
         ),
       });
 
       if (existing) {
         await ctx.db
-          .update(lembagaAdmin)
+          .update(accessGrant)
           .set({
             status: 'active',
             grantedBy: ctx.session.user.id,
             revokedAt: null,
             revokedBy: null,
           })
-          .where(eq(lembagaAdmin.id, existing.id));
+          .where(eq(accessGrant.id, existing.id));
       } else {
-        await ctx.db.insert(lembagaAdmin).values({
+        await ctx.db.insert(accessGrant).values({
           lembagaId: input.lembagaId,
           userId: target.id,
           grantedBy: ctx.session.user.id,
@@ -149,7 +148,7 @@ export const adminGrantRouter = createTRPCRouter({
     .output(RevokeLembagaAdminOutputSchema)
     .mutation(async ({ ctx, input }) => {
       await ctx.db
-        .update(lembagaAdmin)
+        .update(accessGrant)
         .set({
           status: 'revoked',
           revokedAt: new Date(),
@@ -157,8 +156,8 @@ export const adminGrantRouter = createTRPCRouter({
         })
         .where(
           and(
-            eq(lembagaAdmin.lembagaId, input.lembagaId),
-            eq(lembagaAdmin.userId, input.userId),
+            eq(accessGrant.lembagaId, input.lembagaId),
+            eq(accessGrant.userId, input.userId),
           ),
         );
 
@@ -169,10 +168,10 @@ export const adminGrantRouter = createTRPCRouter({
     .input(ListLembagaAdminsInputSchema)
     .output(ListLembagaAdminsOutputSchema)
     .query(async ({ ctx, input }) => {
-      const rows = await ctx.db.query.lembagaAdmin.findMany({
+      const rows = await ctx.db.query.accessGrant.findMany({
         where: and(
-          eq(lembagaAdmin.lembagaId, input.lembagaId),
-          eq(lembagaAdmin.status, 'active'),
+          eq(accessGrant.lembagaId, input.lembagaId),
+          eq(accessGrant.status, 'active'),
         ),
       });
 
@@ -222,26 +221,26 @@ export const adminGrantRouter = createTRPCRouter({
         });
       }
 
-      const existing = await ctx.db.query.eventAdmin.findFirst({
+      const existing = await ctx.db.query.accessGrant.findFirst({
         where: and(
-          eq(eventAdmin.eventId, input.eventId),
-          eq(eventAdmin.userId, target.id),
+          eq(accessGrant.periodId, input.eventId),
+          eq(accessGrant.userId, target.id),
         ),
       });
 
       if (existing) {
         await ctx.db
-          .update(eventAdmin)
+          .update(accessGrant)
           .set({
             status: 'active',
             grantedBy: ctx.session.user.id,
             revokedAt: null,
             revokedBy: null,
           })
-          .where(eq(eventAdmin.id, existing.id));
+          .where(eq(accessGrant.id, existing.id));
       } else {
-        await ctx.db.insert(eventAdmin).values({
-          eventId: input.eventId,
+        await ctx.db.insert(accessGrant).values({
+          periodId: input.eventId,
           userId: target.id,
           grantedBy: ctx.session.user.id,
         });
@@ -272,7 +271,7 @@ export const adminGrantRouter = createTRPCRouter({
       }
 
       await ctx.db
-        .update(eventAdmin)
+        .update(accessGrant)
         .set({
           status: 'revoked',
           revokedAt: new Date(),
@@ -280,8 +279,8 @@ export const adminGrantRouter = createTRPCRouter({
         })
         .where(
           and(
-            eq(eventAdmin.eventId, input.eventId),
-            eq(eventAdmin.userId, input.userId),
+            eq(accessGrant.periodId, input.eventId),
+            eq(accessGrant.userId, input.userId),
           ),
         );
 
@@ -292,10 +291,10 @@ export const adminGrantRouter = createTRPCRouter({
     .input(ListEventAdminsInputSchema)
     .output(ListEventAdminsOutputSchema)
     .query(async ({ ctx, input }) => {
-      const rows = await ctx.db.query.eventAdmin.findMany({
+      const rows = await ctx.db.query.accessGrant.findMany({
         where: and(
-          eq(eventAdmin.eventId, input.eventId),
-          eq(eventAdmin.status, 'active'),
+          eq(accessGrant.periodId, input.eventId),
+          eq(accessGrant.status, 'active'),
         ),
       });
 
@@ -340,25 +339,28 @@ export const adminGrantRouter = createTRPCRouter({
         }
       }
 
-      const grants = await ctx.db.query.lembagaAdmin.findMany({
+      const grants = await ctx.db.query.accessGrant.findMany({
         where: and(
-          eq(lembagaAdmin.userId, ctx.session.user.id),
-          eq(lembagaAdmin.status, 'active'),
+          eq(accessGrant.userId, ctx.session.user.id),
+          eq(accessGrant.status, 'active'),
+          isNotNull(accessGrant.lembagaId),
         ),
       });
+      const grantedLembagaIds = grants.flatMap((g) =>
+        g.lembagaId ? [g.lembagaId] : [],
+      );
 
-      if (grants.length > 0) {
+      if (grantedLembagaIds.length > 0) {
         const lembagaRows = await ctx.db.query.lembaga.findMany({
-          where: inArray(
-            lembaga.id,
-            grants.map((g) => g.lembagaId),
-          ),
+          where: inArray(lembaga.id, grantedLembagaIds),
           columns: { id: true, name: true },
         });
         const lembagaById = new Map(lembagaRows.map((l) => [l.id, l]));
 
         for (const grant of grants) {
-          const lembagaRow = lembagaById.get(grant.lembagaId);
+          const lembagaRow = grant.lembagaId
+            ? lembagaById.get(grant.lembagaId)
+            : undefined;
           if (!lembagaRow) continue;
           result.push({
             lembagaId: lembagaRow.id,
@@ -374,26 +376,27 @@ export const adminGrantRouter = createTRPCRouter({
   getMyManagedEvents: protectedProcedure
     .output(GetMyManagedEventsOutputSchema)
     .query(async ({ ctx }) => {
-      const grants = await ctx.db.query.eventAdmin.findMany({
+      const grants = await ctx.db.query.accessGrant.findMany({
         where: and(
-          eq(eventAdmin.userId, ctx.session.user.id),
-          eq(eventAdmin.status, 'active'),
+          eq(accessGrant.userId, ctx.session.user.id),
+          eq(accessGrant.status, 'active'),
+          isNotNull(accessGrant.periodId),
         ),
       });
+      const grantedPeriodIds = grants.flatMap((g) =>
+        g.periodId ? [g.periodId] : [],
+      );
 
-      if (grants.length === 0) return [];
+      if (grantedPeriodIds.length === 0) return [];
 
       const eventRows = await ctx.db.query.events.findMany({
-        where: inArray(
-          events.id,
-          grants.map((g) => g.eventId),
-        ),
+        where: inArray(events.id, grantedPeriodIds),
         columns: { id: true, name: true, org_id: true },
       });
       const eventById = new Map(eventRows.map((e) => [e.id, e]));
 
       return grants
-        .map((grant) => eventById.get(grant.eventId))
+        .map((grant) => (grant.periodId ? eventById.get(grant.periodId) : undefined))
         .filter((event): event is NonNullable<typeof event> => Boolean(event))
         .map((event) => ({
           eventId: event.id,

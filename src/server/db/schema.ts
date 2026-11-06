@@ -68,8 +68,6 @@ export const usersRelations = relations(users, ({ many }) => ({
   lembaga: many(lembaga),
   riwayatOrganisasi: many(riwayatOrganisasi),
   riwayatKepanitiaan: many(riwayatKepanitiaan),
-  lembagaAdminGrants: many(lembagaAdmin),
-  eventAdminGrants: many(eventAdmin),
 }));
 
 export const accounts = createTable(
@@ -255,7 +253,6 @@ export const lembagaRelations = relations(lembaga, ({ one, many }) => ({
   profilLembaga: many(profilLembaga),
   organizationStructures: many(organizationStructure),
   riwayatOrganisasi: many(riwayatOrganisasi),
-  lembagaAdmins: many(lembagaAdmin),
 }));
 
 export const eventStatusEnum = pgEnum('event_status', [
@@ -308,7 +305,6 @@ export const eventsRelations = relations(events, ({ many, one }) => ({
   profilKegiatan: many(profilKegiatan),
   organizationStructures: many(organizationStructure),
   riwayatKepanitiaan: many(riwayatKepanitiaan),
-  eventAdmins: many(eventAdmin),
 }));
 
 // Enum for association request status
@@ -1211,23 +1207,47 @@ export const adminGrantStatusEnum = pgEnum('admin_grant_status', [
   'revoked',
 ]);
 
-export const lembagaAdmin = createTable(
-  'lembaga_admin',
+// Hibah akses menggantikan lembaga_admin dan event_admin (migrasi 0031).
+// Scope: satu lembaga ATAU satu periode (CHECK access_grant_scope_xor ditulis
+// tangan di migrasi, drizzle-kit tidak bisa membuatnya). `propagate` hanya
+// berarti untuk scope lembaga: true = menjangkau semua lembaga turunan lewat
+// lembaga.parent_id. `features` berisi kunci fitur; 'admin' = semua kemampuan
+// admin yang ada sekarang. `can_grant`, `parent_grant_id`, `cascade_revoke`
+// disiapkan untuk pendelegasian ulang dan belum dipakai kode.
+export const accessGrant = createTable(
+  'access_grant',
   {
     id: varchar('id', { length: 255 })
       .notNull()
       .primaryKey()
       .$defaultFn(() => crypto.randomUUID()),
-    lembagaId: varchar('lembaga_id', { length: 255 })
-      .notNull()
-      .references(() => lembaga.id, { onDelete: 'cascade' }),
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    grantedBy: varchar('granted_by', { length: 255 })
+    lembagaId: varchar('lembaga_id', { length: 255 }).references(
+      () => lembaga.id,
+      { onDelete: 'cascade' },
+    ),
+    periodId: varchar('period_id', { length: 255 }).references(
+      () => events.id,
+      { onDelete: 'cascade' },
+    ),
+    propagate: boolean('propagate').notNull().default(false),
+    features: text('features')
+      .array()
       .notNull()
-      .references(() => users.id),
+      .default(sql`ARRAY['admin']::text[]`),
+    canGrant: boolean('can_grant').notNull().default(false),
+    parentGrantId: varchar('parent_grant_id', { length: 255 }).references(
+      (): AnyPgColumn => accessGrant.id,
+      { onDelete: 'set null' },
+    ),
+    cascadeRevoke: boolean('cascade_revoke').notNull().default(false),
     status: adminGrantStatusEnum('status').notNull().default('active'),
+    // Nullable: hibah hasil migrasi tidak punya pemberi.
+    grantedBy: varchar('granted_by', { length: 255 }).references(
+      () => users.id,
+    ),
     revokedAt: timestamp('revoked_at', {
       mode: 'date',
       withTimezone: true,
@@ -1238,68 +1258,32 @@ export const lembagaAdmin = createTable(
     ...timestamps,
   },
   (table) => ({
-    lembagaUserUnique: uniqueIndex('lembaga_admin_lembaga_user_unique').on(
-      table.lembagaId,
-      table.userId,
-    ),
-    userIdIdx: index('lembaga_admin_user_id_idx').on(table.userId),
+    userIdx: index('access_grant_user_idx').on(table.userId),
+    lembagaIdx: index('access_grant_lembaga_idx').on(table.lembagaId),
+    periodIdx: index('access_grant_period_idx').on(table.periodId),
+    parentIdx: index('access_grant_parent_idx').on(table.parentGrantId),
+    // Satu hibah per (penerima, scope); mencabut lalu memberi lagi memakai ulang barisnya.
+    lembagaUserUnique: uniqueIndex('access_grant_lembaga_user_unique')
+      .on(table.lembagaId, table.userId)
+      .where(sql`${table.lembagaId} IS NOT NULL`),
+    periodUserUnique: uniqueIndex('access_grant_period_user_unique')
+      .on(table.periodId, table.userId)
+      .where(sql`${table.periodId} IS NOT NULL`),
   }),
 );
 
-export const lembagaAdminRelations = relations(lembagaAdmin, ({ one }) => ({
+export const accessGrantRelations = relations(accessGrant, ({ one }) => ({
+  user: one(users, {
+    fields: [accessGrant.userId],
+    references: [users.id],
+  }),
   lembaga: one(lembaga, {
-    fields: [lembagaAdmin.lembagaId],
+    fields: [accessGrant.lembagaId],
     references: [lembaga.id],
   }),
-  user: one(users, {
-    fields: [lembagaAdmin.userId],
-    references: [users.id],
-  }),
-}));
-
-export const eventAdmin = createTable(
-  'event_admin',
-  {
-    id: varchar('id', { length: 255 })
-      .notNull()
-      .primaryKey()
-      .$defaultFn(() => crypto.randomUUID()),
-    eventId: varchar('period_id', { length: 255 })
-      .notNull()
-      .references(() => events.id, { onDelete: 'cascade' }),
-    userId: varchar('user_id', { length: 255 })
-      .notNull()
-      .references(() => users.id, { onDelete: 'cascade' }),
-    grantedBy: varchar('granted_by', { length: 255 })
-      .notNull()
-      .references(() => users.id),
-    status: adminGrantStatusEnum('status').notNull().default('active'),
-    revokedAt: timestamp('revoked_at', {
-      mode: 'date',
-      withTimezone: true,
-    }),
-    revokedBy: varchar('revoked_by', { length: 255 }).references(
-      () => users.id,
-    ),
-    ...timestamps,
-  },
-  (table) => ({
-    eventUserUnique: uniqueIndex('event_admin_period_user_unique').on(
-      table.eventId,
-      table.userId,
-    ),
-    userIdIdx: index('event_admin_user_id_idx').on(table.userId),
-  }),
-);
-
-export const eventAdminRelations = relations(eventAdmin, ({ one }) => ({
-  event: one(events, {
-    fields: [eventAdmin.eventId],
+  period: one(events, {
+    fields: [accessGrant.periodId],
     references: [events.id],
-  }),
-  user: one(users, {
-    fields: [eventAdmin.userId],
-    references: [users.id],
   }),
 }));
 
