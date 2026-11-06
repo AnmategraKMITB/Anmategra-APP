@@ -40,7 +40,12 @@ export const profileRouter = createTRPCRouter({
             .where(eq(users.id, input.mahasiswaId))
             .limit(1),
           ctx.db
-            .select()
+            .select({
+              event: events,
+              keanggotaan,
+              lembaga,
+              user: users,
+            })
             .from(events)
             .innerJoin(keanggotaan, eq(events.id, keanggotaan.event_id))
             .innerJoin(lembaga, eq(events.org_id, lembaga.id))

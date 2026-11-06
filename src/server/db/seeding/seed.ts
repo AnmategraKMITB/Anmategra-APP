@@ -179,7 +179,8 @@ async function importLembaga() {
       description: record.description ?? null,
       foundingDate: parseDate(record.founding_date) ?? new Date(),
       endingDate: parseDate(record.ending_date),
-      type: record.type as 'Himpunan' | 'UKM' | 'Kepanitiaan' | null,
+      type: ((record.type === '' ? undefined : record.type) ??
+        'Organisasi') as NonNullable<typeof lembaga.$inferInsert.type>,
       major: record.major ?? null,
       field: record.field ?? null,
       memberCount: parseInteger(record.member_count),
