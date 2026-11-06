@@ -30,6 +30,17 @@ enum mahasiswa_status {
   alumni
 }
 
+enum membership_source {
+  import
+  manual
+  kaderisasi
+}
+
+enum membership_status {
+  aktif
+  keluar
+}
+
 enum notification_type {
   "Association Request"
   System
@@ -354,6 +365,27 @@ table anmategra_lembaga_admin {
   Note: "RO-03. Grant akses kelola lembaga ke akun lain (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka. Owner tetap lembaga.user_id."
 }
 
+table anmategra_lembaga_membership {
+  id varchar(255) [pk, not null]
+  lembaga_id varchar(255) [not null]
+  user_id varchar(255) [not null]
+  cohort_year integer
+  cohort_label varchar(255)
+  status membership_status [not null, default: 'aktif']
+  source membership_source [not null]
+  joined_at "timestamp with time zone"
+  ended_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    lembaga_id [name: 'lembaga_membership_lembaga_idx']
+    user_id [name: 'lembaga_membership_user_idx']
+    (lembaga_id, user_id) [name: 'lembaga_membership_active_unique', unique]
+  }
+  Note: "Keanggotaan jangka panjang seseorang di sebuah lembaga (terpisah dari jabatan per periode). Sementara dijaga sinkron dari `kehimpunan` lewat trigger basis data."
+}
+
 table anmategra_mahasiswa {
   user_id varchar(255) [pk, not null]
   nim integer [not null]
@@ -655,6 +687,10 @@ ref: anmategra_kehimpunan.lembaga_id - anmategra_lembaga.id
 ref: anmategra_lembaga_admin.lembaga_id > anmategra_lembaga.id
 
 ref: anmategra_lembaga_admin.user_id > anmategra_user.id
+
+ref: anmategra_lembaga_membership.user_id - anmategra_user.id
+
+ref: anmategra_lembaga_membership.lembaga_id - anmategra_lembaga.id
 
 ref: anmategra_lembaga.user_id > anmategra_user.id
 

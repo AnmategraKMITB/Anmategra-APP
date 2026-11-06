@@ -587,6 +587,66 @@ export const kehimpunanRelations = relations(kehimpunan, ({ one }) => ({
   }),
 }));
 
+// Keanggotaan lembaga jangka panjang (terpisah dari jabatan per periode).
+// Sementara diisi dari `kehimpunan` lewat trigger basis data (migrasi 0030);
+// trigger dibuang saat `kehimpunan` digantikan oleh placement.
+export const membershipStatusEnum = pgEnum('membership_status', [
+  'aktif',
+  'keluar',
+]);
+
+export const membershipSourceEnum = pgEnum('membership_source', [
+  'import',
+  'manual',
+  'kaderisasi',
+]);
+
+export const lembagaMembership = createTable(
+  'lembaga_membership',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    lembagaId: varchar('lembaga_id', { length: 255 })
+      .notNull()
+      .references(() => lembaga.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Angkatan masuk lembaga; bisa berbeda dari angkatan kuliah.
+    cohortYear: integer('cohort_year'),
+    cohortLabel: varchar('cohort_label', { length: 255 }),
+    status: membershipStatusEnum('status').notNull().default('aktif'),
+    source: membershipSourceEnum('source').notNull(),
+    joinedAt: timestamp('joined_at', { mode: 'date', withTimezone: true }),
+    endedAt: timestamp('ended_at', { mode: 'date', withTimezone: true }),
+    ...timestamps,
+  },
+  (table) => ({
+    lembagaIdx: index('lembaga_membership_lembaga_idx').on(table.lembagaId),
+    userIdx: index('lembaga_membership_user_idx').on(table.userId),
+    // Paling banyak satu keanggotaan aktif per (lembaga, user).
+    activeUnique: uniqueIndex('lembaga_membership_active_unique')
+      .on(table.lembagaId, table.userId)
+      .where(sql`${table.status} = 'aktif'`),
+  }),
+);
+
+export const lembagaMembershipRelations = relations(
+  lembagaMembership,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [lembagaMembership.userId],
+      references: [users.id],
+    }),
+    lembaga: one(lembaga, {
+      fields: [lembagaMembership.lembagaId],
+      references: [lembaga.id],
+    }),
+  }),
+);
+
 // Organization Structure
 export const organizationStructure = createTable(
   'organization_structure',

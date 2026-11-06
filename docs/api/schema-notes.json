@@ -23,6 +23,9 @@
   "anmategra_lembaga_period": {
     "note": "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."
   },
+  "anmategra_lembaga_membership": {
+    "note": "Keanggotaan jangka panjang seseorang di sebuah lembaga (terpisah dari jabatan per periode). Sementara dijaga sinkron dari `kehimpunan` lewat trigger basis data."
+  },
   "anmategra_keanggotaan": {
     "note": "Membership mahasiswa dalam sebuah event/kepanitiaan (posisi struktural)."
   },
