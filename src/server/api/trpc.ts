@@ -7,12 +7,12 @@
  * need to use are documented accordingly near the end.
  */
 import { TRPCError, initTRPC } from '@trpc/server';
-import { and, eq } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { eventAdmin, events, form, lembagaAdmin } from '~/server/db/schema';
+import { form } from '~/server/db/schema';
 
 /**
  * 1. CONTEXT
@@ -239,17 +239,14 @@ export const lembagaProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(isLembaga);
 
-/**
- * RO-03: Owner/Admin Lembaga & Kepanitiaan.
- *
- * Owner Lembaga tetap akun `role==='lembaga'` yang memiliki lembaga tsb
- * (dicek via `session.user.lembagaId`). Admin Lembaga adalah akun lain
- * (biasanya `role==='mahasiswa'`) yang di-grant akses lewat tabel
- * `lembagaAdmin` tanpa mengubah role top-level mereka — makanya
- * permission check ini di-scope oleh `lembagaId` yang ada di *input*
- * procedure, bukan cuma dari JWT.
- */
-type LembagaAccess = 'owner' | 'admin';
+// Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
+// tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
+import {
+  canManageEvent,
+  canManageLembaga,
+  type LembagaAccess,
+} from './access';
+export { canManageEvent, canManageLembaga, type LembagaAccess };
 
 /**
  * Id dari input mentah sebuah scoped procedure.
@@ -264,65 +261,6 @@ function rawId(value: unknown): string | undefined {
   if (value.length === 0 || value.length > 255) return undefined;
   if (value.includes('\u0000')) return undefined;
   return value;
-}
-
-export async function canManageLembaga(
-  database: typeof db,
-  userId: string,
-  role: string,
-  sessionLembagaId: string | null | undefined,
-  lembagaId: string,
-): Promise<LembagaAccess | null> {
-  if (role === 'lembaga' && sessionLembagaId === lembagaId) {
-    return 'owner';
-  }
-  const grant = await database.query.lembagaAdmin.findFirst({
-    where: and(
-      eq(lembagaAdmin.lembagaId, lembagaId),
-      eq(lembagaAdmin.userId, userId),
-      eq(lembagaAdmin.status, 'active'),
-    ),
-  });
-  return grant ? 'admin' : null;
-}
-
-/**
- * Kepanitiaan (event) tidak punya Owner sendiri — Owner Lembaga induknya
- * otomatis jadi Owner Kepanitiaan. Admin Kepanitiaan bisa di-grant scoped
- * ke 1 event lewat tabel `eventAdmin`, terpisah dari Admin Lembaga.
- */
-export async function canManageEvent(
-  database: typeof db,
-  userId: string,
-  role: string,
-  sessionLembagaId: string | null | undefined,
-  eventId: string,
-): Promise<LembagaAccess | null> {
-  const event = await database.query.events.findFirst({
-    where: eq(events.id, eventId),
-    columns: { id: true, org_id: true },
-  });
-  if (!event) return null;
-
-  if (event.org_id) {
-    const lembagaAccess = await canManageLembaga(
-      database,
-      userId,
-      role,
-      sessionLembagaId,
-      event.org_id,
-    );
-    if (lembagaAccess) return lembagaAccess;
-  }
-
-  const grant = await database.query.eventAdmin.findFirst({
-    where: and(
-      eq(eventAdmin.eventId, eventId),
-      eq(eventAdmin.userId, userId),
-      eq(eventAdmin.status, 'active'),
-    ),
-  });
-  return grant ? 'admin' : null;
 }
 
 /**

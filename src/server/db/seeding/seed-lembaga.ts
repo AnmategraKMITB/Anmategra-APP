@@ -52,7 +52,15 @@ const CSV_PATH =
     'lembaga-official.csv',
   );
 
-const LEMBAGA_TYPES = ['Himpunan', 'UKM', 'Kepanitiaan', 'BSO'] as const;
+const LEMBAGA_TYPES = [
+  'Himpunan',
+  'UKM',
+  'Kepanitiaan',
+  'BSO',
+  'Badan',
+  'Pusat',
+  'Organisasi',
+] as const;
 type LembagaType = (typeof LEMBAGA_TYPES)[number];
 
 interface Row {
@@ -62,7 +70,7 @@ interface Row {
   description: string | null;
   foundingDate: Date | null;
   endingDate: Date | null;
-  type: LembagaType | null;
+  type: LembagaType;
   major: string | null;
   field: string | null;
   memberCount: number | null;
@@ -115,7 +123,7 @@ function readCsv(): Row[] {
       endingDate: parseDate(rec.ending_date),
       type: LEMBAGA_TYPES.includes(rawType as LembagaType)
         ? (rawType as LembagaType)
-        : null,
+        : 'Organisasi',
       major: rec.major || null,
       field: rec.field || null,
       memberCount:

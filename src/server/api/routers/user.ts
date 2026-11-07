@@ -11,14 +11,20 @@ import {
   associationRequests,
   associationRequestsLembaga,
   events,
-  keanggotaan,
-  kehimpunan,
   lembaga,
   mahasiswa,
   support,
   users,
 } from '~/server/db/schema';
 
+import {
+  currentLembagaPeriodId,
+  lembagaMemberIds,
+  lembagaMembersSq,
+  periodMemberIds,
+  periodMembersSq,
+  periodTextOptions,
+} from './organization/membership';
 import {
   ToggleRaporVisibilityMahasiswaInputSchema,
   ToggleRaporVisibilityOutputSchema,
@@ -68,22 +74,14 @@ export const userRouter = createTRPCRouter({
     .output(GetTambahAnggotaLembagaOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
       const [mahasiswa_hide_list, lembaga_list] = await Promise.all([
-        ctx.db.query.kehimpunan.findMany({
-          where: (kehimpunan, { eq }) =>
-            eq(kehimpunan.lembagaId, input.lembagaId),
-          columns: {
-            userId: true,
-          },
-        }),
+        lembagaMemberIds(ctx.db, input.lembagaId),
         ctx.db.query.lembaga.findMany({
           columns: {
             userId: true,
           },
         }),
       ]);
-      const mahasiswa_hide_list_id = mahasiswa_hide_list.map(
-        (item) => item.userId,
-      );
+      const mahasiswa_hide_list_id = mahasiswa_hide_list;
       const lembaga_list_id = lembaga_list.map((item) => item.userId);
       const hide_list_id = mahasiswa_hide_list_id.concat(lembaga_list_id);
 
@@ -105,14 +103,9 @@ export const userRouter = createTRPCRouter({
           },
           orderBy: (mahasiswa, { asc }) => asc(mahasiswa.userId),
         }),
-        ctx.db.query.kehimpunan.findMany({
-          where: (kehimpunan, { eq }) =>
-            eq(kehimpunan.lembagaId, input.lembagaId),
-          columns: {
-            position: true,
-            division: true,
-          },
-        }),
+        currentLembagaPeriodId(ctx.db, input.lembagaId).then((periodId) =>
+          periodTextOptions(ctx.db, periodId),
+        ),
       ]);
 
       const formattedMahasiswaList = mahasiswa_list.map((item) => ({
@@ -128,20 +121,13 @@ export const userRouter = createTRPCRouter({
             : '',
       }));
 
-      const uniquePosisi = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.position)),
-      );
-      const posisi_list = uniquePosisi.map((position) => ({
+      const posisi_list = list_posisi_bidang.positions.map((position) => ({
         value: position,
-        label: position ?? '',
+        label: position,
       }));
-
-      const uniqueBidang = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.division)),
-      );
-      const bidang_list = uniqueBidang.map((division) => ({
+      const bidang_list = list_posisi_bidang.divisions.map((division) => ({
         value: division,
-        label: division ?? '',
+        label: division,
       }));
 
       return {
@@ -171,29 +157,18 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
-      const list_posisi_bidang = await ctx.db.query.keanggotaan.findMany({
-        where: (keanggotaan, { eq }) =>
-          eq(keanggotaan.event_id, input.kegiatanId),
-        columns: {
-          position: true,
-          division: true,
-        },
-      });
-
-      const uniquePosisi = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.position)),
+      const list_posisi_bidang = await periodTextOptions(
+        ctx.db,
+        input.kegiatanId,
       );
-      const posisi_list = uniquePosisi.map((position) => ({
+
+      const posisi_list = list_posisi_bidang.positions.map((position) => ({
         value: position,
-        label: position ?? '',
+        label: position,
       }));
-
-      const uniqueBidang = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.division)),
-      );
-      const bidang_list = uniqueBidang.map((division) => ({
+      const bidang_list = list_posisi_bidang.divisions.map((division) => ({
         value: division,
-        label: division ?? '',
+        label: division,
       }));
 
       return {
@@ -212,23 +187,12 @@ export const userRouter = createTRPCRouter({
       let mahasiswa_hide_list_id: string[] = [];
 
       if (input.isKegiatan && input.eventId) {
-        const keanggotaanList = await ctx.db.query.keanggotaan.findMany({
-          where: (keanggotaan, { eq }) =>
-            eq(keanggotaan.event_id, input.eventId!),
-          columns: {
-            user_id: true,
-          },
-        });
-        mahasiswa_hide_list_id = keanggotaanList.map((item) => item.user_id);
+        mahasiswa_hide_list_id = await periodMemberIds(ctx.db, input.eventId);
       } else if (!input.isKegiatan && input.lembagaId) {
-        const kehimpunanList = await ctx.db.query.kehimpunan.findMany({
-          where: (kehimpunan, { eq }) =>
-            eq(kehimpunan.lembagaId, input.lembagaId!),
-          columns: {
-            userId: true,
-          },
-        });
-        mahasiswa_hide_list_id = kehimpunanList.map((item) => item.userId);
+        mahasiswa_hide_list_id = await lembagaMemberIds(
+          ctx.db,
+          input.lembagaId,
+        );
       }
 
       // Also exclude lembaga users
@@ -641,23 +605,19 @@ export const userRouter = createTRPCRouter({
     .input(GetAnggotaByIdInputSchema)
     .output(GetAnggotaOutputSchema)
     .query(async ({ ctx, input }) => {
+      const members = await lembagaMembersSq(ctx.db, input.lembagaId);
       const anggota = await ctx.db
         .select({
           id: users.id,
           nama: users.name,
           nim: mahasiswa.nim,
-          divisi: kehimpunan.division,
-          posisi: kehimpunan.position,
+          divisi: members.division,
+          posisi: members.position,
         })
-        .from(kehimpunan)
-        .innerJoin(users, eq(kehimpunan.userId, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
-        .where(
-          and(
-            eq(kehimpunan.lembagaId, input.lembagaId),
-            eq(users.id, input.userId),
-          ),
-        )
+        .where(eq(users.id, input.userId))
         .limit(1);
 
       if (anggota.length === 0 || !anggota[0]) {
@@ -682,23 +642,19 @@ export const userRouter = createTRPCRouter({
     .input(GetAnggotaByNameInputSchema)
     .output(GetAnggotaOutputSchema)
     .query(async ({ ctx, input }) => {
+      const members = await lembagaMembersSq(ctx.db, input.lembagaId);
       const anggota = await ctx.db
         .select({
           id: users.id,
           nama: users.name,
           nim: mahasiswa.nim,
-          divisi: kehimpunan.division,
-          posisi: kehimpunan.position,
+          divisi: members.division,
+          posisi: members.position,
         })
-        .from(kehimpunan)
-        .innerJoin(users, eq(kehimpunan.userId, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
-        .where(
-          and(
-            eq(kehimpunan.lembagaId, input.lembagaId),
-            eq(users.name, input.name),
-          ),
-        )
+        .where(eq(users.name, input.name))
         .limit(1);
 
       if (anggota.length === 0 || !anggota[0]) {
@@ -723,23 +679,19 @@ export const userRouter = createTRPCRouter({
     .input(GetPanitiaByIdInputSchema)
     .output(GetPanitiaOutputSchema)
     .query(async ({ ctx, input }) => {
+      const members = periodMembersSq(ctx.db, input.kegiatanId);
       const panitia = await ctx.db
         .select({
           id: users.id,
           nama: users.name,
           nim: mahasiswa.nim,
-          divisi: keanggotaan.division,
-          posisi: keanggotaan.position,
+          divisi: members.division,
+          posisi: members.position,
         })
-        .from(keanggotaan)
-        .innerJoin(users, eq(keanggotaan.user_id, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
-        .where(
-          and(
-            eq(keanggotaan.event_id, input.kegiatanId),
-            eq(users.id, input.userId),
-          ),
-        )
+        .where(eq(users.id, input.userId))
         .limit(1);
 
       if (panitia.length === 0 || !panitia[0]) {
@@ -764,23 +716,19 @@ export const userRouter = createTRPCRouter({
     .input(GetPanitiaByNameInputSchema)
     .output(GetPanitiaOutputSchema)
     .query(async ({ ctx, input }) => {
+      const members = periodMembersSq(ctx.db, input.kegiatanId);
       const panitia = await ctx.db
         .select({
           id: users.id,
           nama: users.name,
           nim: mahasiswa.nim,
-          divisi: keanggotaan.division,
-          posisi: keanggotaan.position,
+          divisi: members.division,
+          posisi: members.position,
         })
-        .from(keanggotaan)
-        .innerJoin(users, eq(keanggotaan.user_id, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
-        .where(
-          and(
-            eq(keanggotaan.event_id, input.kegiatanId),
-            eq(users.name, input.name),
-          ),
-        )
+        .where(eq(users.name, input.name))
         .limit(1);
 
       if (panitia.length === 0 || !panitia[0]) {

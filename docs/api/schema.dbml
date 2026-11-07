@@ -20,6 +20,9 @@ enum lembaga_type {
   UKM
   Kepanitiaan
   BSO
+  Badan
+  Pusat
+  Organisasi
 }
 
 enum mahasiswa_status {
@@ -27,9 +30,27 @@ enum mahasiswa_status {
   alumni
 }
 
+enum membership_source {
+  import
+  manual
+  kaderisasi
+}
+
+enum membership_status {
+  aktif
+  keluar
+}
+
 enum notification_type {
   "Association Request"
   System
+}
+
+enum placement_source {
+  oprec
+  closerec
+  manual
+  import
 }
 
 enum riwayat_end_reason {
@@ -57,6 +78,34 @@ enum support_urgent {
   Low
   Medium
   High
+}
+
+table anmategra_access_grant {
+  id varchar(255) [pk, not null]
+  user_id varchar(255) [not null]
+  lembaga_id varchar(255)
+  period_id varchar(255)
+  propagate boolean [not null, default: false, note: "Hanya bermakna untuk scope lembaga: true = hibah juga menjangkau semua lembaga turunan (lembaga.parent_id) beserta periodenya."]
+  features text[] [not null, default: `ARRAY['admin']::text[]`, note: "Kunci fitur yang diberikan. 'admin' = semua kemampuan admin yang ada sekarang."]
+  can_grant boolean [not null, default: false, note: "Disiapkan untuk pendelegasian ulang; belum dipakai kode."]
+  parent_grant_id varchar(255) [note: "Disiapkan untuk pencabutan berantai; belum dipakai kode."]
+  cascade_revoke boolean [not null, default: false, note: "Disiapkan untuk pencabutan berantai; belum dipakai kode."]
+  status admin_grant_status [not null, default: 'active', note: "'active' = hibah berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."]
+  granted_by varchar(255)
+  revoked_at "timestamp with time zone"
+  revoked_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'access_grant_user_idx']
+    lembaga_id [name: 'access_grant_lembaga_idx']
+    period_id [name: 'access_grant_period_idx']
+    parent_grant_id [name: 'access_grant_parent_idx']
+    (lembaga_id, user_id) [name: 'access_grant_lembaga_user_unique', unique]
+    (period_id, user_id) [name: 'access_grant_period_user_unique', unique]
+  }
+  Note: "RO-03. Hibah akses ke akun personal (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka; menggantikan lembaga_admin dan event_admin. Scope tepat satu lembaga ATAU satu periode (CHECK access_grant_scope_xor). Owner tetap lembaga.user_id; Owner/Admin lembaga induk otomatis punya akses ke periodenya tanpa baris periode."
 }
 
 table anmategra_account {
@@ -95,7 +144,7 @@ table anmategra_alumni_pending {
 
 table anmategra_association_request {
   id varchar(255) [pk, not null]
-  event_id varchar(255)
+  period_id varchar(255)
   user_id varchar(255)
   org_unit_id varchar(255)
   org_role_id varchar(255)
@@ -123,7 +172,7 @@ table anmategra_association_request_lembaga {
 
 table anmategra_best_staff_kegiatan {
   id varchar(255) [pk, not null]
-  event_id varchar(255) [not null]
+  period_id varchar(255) [not null]
   mahasiswa_id varchar(255) [not null]
   division varchar(255) [not null]
   start_date "timestamp with time zone" [not null]
@@ -141,27 +190,11 @@ table anmategra_best_staff_lembaga {
   Note: "Penghargaan \"best staff\" untuk mahasiswa pada suatu lembaga."
 }
 
-table anmategra_event_admin {
+table anmategra_lembaga_period {
   id varchar(255) [pk, not null]
-  event_id varchar(255) [not null]
-  user_id varchar(255) [not null]
-  granted_by varchar(255) [not null]
-  status admin_grant_status [not null, default: 'active', note: "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."]
-  revoked_at "timestamp with time zone"
-  revoked_by varchar(255)
-  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
-  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
-
-  indexes {
-    (event_id, user_id) [name: 'event_admin_event_user_unique', unique]
-    user_id [name: 'event_admin_user_id_idx']
-  }
-  Note: "RO-03. Grant akses kelola satu kepanitiaan. Owner/Admin lembaga induk otomatis punya akses tanpa baris di sini."
-}
-
-table anmategra_event {
-  id varchar(255) [pk, not null]
-  org_id varchar(255)
+  lembaga_id varchar(255)
+  kind varchar(32) [not null, default: 'kegiatan']
+  label varchar(255)
   name varchar(255) [not null]
   description text
   image varchar(255)
@@ -181,15 +214,15 @@ table anmategra_event {
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    org_id [name: 'event_org_highlighted_unique', unique]
+    lembaga_id [name: 'lembaga_period_highlighted_unique', unique]
   }
-  Note: "Kegiatan/acara yang diselenggarakan oleh sebuah lembaga."
+  Note: "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."
 }
 
 table anmategra_form {
   id varchar(255) [pk, not null]
   lembaga_id varchar(255)
-  event_id varchar(255)
+  period_id varchar(255)
   title varchar(255) [not null]
   description text
   status varchar(16) [not null, default: 'Draft', note: "Draft | Published | Closed (CHECK `form_status_check`)."]
@@ -202,7 +235,7 @@ table anmategra_form {
 
   indexes {
     lembaga_id [name: 'form_lembaga_id_idx']
-    event_id [name: 'form_event_id_idx']
+    period_id [name: 'form_period_id_idx']
   }
   Note: "Formulir dinamis (#210), mis. open recruitment. Dimiliki tepat satu lembaga ATAU satu event (CHECK `form_owner_xor`, ditulis tangan di migrasi 0027)."
 }
@@ -270,7 +303,7 @@ table anmategra_form_submission {
 
 table anmategra_keanggotaan {
   id varchar(255) [pk, not null]
-  event_id varchar(255) [not null]
+  period_id varchar(255) [not null]
   user_id varchar(255) [not null]
   org_unit_id varchar(255)
   org_role_id varchar(255)
@@ -282,7 +315,7 @@ table anmategra_keanggotaan {
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    (event_id, user_id) [name: 'keanggotaan_event_user_unique', unique]
+    (period_id, user_id) [name: 'keanggotaan_period_user_unique', unique]
     org_unit_id [name: 'keanggotaan_org_unit_idx']
     org_role_id [name: 'keanggotaan_org_role_idx']
   }
@@ -311,38 +344,46 @@ table anmategra_kehimpunan {
 
 table anmategra_lembaga {
   id varchar(255) [pk, not null]
+  parent_id varchar(255)
   user_id varchar(255) [not null]
   name varchar(255) [not null]
   acronym varchar(50)
   description text
   founding_date "timestamp with time zone"
   ending_date "timestamp with time zone"
-  type lembaga_type
+  type lembaga_type [not null, default: 'Organisasi']
   major varchar(255)
   field varchar(255)
   member_count integer
   rapor_visible boolean [not null, default: false]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
-  Note: "Organisasi/institusi (Himpunan, UKM, atau Kepanitiaan/event-organizer)."
+
+  indexes {
+    parent_id [name: 'lembaga_parent_id_idx']
+  }
+  Note: "Organisasi/institusi (Himpunan, UKM, Kepanitiaan, BSO, Badan, Pusat, atau Organisasi umum). Berbentuk pohon lewat `parent_id`."
 }
 
-table anmategra_lembaga_admin {
+table anmategra_lembaga_membership {
   id varchar(255) [pk, not null]
   lembaga_id varchar(255) [not null]
   user_id varchar(255) [not null]
-  granted_by varchar(255) [not null]
-  status admin_grant_status [not null, default: 'active', note: "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."]
-  revoked_at "timestamp with time zone"
-  revoked_by varchar(255)
+  cohort_year integer
+  cohort_label varchar(255)
+  status membership_status [not null, default: 'aktif']
+  source membership_source [not null]
+  joined_at "timestamp with time zone"
+  ended_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    (lembaga_id, user_id) [name: 'lembaga_admin_lembaga_user_unique', unique]
-    user_id [name: 'lembaga_admin_user_id_idx']
+    lembaga_id [name: 'lembaga_membership_lembaga_idx']
+    user_id [name: 'lembaga_membership_user_idx']
+    (lembaga_id, user_id) [name: 'lembaga_membership_active_unique', unique]
   }
-  Note: "RO-03. Grant akses kelola lembaga ke akun lain (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka. Owner tetap lembaga.user_id."
+  Note: "Keanggotaan jangka panjang seseorang di sebuah lembaga (terpisah dari jabatan per periode). Sementara dijaga sinkron dari `kehimpunan` lewat trigger basis data."
 }
 
 table anmategra_mahasiswa {
@@ -397,6 +438,24 @@ table anmategra_notification {
   Note: "Notifikasi in-app per pengguna."
 }
 
+table anmategra_organization_position {
+  id varchar(255) [pk, not null]
+  unit_id varchar(255) [not null]
+  title varchar(255) [not null]
+  rank varchar(32) [not null, note: "head | vice | coordinator | staff; label-nya dapat diubah per struktur lewat rank_labels."]
+  kind varchar(32) [not null, default: 'struktural']
+  quota integer [not null, default: 0, note: "0 = tanpa batas. Ditegakkan di aplikasi dalam transaksi, bukan trigger; placement closerec tidak dihitung."]
+  hidden boolean [not null, default: false]
+  sort_order integer [not null, default: 0]
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    unit_id [name: 'organization_position_unit_idx']
+  }
+  Note: "Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode); menggantikan organization_role. Menghapus unit menghapus posisinya, tetapi dibatalkan selama masih ada placement."
+}
+
 table anmategra_organization_role {
   id varchar(255) [pk, not null]
   structure_id varchar(255) [not null]
@@ -409,21 +468,27 @@ table anmategra_organization_role {
   indexes {
     structure_id [name: 'organization_role_structure_idx']
   }
-  Note: "Posisi/jabatan di dalam sebuah organization unit."
+  Note: "Posisi/jabatan di dalam sebuah organization unit. Akan digantikan oleh organization_position."
 }
 
 table anmategra_organization_structure {
   id varchar(255) [pk, not null]
   lembaga_id varchar(255)
-  event_id varchar(255)
+  period_id varchar(255)
   name varchar(255) [not null]
   is_active boolean [not null, default: true]
+  level_labels jsonb [note: "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan."]
+  ranks jsonb
+  edit_locked boolean [not null, default: false, note: "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin. Pemilik/admin tidak terpengaruh kunci."]
+  version integer [not null, default: 0, note: "Naik satu setiap penyimpanan pohon; klien mengirim kembali versi yang dibukanya untuk mendeteksi dua orang yang mengedit bersamaan."]
+  locked_by varchar(255)
+  locked_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
     lembaga_id [name: 'organization_structure_active_lembaga_unique', unique]
-    event_id [name: 'organization_structure_active_event_unique', unique]
+    period_id [name: 'organization_structure_active_period_unique', unique]
   }
   Note: "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role)."
 }
@@ -433,9 +498,12 @@ table anmategra_organization_unit {
   structure_id varchar(255) [not null]
   parent_id varchar(255)
   name varchar(255) [not null]
-  kind varchar(255) [not null]
-  level integer [not null]
+  kind varchar(255) [note: "Peninggalan model lama (Bidang/Divisi/Subdivisi); null untuk unit yang dibuat editor baru. Dibuang di Fase 2D."]
+  level integer [not null, note: "Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; dihitung ulang server saat pohon disimpan."]
   sort_order integer [not null, default: 0]
+  type_label varchar(255) [note: "Label bebas pengganti `kind`."]
+  description text
+  layout jsonb [note: "Pengaturan tampilan editor (tata letak, tier, sisi)."]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
@@ -469,6 +537,25 @@ table anmategra_pemetaan_profil_lembaga {
   Note: "Tabel junction: memetakan `profil_lembaga` ke `profil_km`."
 }
 
+table anmategra_placement {
+  id varchar(255) [pk, not null]
+  position_id varchar(255) [not null, note: "ON DELETE RESTRICT: posisi (dan unitnya) tidak bisa dihapus selama masih ada orang di dalamnya."]
+  user_id varchar(255) [not null]
+  source placement_source [not null]
+  application_choice_id varchar(255) [note: "Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum ada FK."]
+  note text
+  sort_order integer [not null, default: 0]
+  created_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (position_id, user_id) [name: 'placement_position_user_unique', unique]
+    user_id [name: 'placement_user_idx']
+  }
+  Note: "Orang sungguhan di sebuah posisi. Periode diturunkan: posisi > unit > struktur > periode. Satu orang boleh memegang beberapa posisi. Akan menggantikan keanggotaan dan kehimpunan."
+}
+
 table anmategra_profil_km {
   id varchar(255) [pk, not null]
   description text [not null]
@@ -477,7 +564,7 @@ table anmategra_profil_km {
 
 table anmategra_profil_kegiatan {
   id varchar(255) [pk, not null]
-  event_id varchar(255) [not null]
+  period_id varchar(255) [not null]
   name varchar(255) [not null]
   description text [not null]
   Note: "Profil/kriteria penilaian spesifik milik satu event."
@@ -494,7 +581,7 @@ table anmategra_profil_lembaga {
 table anmategra_riwayat_kepanitiaan {
   id varchar(255) [pk, not null]
   user_id varchar(255) [not null]
-  event_id varchar(255)
+  period_id varchar(255)
   event_nama varchar(255) [not null]
   lembaga_id varchar(255)
   lembaga_nama varchar(255)
@@ -595,17 +682,23 @@ table anmategra_verified_user {
   Note: "Whitelist email yang diizinkan mendaftar."
 }
 
+ref: anmategra_access_grant.user_id - anmategra_user.id
+
+ref: anmategra_access_grant.lembaga_id - anmategra_lembaga.id
+
+ref: anmategra_access_grant.period_id - anmategra_lembaga_period.id
+
 ref: anmategra_account.user_id > anmategra_user.id
 
 ref: anmategra_association_request_lembaga.lembaga_id > anmategra_lembaga.id
 
 ref: anmategra_association_request_lembaga.user_id > anmategra_user.id
 
-ref: anmategra_association_request.event_id > anmategra_event.id
+ref: anmategra_association_request.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_association_request.user_id > anmategra_user.id
 
-ref: anmategra_best_staff_kegiatan.event_id > anmategra_event.id
+ref: anmategra_best_staff_kegiatan.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_best_staff_kegiatan.mahasiswa_id > anmategra_mahasiswa.user_id
 
@@ -613,11 +706,7 @@ ref: anmategra_best_staff_lembaga.lembaga_id > anmategra_lembaga.id
 
 ref: anmategra_best_staff_lembaga.mahasiswa_id > anmategra_mahasiswa.user_id
 
-ref: anmategra_event_admin.event_id > anmategra_event.id
-
-ref: anmategra_event_admin.user_id > anmategra_user.id
-
-ref: anmategra_event.org_id > anmategra_lembaga.id
+ref: anmategra_lembaga_period.lembaga_id > anmategra_lembaga.id
 
 ref: anmategra_form_answer.submission_id > anmategra_form_submission.id
 
@@ -629,13 +718,13 @@ ref: anmategra_form_field.form_id > anmategra_form.id
 
 ref: anmategra_form.lembaga_id - anmategra_lembaga.id
 
-ref: anmategra_form.event_id - anmategra_event.id
+ref: anmategra_form.period_id - anmategra_lembaga_period.id
 
 ref: anmategra_form_submission.form_id > anmategra_form.id
 
 ref: anmategra_form_submission.user_id - anmategra_user.id
 
-ref: anmategra_keanggotaan.event_id > anmategra_event.id
+ref: anmategra_keanggotaan.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_keanggotaan.user_id > anmategra_user.id
 
@@ -643,9 +732,9 @@ ref: anmategra_kehimpunan.user_id - anmategra_user.id
 
 ref: anmategra_kehimpunan.lembaga_id - anmategra_lembaga.id
 
-ref: anmategra_lembaga_admin.lembaga_id > anmategra_lembaga.id
+ref: anmategra_lembaga_membership.user_id - anmategra_user.id
 
-ref: anmategra_lembaga_admin.user_id > anmategra_user.id
+ref: anmategra_lembaga_membership.lembaga_id - anmategra_lembaga.id
 
 ref: anmategra_lembaga.user_id > anmategra_user.id
 
@@ -661,11 +750,13 @@ ref: anmategra_nilai_profil_lembaga.mahasiswa_id > anmategra_mahasiswa.user_id
 
 ref: anmategra_notification.user_id > anmategra_user.id
 
+ref: anmategra_organization_position.unit_id - anmategra_organization_unit.id
+
 ref: anmategra_organization_role.structure_id > anmategra_organization_structure.id
 
 ref: anmategra_organization_structure.lembaga_id > anmategra_lembaga.id
 
-ref: anmategra_organization_structure.event_id > anmategra_event.id
+ref: anmategra_organization_structure.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_organization_unit.structure_id > anmategra_organization_structure.id
 
@@ -679,13 +770,17 @@ ref: anmategra_pemetaan_profil_lembaga.profil_lembaga_id > anmategra_profil_lemb
 
 ref: anmategra_pemetaan_profil_lembaga.profil_km_id > anmategra_profil_km.id
 
-ref: anmategra_profil_kegiatan.event_id > anmategra_event.id
+ref: anmategra_placement.position_id > anmategra_organization_position.id
+
+ref: anmategra_placement.user_id - anmategra_user.id
+
+ref: anmategra_profil_kegiatan.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_profil_lembaga.lembaga_id > anmategra_lembaga.id
 
 ref: anmategra_riwayat_kepanitiaan.user_id > anmategra_user.id
 
-ref: anmategra_riwayat_kepanitiaan.event_id > anmategra_event.id
+ref: anmategra_riwayat_kepanitiaan.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_riwayat_kepanitiaan.lembaga_id - anmategra_lembaga.id
 

@@ -9,7 +9,7 @@ import {
   HomeIcon,
   PersonIcon,
 } from '@radix-ui/react-icons';
-import { BookOpen, LogOut, X } from 'lucide-react';
+import { BookOpen, LogOut, Network, X } from 'lucide-react';
 // Auth Import
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
@@ -53,6 +53,11 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
   { label: 'Beranda', href: '/', icon: <HomeIcon /> },
   { label: 'Kegiatan', href: '/kegiatan', icon: <CalendarIcon /> },
   { label: 'Anggota', href: '/anggota', icon: <PersonIcon /> },
+  {
+    label: 'Organogram',
+    href: '/organogram',
+    icon: <Network className="w-5 h-5" />,
+  },
   { label: 'Inbox', href: '/inbox', icon: <EnvelopeOpenIcon /> },
   {
     label: 'Laporan',
@@ -82,18 +87,10 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
   },
 ];
 
-export const Sidebar = ({
-  session,
-  onClose,
-}: {
-  session: Session | null;
-  onClose?: () => void;
-}) => {
+// Data profil di dasar sidebar; dipakai juga oleh editor organogram yang menaruh blok profil di panelnya sendiri.
+const useSidebarProfile = (session: Session | null): SidebarProfileData => {
   const user = session?.user;
   const role = user?.role ?? 'mahasiswa';
-
-  const sidebarItems =
-    role === 'lembaga' ? SIDEBAR_ITEMS_LEMBAGA : SIDEBAR_ITEMS_MAHASISWA;
 
   let profileData: SidebarProfileData;
   if (role === 'lembaga') {
@@ -124,6 +121,41 @@ export const Sidebar = ({
       href: `/profile-mahasiswa/${user?.id ?? ''}`,
     };
   }
+
+  return profileData;
+};
+
+export const SidebarAccount = ({
+  session,
+  onNavigate,
+}: {
+  session: Session | null;
+  onNavigate?: () => void;
+}) => {
+  const profile = useSidebarProfile(session);
+  return (
+    <SidebarProfile
+      profile={profile}
+      role={session?.user?.role ?? 'mahasiswa'}
+      onProfileClick={onNavigate}
+    />
+  );
+};
+
+export const Sidebar = ({
+  session,
+  onClose,
+}: {
+  session: Session | null;
+  onClose?: () => void;
+}) => {
+  const user = session?.user;
+  const role = user?.role ?? 'mahasiswa';
+
+  const sidebarItems =
+    role === 'lembaga' ? SIDEBAR_ITEMS_LEMBAGA : SIDEBAR_ITEMS_MAHASISWA;
+
+  const profileData = useSidebarProfile(session);
 
   return (
     <div className="fixed top-0 left-0 z-[60] flex h-screen w-64 flex-col border-r bg-neutral-50 p-6">

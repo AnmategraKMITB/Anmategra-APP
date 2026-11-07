@@ -1,276 +1,232 @@
 import { z } from 'zod';
-import { ORGANIZATION_UNIT_KINDS } from '~/server/db/schema';
+import {
+  ORGANIZATION_POSITION_KINDS,
+  RANK_ID_PATTERN,
+  placementSourceEnum,
+} from '~/server/db/schema';
 
-const OrganizationUnitKindSchema = z.enum(ORGANIZATION_UNIT_KINDS, {
-  error: 'Jenis unit tidak valid',
+import {
+  MAX_POSITIONS,
+  MAX_TREE_DEPTH,
+  MAX_UNITS,
+} from '../routers/organization/tree';
+
+const RankSchema = z.string().regex(RANK_ID_PATTERN);
+const KindSchema = z.enum(ORGANIZATION_POSITION_KINDS);
+const SourceSchema = z.enum(placementSourceEnum.enumValues);
+
+/** Id dibuat klien (crypto.randomUUID) untuk entitas baru; server menolak id yang sudah dipakai struktur lain. */
+const IdSchema = z.uuid();
+
+export const OrganogramUnitSchema = z.object({
+  id: IdSchema,
+  parentId: IdSchema.nullable(),
+  name: z.string().trim().min(1).max(255),
+  typeLabel: z.string().max(255).nullable(),
+  description: z.string().max(2000).nullable().optional(),
+  sortOrder: z.number().int().min(0).max(1_000_000),
+  layout: z.record(z.string(), z.unknown()).nullable(),
 });
 
-const OrganizationStructureSchema = z.object({
+export const OrganogramPositionSchema = z.object({
+  id: IdSchema,
+  unitId: IdSchema,
+  title: z.string().trim().min(1).max(255),
+  rank: RankSchema,
+  kind: KindSchema,
+  quota: z.number().int().min(0).max(100_000),
+  hidden: z.boolean(),
+  sortOrder: z.number().int().min(0).max(1_000_000),
+});
+
+export const OrganogramPlacementSchema = z.object({
   id: z.string(),
-  lembaga_id: z.string().nullable(),
-  event_id: z.string().nullable(),
-  name: z.string(),
-  is_active: z.boolean(),
-  created_at: z.date(),
-  updated_at: z.date(),
+  userId: z.string(),
+  name: z.string().nullable(),
+  image: z.string().nullable(),
+  source: SourceSchema,
+  note: z.string().nullable(),
 });
 
-const OrganizationUnitBaseSchema = z.object({
-  id: z.string(),
-  structure_id: z.string(),
-  parent_id: z.string().nullable(),
-  name: z.string(),
-  kind: OrganizationUnitKindSchema,
-  level: z.number().int(),
-  sort_order: z.number().int(),
+const LevelLabelsSchema = z
+  .array(z.string().trim().min(1).max(255))
+  .max(MAX_TREE_DEPTH);
+const RankDefSchema = z.object({ id: RankSchema, label: z.string().trim().min(1).max(60) });
+/** Daftar rank berurutan; id harus unik. */
+const RanksSchema = z
+  .array(RankDefSchema)
+  .min(1)
+  .max(24)
+  .refine((ranks) => new Set(ranks.map((r) => r.id)).size === ranks.length, 'Id rank harus unik.');
+
+export const OrganogramAccessSchema = z.object({
+  /** Owner/admin lembaga atau admin periode: boleh semuanya, tidak terpengaruh kunci. */
+  canManage: z.boolean(),
+  canEdit: z.boolean(),
+  canLock: z.boolean(),
+  /** null = semua unit (pengelola); selain itu hanya unit tempat ia ditempatkan beserta turunannya. */
+  editableUnitIds: z.array(z.string()).nullable(),
 });
 
-/**
- * Tree depth is capped at 3 by `organization_unit_level_range_check`, so the
- * nesting is spelled out level by level instead of using `z.lazy`. A recursive
- * zod type needs an explicit `z.ZodType<T>` annotation that kills inference,
- * and it would happily validate a 4-level tree. These three encode the
- * max-depth invariant in the contract itself.
- */
-const OrganizationUnitLevel3Schema = OrganizationUnitBaseSchema.extend({
-  member_count: z.number().int(),
-  // buildUnitTree always emits `children`, so the key must be allowed — but a
-  // non-empty one at depth 3 means the tree builder produced a 4th level.
-  // Rejecting is deliberate: zod would otherwise strip it and lose rows
-  // silently, hiding the bug instead of surfacing it.
-  children: z
-    .array(z.unknown())
-    .max(0, 'Struktur organisasi maksimal 3 tingkat')
-    .optional(),
-});
-
-const OrganizationUnitLevel2Schema = OrganizationUnitBaseSchema.extend({
-  member_count: z.number().int(),
-  children: z.array(OrganizationUnitLevel3Schema),
-});
-
-const OrganizationUnitLevel1Schema = OrganizationUnitBaseSchema.extend({
-  member_count: z.number().int(),
-  children: z.array(OrganizationUnitLevel2Schema),
-});
-
-/** Flat shape for dropdowns; `path_label` reads like "Bidang A / Divisi B". */
-const OrganizationUnitFlatSchema = OrganizationUnitBaseSchema.extend({
-  path_label: z.string(),
-});
-
-const OrganizationRoleSchema = z.object({
-  id: z.string(),
-  structure_id: z.string(),
-  name: z.string(),
-  ring_level: z.number().int(),
-  sort_order: z.number().int(),
-});
-
-const MutationSuccessSchema = z.object({ success: z.boolean() });
-
-const structureId = z.string().nonempty('Struktur organisasi wajib dipilih');
-const unitId = z.string().nonempty('Unit wajib dipilih');
-const roleId = z.string().nonempty('Posisi wajib dipilih');
-const namaUnit = z
-  .string()
-  .min(1, 'Nama wajib diisi')
-  .max(255, 'Nama maksimal 255 karakter');
-
-// --- structure ---------------------------------------------------------------
-
-export const CreateOrganizationStructureInputSchema = z.object({
-  name: namaUnit,
-  // Absent means the structure belongs to the caller's own lembaga. The owner
-  // is never taken from input beyond this.
-  event_id: z.string().nonempty().optional(),
-});
-
-export const CreateOrganizationStructureOutputSchema = z.object({
-  success: z.boolean(),
-  structure_id: z.string(),
-});
-
-export const GetAllOrganizationStructureInputSchema = z.object({
-  event_id: z.string().nonempty().optional(),
-});
-
-export const GetAllOrganizationStructureOutputSchema = z.object({
-  structures: z.array(OrganizationStructureSchema),
-});
-
-export const GetOrganizationStructureTreeInputSchema = z.object({
-  structure_id: structureId,
-});
-
-export const GetOrganizationStructureTreeOutputSchema = z.object({
-  structure: OrganizationStructureSchema,
-  units: z.array(OrganizationUnitLevel1Schema),
-  roles: z.array(OrganizationRoleSchema),
-});
-
-export const UpdateOrganizationStructureInputSchema = z.object({
-  structure_id: structureId,
-  name: namaUnit.optional(),
-  is_active: z.boolean().optional(),
-});
-
-export const UpdateOrganizationStructureOutputSchema = MutationSuccessSchema;
-
-export const DeleteOrganizationStructureInputSchema = z.object({
-  structure_id: structureId,
-});
-
-export const DeleteOrganizationStructureOutputSchema = MutationSuccessSchema;
-
-// --- unit --------------------------------------------------------------------
-
-export const CreateOrganizationUnitInputSchema = z.object({
-  structure_id: structureId,
-  name: namaUnit,
-  kind: OrganizationUnitKindSchema,
-  // `level` is intentionally absent: it is derived from the parent's depth.
-  parent_id: z.string().nonempty().optional(),
-});
-
-export const CreateOrganizationUnitOutputSchema = z.object({
-  success: z.boolean(),
-  unit_id: z.string(),
-});
-
-export const UpdateOrganizationUnitInputSchema = z.object({
-  unit_id: unitId,
-  name: namaUnit,
-});
-
-export const UpdateOrganizationUnitOutputSchema = MutationSuccessSchema;
-
-export const MoveOrganizationUnitInputSchema = z.object({
-  unit_id: unitId,
-  // null promotes the unit to a root.
-  parent_id: z.string().nonempty().nullable(),
-});
-
-export const MoveOrganizationUnitOutputSchema = MutationSuccessSchema;
-
-export const ReorderOrganizationUnitInputSchema = z.object({
-  structure_id: structureId,
-  parent_id: z.string().nonempty().nullable(),
-  unit_ids: z
-    .array(z.string().nonempty())
-    .min(1, 'Daftar unit tidak boleh kosong'),
-});
-
-export const ReorderOrganizationUnitOutputSchema = MutationSuccessSchema;
-
-export const DeleteOrganizationUnitInputSchema = z.object({ unit_id: unitId });
-
-export const DeleteOrganizationUnitOutputSchema = MutationSuccessSchema;
-
-export const GetAllOrganizationUnitInputSchema = z.object({
-  structure_id: structureId,
-});
-
-export const GetAllOrganizationUnitOutputSchema = z.object({
-  units: z.array(OrganizationUnitFlatSchema),
-});
-
-// --- role --------------------------------------------------------------------
-
-export const CreateOrganizationRoleInputSchema = z.object({
-  structure_id: structureId,
-  name: namaUnit,
-  ring_level: z
-    .number()
-    .int('Ring level harus bilangan bulat')
-    .min(1, 'Ring level minimal 1'),
-});
-
-export const CreateOrganizationRoleOutputSchema = z.object({
-  success: z.boolean(),
-  role_id: z.string(),
-});
-
-export const UpdateOrganizationRoleInputSchema = z.object({
-  role_id: roleId,
-  name: namaUnit.optional(),
-  ring_level: z
-    .number()
-    .int('Ring level harus bilangan bulat')
-    .min(1, 'Ring level minimal 1')
-    .optional(),
-});
-
-export const UpdateOrganizationRoleOutputSchema = MutationSuccessSchema;
-
-export const ReorderOrganizationRoleInputSchema = z.object({
-  structure_id: structureId,
-  role_ids: z
-    .array(z.string().nonempty())
-    .min(1, 'Daftar posisi tidak boleh kosong'),
-});
-
-export const ReorderOrganizationRoleOutputSchema = MutationSuccessSchema;
-
-export const DeleteOrganizationRoleInputSchema = z.object({ role_id: roleId });
-
-export const DeleteOrganizationRoleOutputSchema = MutationSuccessSchema;
-
-export const GetAllOrganizationRoleInputSchema = z.object({
-  structure_id: structureId,
-});
-
-export const GetAllOrganizationRoleOutputSchema = z.object({
-  roles: z.array(OrganizationRoleSchema),
-});
-
-// --- assignment --------------------------------------------------------------
-
-const minimalSatuTarget = {
-  message: 'Pilih minimal unit atau posisi',
-  path: ['org_unit_id'] as const,
-};
-
-export const AssignAnggotaLembagaOrganizationInputSchema = z
+// --- structure.get
+export const GetOrganogramInputSchema = z.object({ periodId: z.string().min(1) });
+export const GetOrganogramOutputSchema = z
   .object({
-    user_id: z.string().nonempty(),
-    org_unit_id: z.string().nonempty().optional(),
-    org_role_id: z.string().nonempty().optional(),
+    id: z.string(),
+    periodId: z.string(),
+    name: z.string(),
+    levelLabels: LevelLabelsSchema.nullable(),
+    ranks: RanksSchema.nullable(),
+    editLocked: z.boolean(),
+    lockedBy: z.string().nullable(),
+    lockedAt: z.date().nullable(),
+    /** Dikirim kembali saat menyimpan; naik setiap penyimpanan pohon. */
+    version: z.number().int(),
+    units: z.array(OrganogramUnitSchema.extend({ id: z.string(), parentId: z.string().nullable() })),
+    positions: z.array(
+      OrganogramPositionSchema.extend({
+        id: z.string(),
+        unitId: z.string(),
+        placements: z.array(OrganogramPlacementSchema),
+      }),
+    ),
+    access: OrganogramAccessSchema,
   })
-  .refine((v) => v.org_unit_id != null || v.org_role_id != null, {
-    message: minimalSatuTarget.message,
-    path: [...minimalSatuTarget.path],
-  });
+  .nullable();
 
-export const AssignAnggotaLembagaOrganizationOutputSchema =
-  MutationSuccessSchema;
+// --- structure.create
+export const CreateOrganogramInputSchema = z.object({
+  periodId: z.string().min(1),
+  name: z.string().trim().min(1).max(255).optional(),
+});
+export const CreateOrganogramOutputSchema = z.object({ id: z.string(), version: z.number().int() });
 
-export const UnassignAnggotaLembagaOrganizationInputSchema = z.object({
-  user_id: z.string().nonempty(),
+// --- structure.save
+export const SaveOrganogramInputSchema = z.object({
+  periodId: z.string().min(1),
+  expectedVersion: z.number().int().min(0),
+  /** Hanya pengelola yang boleh mengubah nama dan label. undefined = tidak diubah. */
+  name: z.string().trim().min(1).max(255).optional(),
+  levelLabels: LevelLabelsSchema.nullable().optional(),
+  ranks: RanksSchema.nullable().optional(),
+  units: z.array(OrganogramUnitSchema).max(MAX_UNITS),
+  positions: z.array(OrganogramPositionSchema).max(MAX_POSITIONS),
+});
+export const SaveOrganogramOutputSchema = z.object({ version: z.number().int(), changed: z.boolean() });
+
+// --- structure.setLock
+export const SetOrganogramLockInputSchema = z.object({ periodId: z.string().min(1), locked: z.boolean() });
+export const SetOrganogramLockOutputSchema = z.object({ editLocked: z.boolean() });
+
+// --- placement
+const QuotaFullSchema = z.object({
+  ok: z.literal(false),
+  reason: z.literal('quota_full'),
+  count: z.number().int(),
+  quota: z.number().int(),
+});
+export const AddPlacementInputSchema = z.object({
+  positionId: z.string().min(1),
+  userId: z.string().min(1),
+  source: SourceSchema.default('manual'),
+  note: z.string().max(1000).nullable().optional(),
+  /** Kirim true setelah pengguna mengonfirmasi peringatan kuota penuh. */
+  allowOverQuota: z.boolean().default(false),
+});
+export const AddPlacementOutputSchema = z.union([
+  z.object({ ok: z.literal(true), id: z.string() }),
+  QuotaFullSchema,
+]);
+export const RemovePlacementInputSchema = z.object({ placementId: z.string().min(1) });
+export const RemovePlacementOutputSchema = z.object({ success: z.boolean() });
+export const MovePlacementInputSchema = z.object({
+  placementId: z.string().min(1),
+  toPositionId: z.string().min(1),
+  allowOverQuota: z.boolean().default(false),
+});
+export const MovePlacementOutputSchema = AddPlacementOutputSchema;
+
+// --- import.preview / import.apply (Fase 2D)
+const ImportKeySchema = z.string().min(1).max(32);
+export const ImportPlanSchema = z.object({
+  units: z.array(
+    z.object({
+      key: ImportKeySchema,
+      name: z.string(),
+      variants: z.array(z.string()),
+    }),
+  ),
+  positions: z.array(
+    z.object({
+      key: ImportKeySchema,
+      unitKey: ImportKeySchema,
+      title: z.string(),
+      rank: RankSchema,
+      kind: KindSchema,
+      variants: z.array(z.string()),
+    }),
+  ),
+  placements: z.array(
+    z.object({
+      userId: z.string(),
+      positionKey: ImportKeySchema,
+      order: z.number().int(),
+    }),
+  ),
+  membershipOnly: z.number().int(),
+  duplicates: z.number().int(),
+});
+export const PreviewImportInputSchema = z.object({
+  periodId: z.string().min(1),
+});
+export const PreviewImportOutputSchema = z.object({
+  /** Jumlah baris teks lama yang dibaca, per tabel sumber. */
+  sources: z.object({
+    keanggotaan: z.number().int(),
+    kehimpunan: z.number().int(),
+  }),
+  /** Alasan impor tidak bisa dilakukan sekarang; null bila bisa. */
+  blocked: z.enum(['sudah_berisi', 'tidak_ada_data']).nullable(),
+  plan: ImportPlanSchema,
+  /** Sidik usulan; apply menolak bila data lama berubah sejak pratinjau. */
+  fingerprint: z.string(),
+});
+export const ApplyImportInputSchema = z.object({
+  periodId: z.string().min(1),
+  fingerprint: z.string().min(1),
+  units: z
+    .array(
+      z.object({
+        key: ImportKeySchema,
+        name: z.string().max(255),
+        mergeInto: ImportKeySchema.optional(),
+        skip: z.boolean().optional(),
+      }),
+    )
+    .max(MAX_UNITS),
+  positions: z
+    .array(
+      z.object({
+        key: ImportKeySchema,
+        title: z.string().max(255),
+        rank: RankSchema,
+        kind: KindSchema,
+        mergeInto: ImportKeySchema.optional(),
+        skip: z.boolean().optional(),
+      }),
+    )
+    .max(MAX_POSITIONS),
+});
+export const ApplyImportOutputSchema = z.object({
+  units: z.number().int(),
+  positions: z.number().int(),
+  placements: z.number().int(),
+  skippedPlacements: z.number().int(),
+  version: z.number().int(),
 });
 
-export const UnassignAnggotaLembagaOrganizationOutputSchema =
-  MutationSuccessSchema;
-
-export const AssignPanitiaKegiatanOrganizationInputSchema = z
-  .object({
-    event_id: z.string().nonempty(),
-    user_id: z.string().nonempty(),
-    org_unit_id: z.string().nonempty().optional(),
-    org_role_id: z.string().nonempty().optional(),
-  })
-  .refine((v) => v.org_unit_id != null || v.org_role_id != null, {
-    message: minimalSatuTarget.message,
-    path: [...minimalSatuTarget.path],
-  });
-
-export const AssignPanitiaKegiatanOrganizationOutputSchema =
-  MutationSuccessSchema;
-
-export const UnassignPanitiaKegiatanOrganizationInputSchema = z.object({
-  event_id: z.string().nonempty(),
-  user_id: z.string().nonempty(),
+// --- import.createCurrentPeriod
+export const CreateCurrentPeriodInputSchema = z.object({
+  lembagaId: z.string().min(1),
 });
-
-export const UnassignPanitiaKegiatanOrganizationOutputSchema =
-  MutationSuccessSchema;
+export const CreateCurrentPeriodOutputSchema = z.object({ periodId: z.string() });

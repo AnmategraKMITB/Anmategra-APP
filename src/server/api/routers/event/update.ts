@@ -3,7 +3,6 @@ import { and, eq } from 'drizzle-orm';
 import { type Prodi } from '~/server/auth';
 import {
   events,
-  keanggotaan,
   lembaga,
   mahasiswa,
   riwayatKepanitiaan,
@@ -27,7 +26,13 @@ import {
   UpdateEventInputSchema,
   UpdateEventOutputSchema,
 } from '../../types/event.type';
-import { resolveOrgAssignment } from '../organization/services';
+import {
+  isPeriodMember,
+  periodMemberOf,
+  removeFromPeriod,
+  upsertPlacementByText,
+} from '../organization/membership';
+import { isUniqueViolation } from '../organization/services';
 
 export const updateEvent = lembagaProcedure
   .input(UpdateEventInputSchema)
@@ -106,21 +111,19 @@ export const addNewPanitia = lembagaProcedure
         });
       }
 
-      const assignment = await resolveOrgAssignment(ctx.db, {
-        ownerType: 'event',
-        ownerId: input.event_id,
-        org_unit_id: input.org_unit_id,
-        org_role_id: input.org_role_id,
-      });
+      if (await isPeriodMember(ctx.db, input.event_id, input.user_id)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+        });
+      }
 
-      await ctx.db.insert(keanggotaan).values({
-        id: input.event_id + '_' + input.user_id,
-        event_id: input.event_id,
-        user_id: input.user_id,
-        org_unit_id: assignment.org_unit_id,
-        org_role_id: assignment.org_role_id,
-        position: assignment.position ?? input.position,
-        division: assignment.division ?? input.division,
+      await upsertPlacementByText(ctx.db, {
+        periodId: input.event_id,
+        userId: input.user_id,
+        division: input.division,
+        position: input.position,
+        createdBy: ctx.session.user.id,
       });
 
       return {
@@ -131,12 +134,7 @@ export const addNewPanitia = lembagaProcedure
       if (error instanceof TRPCError) {
         throw error;
       }
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
+      if (isUniqueViolation(error)) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
@@ -182,12 +180,11 @@ export const removePanitia = lembagaProcedure
           })
         : null;
 
-      const existingKeanggotaan = await ctx.db.query.keanggotaan.findFirst({
-        where: and(
-          eq(keanggotaan.user_id, input.id),
-          eq(keanggotaan.event_id, input.event_id),
-        ),
-      });
+      const existingKeanggotaan = await periodMemberOf(
+        ctx.db,
+        input.event_id,
+        input.id,
+      );
 
       if (!existingKeanggotaan) {
         throw new TRPCError({
@@ -198,26 +195,19 @@ export const removePanitia = lembagaProcedure
 
       await ctx.db.transaction(async (tx) => {
         await tx.insert(riwayatKepanitiaan).values({
-          userId: existingKeanggotaan.user_id,
+          userId: existingKeanggotaan.userId,
           eventId: eventToUpdate.id,
           eventNama: eventToUpdate.name,
           lembagaId: eventToUpdate.org_id,
           lembagaNama: lembagaRow?.name,
           division: existingKeanggotaan.division,
           position: existingKeanggotaan.position,
-          startedAt: existingKeanggotaan.created_at,
+          startedAt: existingKeanggotaan.createdAt,
           endedAt: new Date(),
           endReason: 'removed',
         });
 
-        await tx
-          .delete(keanggotaan)
-          .where(
-            and(
-              eq(keanggotaan.user_id, input.id),
-              eq(keanggotaan.event_id, input.event_id),
-            ),
-          );
+        await removeFromPeriod(tx, input.event_id, input.id);
       });
 
       return {
@@ -259,39 +249,27 @@ export const editPanitia = lembagaProcedure
         });
       }
 
-      const hasOrgAssignmentInput =
-        input.org_unit_id !== undefined || input.org_role_id !== undefined;
-      const assignment = await resolveOrgAssignment(ctx.db, {
-        ownerType: 'event',
-        ownerId: input.event_id,
-        org_unit_id: input.org_unit_id,
-        org_role_id: input.org_role_id,
-      });
-
-      const result = await ctx.db
-        .update(keanggotaan)
-        .set({
-          ...(hasOrgAssignmentInput && {
-            org_unit_id: assignment.org_unit_id,
-            org_role_id: assignment.org_role_id,
-          }),
-          position: assignment.position ?? input.position,
-          division: assignment.division ?? input.division,
-        })
-        .where(
-          and(
-            eq(keanggotaan.user_id, input.user_id),
-            eq(keanggotaan.event_id, input.event_id),
-          ),
-        )
-        .returning();
-
-      if (!result[0]) {
+      const current = await periodMemberOf(
+        ctx.db,
+        input.event_id,
+        input.user_id,
+      );
+      if (!current) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Gagal mengubah data panitia.',
         });
       }
+
+      // Urutan lama dipertahankan; hanya bagian dan jabatannya yang berubah.
+      await upsertPlacementByText(ctx.db, {
+        periodId: input.event_id,
+        userId: input.user_id,
+        division: input.division,
+        position: input.position,
+        createdBy: ctx.session.user.id,
+        sortOrder: current.index,
+      });
 
       return {
         success: true,
@@ -331,13 +309,6 @@ export const addNewPanitiaManual = lembagaProcedure
         });
       }
 
-      const assignment = await resolveOrgAssignment(ctx.db, {
-        ownerType: 'event',
-        ownerId: input.event_id,
-        org_unit_id: input.org_unit_id,
-        org_role_id: input.org_role_id,
-      });
-
       // Check if user already exists by email (primary identifier)
       const email = `${input.nim}@mahasiswa.itb.ac.id`;
       const existingUser = await ctx.db.query.users.findFirst({
@@ -352,15 +323,19 @@ export const addNewPanitiaManual = lembagaProcedure
             message: `Sudah ada mahasiswa dengan NIM ${input.nim} bernama ${existingUser.name}`,
           });
         }
-        // User exists, just add them to keanggotaan
-        await ctx.db.insert(keanggotaan).values({
-          id: input.event_id + '_' + existingUser.id,
-          event_id: input.event_id,
-          user_id: existingUser.id,
-          org_unit_id: assignment.org_unit_id,
-          org_role_id: assignment.org_role_id,
-          position: assignment.position ?? input.position,
-          division: assignment.division ?? input.division,
+        // User exists, just place them in the period
+        if (await isPeriodMember(ctx.db, input.event_id, existingUser.id)) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+          });
+        }
+        await upsertPlacementByText(ctx.db, {
+          periodId: input.event_id,
+          userId: existingUser.id,
+          division: input.division,
+          position: input.position,
+          createdBy: ctx.session.user.id,
         });
 
         return {
@@ -395,14 +370,12 @@ export const addNewPanitiaManual = lembagaProcedure
           angkatan: angkatan,
         });
 
-        await tx.insert(keanggotaan).values({
-          id: input.event_id + '_' + user[0]!.id,
-          event_id: input.event_id,
-          user_id: user[0]!.id,
-          org_unit_id: assignment.org_unit_id,
-          org_role_id: assignment.org_role_id,
-          position: assignment.position ?? input.position,
-          division: assignment.division ?? input.division,
+        await upsertPlacementByText(tx, {
+          periodId: input.event_id,
+          userId: user[0]!.id,
+          division: input.division,
+          position: input.position,
+          createdBy: ctx.session.user.id,
         });
       });
 
@@ -414,12 +387,7 @@ export const addNewPanitiaManual = lembagaProcedure
       if (error instanceof TRPCError) {
         throw error;
       }
-      if (
-        error &&
-        typeof error === 'object' &&
-        'code' in error &&
-        error.code === '23505'
-      ) {
+      if (isUniqueViolation(error)) {
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'Anggota tersebut sudah terdaftar sebagai panitia.',

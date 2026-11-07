@@ -1,5 +1,6 @@
 import { lembagaProcedure } from "../../trpc";
-import { events, keanggotaan } from "~/server/db/schema";
+import { events } from "~/server/db/schema";
+import { periodHasMembers } from "~/server/api/routers/organization/membership";
 import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
 import { DeleteEventInputSchema, DeleteEventOutputSchema } from "../../types/event.type";
@@ -24,11 +25,7 @@ export const deleteEvent = lembagaProcedure
       });
     }
 
-    const existingKeanggotaan = await ctx.db.query.keanggotaan.findFirst({
-      where: eq(keanggotaan.event_id, input.id)
-    });
-
-    if (existingKeanggotaan) {
+    if (await periodHasMembers(ctx.db, input.id)) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: "Tidak dapat menghapus kegiatan yang memiliki panitia terdaftar."

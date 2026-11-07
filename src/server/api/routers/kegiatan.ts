@@ -8,6 +8,7 @@ import {
 } from '~/server/api/trpc';
 
 import { EventIdSchema } from '../types/event.type';
+import { periodTextOptions } from './organization/membership';
 import {
   GetAllKegiatanByLembagaOutputSchema,
   GetAllKegiatanPublicOutputSchema,
@@ -22,6 +23,7 @@ export const kegiatanRouter = createTRPCRouter({
     .output(GetAllKegiatanPublicOutputSchema)
     .query(async ({ ctx }) => {
       const kegiatan = await ctx.db.query.events.findMany({
+        where: (events, { eq }) => eq(events.kind, 'kegiatan'),
         orderBy: (events, { desc }) => desc(events.start_date),
         columns: {
           org_id: false,
@@ -60,12 +62,21 @@ export const kegiatanRouter = createTRPCRouter({
     }),
 
   // lembaga procedure
+  // Tanpa `kind`: semua periode lembaga (dipakai pemilih periode organogram).
   getAllByLembaga: lembagaProcedure
+    .input(
+      z
+        .object({ kind: z.enum(['kegiatan', 'kepengurusan']).optional() })
+        .optional(),
+    )
     .output(GetAllKegiatanByLembagaOutputSchema)
-    .query(async ({ ctx }) => {
+    .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findMany({
-        where: (events, { eq }) =>
-          eq(events.org_id, ctx.session.user.lembagaId!),
+        where: (events, { and, eq }) =>
+          and(
+            eq(events.org_id, ctx.session.user.lembagaId!),
+            input?.kind ? eq(events.kind, input.kind) : undefined,
+          ),
         orderBy: (events, { desc }) => [
           desc(events.is_highlighted),
           desc(events.start_date),
@@ -97,28 +108,14 @@ export const kegiatanRouter = createTRPCRouter({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
-      const list_posisi_bidang = await ctx.db.query.keanggotaan.findMany({
-        where: (keanggotaan, { eq }) =>
-          eq(keanggotaan.event_id, input.event_id),
-        columns: {
-          position: true,
-          division: true,
-        },
-      });
-      const uniquePosisi = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.position)),
-      );
-      const posisi_list = uniquePosisi.map((position) => ({
+      const options = await periodTextOptions(ctx.db, input.event_id);
+      const posisi_list = options.positions.map((position) => ({
         value: position,
-        label: position ?? '',
+        label: position,
       }));
-
-      const uniqueBidang = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.division)),
-      );
-      const bidang_list = uniqueBidang.map((division) => ({
+      const bidang_list = options.divisions.map((division) => ({
         value: division,
-        label: division ?? '',
+        label: division,
       }));
 
       return {

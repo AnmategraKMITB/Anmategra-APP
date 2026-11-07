@@ -1,7 +1,8 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, ilike } from 'drizzle-orm';
+import { type SQL, and, eq, ilike } from 'drizzle-orm';
 import { z } from 'zod';
-import { keanggotaan, mahasiswa, users } from '~/server/db/schema';
+import { periodMembersSq } from '~/server/api/routers/organization/membership';
+import { mahasiswa, users } from '~/server/db/schema';
 
 import { protectedProcedure } from '../../trpc';
 import {
@@ -31,7 +32,8 @@ export const getAllAnggota = protectedProcedure
   .output(GetAllAnggotaKegiatanOutputSchema)
   .query(async ({ ctx, input }) => {
     try {
-      const conditions = [eq(keanggotaan.event_id, input.event_id)];
+      const members = periodMembersSq(ctx.db, input.event_id);
+      const conditions: SQL[] = [];
 
       if (input.namaOrNim) {
         if (isNaN(Number(input.namaOrNim))) {
@@ -42,24 +44,24 @@ export const getAllAnggota = protectedProcedure
       }
 
       if (input.divisi) {
-        conditions.push(eq(keanggotaan.division, input.divisi));
+        conditions.push(eq(members.division, input.divisi));
       }
       const anggota = await ctx.db
         .select({
           id: users.id,
           nama: users.name,
           nim: mahasiswa.nim,
-          division: keanggotaan.division,
-          position: keanggotaan.position,
+          division: members.division,
+          position: members.position,
         })
-        .from(keanggotaan)
-        .innerJoin(users, eq(keanggotaan.user_id, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
         .where(and(...conditions))
         .orderBy(
-          keanggotaan.index,
-          keanggotaan.division,
-          keanggotaan.position,
+          members.index,
+          members.division,
+          members.position,
           mahasiswa.nim,
           users.name,
         );

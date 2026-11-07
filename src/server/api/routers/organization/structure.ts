@@ -1,212 +1,483 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, isNull } from 'drizzle-orm';
-import { createTRPCRouter, lembagaProcedure } from '~/server/api/trpc';
+import { and, eq, inArray, sql } from 'drizzle-orm';
+import { canManageEvent } from '~/server/api/access';
+import { resolveOrganogramAccess } from '~/server/api/organization-access';
+import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
+import { type db as Db } from '~/server/db';
 import {
-  CreateOrganizationStructureInputSchema,
-  CreateOrganizationStructureOutputSchema,
-  DeleteOrganizationStructureInputSchema,
-  DeleteOrganizationStructureOutputSchema,
-  GetAllOrganizationStructureInputSchema,
-  GetAllOrganizationStructureOutputSchema,
-  GetOrganizationStructureTreeInputSchema,
-  GetOrganizationStructureTreeOutputSchema,
-  UpdateOrganizationStructureInputSchema,
-  UpdateOrganizationStructureOutputSchema,
+  CreateOrganogramInputSchema,
+  CreateOrganogramOutputSchema,
+  GetOrganogramInputSchema,
+  GetOrganogramOutputSchema,
+  SaveOrganogramInputSchema,
+  SaveOrganogramOutputSchema,
+  SetOrganogramLockInputSchema,
+  SetOrganogramLockOutputSchema,
 } from '~/server/api/types/organization.type';
 import {
-  organizationRole,
+  DEFAULT_ORGANIZATION_RANKS,
+  events,
+  organizationPosition,
   organizationStructure,
   organizationUnit,
+  placement,
+  users,
 } from '~/server/db/schema';
 
+import { isForeignKeyViolation, isUniqueViolation } from './services';
 import {
-  type StructureOwner,
-  buildUnitTree,
-  countMembersByUnit,
-  isUniqueViolation,
-  resolveOwnerScope,
-  resolveStructureOwnership,
-} from './services';
+  type PositionNode,
+  type Tree,
+  type UnitNode,
+  checkMemberEdit,
+  computeLevels,
+  diffTrees,
+  isEmptyDiff,
+  validateTree,
+} from './tree';
 
-const AKTIF_GANDA =
-  'Sudah ada struktur organisasi aktif. Nonaktifkan yang lama terlebih dahulu.';
+type Reader = Pick<typeof Db, 'select' | 'query'>;
 
-/** Drizzle row -> output contract (snake_case ids, as the API exposes them). */
-function toOutput(row: StructureOwner) {
-  return {
-    id: row.id,
-    lembaga_id: row.lembagaId,
-    event_id: row.eventId,
-    name: row.name,
-    is_active: row.is_active,
-    created_at: row.created_at,
-    updated_at: row.updated_at,
-  };
+const activeStructureOf = (periodId: string) =>
+  and(
+    eq(organizationStructure.eventId, periodId),
+    eq(organizationStructure.is_active, true),
+  );
+
+async function loadTree(database: Reader, structureId: string) {
+  const unitRows = await database
+    .select()
+    .from(organizationUnit)
+    .where(eq(organizationUnit.structure_id, structureId));
+  const unitIds = unitRows.map((u) => u.id);
+  const positionRows =
+    unitIds.length === 0
+      ? []
+      : await database
+          .select()
+          .from(organizationPosition)
+          .where(inArray(organizationPosition.unitId, unitIds));
+
+  const storedLevels = new Map(unitRows.map((u) => [u.id, u.level]));
+  const units: UnitNode[] = unitRows.map((u) => ({
+    id: u.id,
+    parentId: u.parent_id,
+    name: u.name,
+    typeLabel: u.typeLabel ?? u.kind ?? null,
+    description: u.description ?? null,
+    sortOrder: u.sort_order,
+    layout: u.layout ?? null,
+  }));
+  const positions: PositionNode[] = positionRows.map((p) => ({
+    id: p.id,
+    unitId: p.unitId,
+    title: p.title,
+    rank: p.rank,
+    kind: p.kind,
+    quota: p.quota,
+    hidden: p.hidden,
+    sortOrder: p.sort_order,
+  }));
+  return { tree: { units, positions } satisfies Tree, storedLevels };
 }
 
+const sameJson = (a: unknown, b: unknown) =>
+  JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+
 export const organizationStructureRouter = createTRPCRouter({
-  create: lembagaProcedure
-    .input(CreateOrganizationStructureInputSchema)
-    .output(CreateOrganizationStructureOutputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const owner = await resolveOwnerScope(ctx, input.event_id);
-
-      try {
-        const rows = await ctx.db
-          .insert(organizationStructure)
-          .values({
-            lembagaId: owner.lembagaId,
-            eventId: owner.eventId,
-            name: input.name,
-            is_active: true,
-          })
-          .returning({ id: organizationStructure.id });
-
-        return { success: true, structure_id: rows[0]!.id };
-      } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        // organization_structure_active_{lembaga,event}_unique
-        if (isUniqueViolation(error)) {
-          throw new TRPCError({ code: 'CONFLICT', message: AKTIF_GANDA });
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Gagal membuat struktur organisasi.',
-        });
-      }
-    }),
-
-  getAll: lembagaProcedure
-    .input(GetAllOrganizationStructureInputSchema)
-    .output(GetAllOrganizationStructureOutputSchema)
+  /** Seluruh organogram sebuah periode dalam satu panggilan; null bila belum dibuat. */
+  get: protectedProcedure
+    .input(GetOrganogramInputSchema)
+    .output(GetOrganogramOutputSchema)
     .query(async ({ ctx, input }) => {
-      const owner = await resolveOwnerScope(ctx, input.event_id);
-
-      const rows = await ctx.db
+      const period = await ctx.db.query.events.findFirst({
+        where: eq(events.id, input.periodId),
+        columns: { id: true },
+      });
+      if (!period) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Periode tidak ditemukan.' });
+      }
+      const [structure] = await ctx.db
         .select()
         .from(organizationStructure)
-        .where(
-          owner.eventId
-            ? eq(organizationStructure.eventId, owner.eventId)
-            : and(
-                eq(organizationStructure.lembagaId, owner.lembagaId!),
-                isNull(organizationStructure.eventId),
-              ),
-        )
-        .orderBy(
-          desc(organizationStructure.is_active),
-          desc(organizationStructure.created_at),
-          organizationStructure.name,
-        );
+        .where(activeStructureOf(input.periodId))
+        .limit(1);
+      if (!structure) return null;
 
-      return { structures: rows.map(toOutput) };
-    }),
+      const { tree } = await loadTree(ctx.db, structure.id);
 
-  getTree: lembagaProcedure
-    .input(GetOrganizationStructureTreeInputSchema)
-    .output(GetOrganizationStructureTreeOutputSchema)
-    .query(async ({ ctx, input }) => {
-      const structure = await resolveStructureOwnership(
-        ctx,
-        input.structure_id,
+      const placementRows = await ctx.db
+        .select({
+          id: placement.id,
+          positionId: placement.positionId,
+          userId: placement.userId,
+          source: placement.source,
+          note: placement.note,
+          name: users.name,
+          image: users.image,
+        })
+        .from(placement)
+        .innerJoin(users, eq(placement.userId, users.id))
+        .innerJoin(organizationPosition, eq(placement.positionId, organizationPosition.id))
+        .innerJoin(organizationUnit, eq(organizationPosition.unitId, organizationUnit.id))
+        .where(eq(organizationUnit.structure_id, structure.id));
+      const byPosition = new Map<string, typeof placementRows>();
+      for (const row of placementRows) {
+        byPosition.set(row.positionId, [...(byPosition.get(row.positionId) ?? []), row]);
+      }
+
+      const access = await resolveOrganogramAccess(
+        ctx.db,
+        {
+          id: ctx.session.user.id,
+          role: ctx.session.user.role,
+          lembagaId: ctx.session.user.lembagaId,
+        },
+        { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+        tree.units,
       );
 
-      // Flat query + assemble in JS: depth is capped at 3, and this leaves an
-      // obvious place to attach member counts that a nested query would not.
-      const units = await ctx.db
-        .select({
-          id: organizationUnit.id,
-          structure_id: organizationUnit.structure_id,
-          parent_id: organizationUnit.parent_id,
-          name: organizationUnit.name,
-          kind: organizationUnit.kind,
-          level: organizationUnit.level,
-          sort_order: organizationUnit.sort_order,
-        })
-        .from(organizationUnit)
-        .where(eq(organizationUnit.structure_id, structure.id))
-        .orderBy(
-          organizationUnit.level,
-          organizationUnit.sort_order,
-          organizationUnit.name,
-        );
-
-      const roles = await ctx.db
-        .select({
-          id: organizationRole.id,
-          structure_id: organizationRole.structure_id,
-          name: organizationRole.name,
-          ring_level: organizationRole.ring_level,
-          sort_order: organizationRole.sort_order,
-        })
-        .from(organizationRole)
-        .where(eq(organizationRole.structure_id, structure.id))
-        .orderBy(
-          organizationRole.ring_level,
-          organizationRole.sort_order,
-          organizationRole.name,
-        );
-
-      const memberCounts = await countMembersByUnit(ctx.db, structure);
-
       return {
-        structure: toOutput(structure),
-        units: buildUnitTree(units, memberCounts),
-        roles,
+        id: structure.id,
+        periodId: input.periodId,
+        name: structure.name,
+        levelLabels: structure.levelLabels ?? null,
+        ranks: structure.ranks ?? null,
+        editLocked: structure.editLocked,
+        lockedBy: structure.lockedBy,
+        lockedAt: structure.lockedAt,
+        version: structure.version,
+        units: tree.units,
+        positions: tree.positions.map((p) => ({
+          ...p,
+          placements: (byPosition.get(p.id) ?? []).map((r) => ({
+            id: r.id,
+            userId: r.userId,
+            name: r.name,
+            image: r.image,
+            source: r.source,
+            note: r.note,
+          })),
+        })),
+        access: {
+          canManage: access.isManager,
+          canEdit: access.canEdit,
+          canLock: access.canLock,
+          editableUnitIds: access.isManager ? null : [...access.memberUnitIds],
+        },
       };
     }),
 
-  update: lembagaProcedure
-    .input(UpdateOrganizationStructureInputSchema)
-    .output(UpdateOrganizationStructureOutputSchema)
+  /** Membuat organogram kosong untuk sebuah periode. Hanya pengelola. */
+  create: protectedProcedure
+    .input(CreateOrganogramInputSchema)
+    .output(CreateOrganogramOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await resolveStructureOwnership(ctx, input.structure_id);
+      const user = ctx.session.user;
+      const period = await ctx.db.query.events.findFirst({
+        where: eq(events.id, input.periodId),
+        columns: { id: true, name: true },
+      });
+      if (!period) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Periode tidak ditemukan.' });
+      }
+      const access = await canManageEvent(ctx.db, user.id, user.role, user.lembagaId, input.periodId);
+      if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
 
-      if (input.name === undefined && input.is_active === undefined) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Tidak ada perubahan yang dikirim.',
-        });
+      const [existing] = await ctx.db
+        .select({ id: organizationStructure.id })
+        .from(organizationStructure)
+        .where(activeStructureOf(input.periodId))
+        .limit(1);
+      if (existing) {
+        throw new TRPCError({ code: 'CONFLICT', message: 'Periode ini sudah punya organogram.' });
       }
 
       try {
-        await ctx.db
-          .update(organizationStructure)
-          .set({
-            ...(input.name !== undefined && { name: input.name }),
-            ...(input.is_active !== undefined && {
-              is_active: input.is_active,
-            }),
-          })
-          .where(eq(organizationStructure.id, input.structure_id));
-
-        return { success: true };
+        const [row] = await ctx.db
+          .insert(organizationStructure)
+          .values({ eventId: input.periodId, name: input.name ?? period.name, is_active: true })
+          .returning({ id: organizationStructure.id, version: organizationStructure.version });
+        return row!;
       } catch (error) {
-        if (error instanceof TRPCError) throw error;
-        // Reactivating collides with the partial unique index just like create.
         if (isUniqueViolation(error)) {
-          throw new TRPCError({ code: 'CONFLICT', message: AKTIF_GANDA });
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Periode ini sudah punya organogram.',
+          });
         }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Gagal memperbarui struktur organisasi.',
-        });
+        throw error;
       }
     }),
 
-  delete: lembagaProcedure
-    .input(DeleteOrganizationStructureInputSchema)
-    .output(DeleteOrganizationStructureOutputSchema)
+  /**
+   * Menyimpan seluruh pohon yang diedit. Satu transaksi: kunci baris struktur,
+   * cek hak dan versi, validasi, hitung selisih, terapkan. Urutan penerapan dipilih
+   * agar kunci asing tidak pernah putus di tengah jalan: unit baru, ubah/pindah unit,
+   * posisi baru, ubah posisi, hapus posisi, terakhir hapus unit.
+   */
+  save: protectedProcedure
+    .input(SaveOrganogramInputSchema)
+    .output(SaveOrganogramOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await resolveStructureOwnership(ctx, input.structure_id);
+      const user = ctx.session.user;
+      try {
+        return await ctx.db.transaction(async (tx) => {
+          const [structure] = await tx
+            .select()
+            .from(organizationStructure)
+            .where(activeStructureOf(input.periodId))
+            .limit(1)
+            .for('update');
+          if (!structure) {
+            throw new TRPCError({ code: 'NOT_FOUND', message: 'Organogram belum dibuat untuk periode ini.' });
+          }
 
-      // Units and roles cascade. Member rows survive: their org_unit_id /
-      // org_role_id are set to NULL, and the legacy division/position text
-      // stays intact so every existing read path keeps working.
+          const { tree: current, storedLevels } = await loadTree(tx, structure.id);
+          const access = await resolveOrganogramAccess(
+            tx as unknown as typeof ctx.db,
+            { id: user.id, role: user.role, lembagaId: user.lembagaId },
+            { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+            current.units,
+          );
+          if (!access.canEdit) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message:
+                !access.isManager && structure.editLocked
+                  ? 'Organogram sedang dikunci.'
+                  : 'Anda tidak berhak mengubah organogram ini.',
+            });
+          }
+          if (input.expectedVersion !== structure.version) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Organogram sudah diubah orang lain sejak Anda membukanya. Muat ulang dulu.',
+            });
+          }
+
+          const next: Tree = {
+            units: input.units.map((u) => ({
+              id: u.id,
+              parentId: u.parentId,
+              name: u.name.trim(),
+              typeLabel: u.typeLabel === null || u.typeLabel.trim() === '' ? null : u.typeLabel.trim(),
+              description: u.description === undefined || u.description === null || u.description.trim() === '' ? null : u.description.trim(),
+              sortOrder: u.sortOrder,
+              layout: u.layout,
+            })),
+            positions: input.positions.map((p) => ({ ...p, title: p.title.trim() })),
+          };
+          const problems = validateTree(next);
+          if (problems.length > 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: problems.slice(0, 5).join(' ') });
+          }
+
+          const diff = diffTrees(current, next);
+          const levels = computeLevels(next.units);
+
+          const nameChanged = input.name !== undefined && input.name !== structure.name;
+          const levelLabelsChanged =
+            input.levelLabels !== undefined && !sameJson(input.levelLabels, structure.levelLabels);
+          const ranksChanged =
+            input.ranks !== undefined && !sameJson(input.ranks, structure.ranks);
+          const structureFieldsChanged = nameChanged || levelLabelsChanged || ranksChanged;
+
+          // Setiap jabatan harus memakai rank yang ada di daftar (yang baru atau yang sudah tersimpan).
+          const effectiveRanks =
+            input.ranks !== undefined ? input.ranks : structure.ranks;
+          const knownRanks = new Set((effectiveRanks ?? DEFAULT_ORGANIZATION_RANKS).map((r) => r.id));
+          const unknownRank = next.positions.find((p) => !knownRanks.has(p.rank));
+          if (unknownRank) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Jabatan "${unknownRank.title}" memakai rank yang tidak ada di daftar rank.`,
+            });
+          }
+
+          if (!access.isManager) {
+            if (structureFieldsChanged) {
+              throw new TRPCError({
+                code: 'FORBIDDEN',
+                message: 'Hanya pengelola yang boleh mengubah nama dan label organogram.',
+              });
+            }
+            const denied = checkMemberEdit(diff, next, access.memberUnitIds);
+            if (denied) throw new TRPCError({ code: 'FORBIDDEN', message: denied });
+          }
+
+          // Level (kedalaman) bisa berubah pada turunan unit yang dipindah.
+          const levelUpdates = next.units.filter(
+            (u) => storedLevels.has(u.id) && storedLevels.get(u.id) !== levels.get(u.id),
+          );
+          const changedUnitIds = new Set([
+            ...diff.unitsToUpdate.map((c) => c.after.id),
+            ...levelUpdates.map((u) => u.id),
+          ]);
+
+          if (isEmptyDiff(diff) && changedUnitIds.size === 0 && !structureFieldsChanged) {
+            return { version: structure.version, changed: false };
+          }
+
+          // Posisi yang akan dihapus tidak boleh masih berpenghuni.
+          if (diff.positionsToDelete.length > 0) {
+            const occupied = await tx
+              .select({ positionId: placement.positionId, n: sql<number>`count(*)::int` })
+              .from(placement)
+              .where(inArray(placement.positionId, diff.positionsToDelete.map((p) => p.id)))
+              .groupBy(placement.positionId);
+            if (occupied.length > 0) {
+              const titleById = new Map(diff.positionsToDelete.map((p) => [p.id, p.title]));
+              const list = occupied
+                .map((o) => `"${titleById.get(o.positionId) ?? o.positionId}" (${o.n} orang)`)
+                .join(', ');
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: `Posisi masih berpenghuni: ${list}. Pindahkan atau hapus penempatannya dulu.`,
+              });
+            }
+          }
+
+          if (diff.unitsToInsert.length > 0) {
+            await tx.insert(organizationUnit).values(
+              diff.unitsToInsert.map((u) => ({
+                id: u.id,
+                structure_id: structure.id,
+                parent_id: u.parentId,
+                name: u.name,
+                kind: null,
+                level: levels.get(u.id)!,
+                sort_order: u.sortOrder,
+                typeLabel: u.typeLabel,
+                description: u.description ?? null,
+                layout: u.layout,
+              })),
+            );
+          }
+          const nextById = new Map(next.units.map((u) => [u.id, u]));
+          for (const id of changedUnitIds) {
+            const u = nextById.get(id)!;
+            await tx
+              .update(organizationUnit)
+              .set({
+                parent_id: u.parentId,
+                name: u.name,
+                typeLabel: u.typeLabel,
+                description: u.description ?? null,
+                sort_order: u.sortOrder,
+                layout: u.layout,
+                level: levels.get(id)!,
+                updated_at: new Date(),
+              })
+              .where(and(eq(organizationUnit.id, id), eq(organizationUnit.structure_id, structure.id)));
+          }
+          if (diff.positionsToInsert.length > 0) {
+            await tx.insert(organizationPosition).values(
+              diff.positionsToInsert.map((p) => ({
+                id: p.id,
+                unitId: p.unitId,
+                title: p.title,
+                rank: p.rank,
+                kind: p.kind,
+                quota: p.quota,
+                hidden: p.hidden,
+                sort_order: p.sortOrder,
+              })),
+            );
+          }
+          for (const { after: p } of diff.positionsToUpdate) {
+            await tx
+              .update(organizationPosition)
+              .set({
+                unitId: p.unitId,
+                title: p.title,
+                rank: p.rank,
+                kind: p.kind,
+                quota: p.quota,
+                hidden: p.hidden,
+                sort_order: p.sortOrder,
+                updated_at: new Date(),
+              })
+              .where(eq(organizationPosition.id, p.id));
+          }
+          if (diff.positionsToDelete.length > 0) {
+            await tx
+              .delete(organizationPosition)
+              .where(inArray(organizationPosition.id, diff.positionsToDelete.map((p) => p.id)));
+          }
+          if (diff.unitsToDelete.length > 0) {
+            await tx
+              .delete(organizationUnit)
+              .where(inArray(organizationUnit.id, diff.unitsToDelete.map((u) => u.id)));
+          }
+
+          const [updated] = await tx
+            .update(organizationStructure)
+            .set({
+              version: sql`${organizationStructure.version} + 1`,
+              updated_at: new Date(),
+              ...(nameChanged ? { name: input.name } : {}),
+              ...(levelLabelsChanged ? { levelLabels: input.levelLabels } : {}),
+              ...(ranksChanged ? { ranks: input.ranks } : {}),
+            })
+            .where(eq(organizationStructure.id, structure.id))
+            .returning({ version: organizationStructure.version });
+          return { version: updated!.version, changed: true };
+        });
+      } catch (error) {
+        if (error instanceof TRPCError) throw error;
+        if (isUniqueViolation(error)) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Id unit atau posisi sudah dipakai di tempat lain. Gunakan id baru.',
+          });
+        }
+        if (isForeignKeyViolation(error)) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Perubahan ditolak karena masih ada keterkaitan data (mis. posisi berpenghuni).',
+          });
+        }
+        throw error;
+      }
+    }),
+
+  /** Mengunci atau membuka edit. Pengelola, atau pemegang posisi head di unit akar. */
+  setLock: protectedProcedure
+    .input(SetOrganogramLockInputSchema)
+    .output(SetOrganogramLockOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const user = ctx.session.user;
+      const [structure] = await ctx.db
+        .select()
+        .from(organizationStructure)
+        .where(activeStructureOf(input.periodId))
+        .limit(1);
+      if (!structure) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Organogram belum dibuat untuk periode ini.' });
+      }
+      const { tree } = await loadTree(ctx.db, structure.id);
+      const access = await resolveOrganogramAccess(
+        ctx.db,
+        { id: user.id, role: user.role, lembagaId: user.lembagaId },
+        { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+        tree.units,
+      );
+      if (!access.canLock) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Hanya pengelola atau ketua (posisi head di unit akar) yang boleh mengunci organogram.',
+        });
+      }
       await ctx.db
-        .delete(organizationStructure)
-        .where(eq(organizationStructure.id, input.structure_id));
-
-      return { success: true };
+        .update(organizationStructure)
+        .set({
+          editLocked: input.locked,
+          lockedBy: input.locked ? user.id : null,
+          lockedAt: input.locked ? new Date() : null,
+          updated_at: new Date(),
+        })
+        .where(eq(organizationStructure.id, structure.id));
+      return { editLocked: input.locked };
     }),
 });

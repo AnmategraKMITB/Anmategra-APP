@@ -18,10 +18,13 @@
     "note": "Fallback upload CSV alumni: NIM lulus yang belum punya akun. Diterapkan otomatis lalu dihapus saat mahasiswa dengan NIM ini sign-in pertama kali."
   },
   "anmategra_lembaga": {
-    "note": "Organisasi/institusi (Himpunan, UKM, atau Kepanitiaan/event-organizer)."
+    "note": "Organisasi/institusi (Himpunan, UKM, Kepanitiaan, BSO, Badan, Pusat, atau Organisasi umum). Berbentuk pohon lewat `parent_id`."
   },
-  "anmategra_event": {
-    "note": "Kegiatan/acara yang diselenggarakan oleh sebuah lembaga."
+  "anmategra_lembaga_period": {
+    "note": "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."
+  },
+  "anmategra_lembaga_membership": {
+    "note": "Keanggotaan jangka panjang seseorang di sebuah lembaga (terpisah dari jabatan per periode). Sementara dijaga sinkron dari `kehimpunan` lewat trigger basis data."
   },
   "anmategra_keanggotaan": {
     "note": "Membership mahasiswa dalam sebuah event/kepanitiaan (posisi struktural)."
@@ -35,16 +38,15 @@
   "anmategra_association_request_lembaga": {
     "note": "Permintaan mahasiswa untuk bergabung langsung ke sebuah lembaga (di luar konteks event tertentu — mis. Himpunan/UKM)."
   },
-  "anmategra_lembaga_admin": {
-    "note": "RO-03. Grant akses kelola lembaga ke akun lain (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka. Owner tetap lembaga.user_id.",
+  "anmategra_access_grant": {
+    "note": "RO-03. Hibah akses ke akun personal (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka; menggantikan lembaga_admin dan event_admin. Scope tepat satu lembaga ATAU satu periode (CHECK access_grant_scope_xor). Owner tetap lembaga.user_id; Owner/Admin lembaga induk otomatis punya akses ke periodenya tanpa baris periode.",
     "columns": {
-      "status": "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
-    }
-  },
-  "anmategra_event_admin": {
-    "note": "RO-03. Grant akses kelola satu kepanitiaan. Owner/Admin lembaga induk otomatis punya akses tanpa baris di sini.",
-    "columns": {
-      "status": "'active' = grant berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
+      "propagate": "Hanya bermakna untuk scope lembaga: true = hibah juga menjangkau semua lembaga turunan (lembaga.parent_id) beserta periodenya.",
+      "features": "Kunci fitur yang diberikan. 'admin' = semua kemampuan admin yang ada sekarang.",
+      "can_grant": "Disiapkan untuk pendelegasian ulang; belum dipakai kode.",
+      "parent_grant_id": "Disiapkan untuk pencabutan berantai; belum dipakai kode.",
+      "cascade_revoke": "Disiapkan untuk pencabutan berantai; belum dipakai kode.",
+      "status": "'active' = hibah berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
     }
   },
   "anmategra_riwayat_organisasi": {
@@ -81,13 +83,39 @@
     "note": "Penghargaan \"best staff\" untuk mahasiswa pada suatu lembaga."
   },
   "anmategra_organization_structure": {
-    "note": "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role)."
+    "note": "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role).",
+    "columns": {
+      "level_labels": "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan.",
+      "rank_labels": "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}.",
+      "edit_locked": "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin. Pemilik/admin tidak terpengaruh kunci.",
+      "version": "Naik satu setiap penyimpanan pohon; klien mengirim kembali versi yang dibukanya untuk mendeteksi dua orang yang mengedit bersamaan."
+    }
   },
   "anmategra_organization_unit": {
-    "note": "Divisi/bidang di dalam sebuah struktur organisasi."
+    "note": "Divisi/bidang di dalam sebuah struktur organisasi.",
+    "columns": {
+      "kind": "Peninggalan model lama (Bidang/Divisi/Subdivisi); null untuk unit yang dibuat editor baru. Dibuang di Fase 2D.",
+      "level": "Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; dihitung ulang server saat pohon disimpan.",
+      "type_label": "Label bebas pengganti `kind`.",
+      "layout": "Pengaturan tampilan editor (tata letak, tier, sisi)."
+    }
   },
   "anmategra_organization_role": {
-    "note": "Posisi/jabatan di dalam sebuah organization unit."
+    "note": "Posisi/jabatan di dalam sebuah organization unit. Akan digantikan oleh organization_position."
+  },
+  "anmategra_organization_position": {
+    "note": "Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode); menggantikan organization_role. Menghapus unit menghapus posisinya, tetapi dibatalkan selama masih ada placement.",
+    "columns": {
+      "rank": "head | vice | coordinator | staff; label-nya dapat diubah per struktur lewat rank_labels.",
+      "quota": "0 = tanpa batas. Ditegakkan di aplikasi dalam transaksi, bukan trigger; placement closerec tidak dihitung."
+    }
+  },
+  "anmategra_placement": {
+    "note": "Orang sungguhan di sebuah posisi. Periode diturunkan: posisi > unit > struktur > periode. Satu orang boleh memegang beberapa posisi. Akan menggantikan keanggotaan dan kehimpunan.",
+    "columns": {
+      "position_id": "ON DELETE RESTRICT: posisi (dan unitnya) tidak bisa dihapus selama masih ada orang di dalamnya.",
+      "application_choice_id": "Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum ada FK."
+    }
   },
   "anmategra_support": {
     "note": "Tiket dukungan/pengaduan dari pengguna."
