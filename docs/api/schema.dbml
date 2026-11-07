@@ -230,12 +230,18 @@ table anmategra_form {
   allow_multiple_submissions boolean [not null, default: false]
   published_at "timestamp with time zone" [note: "Waktu pertama kali dirilis; tidak berubah saat dibuka ulang."]
   created_by varchar(255)
+  preview_token varchar(64)
+  preview_enabled boolean [not null, default: false]
+  settings jsonb [not null, default: `{}`]
+  theme jsonb [not null, default: `{}`]
+  welcome jsonb [not null, default: `{}`]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
     lembaga_id [name: 'form_lembaga_id_idx']
     period_id [name: 'form_period_id_idx']
+    preview_token [name: 'form_preview_token_unique', unique]
   }
   Note: "Formulir dinamis (#210), mis. open recruitment. Dimiliki tepat satu lembaga ATAU satu event (CHECK `form_owner_xor`, ditulis tangan di migrasi 0027)."
 }
@@ -255,21 +261,39 @@ table anmategra_form_answer {
   Note: "Satu baris per pertanyaan yang dijawab. `field_label`, `field_type`, dan label opsi di `value` adalah salinan saat submit, sehingga jawaban tetap terbaca setelah pertanyaannya diubah atau dihapus."
 }
 
+table anmategra_form_ending {
+  id varchar(255) [pk, not null]
+  form_id varchar(255) [not null]
+  title varchar(255) [not null]
+  description text
+  sort_order integer [not null]
+  condition jsonb
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (form_id, sort_order) [name: 'form_ending_form_order_idx']
+  }
+}
+
 table anmategra_form_field {
   id varchar(255) [pk, not null]
   form_id varchar(255) [not null]
+  section_id varchar(255)
   type varchar(32) [not null, note: "short_text | long_text | number | date | single_choice | multiple_choice | checkbox (CHECK `form_field_type_check`). varchar, bukan pgEnum, supaya tipe baru mudah ditambah."]
   label varchar(500) [not null]
   description text
   required boolean [not null, default: false]
   config jsonb [not null, default: `{}`, note: "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`. `pattern` menyimpan nama preset (`email`, `nomor_hp`, `nim`), bukan regex: pola pembuat formulir dieksekusi di server saat orang lain mengisi, dan regex bebas membuka celah ReDoS."]
   sort_order integer [not null]
+  image jsonb
+  condition jsonb
   archived_at "timestamp with time zone" [note: "Diisi saat pertanyaan yang sudah dijawab dihapus, supaya jawaban lama tetap merujuk ke baris nyata."]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
-    (form_id, sort_order) [name: 'form_field_form_order_idx']
+    (form_id, section_id, sort_order) [name: 'form_field_form_section_order_idx']
   }
   Note: "Pertanyaan pada formulir."
 }
@@ -289,10 +313,38 @@ table anmategra_form_field_option {
   Note: "Opsi untuk pertanyaan single_choice / multiple_choice."
 }
 
+table anmategra_form_image {
+  key varchar(255) [pk, not null]
+  form_id varchar(255) [not null]
+  url varchar(2048) [not null]
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    form_id [name: 'form_image_form_id_idx']
+  }
+}
+
+table anmategra_form_section {
+  id varchar(255) [pk, not null]
+  form_id varchar(255) [not null]
+  title varchar(255) [not null]
+  description text
+  sort_order integer [not null]
+  condition jsonb
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (form_id, sort_order) [name: 'form_section_form_order_idx']
+  }
+}
+
 table anmategra_form_submission {
   id varchar(255) [pk, not null]
   form_id varchar(255) [not null]
   user_id varchar(255) [not null]
+  ending_id varchar(255)
   submitted_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {

@@ -45,6 +45,9 @@ export const env = createEnv({
     NEXT_PUBLIC_GA_ID: z.string().optional(),
     /** Token dari Google Search Console untuk verifikasi lewat meta tag. */
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z.string().optional(),
+    /** Aplikasi Microsoft (SPA) untuk unggah berkas OneDrive di Forms; kosong = unggah dinonaktifkan. */
+    NEXT_PUBLIC_AZURE_CLIENT_ID: z.string().optional(),
+    NEXT_PUBLIC_AZURE_TENANT_ID: z.string().optional(),
   },
 
   /**
@@ -65,6 +68,8 @@ export const env = createEnv({
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    NEXT_PUBLIC_AZURE_CLIENT_ID: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID,
+    NEXT_PUBLIC_AZURE_TENANT_ID: process.env.NEXT_PUBLIC_AZURE_TENANT_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

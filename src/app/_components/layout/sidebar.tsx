@@ -9,7 +9,7 @@ import {
   HomeIcon,
   PersonIcon,
 } from '@radix-ui/react-icons';
-import { BookOpen, LogOut, Network, X } from 'lucide-react';
+import { BookOpen, FileText, LogOut, Network, X } from 'lucide-react';
 // Auth Import
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
@@ -58,6 +58,7 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
     href: '/organogram',
     icon: <Network className="w-5 h-5" />,
   },
+  { label: 'Forms', href: '/forms', icon: <FileText className="w-5 h-5" /> },
   { label: 'Inbox', href: '/inbox', icon: <EnvelopeOpenIcon /> },
   {
     label: 'Laporan',
