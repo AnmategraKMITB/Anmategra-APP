@@ -38,6 +38,7 @@ import {
 } from '~/components/ui/select';
 import { Textarea } from '~/components/ui/textarea';
 import { cn } from '~/lib/utils';
+import { isAllowedImageHost } from '~/server/api/types/form.constants';
 import { type RouterOutputs, api } from '~/trpc/react';
 
 import { type FormStatus, previewUrl, statusLabel } from './model';
@@ -266,9 +267,19 @@ export function FormsList({
               >
                 <div
                   aria-hidden
-                  className="hidden h-10 w-14 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-primary-400 sm:flex"
+                  className="hidden h-10 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-primary-100 text-primary-400 sm:flex"
                 >
-                  <FileText className="size-5" />
+                  {item.theme.banner &&
+                  isAllowedImageHost(item.theme.banner) ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={item.theme.banner}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <FileText className="size-5" />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <Link

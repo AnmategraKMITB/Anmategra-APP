@@ -1,5 +1,5 @@
 import { type FileRouter, createUploadthing } from 'uploadthing/next';
-import { UploadThingError } from 'uploadthing/server';
+import { UTFiles, UploadThingError } from 'uploadthing/server';
 import { z } from 'zod';
 import { loadManagedForm } from '~/app/_components/forms/access';
 import { getServerAuthSession } from '~/server/auth';
@@ -51,25 +51,39 @@ export const ourFileRouter = {
     'image/webp': { maxFileSize: '4MB', maxFileCount: 1 },
   })
     .input(z.object({ formId: z.string().min(1).max(255) }))
-    .middleware(async ({ input }) => {
+    .middleware(async ({ input, files }) => {
       const managed = await loadManagedForm(input.formId);
       if (!managed) {
         throw new UploadThingError(
           'Kamu tidak boleh mengunggah gambar untuk form ini.',
         ) as Error;
       }
-      return { formId: input.formId };
+      // `customId` ikut tersimpan di UploadThing, jadi berkas ini juga ditandai
+      // dengan form pemiliknya di sisi penyimpanan, bukan hanya di database.
+      return {
+        formId: input.formId,
+        [UTFiles]: files.map((file) => ({
+          ...file,
+          customId: input.formId,
+        })),
+      };
     })
     .onUploadComplete(async ({ file, metadata }) => {
       // Catat kepemilikan sebelum klien menyimpan URL-nya. Hanya kunci yang
       // tercatat di sini yang boleh dipakai atau dihapus lewat endpoint form.
       // Jangan telan galat: tanpa baris ini gambar tidak akan bisa disimpan,
       // jadi lebih baik unggahan dilaporkan gagal sekarang.
+      const formId = file.customId ?? metadata.formId;
+      if (formId !== metadata.formId) {
+        throw new UploadThingError(
+          'Berkas tidak cocok dengan formulir tujuan.',
+        ) as Error;
+      }
       await db
         .insert(formImage)
         .values({
           key: file.key,
-          formId: metadata.formId,
+          formId,
           url: file.ufsUrl,
         })
         .onConflictDoNothing();

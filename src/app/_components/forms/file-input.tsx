@@ -72,11 +72,9 @@ export function FileInput({
     if (!clientId || !tenantId) return;
     setProblem(null);
     setBusy(true);
-    let openPicker = false;
     try {
       await connectOneDrive({ clientId, tenantId });
       setConnected(hasOneDriveAccount());
-      openPicker = true;
     } catch (error) {
       setProblem(
         error instanceof Error
@@ -84,9 +82,10 @@ export function FileInput({
           : 'Belum bisa masuk ke OneDrive. Coba lagi.',
       );
     } finally {
+      // Dialog berkas sengaja dibuka oleh klik berikutnya: membukanya lewat
+      // timer setelah popup ditutup berada di luar aktivasi pengguna dan
+      // diblokir Firefox/Safari.
       setBusy(false);
-      // Tunggu render berikutnya: input masih `disabled` selama `busy`.
-      if (openPicker) setTimeout(() => input.current?.click(), 0);
     }
   };
 
@@ -214,6 +213,7 @@ export function FileInput({
         {preset.label}, maksimal {max} berkas, {c.maxSizeMb ?? 10} MB per
         berkas. Berkas diunggah ke OneDrive-mu dan hanya tautannya yang dikirim;
         hubungkan OneDrive sekali di awal.
+        {connected ? ' OneDrive sudah terhubung, klik Pilih berkas.' : ''}
       </p>
       {!upload?.enabled ? (
         <p className="text-sm text-neutral-700">
