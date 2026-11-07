@@ -1,6 +1,10 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
-import { eventStatusEnum, type events } from '~/server/db/schema';
+import {
+  LEMBAGA_PERIOD_KINDS,
+  eventStatusEnum,
+  type events,
+} from '~/server/db/schema';
 
 import { LembagaRowSchema } from './lembaga.type';
 
@@ -10,6 +14,7 @@ type Event = InferSelectModel<typeof events>;
 export const EventRowSchema = z.object({
   id: z.string(),
   org_id: z.string().nullable(),
+  kind: z.enum(LEMBAGA_PERIOD_KINDS),
   name: z.string(),
   description: z.string().nullable(),
   image: z.string().nullable(),

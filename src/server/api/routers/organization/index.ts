@@ -1,5 +1,6 @@
 import { createTRPCRouter } from '~/server/api/trpc';
 
+import { organizationImportRouter } from './import';
 import { organizationPlacementRouter } from './placement';
 import { organizationStructureRouter } from './structure';
 
@@ -10,4 +11,5 @@ import { organizationStructureRouter } from './structure';
 export const organizationRouter = createTRPCRouter({
   structure: organizationStructureRouter,
   placement: organizationPlacementRouter,
+  import: organizationImportRouter,
 });

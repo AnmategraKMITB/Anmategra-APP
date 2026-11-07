@@ -4750,7 +4750,34 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": false,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/kegiatan_getAllByLembaga_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "/api/trpc/kegiatan.getAllPublic": {
@@ -9746,6 +9773,374 @@
             }
           }
         }
+      }
+    },
+    "/api/trpc/organization.import.commit": {
+      "post": {
+        "operationId": "organization_import_commit",
+        "tags": [
+          "organization"
+        ],
+        "summary": "organization.import.commit",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/organization_import_commit_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/organization_import_commit_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/organization.import.createCurrentPeriod": {
+      "post": {
+        "operationId": "organization_import_createCurrentPeriod",
+        "tags": [
+          "organization"
+        ],
+        "summary": "organization.import.createCurrentPeriod",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/organization_import_createCurrentPeriod_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/organization_import_createCurrentPeriod_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/organization.import.preview": {
+      "get": {
+        "operationId": "organization_import_preview",
+        "tags": [
+          "organization"
+        ],
+        "summary": "organization.import.preview",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/organization_import_preview_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/organization_import_preview_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "/api/trpc/organization.placement.add": {
@@ -18142,6 +18537,13 @@
             "nullable": true,
             "type": "string"
           },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "kegiatan",
+              "kepengurusan"
+            ]
+          },
           "name": {
             "type": "string"
           },
@@ -18294,6 +18696,7 @@
         "required": [
           "id",
           "org_id",
+          "kind",
           "name",
           "description",
           "image",
@@ -20696,6 +21099,18 @@
         ],
         "additionalProperties": false
       },
+      "kegiatan_getAllByLembaga_input": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "kegiatan",
+              "kepengurusan"
+            ]
+          }
+        }
+      },
       "kegiatan_getAllByLembaga_output": {
         "type": "array",
         "items": {
@@ -20703,6 +21118,13 @@
           "properties": {
             "id": {
               "type": "string"
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "kegiatan",
+                "kepengurusan"
+              ]
             },
             "name": {
               "type": "string"
@@ -20774,6 +21196,7 @@
           },
           "required": [
             "id",
+            "kind",
             "name",
             "description",
             "image",
@@ -20803,6 +21226,13 @@
             "id": {
               "type": "string"
             },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "kegiatan",
+                "kepengurusan"
+              ]
+            },
             "name": {
               "type": "string"
             },
@@ -20873,6 +21303,7 @@
           },
           "required": [
             "id",
+            "kind",
             "name",
             "description",
             "image",
@@ -20910,6 +21341,13 @@
         "properties": {
           "id": {
             "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "kegiatan",
+              "kepengurusan"
+            ]
           },
           "name": {
             "type": "string"
@@ -21017,6 +21455,7 @@
         },
         "required": [
           "id",
+          "kind",
           "name",
           "description",
           "image",
@@ -22941,6 +23380,344 @@
         "required": [
           "success",
           "rapor_visible"
+        ],
+        "additionalProperties": false
+      },
+      "organization_import_commit_input": {
+        "type": "object",
+        "properties": {
+          "periodId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "fingerprint": {
+            "type": "string",
+            "minLength": 1
+          },
+          "units": {
+            "maxItems": 2000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                "name": {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                "mergeInto": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                "skip": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "key",
+                "name"
+              ]
+            }
+          },
+          "positions": {
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                "title": {
+                  "type": "string",
+                  "maxLength": 255
+                },
+                "rank": {
+                  "type": "string",
+                  "enum": [
+                    "head",
+                    "vice",
+                    "coordinator",
+                    "staff"
+                  ]
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "struktural",
+                    "nonstruktural"
+                  ]
+                },
+                "mergeInto": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                "skip": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "key",
+                "title",
+                "rank",
+                "kind"
+              ]
+            }
+          }
+        },
+        "required": [
+          "periodId",
+          "fingerprint",
+          "units",
+          "positions"
+        ]
+      },
+      "organization_import_commit_output": {
+        "type": "object",
+        "properties": {
+          "units": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "positions": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "placements": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "skippedPlacements": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "version": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "units",
+          "positions",
+          "placements",
+          "skippedPlacements",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "organization_import_createCurrentPeriod_input": {
+        "type": "object",
+        "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "lembagaId"
+        ]
+      },
+      "organization_import_createCurrentPeriod_output": {
+        "type": "object",
+        "properties": {
+          "periodId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "periodId"
+        ],
+        "additionalProperties": false
+      },
+      "organization_import_preview_input": {
+        "type": "object",
+        "properties": {
+          "periodId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "periodId"
+        ]
+      },
+      "organization_import_preview_output": {
+        "type": "object",
+        "properties": {
+          "sources": {
+            "type": "object",
+            "properties": {
+              "keanggotaan": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "kehimpunan": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "keanggotaan",
+              "kehimpunan"
+            ],
+            "additionalProperties": false
+          },
+          "blocked": {
+            "nullable": true,
+            "type": "string",
+            "enum": [
+              "sudah_berisi",
+              "tidak_ada_data"
+            ]
+          },
+          "plan": {
+            "type": "object",
+            "properties": {
+              "units": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 32
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "name",
+                    "variants"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "positions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "key": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 32
+                    },
+                    "unitKey": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 32
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "rank": {
+                      "type": "string",
+                      "enum": [
+                        "head",
+                        "vice",
+                        "coordinator",
+                        "staff"
+                      ]
+                    },
+                    "kind": {
+                      "type": "string",
+                      "enum": [
+                        "struktural",
+                        "nonstruktural"
+                      ]
+                    },
+                    "variants": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "key",
+                    "unitKey",
+                    "title",
+                    "rank",
+                    "kind",
+                    "variants"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "placements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "userId": {
+                      "type": "string"
+                    },
+                    "positionKey": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 32
+                    }
+                  },
+                  "required": [
+                    "userId",
+                    "positionKey"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "membershipOnly": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "duplicates": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "units",
+              "positions",
+              "placements",
+              "membershipOnly",
+              "duplicates"
+            ],
+            "additionalProperties": false
+          },
+          "fingerprint": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "sources",
+          "blocked",
+          "plan",
+          "fingerprint"
         ],
         "additionalProperties": false
       },
