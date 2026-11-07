@@ -193,6 +193,7 @@ table anmategra_best_staff_lembaga {
 table anmategra_lembaga_period {
   id varchar(255) [pk, not null]
   lembaga_id varchar(255)
+  kind varchar(32) [not null, default: 'kegiatan']
   label varchar(255)
   name varchar(255) [not null]
   description text

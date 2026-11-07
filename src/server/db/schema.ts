@@ -263,11 +263,21 @@ export const eventStatusEnum = pgEnum('event_status', [
 
 // Tabel basis data: lembaga_period (sebelumnya event). Nama simbol TypeScript
 // (`events`, `eventId`) sengaja dipertahankan di rilis 1A agar API tidak berubah.
+// kepengurusan = periode kerja lembaga (mis. "2025/2026"); kegiatan = acara
+// atau kepanitiaan yang tampil di daftar kegiatan publik.
+export const LEMBAGA_PERIOD_KINDS = ['kegiatan', 'kepengurusan'] as const;
+export type LembagaPeriodKind = (typeof LEMBAGA_PERIOD_KINDS)[number];
+
 export const events = createTable(
   'lembaga_period',
   {
     id: varchar('id', { length: 255 }).primaryKey(),
     org_id: varchar('lembaga_id', { length: 255 }).references(() => lembaga.id),
+    // CHECK kind IN (...) ditulis tangan di migrasi.
+    kind: varchar('kind', { length: 32 })
+      .$type<LembagaPeriodKind>()
+      .notNull()
+      .default('kegiatan'),
     // Label periode (mis. "2025/2026"); diisi migrasi, nullable sampai kode menulisnya.
     label: varchar('label', { length: 255 }),
     name: varchar('name', { length: 255 }).notNull(),

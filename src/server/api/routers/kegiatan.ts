@@ -22,6 +22,7 @@ export const kegiatanRouter = createTRPCRouter({
     .output(GetAllKegiatanPublicOutputSchema)
     .query(async ({ ctx }) => {
       const kegiatan = await ctx.db.query.events.findMany({
+        where: (events, { eq }) => eq(events.kind, 'kegiatan'),
         orderBy: (events, { desc }) => desc(events.start_date),
         columns: {
           org_id: false,
@@ -60,12 +61,21 @@ export const kegiatanRouter = createTRPCRouter({
     }),
 
   // lembaga procedure
+  // Tanpa `kind`: semua periode lembaga (dipakai pemilih periode organogram).
   getAllByLembaga: lembagaProcedure
+    .input(
+      z
+        .object({ kind: z.enum(['kegiatan', 'kepengurusan']).optional() })
+        .optional(),
+    )
     .output(GetAllKegiatanByLembagaOutputSchema)
-    .query(async ({ ctx }) => {
+    .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findMany({
-        where: (events, { eq }) =>
-          eq(events.org_id, ctx.session.user.lembagaId!),
+        where: (events, { and, eq }) =>
+          and(
+            eq(events.org_id, ctx.session.user.lembagaId!),
+            input?.kind ? eq(events.kind, input.kind) : undefined,
+          ),
         orderBy: (events, { desc }) => [
           desc(events.is_highlighted),
           desc(events.start_date),

@@ -1,6 +1,9 @@
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { getServerAuthSession } from '~/server/auth';
 import { api } from '~/trpc/server';
+
+import { CreatePeriodButton } from './_components/create-period-button';
 
 const STATUS_LABEL: Record<string, string> = {
   'Coming Soon': 'Akan datang',
@@ -10,6 +13,9 @@ const STATUS_LABEL: Record<string, string> = {
 
 const OrganogramPeriodPickerPage = async () => {
   const events = await api.kegiatan.getAllByLembaga();
+  const session = await getServerAuthSession();
+  const lembagaId = session?.user.lembagaId;
+  const hasKepengurusan = events.some((e) => e.kind === 'kepengurusan');
 
   return (
     <main className="py-6 sm:py-8">
@@ -17,12 +23,17 @@ const OrganogramPeriodPickerPage = async () => {
         Organogram
       </h1>
       <p className="mt-1 text-neutral-700">
-        Pilih kegiatan untuk melihat atau menyusun organogramnya.
+        Pilih periode atau kegiatan untuk melihat atau menyusun organogramnya.
       </p>
+
+      {lembagaId && !hasKepengurusan ? (
+        <CreatePeriodButton lembagaId={lembagaId} />
+      ) : null}
 
       {events.length === 0 ? (
         <p className="mt-8 text-neutral-700">
-          Belum ada kegiatan. Buat kegiatan dulu di halaman Kegiatan.
+          Belum ada periode atau kegiatan. Buat kegiatan dulu di halaman
+          Kegiatan.
         </p>
       ) : (
         <ul className="mt-6 divide-y divide-neutral-400 border-y border-neutral-400">

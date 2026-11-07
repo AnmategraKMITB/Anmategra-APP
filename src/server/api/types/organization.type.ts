@@ -138,3 +138,84 @@ export const MovePlacementInputSchema = z.object({
   allowOverQuota: z.boolean().default(false),
 });
 export const MovePlacementOutputSchema = AddPlacementOutputSchema;
+
+// --- import.preview / import.apply (Fase 2D)
+const ImportKeySchema = z.string().min(1).max(32);
+export const ImportPlanSchema = z.object({
+  units: z.array(
+    z.object({
+      key: ImportKeySchema,
+      name: z.string(),
+      variants: z.array(z.string()),
+    }),
+  ),
+  positions: z.array(
+    z.object({
+      key: ImportKeySchema,
+      unitKey: ImportKeySchema,
+      title: z.string(),
+      rank: RankSchema,
+      kind: KindSchema,
+      variants: z.array(z.string()),
+    }),
+  ),
+  placements: z.array(
+    z.object({ userId: z.string(), positionKey: ImportKeySchema }),
+  ),
+  membershipOnly: z.number().int(),
+  duplicates: z.number().int(),
+});
+export const PreviewImportInputSchema = z.object({
+  periodId: z.string().min(1),
+});
+export const PreviewImportOutputSchema = z.object({
+  /** Jumlah baris teks lama yang dibaca, per tabel sumber. */
+  sources: z.object({
+    keanggotaan: z.number().int(),
+    kehimpunan: z.number().int(),
+  }),
+  /** Alasan impor tidak bisa dilakukan sekarang; null bila bisa. */
+  blocked: z.enum(['sudah_berisi', 'tidak_ada_data']).nullable(),
+  plan: ImportPlanSchema,
+  /** Sidik usulan; apply menolak bila data lama berubah sejak pratinjau. */
+  fingerprint: z.string(),
+});
+export const ApplyImportInputSchema = z.object({
+  periodId: z.string().min(1),
+  fingerprint: z.string().min(1),
+  units: z
+    .array(
+      z.object({
+        key: ImportKeySchema,
+        name: z.string().max(255),
+        mergeInto: ImportKeySchema.optional(),
+        skip: z.boolean().optional(),
+      }),
+    )
+    .max(MAX_UNITS),
+  positions: z
+    .array(
+      z.object({
+        key: ImportKeySchema,
+        title: z.string().max(255),
+        rank: RankSchema,
+        kind: KindSchema,
+        mergeInto: ImportKeySchema.optional(),
+        skip: z.boolean().optional(),
+      }),
+    )
+    .max(MAX_POSITIONS),
+});
+export const ApplyImportOutputSchema = z.object({
+  units: z.number().int(),
+  positions: z.number().int(),
+  placements: z.number().int(),
+  skippedPlacements: z.number().int(),
+  version: z.number().int(),
+});
+
+// --- import.createCurrentPeriod
+export const CreateCurrentPeriodInputSchema = z.object({
+  lembagaId: z.string().min(1),
+});
+export const CreateCurrentPeriodOutputSchema = z.object({ periodId: z.string() });

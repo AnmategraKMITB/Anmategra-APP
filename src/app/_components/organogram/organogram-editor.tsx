@@ -25,6 +25,7 @@ import {
 import { cn } from '~/lib/utils';
 
 import { ChartView } from './chart-view';
+import { ImportEntry } from './import-sheet';
 import { Inspector } from './inspector';
 import { SettingsView } from './settings-view';
 import { StructurePanel } from './structure-panel';
@@ -315,6 +316,10 @@ export function OrganogramWorkspace(
                   {createError}
                 </p>
               ) : null}
+              <ImportEntry
+                periodId={props.periodId}
+                onImported={() => ed.reload()}
+              />
             </>
           ) : (
             <p className="max-w-md text-sm text-neutral-700">
