@@ -1,24 +1,29 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { type ZodIssue, ZodIssueCode } from 'zod';
+import { computeVisibility, pickEnding } from '~/lib/forms/conditions';
+import { fileRuleProblem } from '~/lib/forms/file-answer';
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from '~/server/api/trpc';
 import {
-  events,
   form,
   formAnswer,
   formSubmission,
-  lembaga,
   mahasiswa,
 } from '~/server/db/schema';
 
 import {
   type FieldOutput,
+  FileAnswerListSchema,
+  GetMySubmissionInputSchema,
+  GetMySubmissionOutputSchema,
+  GetPreviewInputSchema,
   GetPublicFormInputSchema,
   GetPublicFormOutputSchema,
+  LINK_MAX_LENGTH,
   LONG_TEXT_MAX_LENGTH,
   SHORT_TEXT_MAX_LENGTH,
   type StoredAnswerValue,
@@ -27,12 +32,16 @@ import {
   TEXT_PATTERN_RULES,
 } from '../../types/form.type';
 import {
-  type Queryable,
+  buildPublicForm,
+  hasSubmitted,
   isAcceptingResponses,
   loadActiveFields,
+  loadEndings,
+  loadSections,
   lockFormShared,
   lockSubmitSlot,
   rethrow,
+  toCondFields,
 } from './services';
 
 /**
@@ -75,8 +84,30 @@ function isEmpty(value: unknown): boolean {
     value === undefined ||
     value === null ||
     (typeof value === 'string' && value.trim() === '') ||
-    (Array.isArray(value) && value.length === 0)
+    (Array.isArray(value) && value.length === 0) ||
+    // A matrix answer with no row answered.
+    (typeof value === 'object' &&
+      !Array.isArray(value) &&
+      Object.keys(value).length === 0)
   );
+}
+
+function isHttpUrl(value: string): boolean {
+  try {
+    const { protocol } = new URL(value);
+    return protocol === 'http:' || protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Compile-time guard for the `switch` on the field type below: a new type
+ * with no `case` stops the build instead of having its answers accepted
+ * without any validation.
+ */
+function assertNever(value: never): never {
+  throw new Error(`Tipe pertanyaan tidak dikenal: ${String(value)}`);
 }
 
 /**
@@ -115,6 +146,12 @@ export function validateAnswers(
         fieldType: field.type,
         value,
       });
+
+    // A text block is shown, never answered: any answer for it is an error.
+    if (field.type === 'text_block') {
+      if (given.has(field.id)) fail(field.id, 'Field ini bukan pertanyaan.');
+      continue;
+    }
 
     if (field.type === 'checkbox') {
       if (raw !== undefined && typeof raw !== 'boolean') {
@@ -239,44 +276,140 @@ export function validateAnswers(
         push(picked.map((o) => ({ optionId: o!.id, label: o!.label })));
         break;
       }
+
+      case 'link': {
+        const text = typeof raw === 'string' ? raw.trim() : undefined;
+        if (text === undefined || !isHttpUrl(text)) {
+          // Only http(s): `javascript:` or `data:` links would run when a
+          // reviewer clicks them.
+          if (text !== undefined && text.length > LINK_MAX_LENGTH) {
+            fail(field.id, `Tautan maksimal ${LINK_MAX_LENGTH} karakter.`);
+          } else {
+            fail(
+              field.id,
+              'Tautan harus berupa URL http atau https yang valid.',
+            );
+          }
+          break;
+        }
+        if (text.length > LINK_MAX_LENGTH) {
+          fail(field.id, `Tautan maksimal ${LINK_MAX_LENGTH} karakter.`);
+          break;
+        }
+        push(text);
+        break;
+      }
+
+      case 'scale': {
+        // The widest bounds the config schema allows; a stored config always
+        // carries both.
+        const min = config.min ?? 0;
+        const max = config.max ?? 10;
+        if (
+          typeof raw !== 'number' ||
+          !Number.isInteger(raw) ||
+          raw < min ||
+          raw > max
+        ) {
+          fail(
+            field.id,
+            `Nilai harus bilangan bulat antara ${min} dan ${max}.`,
+          );
+          break;
+        }
+        push(raw);
+        break;
+      }
+
+      case 'matrix': {
+        if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+          fail(field.id, 'Pilihan jawaban tidak sesuai.');
+          break;
+        }
+        const rows = config.rows ?? [];
+        const columnById = new Map(
+          (config.columns ?? []).map((c) => [c.id, c]),
+        );
+        const rowIds = new Set(rows.map((r) => r.id));
+        const answered = new Map<string, string[]>();
+        let problem: string | undefined;
+        for (const [rowId, value] of Object.entries(raw)) {
+          if (!rowIds.has(rowId)) {
+            problem = 'Baris atau kolom jawaban tidak dikenal.';
+            break;
+          }
+          // One column per row, or a list of columns when the field allows it.
+          const ids = config.multiple ? value : [value];
+          if (
+            !Array.isArray(ids) ||
+            ids.some((v) => typeof v !== 'string') ||
+            (config.multiple && !Array.isArray(value)) ||
+            new Set(ids).size !== ids.length
+          ) {
+            problem = 'Pilihan jawaban tidak sesuai.';
+            break;
+          }
+          if ((ids as string[]).some((id) => !columnById.has(id))) {
+            problem = 'Baris atau kolom jawaban tidak dikenal.';
+            break;
+          }
+          // An empty list means the row was left unanswered.
+          if (ids.length > 0) answered.set(rowId, ids as string[]);
+        }
+        if (problem !== undefined) {
+          fail(field.id, problem);
+          break;
+        }
+        if (answered.size === 0) {
+          if (field.required) fail(field.id, `${label} wajib diisi.`);
+          break;
+        }
+        if (field.required && answered.size < rows.length) {
+          fail(field.id, 'Semua baris wajib dijawab.');
+          break;
+        }
+        push(
+          rows
+            .filter((r) => answered.has(r.id))
+            .map((r) => ({
+              rowId: r.id,
+              rowLabel: r.label,
+              selected: answered.get(r.id)!.map((columnId) => ({
+                columnId,
+                label: columnById.get(columnId)!.label,
+              })),
+            })),
+        );
+        break;
+      }
+
+      case 'file': {
+        const parsed = FileAnswerListSchema.safeParse(raw);
+        if (!parsed.success) {
+          fail(field.id, `Berkas untuk ${label} tidak valid.`);
+          break;
+        }
+        const files = parsed.data;
+        const problem = fileRuleProblem(files, field.config);
+        if (problem) {
+          fail(field.id, problem);
+          break;
+        }
+        push(files);
+        break;
+      }
+
+      default:
+        assertNever(field.type);
     }
   }
 
   return { issues, rows };
 }
 
-async function ownerOf(db: Queryable, row: typeof form.$inferSelect) {
-  if (row.lembagaId) {
-    const [owner] = await db
-      .select({ id: lembaga.id, name: lembaga.name })
-      .from(lembaga)
-      .where(eq(lembaga.id, row.lembagaId));
-    return {
-      type: 'lembaga' as const,
-      id: row.lembagaId,
-      name: owner?.name ?? '',
-    };
-  }
-  const [owner] = await db
-    .select({ id: events.id, name: events.name })
-    .from(events)
-    .where(eq(events.id, row.eventId!));
-  return { type: 'event' as const, id: row.eventId!, name: owner?.name ?? '' };
-}
-
-async function hasSubmitted(db: Queryable, formId: string, userId: string) {
-  const [row] = await db
-    .select({ id: formSubmission.id })
-    .from(formSubmission)
-    .where(
-      and(eq(formSubmission.formId, formId), eq(formSubmission.userId, userId)),
-    )
-    .limit(1);
-  return !!row;
-}
-
 export const formSubmissionRouter = createTRPCRouter({
-  getPublic: publicProcedure
+  /** The fill-in page: logging in is required to open it, not only to submit. */
+  getPublic: protectedProcedure
     .input(GetPublicFormInputSchema)
     .output(GetPublicFormOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -291,26 +424,55 @@ export const formSubmissionRouter = createTRPCRouter({
           message: 'Formulir tidak ditemukan.',
         });
       }
+      return buildPublicForm(ctx.db, row, 'form', ctx.session.user.id);
+    }),
 
-      const userId = ctx.session?.user.id;
-      const [fields, owner, submitted] = await Promise.all([
-        loadActiveFields(ctx.db, row.id),
-        ownerOf(ctx.db, row),
-        userId ? hasSubmitted(ctx.db, row.id, userId) : Promise.resolve(null),
-      ]);
+  /** The caller's own latest submission to this form, or null. */
+  getMySubmission: protectedProcedure
+    .input(GetMySubmissionInputSchema)
+    .output(GetMySubmissionOutputSchema)
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({
+          id: formSubmission.id,
+          submittedAt: formSubmission.submittedAt,
+        })
+        .from(formSubmission)
+        .where(
+          and(
+            eq(formSubmission.formId, input.formId),
+            eq(formSubmission.userId, ctx.session.user.id),
+          ),
+        )
+        .orderBy(desc(formSubmission.submittedAt))
+        .limit(1);
+      return row ?? null;
+    }),
 
-      return {
-        id: row.id,
-        title: row.title,
-        description: row.description,
-        status: row.status,
-        closesAt: row.closesAt,
-        allowMultipleSubmissions: row.allowMultipleSubmissions,
-        owner,
-        isAcceptingResponses: isAcceptingResponses(row),
-        hasSubmitted: submitted,
-        fields: fields.map(({ sortOrder: _sortOrder, ...field }) => field),
-      };
+  /**
+   * Read-only view through the public preview link; no login. Unknown tokens
+   * and links switched off answer the same way, so a token cannot be probed.
+   */
+  getPreview: publicProcedure
+    .input(GetPreviewInputSchema)
+    .output(GetPublicFormOutputSchema)
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select()
+        .from(form)
+        .where(
+          and(
+            eq(form.previewToken, input.token),
+            eq(form.previewEnabled, true),
+          ),
+        );
+      if (!row) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Pratinjau tidak ditemukan.',
+        });
+      }
+      return buildPublicForm(ctx.db, row, 'preview');
     }),
 
   submit: protectedProcedure
@@ -364,8 +526,28 @@ export const formSubmissionRouter = createTRPCRouter({
             }
           }
 
-          const fields = await loadActiveFields(tx, current.id);
-          const { issues, rows } = validateAnswers(fields, input.answers);
+          const allFields = await loadActiveFields(tx, current.id);
+          const [sections, endings] = await Promise.all([
+            loadSections(tx, current.id),
+            loadEndings(tx, current.id),
+          ]);
+          // Pertanyaan yang tersembunyi menurut jawaban ini tidak wajib dan
+          // jawabannya dibuang, bukan ditolak.
+          const given = Object.fromEntries(
+            input.answers.map((a) => [a.fieldId, a.value]),
+          );
+          const condFields = toCondFields(allFields);
+          const visibility = computeVisibility(condFields, sections, given);
+          const fields = allFields.filter((f) => visibility.fields.has(f.id));
+          const hidden = new Set(
+            allFields
+              .filter((f) => !visibility.fields.has(f.id))
+              .map((f) => f.id),
+          );
+          const { issues, rows } = validateAnswers(
+            fields,
+            input.answers.filter((a) => !hidden.has(a.fieldId)),
+          );
           if (issues.length > 0) {
             // Cause yang membawa `issues` membuat errorFormatter memaparkan
             // data.zodError.fieldErrors[fieldId], sama seperti error validasi
@@ -377,9 +559,10 @@ export const formSubmissionRouter = createTRPCRouter({
             });
           }
 
+          const endingId = pickEnding(endings, visibility, given, condFields);
           const [submission] = await tx
             .insert(formSubmission)
-            .values({ formId: current.id, userId })
+            .values({ formId: current.id, userId, endingId })
             .returning();
           if (rows.length > 0) {
             await tx
@@ -391,6 +574,7 @@ export const formSubmissionRouter = createTRPCRouter({
           return {
             submissionId: submission!.id,
             submittedAt: submission!.submittedAt,
+            ending: endings.find((e) => e.id === endingId) ?? null,
           };
         });
       } catch (error) {

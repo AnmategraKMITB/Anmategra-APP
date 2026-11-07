@@ -75,6 +75,4 @@ export const ManagedEventEntrySchema = z.object({
   access: z.enum(['owner', 'admin']),
 });
 
-export const GetMyManagedEventsOutputSchema = z.array(
-  ManagedEventEntrySchema,
-);
+export const GetMyManagedEventsOutputSchema = z.array(ManagedEventEntrySchema);

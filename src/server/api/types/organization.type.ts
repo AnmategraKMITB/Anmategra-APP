@@ -51,13 +51,19 @@ export const OrganogramPlacementSchema = z.object({
 const LevelLabelsSchema = z
   .array(z.string().trim().min(1).max(255))
   .max(MAX_TREE_DEPTH);
-const RankDefSchema = z.object({ id: RankSchema, label: z.string().trim().min(1).max(60) });
+const RankDefSchema = z.object({
+  id: RankSchema,
+  label: z.string().trim().min(1).max(60),
+});
 /** Daftar rank berurutan; id harus unik. */
 const RanksSchema = z
   .array(RankDefSchema)
   .min(1)
   .max(24)
-  .refine((ranks) => new Set(ranks.map((r) => r.id)).size === ranks.length, 'Id rank harus unik.');
+  .refine(
+    (ranks) => new Set(ranks.map((r) => r.id)).size === ranks.length,
+    'Id rank harus unik.',
+  );
 
 export const OrganogramAccessSchema = z.object({
   /** Owner/admin lembaga atau admin periode: boleh semuanya, tidak terpengaruh kunci. */
@@ -69,7 +75,9 @@ export const OrganogramAccessSchema = z.object({
 });
 
 // --- structure.get
-export const GetOrganogramInputSchema = z.object({ periodId: z.string().min(1) });
+export const GetOrganogramInputSchema = z.object({
+  periodId: z.string().min(1),
+});
 export const GetOrganogramOutputSchema = z
   .object({
     id: z.string(),
@@ -82,7 +90,12 @@ export const GetOrganogramOutputSchema = z
     lockedAt: z.date().nullable(),
     /** Dikirim kembali saat menyimpan; naik setiap penyimpanan pohon. */
     version: z.number().int(),
-    units: z.array(OrganogramUnitSchema.extend({ id: z.string(), parentId: z.string().nullable() })),
+    units: z.array(
+      OrganogramUnitSchema.extend({
+        id: z.string(),
+        parentId: z.string().nullable(),
+      }),
+    ),
     positions: z.array(
       OrganogramPositionSchema.extend({
         id: z.string(),
@@ -99,7 +112,10 @@ export const CreateOrganogramInputSchema = z.object({
   periodId: z.string().min(1),
   name: z.string().trim().min(1).max(255).optional(),
 });
-export const CreateOrganogramOutputSchema = z.object({ id: z.string(), version: z.number().int() });
+export const CreateOrganogramOutputSchema = z.object({
+  id: z.string(),
+  version: z.number().int(),
+});
 
 // --- structure.save
 export const SaveOrganogramInputSchema = z.object({
@@ -112,11 +128,19 @@ export const SaveOrganogramInputSchema = z.object({
   units: z.array(OrganogramUnitSchema).max(MAX_UNITS),
   positions: z.array(OrganogramPositionSchema).max(MAX_POSITIONS),
 });
-export const SaveOrganogramOutputSchema = z.object({ version: z.number().int(), changed: z.boolean() });
+export const SaveOrganogramOutputSchema = z.object({
+  version: z.number().int(),
+  changed: z.boolean(),
+});
 
 // --- structure.setLock
-export const SetOrganogramLockInputSchema = z.object({ periodId: z.string().min(1), locked: z.boolean() });
-export const SetOrganogramLockOutputSchema = z.object({ editLocked: z.boolean() });
+export const SetOrganogramLockInputSchema = z.object({
+  periodId: z.string().min(1),
+  locked: z.boolean(),
+});
+export const SetOrganogramLockOutputSchema = z.object({
+  editLocked: z.boolean(),
+});
 
 // --- placement
 const QuotaFullSchema = z.object({
@@ -137,7 +161,9 @@ export const AddPlacementOutputSchema = z.union([
   z.object({ ok: z.literal(true), id: z.string() }),
   QuotaFullSchema,
 ]);
-export const RemovePlacementInputSchema = z.object({ placementId: z.string().min(1) });
+export const RemovePlacementInputSchema = z.object({
+  placementId: z.string().min(1),
+});
 export const RemovePlacementOutputSchema = z.object({ success: z.boolean() });
 export const MovePlacementInputSchema = z.object({
   placementId: z.string().min(1),
@@ -229,4 +255,6 @@ export const ApplyImportOutputSchema = z.object({
 export const CreateCurrentPeriodInputSchema = z.object({
   lembagaId: z.string().min(1),
 });
-export const CreateCurrentPeriodOutputSchema = z.object({ periodId: z.string() });
+export const CreateCurrentPeriodOutputSchema = z.object({
+  periodId: z.string(),
+});

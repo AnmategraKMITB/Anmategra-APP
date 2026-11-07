@@ -1,21 +1,53 @@
 import { TRPCError } from '@trpc/server';
 import type { inferAsyncReturnType } from '@trpc/server';
-import { and, asc, count, eq, inArray, isNull, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  eq,
+  inArray,
+  isNull,
+  notInArray,
+  sql,
+} from 'drizzle-orm';
+import { randomBytes } from 'node:crypto';
+import { richTextToPlain } from '~/app/_components/forms/rich-text';
+import {
+  type CondField,
+  type ConditionIssue,
+  readCondition,
+  validateConditions,
+} from '~/lib/forms/conditions';
 import { type createTRPCContext } from '~/server/api/trpc';
 import {
   type FormFieldType,
+  events,
   form,
   formAnswer,
+  formEnding,
   formField,
   formFieldOption,
+  formImage,
+  formSection,
   formSubmission,
+  lembaga,
 } from '~/server/db/schema';
+import { keyFromUploadUrl } from '~/server/uploads';
 
 import {
+  type ConditionInput,
   type FieldConfig,
   FieldConfigSchema,
+  type FieldImage,
+  FieldImageSchema,
   type FieldOutput,
+  type FormEndingOutput,
   type FormOutput,
+  type FormSectionOutput,
+  FormSettingsSchema,
+  FormWelcomeSchema,
+  type GetPublicFormOutput,
+  StoredFormThemeSchema,
 } from '../../types/form.type';
 
 type TRPCContext = inferAsyncReturnType<typeof createTRPCContext>;
@@ -35,6 +67,39 @@ export function isChoiceType(type: FormFieldType): boolean {
   return CHOICE_TYPES.includes(type);
 }
 
+/** Question types that carry no answer (shown to the respondent, never saved). */
+const NON_ANSWERABLE_TYPES: readonly FormFieldType[] = ['text_block'];
+
+export function isAnswerable(type: FormFieldType): boolean {
+  return !NON_ANSWERABLE_TYPES.includes(type);
+}
+
+/**
+ * The JSON columns hold whatever was last written, so a row from a newer or
+ * hand-edited version may not parse. Reading must not break the whole form
+ * over a display preference: fall back to the defaults and say so in the log.
+ */
+function readFormSettings(row: FormRow) {
+  const parsed = FormSettingsSchema.safeParse(row.settings);
+  if (parsed.success) return parsed.data;
+  console.error('settings formulir tidak valid', { formId: row.id });
+  return FormSettingsSchema.parse({});
+}
+
+function readFormTheme(row: FormRow) {
+  const parsed = StoredFormThemeSchema.safeParse(row.theme);
+  if (parsed.success) return parsed.data;
+  console.error('theme formulir tidak valid', { formId: row.id });
+  return {};
+}
+
+function readFormWelcome(row: FormRow) {
+  const parsed = FormWelcomeSchema.safeParse(row.welcome);
+  if (parsed.success) return parsed.data;
+  console.error('welcome formulir tidak valid', { formId: row.id });
+  return {};
+}
+
 export function toFormOutput(row: FormRow): FormOutput {
   return {
     id: row.id,
@@ -46,6 +111,11 @@ export function toFormOutput(row: FormRow): FormOutput {
     closesAt: row.closesAt,
     allowMultipleSubmissions: row.allowMultipleSubmissions,
     publishedAt: row.publishedAt,
+    previewEnabled: row.previewEnabled,
+    previewToken: row.previewToken,
+    settings: readFormSettings(row),
+    theme: readFormTheme(row),
+    welcome: readFormWelcome(row),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -70,6 +140,109 @@ export async function countSubmissions(
     .where(inArray(formSubmission.formId, formIds))
     .groupBy(formSubmission.formId);
   return new Map(rows.map((r) => [r.formId, r.n]));
+}
+
+/** `condition` kolom jsonb → bentuk keluaran (nilai rusak = tanpa kondisi). */
+function conditionOut(value: unknown): ConditionInput | null {
+  return readCondition(value) as ConditionInput | null;
+}
+
+/** Gambar tersimpan di jsonb; nilai rusak = tanpa gambar. */
+export function imageOut(value: unknown): FieldImage | null {
+  const parsed = FieldImageSchema.safeParse(value);
+  return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Hanya kunci yang benar-benar diunggah untuk form ini yang boleh dihapus.
+ * Klien memilih `key` sendiri, jadi tanpa pemeriksaan ini satu pengelola form
+ * bisa menghapus berkas milik gambar profil, lampiran, atau form lain hanya
+ * dengan menebak kuncinya.
+ */
+export async function ownedImageKeys(
+  db: Queryable,
+  formId: string,
+  keys: string[],
+): Promise<string[]> {
+  const wanted = [...new Set(keys.filter(Boolean))];
+  if (wanted.length === 0) return [];
+  const rows = await db
+    .select({ key: formImage.key })
+    .from(formImage)
+    .where(and(eq(formImage.formId, formId), inArray(formImage.key, wanted)));
+  return rows.map((r) => r.key);
+}
+
+/**
+ * Kunci milik form ini yang sudah tidak dipakai lagi oleh gambar pertanyaan
+ * mana pun atau banner/logo. Satu kunci bisa dipakai di dua tempat (misalnya
+ * banner sekaligus ilustrasi), jadi menghapus satu tempat tidak boleh
+ * menghapus berkas yang masih tampil di tempat lain.
+ */
+export async function unreferencedImageKeys(
+  db: Queryable,
+  formId: string,
+  keys: string[],
+): Promise<string[]> {
+  const owned = await ownedImageKeys(db, formId, keys);
+  if (owned.length === 0) return [];
+
+  const [fieldRows, formRows] = await Promise.all([
+    db
+      .select({ image: formField.image })
+      .from(formField)
+      .where(eq(formField.formId, formId)),
+    db.select({ theme: form.theme }).from(form).where(eq(form.id, formId)),
+  ]);
+  const used = new Set<string>();
+  for (const row of fieldRows) {
+    const image = imageOut(row.image);
+    if (image) used.add(image.key);
+  }
+  const theme = formRows[0]?.theme;
+  if (theme && typeof theme === 'object') {
+    for (const name of ['banner', 'logo'] as const) {
+      const value = theme[name];
+      if (typeof value === 'string') {
+        const key = keyFromUploadUrl(value);
+        if (key) used.add(key);
+      }
+    }
+  }
+  return owned.filter((key) => !used.has(key));
+}
+
+/** URL gambar harus berasal dari unggahan form ini, bukan hanya host yang sah. */
+export async function assertOwnedImageUrl(
+  db: Queryable,
+  formId: string,
+  url: string,
+) {
+  const key = keyFromUploadUrl(url);
+  const owned = key
+    ? await ownedImageKeys(db, formId, [key])
+    : ([] as string[]);
+  if (owned.length === 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Gambar harus diunggah untuk formulir ini.',
+    });
+  }
+}
+
+/** Kunci dan URL gambar harus cocok dan berasal dari unggahan form ini. */
+export async function assertOwnedImage(
+  db: Queryable,
+  formId: string,
+  image: FieldImage,
+) {
+  if (keyFromUploadUrl(image.url) !== image.key) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Gambar tidak valid. Unggah ulang gambarnya.',
+    });
+  }
+  await assertOwnedImageUrl(db, formId, image.url);
 }
 
 type FieldRow = typeof formField.$inferSelect;
@@ -106,7 +279,10 @@ function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
     description: field.description,
     required: field.required,
     config: parseFieldConfig(field),
+    sectionId: field.sectionId,
     sortOrder: field.sortOrder,
+    condition: conditionOut(field.condition),
+    image: imageOut(field.image),
     options: options
       .filter((o) => o.fieldId === field.id)
       .map((o) => ({ id: o.id, label: o.label, sortOrder: o.sortOrder })),
@@ -127,16 +303,73 @@ function loadActiveOptions(db: Queryable, fieldIds: string[]) {
     .orderBy(asc(formFieldOption.sortOrder), asc(formFieldOption.created_at));
 }
 
-/** Active (non-archived) fields with their active options, in display order. */
+type SectionRow = typeof formSection.$inferSelect;
+
+function toSectionOutput(row: SectionRow): FormSectionOutput {
+  return {
+    id: row.id,
+    formId: row.formId,
+    title: row.title,
+    description: row.description,
+    sortOrder: row.sortOrder,
+    condition: conditionOut(row.condition),
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+/** Sections of a form in display order. */
+export async function loadSections(
+  db: Queryable,
+  formId: string,
+): Promise<FormSectionOutput[]> {
+  const rows = await db
+    .select()
+    .from(formSection)
+    .where(eq(formSection.formId, formId))
+    .orderBy(asc(formSection.sortOrder), asc(formSection.created_at));
+  return rows.map(toSectionOutput);
+}
+
+/** Section that belongs to `formId`, or NOT_FOUND (same guard as fields). */
+export async function getSectionForForm(
+  db: Queryable,
+  formId: string,
+  sectionId: string,
+): Promise<SectionRow> {
+  const [row] = await db
+    .select()
+    .from(formSection)
+    .where(and(eq(formSection.id, sectionId), eq(formSection.formId, formId)));
+  if (!row) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Bagian tidak ditemukan.',
+    });
+  }
+  return row;
+}
+
+/**
+ * Active (non-archived) fields with their active options, in display order:
+ * fields outside any section first, then section by section.
+ */
 export async function loadActiveFields(
   db: Queryable,
   formId: string,
 ): Promise<FieldOutput[]> {
-  const fields = await db
-    .select()
+  const joined = await db
+    .select({ field: formField })
     .from(formField)
+    .leftJoin(formSection, eq(formField.sectionId, formSection.id))
     .where(and(eq(formField.formId, formId), isNull(formField.archivedAt)))
-    .orderBy(asc(formField.sortOrder), asc(formField.created_at));
+    .orderBy(
+      sql`${formSection.sortOrder} asc nulls first`,
+      asc(formSection.id),
+      asc(formField.sortOrder),
+      asc(formField.created_at),
+    );
+  const fields = joined.map((r) => r.field);
   if (fields.length === 0) return [];
 
   const options = await loadActiveOptions(
@@ -157,7 +390,7 @@ export function assertPublishable(row: FormRow, fields: FieldOutput[]) {
     throw new TRPCError({ code: 'BAD_REQUEST', message });
   };
 
-  if (fields.length === 0) {
+  if (!fields.some((f) => isAnswerable(f.type))) {
     fail('Formulir belum memiliki pertanyaan.');
   }
   if (row.closesAt && row.closesAt.getTime() <= Date.now()) {
@@ -180,6 +413,101 @@ export function assertPublishable(row: FormRow, fields: FieldOutput[]) {
       }
     }
   }
+}
+
+/** Active fields that can be answered (everything but `text_block`). */
+export async function countAnswerableFields(
+  db: Queryable,
+  formId: string,
+): Promise<number> {
+  const [row] = await db
+    .select({ n: count() })
+    .from(formField)
+    .where(
+      and(
+        eq(formField.formId, formId),
+        isNull(formField.archivedAt),
+        notInArray(formField.type, [...NON_ANSWERABLE_TYPES]),
+      ),
+    );
+  return row?.n ?? 0;
+}
+
+/** 43-character URL-safe token for the public preview link. */
+export function generatePreviewToken(): string {
+  return randomBytes(32).toString('base64url');
+}
+
+export async function ownerOf(db: Queryable, row: FormRow) {
+  if (row.lembagaId) {
+    const [owner] = await db
+      .select({ id: lembaga.id, name: lembaga.name })
+      .from(lembaga)
+      .where(eq(lembaga.id, row.lembagaId));
+    return {
+      type: 'lembaga' as const,
+      id: row.lembagaId,
+      name: owner?.name ?? '',
+    };
+  }
+  const [owner] = await db
+    .select({ id: events.id, name: events.name })
+    .from(events)
+    .where(eq(events.id, row.eventId!));
+  return { type: 'event' as const, id: row.eventId!, name: owner?.name ?? '' };
+}
+
+export async function hasSubmitted(
+  db: Queryable,
+  formId: string,
+  userId: string,
+) {
+  const [row] = await db
+    .select({ id: formSubmission.id })
+    .from(formSubmission)
+    .where(
+      and(eq(formSubmission.formId, formId), eq(formSubmission.userId, userId)),
+    )
+    .limit(1);
+  return !!row;
+}
+
+/**
+ * What a respondent (or a preview visitor) sees. `preview` never accepts
+ * answers and never reports whether anyone submitted; the preview token is
+ * deliberately absent from this shape.
+ */
+export async function buildPublicForm(
+  db: Queryable,
+  row: FormRow,
+  mode: 'form' | 'preview',
+  userId: string | null = null,
+): Promise<GetPublicFormOutput> {
+  const [fields, sections, owner, submitted] = await Promise.all([
+    loadActiveFields(db, row.id),
+    loadSections(db, row.id),
+    ownerOf(db, row),
+    mode === 'form' && userId
+      ? hasSubmitted(db, row.id, userId)
+      : Promise.resolve(null),
+  ]);
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description,
+    status: row.status,
+    closesAt: row.closesAt,
+    allowMultipleSubmissions: row.allowMultipleSubmissions,
+    owner,
+    isAcceptingResponses: mode === 'form' && isAcceptingResponses(row),
+    hasSubmitted: submitted,
+    mode,
+    settings: readFormSettings(row),
+    theme: readFormTheme(row),
+    welcome: readFormWelcome(row),
+    sections: sections.map(({ sortOrder: _sortOrder, ...section }) => section),
+    fields: fields.map(({ sortOrder: _sortOrder, ...field }) => field),
+  };
 }
 
 /**
@@ -325,4 +653,142 @@ export function rethrow(error: unknown, message: string): never {
   if (error instanceof TRPCError) throw error;
   console.error(message, error);
   throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message });
+}
+
+type EndingRow = typeof formEnding.$inferSelect;
+
+function toEndingOutput(row: EndingRow): FormEndingOutput {
+  return {
+    id: row.id,
+    formId: row.formId,
+    title: row.title,
+    description: row.description,
+    sortOrder: row.sortOrder,
+    condition: conditionOut(row.condition),
+  };
+}
+
+/** Endings of a form in evaluation order. */
+export async function loadEndings(
+  db: Queryable,
+  formId: string,
+): Promise<FormEndingOutput[]> {
+  const rows = await db
+    .select()
+    .from(formEnding)
+    .where(eq(formEnding.formId, formId))
+    .orderBy(asc(formEnding.sortOrder), asc(formEnding.created_at));
+  return rows.map(toEndingOutput);
+}
+
+export function toCondFields(fields: FieldOutput[]): CondField[] {
+  return fields.map((f) => ({
+    id: f.id,
+    type: f.type,
+    sectionId: f.sectionId,
+    condition: f.condition,
+  }));
+}
+
+/**
+ * Called at the end of every transaction that can change what a condition
+ * points at (question or option removed/archived/moved, a condition edited).
+ *
+ * - A problem in something the caller just edited: BAD_REQUEST with the reason.
+ * - A condition broken as a side effect: CONFLICT listing what is affected, or,
+ *   with `clearDependents`, those conditions are cleared and the change stands.
+ */
+export async function enforceConditions(
+  tx: Tx,
+  formId: string,
+  opts: { clearDependents?: boolean; edited?: string[] } = {},
+) {
+  const [fields, sections, endings] = await Promise.all([
+    loadActiveFields(tx, formId),
+    loadSections(tx, formId),
+    loadEndings(tx, formId),
+  ]);
+  const optionIds = new Map(
+    fields.map((f) => [f.id, new Set(f.options.map((o) => o.id))]),
+  );
+  const issues: ConditionIssue[] = validateConditions(
+    toCondFields(fields),
+    sections,
+    endings,
+  );
+  const flagged = new Set(issues.map((i) => i.targetId));
+  const checkOptions = (
+    targetId: string,
+    kind: ConditionIssue['kind'],
+    condition: unknown,
+  ) => {
+    if (flagged.has(targetId)) return;
+    for (const rule of readCondition(condition)?.aturan ?? []) {
+      const known = optionIds.get(rule.fieldId);
+      const wanted = [
+        'adalah',
+        'bukan',
+        'salah_satu',
+        'memuat',
+        'tidak_memuat',
+        'memuat_salah_satu',
+      ];
+      if (!known || !wanted.includes(rule.op)) continue;
+      const values = Array.isArray(rule.nilai) ? rule.nilai : [rule.nilai];
+      if (values.some((v) => typeof v !== 'string' || !known.has(v))) {
+        flagged.add(targetId);
+        issues.push({
+          targetId,
+          kind,
+          message: 'Pilihan yang dirujuk kondisi sudah tidak ada.',
+        });
+        return;
+      }
+    }
+  };
+  for (const f of fields) checkOptions(f.id, 'field', f.condition);
+  for (const sct of sections) checkOptions(sct.id, 'section', sct.condition);
+  for (const e of endings) checkOptions(e.id, 'ending', e.condition);
+  if (issues.length === 0) return;
+
+  const edited = new Set(opts.edited ?? []);
+  const own = issues.find((i) => edited.has(i.targetId));
+  if (own) throw new TRPCError({ code: 'BAD_REQUEST', message: own.message });
+
+  if (opts.clearDependents) {
+    for (const issue of issues) {
+      if (issue.kind === 'field') {
+        await tx
+          .update(formField)
+          .set({ condition: null })
+          .where(eq(formField.id, issue.targetId));
+      } else if (issue.kind === 'section') {
+        await tx
+          .update(formSection)
+          .set({ condition: null })
+          .where(eq(formSection.id, issue.targetId));
+      } else {
+        await tx
+          .update(formEnding)
+          .set({ condition: null })
+          .where(eq(formEnding.id, issue.targetId));
+      }
+    }
+    return;
+  }
+
+  const label = (i: ConditionIssue) =>
+    i.kind === 'field'
+      ? (fields.find((f) => f.id === i.targetId)?.label ?? 'pertanyaan')
+      : i.kind === 'section'
+        ? (sections.find((x) => x.id === i.targetId)?.title ?? 'bagian')
+        : (endings.find((x) => x.id === i.targetId)?.title ?? 'ending');
+  const names = issues.map(
+    (i) =>
+      `${i.kind === 'field' ? 'pertanyaan' : i.kind === 'section' ? 'bagian' : 'ending'} "${richTextToPlain(label(i))}"`,
+  );
+  throw new TRPCError({
+    code: 'CONFLICT',
+    message: `Perubahan ini membuat kondisi tidak berlaku pada: ${names.join(', ')}. Hapus kondisi terkait untuk melanjutkan.`,
+  });
 }

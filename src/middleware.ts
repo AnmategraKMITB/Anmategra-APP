@@ -1,5 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import { type NextRequest, NextResponse } from 'next/server';
+import { decideFormsPath } from '~/lib/forms-path';
 
 const AUTH_ROUTES = ['/authentication'];
 const STATIC = [
@@ -10,6 +11,9 @@ const STATIC = [
   '/manifest.json',
   '/robots.txt',
   '/sitemap.xml',
+  // Halaman pendaratan popup MSAL; harus bisa dibuka tanpa sesi dan tanpa
+  // dialihkan ke halaman peran.
+  '/msal-redirect',
   // Purwarupa untuk dibagikan ke pengguna uji (mis. tim MSDM); tidak butuh login.
   '/prototype',
 ];
@@ -31,6 +35,16 @@ export default async function middleware(req: NextRequest) {
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   const { pathname } = req.nextUrl;
+
+  // Form pages: the fill page is shared by every role (no role prefix) and the
+  // public preview needs no login at all, even for someone who is logged in.
+  const forms = decideFormsPath(pathname, req.nextUrl.search, !!token);
+  if (forms.kind === 'public' || forms.kind === 'shared') {
+    return NextResponse.next();
+  }
+  if (forms.kind === 'login') {
+    return NextResponse.redirect(new URL(forms.location, req.url));
+  }
 
   // The manual is available after login but uses one shared URL for all roles.
   if (
@@ -93,6 +107,6 @@ export default async function middleware(req: NextRequest) {
 // panggilan tRPC tetap menjalankan middleware dulu sebelum dilewatkan.
 export const config = {
   matcher: [
-    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|prototype).*)',
+    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|msal-redirect|prototype).*)',
   ],
 };
