@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import type { JSX } from 'react';
+import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import {
@@ -29,6 +30,14 @@ import {
 } from '~/components/ui/table';
 import { cn } from '~/lib/utils';
 
+import { downloadBlob, exportFileStem } from './export-image';
+import {
+  EXPORT_HEADER,
+  buildXlsx,
+  guardCell,
+  rowCells,
+  toTsv,
+} from './export-table';
 import {
   type Draft,
   type PlacementsByPosition,
@@ -185,47 +194,15 @@ const COLUMNS: ColumnDef<Row>[] = [
   },
 ];
 
-const CSV_HEADER = [
-  'Path',
-  'Bagian',
-  'Level',
-  'Jabatan',
-  'Rank',
-  'Jenis',
-  'Kuota',
-  'Terisi',
-  'Orang',
-  'Tier',
-  'Tampil',
-];
-
 const csvCell = (value: string | number): string => {
-  const text = String(value);
+  const text = guardCell(value);
   return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 };
 
 /** CSV dari baris yang sedang tampil (urutan dan pencarian ikut); "Orang" berisi nama, dipisah titik koma. */
 function toCsv(rows: Row[]): string {
-  const lines = [CSV_HEADER.join(',')];
-  for (const row of rows) {
-    lines.push(
-      [
-        row.path,
-        row.unitName,
-        row.depth,
-        row.title,
-        row.rankLabel,
-        row.kindLabel,
-        row.quota,
-        row.filled,
-        row.peopleLabel.split(', ').join('; '),
-        row.tier,
-        row.visibility,
-      ]
-        .map(csvCell)
-        .join(','),
-    );
-  }
+  const lines = [EXPORT_HEADER.join(',')];
+  for (const row of rows) lines.push(rowCells(row).map(csvCell).join(','));
   return lines.join('\r\n');
 }
 
@@ -321,32 +298,36 @@ export function TableView(props: {
   const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shownRows = table.getRowModel().rows.map((row) => row.original);
 
-  const copyCsv = async () => {
+  const fileStem = `organogram-${exportFileStem(draft.name)}`;
+
+  /** TSV, bukan CSV: ditempel ke Google Sheets atau Excel, kolomnya langsung terpisah. */
+  const copyForSheets = async () => {
     try {
-      await navigator.clipboard.writeText(toCsv(shownRows));
+      await navigator.clipboard.writeText(toTsv(shownRows));
       setCopied(true);
       if (copiedTimer.current) clearTimeout(copiedTimer.current);
       copiedTimer.current = setTimeout(() => setCopied(false), 2000);
     } catch {
-      // Clipboard diblokir: pengguna bisa memakai Unduh CSV.
+      toast.error('Penyalinan diblokir peramban. Pakai Unduh Excel atau CSV.');
     }
   };
 
   const downloadCsv = () => {
     // BOM supaya Excel membaca UTF-8 dengan benar.
-    const blob = new Blob(['\uFEFF', toCsv(shownRows)], {
-      type: 'text/csv;charset=utf-8',
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    const slug = draft.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-    link.href = url;
-    link.download = `organogram-${slug === '' ? 'tabel' : slug}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadBlob(
+      new Blob(['\uFEFF', toCsv(shownRows)], {
+        type: 'text/csv;charset=utf-8',
+      }),
+      `${fileStem}.csv`,
+    );
+  };
+
+  const downloadXlsx = async () => {
+    try {
+      downloadBlob(await buildXlsx(shownRows, draft.name), `${fileStem}.xlsx`);
+    } catch {
+      toast.error('Berkas Excel gagal dibuat. Coba Unduh CSV.');
+    }
   };
 
   return (
@@ -366,10 +347,18 @@ export function TableView(props: {
         <Button
           variant="dark_blue_outline"
           size="sm"
-          onClick={() => void copyCsv()}
+          onClick={() => void copyForSheets()}
           aria-live="polite"
         >
-          {copied ? 'Tersalin' : 'Salin CSV'}
+          {copied ? 'Tersalin' : 'Salin untuk Sheets'}
+        </Button>
+        <Button
+          variant="dark_blue_outline"
+          size="sm"
+          onClick={() => void downloadXlsx()}
+        >
+          <Download className="size-4" />
+          Unduh Excel
         </Button>
         <Button variant="dark_blue_outline" size="sm" onClick={downloadCsv}>
           <Download className="size-4" />

@@ -1,7 +1,7 @@
-import { rankIndexOf } from './model';
+import { NODE_WIDTH_DEFAULT, rankIndexOf } from './model';
 import type { Draft, Person, PlacementsByPosition, Rank, Unit } from './model';
 
-export const NODE_W = 264;
+export const NODE_W = NODE_WIDTH_DEFAULT;
 export const HEADER_H = 44;
 export const SEAT_H = 36;
 export const GROUP_H = 36;
@@ -18,8 +18,10 @@ const HEADER_PAD_Y = 5;
 /** Perkiraan lebar rata-rata satu huruf nama bagian (14 px, tebal), sedikit berlebih agar aman. */
 const TITLE_CHAR_W = 7.8;
 /** Lebar teks nama di header: kartu dikurangi padding dan tombol ciutkan. */
-const TITLE_AVAIL_W = NODE_W - 24;
-const TITLE_AVAIL_W_TOGGLE = NODE_W - 24 - 44;
+/** Lebar kartu satu bagian (bawaan bila belum diatur). */
+export function nodeWidthOf(unit: Unit): number {
+  return unit.layout.width ?? NODE_W;
+}
 /** Jarak antar subpohon saudara yang disusun berjajar. */
 export const H_GAP = 32;
 /** Dari dasar induk ke puncak anak (susunan berjajar). */
@@ -93,14 +95,20 @@ type Subtree = {
   height: number;
   /** Batas kiri subpohon relatif terhadap x node akar (bisa negatif). */
   minX: number;
+  /** Lebar kartu akar subpohon. */
+  rootW: number;
   nodes: ChartNode[];
 };
 
 const CORNER = 8;
 
 /** Jumlah baris nama bagian setelah dibungkus per kata; dipotong di TITLE_MAX_LINES. */
-export function titleLines(name: string, hasToggle: boolean): number {
-  const avail = hasToggle ? TITLE_AVAIL_W_TOGGLE : TITLE_AVAIL_W;
+export function titleLines(
+  name: string,
+  hasToggle: boolean,
+  width: number = NODE_W,
+): number {
+  const avail = width - 24 - (hasToggle ? 44 : 0);
   const perLine = Math.max(1, Math.floor(avail / TITLE_CHAR_W));
   let lines = 1;
   let used = 0;
@@ -124,8 +132,12 @@ export function titleLines(name: string, hasToggle: boolean): number {
   return Math.min(TITLE_MAX_LINES, lines);
 }
 
-export function headerHeight(name: string, hasToggle: boolean): number {
-  const lines = titleLines(name, hasToggle);
+export function headerHeight(
+  name: string,
+  hasToggle: boolean,
+  width: number = NODE_W,
+): number {
+  const lines = titleLines(name, hasToggle, width);
   return Math.max(
     HEADER_H,
     HEADER_PAD_Y * 2 + lines * TITLE_LINE_H + TYPE_LINE_H,
@@ -272,7 +284,7 @@ export function layoutChart(
     const nsRows = positions
       .filter((position) => position.kind === 'nonstruktural')
       .map(toRow);
-    const headerH = headerHeight(unit.name, hasToggle);
+    const headerH = headerHeight(unit.name, hasToggle, nodeWidthOf(unit));
     const body = rows.reduce((sum, row) => sum + rowHeight(row), 0);
     const mainH = headerH + body + NODE_PAD;
     const nsBody = nsRows.reduce((sum, row) => sum + rowHeight(row), 0);
@@ -293,6 +305,7 @@ export function layoutChart(
       nsRows,
     } = rowsOf(unit, hasChildren);
     const isCollapsed = collapsed.has(unit.id) && hasChildren;
+    const ownW = nodeWidthOf(unit);
 
     const own: ChartNode = {
       id: unit.id,
@@ -300,7 +313,7 @@ export function layoutChart(
       depth,
       x: 0,
       y: 0,
-      w: NODE_W,
+      w: ownW,
       h: nodeH,
       headerH,
       mainH,
@@ -312,7 +325,13 @@ export function layoutChart(
     };
 
     if (!hasChildren || isCollapsed) {
-      return { width: NODE_W, height: nodeH, minX: 0, nodes: [own] };
+      return {
+        width: ownW,
+        height: nodeH,
+        minX: 0,
+        rootW: ownW,
+        nodes: [own],
+      };
     }
 
     const childSubs = visibleChildren.map((child) =>
@@ -320,7 +339,7 @@ export function layoutChart(
     );
     const nodes: ChartNode[] = [own];
     let minX = 0;
-    let maxX = NODE_W;
+    let maxX = ownW;
     let maxY = nodeH;
 
     const place = (sub: Subtree, boundLeft: number, nodeY: number) => {
@@ -354,12 +373,18 @@ export function layoutChart(
         firstLeft === undefined ||
         lastLeft === undefined
       ) {
-        return { width: NODE_W, height: nodeH, minX: 0, nodes: [own] };
+        return {
+          width: ownW,
+          height: nodeH,
+          minX: 0,
+          rootW: ownW,
+          nodes: [own],
+        };
       }
-      const firstCenter = firstLeft - firstSub.minX + NODE_W / 2;
-      const lastCenter = lastLeft - lastSub.minX + NODE_W / 2;
+      const firstCenter = firstLeft - firstSub.minX + firstSub.rootW / 2;
+      const lastCenter = lastLeft - lastSub.minX + lastSub.rootW / 2;
       // Induk berada di tengah rentang pusat anak pertama dan terakhir.
-      const shift = NODE_W / 2 - (firstCenter + lastCenter) / 2;
+      const shift = ownW / 2 - (firstCenter + lastCenter) / 2;
       childSubs.forEach((sub, index) => {
         place(sub, (lefts[index] ?? 0) + shift, nodeH + V_GAP);
       });
@@ -371,7 +396,7 @@ export function layoutChart(
       }
     }
 
-    return { width: maxX - minX, height: maxY, minX, nodes };
+    return { width: maxX - minX, height: maxY, minX, rootW: ownW, nodes };
   };
 
   const placed: ChartNode[] = [];

@@ -48,10 +48,22 @@ export function newRankId(label: string, existing: readonly RankDef[]): Rank {
   return `${base}-${Date.now() % 100000}`;
 }
 
+/** Lebar kartu bagian di bagan (piksel): bawaan, serta batas bawah dan atas yang boleh diatur. */
+export const NODE_WIDTH_DEFAULT = 264;
+export const NODE_WIDTH_MIN = 200;
+export const NODE_WIDTH_MAX = 480;
+
+export function clampNodeWidth(value: number): number {
+  if (!Number.isFinite(value)) return NODE_WIDTH_DEFAULT;
+  return Math.min(NODE_WIDTH_MAX, Math.max(NODE_WIDTH_MIN, Math.round(value)));
+}
+
 export type UnitLayout = {
   tier?: 'depth' | 'manual';
   childrenMode?: 'hanging' | 'side';
   hidden?: boolean;
+  /** Lebar kartu; tanpa nilai berarti bawaan. */
+  width?: number;
 };
 
 export type Unit = Omit<UnitNode, 'layout'> & { layout: UnitLayout };
@@ -160,6 +172,10 @@ function normalizeLayout(
     layout.childrenMode = raw.childrenMode;
   }
   if (typeof raw.hidden === 'boolean') layout.hidden = raw.hidden;
+  if (typeof raw.width === 'number' && Number.isFinite(raw.width)) {
+    const width = clampNodeWidth(raw.width);
+    if (width !== NODE_WIDTH_DEFAULT) layout.width = width;
+  }
   return layout;
 }
 
@@ -170,6 +186,7 @@ function layoutToRecord(layout: UnitLayout): Record<string, unknown> | null {
     entries.push(['childrenMode', layout.childrenMode]);
   }
   if (layout.hidden !== undefined) entries.push(['hidden', layout.hidden]);
+  if (layout.width !== undefined) entries.push(['width', layout.width]);
   if (entries.length === 0) return null;
   return Object.fromEntries(entries);
 }
@@ -203,6 +220,7 @@ function draftKey(draft: Draft): string {
       unit.layout.tier ?? null,
       unit.layout.childrenMode ?? null,
       unit.layout.hidden ?? null,
+      unit.layout.width ?? null,
     ]),
     draft.positions.map((position) => [
       position.id,
@@ -665,7 +683,8 @@ export function editorReducer(
       if (
         layout.tier === target.layout.tier &&
         layout.childrenMode === target.layout.childrenMode &&
-        layout.hidden === target.layout.hidden
+        layout.hidden === target.layout.hidden &&
+        layout.width === target.layout.width
       ) {
         return h;
       }

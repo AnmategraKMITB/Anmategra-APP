@@ -34,8 +34,12 @@ import type { ChartNode, SeatRow } from './chart-layout';
 import {
   type Draft,
   MAX_DEPTH,
+  NODE_WIDTH_DEFAULT,
+  NODE_WIDTH_MAX,
+  NODE_WIDTH_MIN,
   type PlacementsByPosition,
   type UnitDropPosition,
+  clampNodeWidth,
   levelLabelFor,
   planUnitsDrop,
   unitTypeLabel,
@@ -71,6 +75,8 @@ export type ChartViewProps = {
   onAddChild?: (unitId: string) => void;
   /** Tombol sampah pada node terpilih; pemanggil yang meminta konfirmasi. */
   onRequestDelete?: (unitId: string) => void;
+  /** Lebar kartu diubah dengan menyeret tepi kanan node terpilih; undefined mengembalikan ke bawaan. */
+  onResizeUnit?: (unitId: string, width: number | undefined) => void;
 };
 
 const DRAG_THRESHOLD = 6;
@@ -272,6 +278,95 @@ function RowView(props: {
   );
 }
 
+const WIDTH_STEP = 8;
+
+/** Gagang di tepi kanan kartu: seret, tekan panah kiri/kanan, atau klik dua kali untuk kembali ke lebar bawaan. */
+function WidthHandle(props: {
+  width: number;
+  scale: number;
+  onPreview: (width: number | null) => void;
+  onCommit: (width: number | undefined) => void;
+}): JSX.Element {
+  const { width, scale, onPreview, onCommit } = props;
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startWidth: number;
+    width: number;
+  } | null>(null);
+
+  const snapped = (value: number): number =>
+    clampNodeWidth(Math.round(value / WIDTH_STEP) * WIDTH_STEP);
+  const commit = (value: number): void =>
+    onCommit(value === NODE_WIDTH_DEFAULT ? undefined : value);
+
+  return (
+    <div
+      role="separator"
+      aria-orientation="vertical"
+      aria-label="Ubah lebar kartu"
+      aria-valuemin={NODE_WIDTH_MIN}
+      aria-valuemax={NODE_WIDTH_MAX}
+      aria-valuenow={width}
+      tabIndex={0}
+      data-chart-toggle
+      title="Seret untuk mengubah lebar; klik dua kali untuk mengembalikan"
+      className="group absolute -right-2 top-0 z-10 flex h-full w-4 cursor-ew-resize touch-none items-center justify-center focus-visible:outline-none"
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        event.stopPropagation();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        dragRef.current = {
+          pointerId: event.pointerId,
+          startX: event.clientX,
+          startWidth: width,
+          width,
+        };
+      }}
+      onPointerMove={(event) => {
+        const drag = dragRef.current;
+        if (drag?.pointerId !== event.pointerId) return;
+        event.stopPropagation();
+        drag.width = snapped(
+          drag.startWidth + (event.clientX - drag.startX) / scale,
+        );
+        onPreview(drag.width);
+      }}
+      onPointerUp={(event) => {
+        const drag = dragRef.current;
+        if (drag?.pointerId !== event.pointerId) return;
+        event.stopPropagation();
+        dragRef.current = null;
+        if (drag.width === drag.startWidth) onPreview(null);
+        else commit(drag.width);
+      }}
+      onPointerCancel={() => {
+        dragRef.current = null;
+        onPreview(null);
+      }}
+      onDoubleClick={(event) => {
+        event.stopPropagation();
+        onCommit(undefined);
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault();
+        event.stopPropagation();
+        commit(
+          snapped(
+            width + (event.key === 'ArrowRight' ? WIDTH_STEP : -WIDTH_STEP),
+          ),
+        );
+      }}
+    >
+      <span
+        aria-hidden
+        className="h-10 w-1.5 rounded-full bg-primary-400 opacity-60 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 group-focus-visible:ring-2 group-focus-visible:ring-primary-400 group-focus-visible:ring-offset-2"
+      />
+    </div>
+  );
+}
+
 function NodeCard(props: {
   node: ChartNode;
   draft: Draft;
@@ -291,6 +386,11 @@ function NodeCard(props: {
   canAddChild: boolean;
   onAddChild?: (unitId: string) => void;
   onRequestDelete?: (unitId: string) => void;
+  /** Gagang lebar di tepi kanan node terpilih. */
+  resizable: boolean;
+  scale: number;
+  onResizePreview: (width: number | null) => void;
+  onResizeCommit: (width: number | undefined) => void;
 }): JSX.Element {
   const {
     node,
@@ -309,6 +409,10 @@ function NodeCard(props: {
     canAddChild,
     onAddChild,
     onRequestDelete,
+    resizable,
+    scale,
+    onResizePreview,
+    onResizeCommit,
   } = props;
   const typeLabel = unitTypeLabel(node.unit, node.depth, draft.levelLabels);
   const [positionOver, setPositionOver] = useState(false);
@@ -432,6 +536,15 @@ function NodeCard(props: {
         </div>
       ) : null}
 
+      {resizable ? (
+        <WidthHandle
+          width={node.w}
+          scale={scale}
+          onPreview={onResizePreview}
+          onCommit={onResizeCommit}
+        />
+      ) : null}
+
       {quickActions ? (
         <>
           <span
@@ -482,6 +595,7 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     canEditUnit,
     onAddChild,
     onRequestDelete,
+    onResizeUnit,
   } = props;
   const markerId = useId();
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -544,9 +658,28 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     });
   }, []);
 
+  // Selama kartu diseret, lebarnya dipratinjau tanpa mengubah draf; baru dicatat saat dilepas.
+  const [resizing, setResizing] = useState<{
+    id: string;
+    width: number;
+  } | null>(null);
+  const layoutDraft = useMemo<Draft>(
+    () =>
+      resizing === null
+        ? draft
+        : {
+            ...draft,
+            units: draft.units.map((unit) =>
+              unit.id === resizing.id
+                ? { ...unit, layout: { ...unit.layout, width: resizing.width } }
+                : unit,
+            ),
+          },
+    [draft, resizing],
+  );
   const layout = useMemo(
-    () => layoutChart(draft, placements, collapsed, expandedGroups),
-    [draft, placements, collapsed, expandedGroups],
+    () => layoutChart(layoutDraft, placements, collapsed, expandedGroups),
+    [layoutDraft, placements, collapsed, expandedGroups],
   );
 
   const fit = useCallback(() => {
@@ -866,7 +999,7 @@ export function ChartView(props: ChartViewProps): JSX.Element {
       };
       return;
     }
-    if (target.closest('button')) return;
+    if (target.closest('button, [data-chart-toggle]')) return;
     touchedRef.current = true;
     try {
       event.currentTarget.setPointerCapture(event.pointerId);
@@ -1149,6 +1282,20 @@ export function ChartView(props: ChartViewProps): JSX.Element {
               canAddChild={node.depth + 1 <= MAX_DEPTH}
               onAddChild={onAddChild}
               onRequestDelete={onRequestDelete}
+              resizable={
+                onResizeUnit !== undefined &&
+                selectedIds.length === 1 &&
+                selectedIds[0] === node.id &&
+                (canEditUnit?.(node.id) ?? true)
+              }
+              scale={view.scale}
+              onResizePreview={(width) =>
+                setResizing(width === null ? null : { id: node.id, width })
+              }
+              onResizeCommit={(width) => {
+                setResizing(null);
+                onResizeUnit?.(node.id, width);
+              }}
               dropPosition={
                 nodeDrag?.overId === node.id ? nodeDrag.position : null
               }
