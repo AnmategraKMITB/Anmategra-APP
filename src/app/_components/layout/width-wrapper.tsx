@@ -16,6 +16,19 @@ export function WidthWrapper({
 }) {
   const pathname = usePathname();
   const isLandingPage = pathname === landingPath;
+  // Editor organogram adalah ruang kerja lebar penuh (tiga panel), bukan halaman berkolom.
+  const isWorkspace = /\/kegiatan\/[^/]+\/organogram\/?$/.test(pathname);
+
+  if (isWorkspace) {
+    return (
+      <div className="flex flex-col items-center">
+        <div className="sticky top-0 z-20 w-full shadow-sm">
+          <Navbar session={session} />
+        </div>
+        <div className="w-full pt-16 sm:pt-0">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center">
