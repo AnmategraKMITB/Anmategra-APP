@@ -134,7 +134,11 @@ export function SettingsSheet({
                 id="one-per-account"
                 checked={!detail.allowMultipleSubmissions}
                 onCheckedChange={(one) =>
-                  void builder.saveForm({ allowMultipleSubmissions: !one })
+                  void builder.saveForm({
+                    allowMultipleSubmissions: !one,
+                    // Form banyak-respons tidak mendukung pengubahan jawaban.
+                    ...(one ? {} : { allowEditAfterSubmit: false }),
+                  })
                 }
                 className="mt-0.5"
               />
@@ -144,6 +148,69 @@ export function SettingsSheet({
                   Bila dimatikan, satu akun boleh mengirim lebih dari satu kali.
                 </p>
               </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Switch
+                id="edit-after-submit"
+                checked={detail.allowEditAfterSubmit}
+                disabled={detail.allowMultipleSubmissions}
+                onCheckedChange={(value) =>
+                  void builder.saveForm({ allowEditAfterSubmit: value })
+                }
+                className="mt-0.5"
+              />
+              <div>
+                <Label htmlFor="edit-after-submit">
+                  Izinkan pengisi mengubah jawaban
+                </Label>
+                <p className="text-sm text-neutral-700">
+                  Hanya untuk form satu respons dan selama form masih menerima
+                  jawaban.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="max-responses">
+                Batas jumlah respons (opsional)
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  key={String(detail.maxResponses)}
+                  id="max-responses"
+                  type="number"
+                  min={1}
+                  defaultValue={detail.maxResponses ?? ''}
+                  placeholder="Tanpa batas"
+                  onBlur={(e) => {
+                    const raw = e.currentTarget.value.trim();
+                    const next = raw === '' ? null : Number(raw);
+                    if (
+                      next !== null &&
+                      (!Number.isInteger(next) || next < 1)
+                    ) {
+                      return;
+                    }
+                    if (next !== detail.maxResponses) {
+                      void builder.saveForm({ maxResponses: next });
+                    }
+                  }}
+                />
+                {detail.maxResponses !== null ? (
+                  <Button
+                    type="button"
+                    variant="dark_blue_outline"
+                    onClick={() =>
+                      void builder.saveForm({ maxResponses: null })
+                    }
+                  >
+                    Hapus
+                  </Button>
+                ) : null}
+              </div>
+              <p className="text-sm text-neutral-700">
+                Setelah batas tercapai, form berhenti menerima jawaban baru.
+                Saat ini {detail.submissionCount} respons.
+              </p>
             </div>
           </section>
 

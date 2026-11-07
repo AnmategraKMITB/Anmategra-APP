@@ -43,7 +43,10 @@ const show = (column: ResponseColumn, row: ResponseRowOut) =>
  * hanya URL dari host OneDrive/SharePoint yang dijadikan tautan.
  */
 function FileAnswer({ value }: { value: unknown }) {
-  const files = isFileAnswerList(value) ? value : [];
+  const files = (isFileAnswerList(value) ? value : []).filter(
+    (file, index, all) =>
+      all.findIndex((other) => other.itemId === file.itemId) === index,
+  );
   if (files.length === 0) return '—';
   return (
     <ul className="grid gap-1">
@@ -106,6 +109,7 @@ export function ResponsesTable({
           <TableHeader>
             <TableRow>
               <TableHead className="whitespace-nowrap">Waktu kirim</TableHead>
+              <TableHead className="whitespace-nowrap">Diubah pada</TableHead>
               <TableHead>Nama</TableHead>
               <TableHead>NIM</TableHead>
               {columns.map((c) => (
@@ -134,6 +138,9 @@ export function ResponsesTable({
                   >
                     {when(row.submittedAt)}
                   </button>
+                </TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {when(row.updatedAt)}
                 </TableCell>
                 <TableCell>{row.respondent.name ?? '—'}</TableCell>
                 <TableCell>{row.respondent.nim ?? '—'}</TableCell>
@@ -184,7 +191,10 @@ export function ResponsesTable({
                 <SheetTitle>{open.respondent.name ?? 'Tanpa nama'}</SheetTitle>
                 <SheetDescription>
                   {open.respondent.nim ? `NIM ${open.respondent.nim} · ` : ''}
-                  {when(open.submittedAt)}
+                  Dikirim {when(open.submittedAt)}
+                  {open.updatedAt.getTime() !== open.submittedAt.getTime()
+                    ? ` · diubah ${when(open.updatedAt)}`
+                    : ''}
                 </SheetDescription>
               </SheetHeader>
               <dl className="mt-6 grid gap-3">

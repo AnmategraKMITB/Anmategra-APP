@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, count, desc, eq, inArray } from 'drizzle-orm';
 import { type ZodIssue, ZodIssueCode } from 'zod';
+import { storedAnswerToInput } from '~/lib/forms/answer-value';
 import { computeVisibility, pickEnding } from '~/lib/forms/conditions';
 import { fileRuleProblem } from '~/lib/forms/file-answer';
 import {
@@ -16,6 +17,7 @@ import {
 } from '~/server/db/schema';
 
 import {
+  type AnswerInputValue,
   type FieldOutput,
   FileAnswerListSchema,
   GetMySubmissionInputSchema,
@@ -30,14 +32,20 @@ import {
   SubmitFormInputSchema,
   SubmitFormOutputSchema,
   TEXT_PATTERN_RULES,
+  UpdateSubmissionInputSchema,
+  UpdateSubmissionOutputSchema,
 } from '../../types/form.type';
 import {
+  type Db,
+  type Tx,
   buildPublicForm,
+  hasReachedQuota,
   hasSubmitted,
   isAcceptingResponses,
   loadActiveFields,
   loadEndings,
   loadSections,
+  lockForm,
   lockFormShared,
   lockSubmitSlot,
   rethrow,
@@ -407,6 +415,60 @@ export function validateAnswers(
   return { issues, rows };
 }
 
+/** Formulir hanya untuk mahasiswa aktif (DKB FR-44: calon anggota). */
+async function ensureActiveStudent(db: Db, role: string, userId: string) {
+  const [student] = await db
+    .select({ status: mahasiswa.status })
+    .from(mahasiswa)
+    .where(eq(mahasiswa.userId, userId));
+  if (role !== 'mahasiswa' || student?.status !== 'aktif') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Hanya mahasiswa aktif yang dapat mengisi formulir.',
+    });
+  }
+}
+
+/**
+ * Validasi jawaban terhadap pertanyaan aktif dan kondisi tampil, lalu pilih
+ * ending. Dipakai `submit` dan `submission.update` supaya keduanya tidak bisa
+ * menyimpang aturannya.
+ */
+async function prepareAnswers(tx: Tx, formId: string, answers: AnswerInput[]) {
+  const allFields = await loadActiveFields(tx, formId);
+  const [sections, endings] = await Promise.all([
+    loadSections(tx, formId),
+    loadEndings(tx, formId),
+  ]);
+  const given = Object.fromEntries(answers.map((a) => [a.fieldId, a.value]));
+  const condFields = toCondFields(allFields);
+  const visibility = computeVisibility(condFields, sections, given);
+  const fields = allFields.filter((f) => visibility.fields.has(f.id));
+  const hidden = new Set(
+    allFields.filter((f) => !visibility.fields.has(f.id)).map((f) => f.id),
+  );
+  const { issues, rows } = validateAnswers(
+    fields,
+    answers.filter((a) => !hidden.has(a.fieldId)),
+  );
+  if (issues.length > 0) {
+    // Cause yang membawa `issues` membuat errorFormatter memaparkan
+    // data.zodError.fieldErrors[fieldId], sama seperti error validasi input.
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: issues.map((i) => i.message).join('; '),
+      cause: new AnswerIssuesError(issues),
+    });
+  }
+  const endingId = pickEnding(endings, visibility, given, condFields);
+  return {
+    rows,
+    endingId,
+    ending: endings.find((e) => e.id === endingId) ?? null,
+    activeFieldIds: allFields.map((f) => f.id),
+  };
+}
+
 export const formSubmissionRouter = createTRPCRouter({
   /** The fill-in page: logging in is required to open it, not only to submit. */
   getPublic: protectedProcedure
@@ -436,6 +498,7 @@ export const formSubmissionRouter = createTRPCRouter({
         .select({
           id: formSubmission.id,
           submittedAt: formSubmission.submittedAt,
+          updatedAt: formSubmission.updatedAt,
         })
         .from(formSubmission)
         .where(
@@ -446,7 +509,31 @@ export const formSubmissionRouter = createTRPCRouter({
         )
         .orderBy(desc(formSubmission.submittedAt))
         .limit(1);
-      return row ?? null;
+      if (!row) return null;
+
+      // Bentuk jawaban tersimpan berbeda dari bentuk input (opsi berupa id,
+      // matriks berupa objek); ubah kembali supaya bisa dipakai mengisi form.
+      const [fields, answers] = await Promise.all([
+        loadActiveFields(ctx.db, input.formId),
+        ctx.db
+          .select({
+            fieldId: formAnswer.fieldId,
+            value: formAnswer.value,
+          })
+          .from(formAnswer)
+          .where(eq(formAnswer.submissionId, row.id)),
+      ]);
+      const byId = new Map(fields.map((f) => [f.id, f]));
+      const values: Record<string, AnswerInputValue> = {};
+      for (const answer of answers) {
+        const field = answer.fieldId ? byId.get(answer.fieldId) : undefined;
+        if (!field) continue;
+        const value = storedAnswerToInput(field, answer.value);
+        if (value !== undefined) {
+          values[field.id] = value as AnswerInputValue;
+        }
+      }
+      return { ...row, answers: values };
     }),
 
   /**
@@ -481,27 +568,35 @@ export const formSubmissionRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         const userId = ctx.session.user.id;
+        await ensureActiveStudent(ctx.db, ctx.session.user.role, userId);
 
-        // Only active students may apply (DKB FR-44: calon anggota).
-        const [student] = await ctx.db
-          .select({ status: mahasiswa.status })
-          .from(mahasiswa)
-          .where(eq(mahasiswa.userId, userId));
-        if (
-          ctx.session.user.role !== 'mahasiswa' ||
-          student?.status !== 'aktif'
-        ) {
+        // Dibaca tanpa kunci hanya untuk memilih jenis kunci transaksi. Bila
+        // kuota baru dipasang sebelum kunci diambil, transaksi memakai jalur
+        // bersama dan menolak dengan "coba lagi" alih-alih melampaui batas.
+        const [pre] = await ctx.db
+          .select({ maxResponses: form.maxResponses })
+          .from(form)
+          .where(eq(form.id, input.formId));
+        if (!pre) {
           throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Hanya mahasiswa aktif yang dapat mengisi formulir.',
+            code: 'NOT_FOUND',
+            message: 'Formulir tidak ditemukan.',
           });
         }
+        const quotaAtStart = pre.maxResponses !== null;
 
         return await ctx.db.transaction(async (tx) => {
-          // Shared lock: respondents do not block each other, but the form
-          // cannot be closed, deleted, or have fields rewritten underneath an
-          // in-flight submit.
-          const current = await lockFormShared(tx, input.formId);
+          // Tanpa kuota, pengisi tidak saling menunggu. Dengan kuota, kunci
+          // eksklusif membuat pengiriman serentak tidak melewati batas.
+          const current = quotaAtStart
+            ? await lockForm(tx, input.formId)
+            : await lockFormShared(tx, input.formId);
+          if (!quotaAtStart && current.maxResponses !== null) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Formulir baru saja diubah. Coba kirim lagi.',
+            });
+          }
           if (current.status === 'Draft') {
             throw new TRPCError({
               code: 'NOT_FOUND',
@@ -513,6 +608,18 @@ export const formSubmissionRouter = createTRPCRouter({
               code: 'FORBIDDEN',
               message: 'Formulir sudah ditutup dan tidak menerima jawaban.',
             });
+          }
+          if (quotaAtStart) {
+            const [total] = await tx
+              .select({ n: count() })
+              .from(formSubmission)
+              .where(eq(formSubmission.formId, current.id));
+            if (hasReachedQuota(current, total?.n ?? 0)) {
+              throw new TRPCError({
+                code: 'CONFLICT',
+                message: 'Formulir sudah menerima jumlah respons maksimum.',
+              });
+            }
           }
           if (!current.allowMultipleSubmissions) {
             // Per-respondent lock, so the duplicate check below cannot be run
@@ -526,40 +633,11 @@ export const formSubmissionRouter = createTRPCRouter({
             }
           }
 
-          const allFields = await loadActiveFields(tx, current.id);
-          const [sections, endings] = await Promise.all([
-            loadSections(tx, current.id),
-            loadEndings(tx, current.id),
-          ]);
-          // Pertanyaan yang tersembunyi menurut jawaban ini tidak wajib dan
-          // jawabannya dibuang, bukan ditolak.
-          const given = Object.fromEntries(
-            input.answers.map((a) => [a.fieldId, a.value]),
+          const { rows, endingId, ending } = await prepareAnswers(
+            tx,
+            current.id,
+            input.answers,
           );
-          const condFields = toCondFields(allFields);
-          const visibility = computeVisibility(condFields, sections, given);
-          const fields = allFields.filter((f) => visibility.fields.has(f.id));
-          const hidden = new Set(
-            allFields
-              .filter((f) => !visibility.fields.has(f.id))
-              .map((f) => f.id),
-          );
-          const { issues, rows } = validateAnswers(
-            fields,
-            input.answers.filter((a) => !hidden.has(a.fieldId)),
-          );
-          if (issues.length > 0) {
-            // Cause yang membawa `issues` membuat errorFormatter memaparkan
-            // data.zodError.fieldErrors[fieldId], sama seperti error validasi
-            // input.
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: issues.map((i) => i.message).join('; '),
-              cause: new AnswerIssuesError(issues),
-            });
-          }
-
-          const endingId = pickEnding(endings, visibility, given, condFields);
           const [submission] = await tx
             .insert(formSubmission)
             .values({ formId: current.id, userId, endingId })
@@ -574,11 +652,112 @@ export const formSubmissionRouter = createTRPCRouter({
           return {
             submissionId: submission!.id,
             submittedAt: submission!.submittedAt,
-            ending: endings.find((e) => e.id === endingId) ?? null,
+            updatedAt: submission!.updatedAt,
+            ending,
           };
         });
       } catch (error) {
         rethrow(error, 'Gagal mengirim jawaban.');
+      }
+    }),
+
+  /**
+   * Menyunting jawaban yang sudah dikirim. Hanya untuk form satu respons yang
+   * mengizinkan pengubahan dan masih menerima respons. Jawaban pertanyaan yang
+   * sudah diarsipkan tidak disentuh.
+   */
+  updateSubmission: protectedProcedure
+    .input(UpdateSubmissionInputSchema)
+    .output(UpdateSubmissionOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const userId = ctx.session.user.id;
+        await ensureActiveStudent(ctx.db, ctx.session.user.role, userId);
+
+        return await ctx.db.transaction(async (tx) => {
+          const current = await lockFormShared(tx, input.formId);
+          if (current.status === 'Draft') {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Formulir tidak ditemukan.',
+            });
+          }
+          if (!isAcceptingResponses(current)) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: 'Formulir sudah ditutup dan jawaban tidak bisa diubah.',
+            });
+          }
+          if (current.allowMultipleSubmissions) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message:
+                'Formulir ini menerima lebih dari satu respons, jadi jawaban tidak bisa diubah.',
+            });
+          }
+          if (!current.allowEditAfterSubmit) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message:
+                'Pengubahan jawaban tidak diaktifkan oleh pengelola formulir.',
+            });
+          }
+
+          // Satu pengisi tidak bisa menyunting bersamaan dengan pengiriman
+          // lain dari akun yang sama.
+          await lockSubmitSlot(tx, current.id, userId);
+          const [submission] = await tx
+            .select()
+            .from(formSubmission)
+            .where(
+              and(
+                eq(formSubmission.formId, current.id),
+                eq(formSubmission.userId, userId),
+              ),
+            )
+            .orderBy(desc(formSubmission.submittedAt))
+            .limit(1);
+          if (!submission) {
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Kamu belum mengirim jawaban untuk formulir ini.',
+            });
+          }
+
+          const { rows, endingId, ending, activeFieldIds } =
+            await prepareAnswers(tx, current.id, input.answers);
+
+          // Hanya jawaban pertanyaan aktif yang diganti. Jawaban pertanyaan
+          // yang sudah diarsipkan (atau field-nya dihapus) tetap tersimpan.
+          if (activeFieldIds.length > 0) {
+            await tx
+              .delete(formAnswer)
+              .where(
+                and(
+                  eq(formAnswer.submissionId, submission.id),
+                  inArray(formAnswer.fieldId, activeFieldIds),
+                ),
+              );
+          }
+          if (rows.length > 0) {
+            await tx
+              .insert(formAnswer)
+              .values(rows.map((r) => ({ ...r, submissionId: submission.id })));
+          }
+          const [updated] = await tx
+            .update(formSubmission)
+            .set({ endingId, updatedAt: new Date() })
+            .where(eq(formSubmission.id, submission.id))
+            .returning();
+          return {
+            submissionId: updated!.id,
+            submittedAt: updated!.submittedAt,
+            updatedAt: updated!.updatedAt,
+            ending,
+          };
+        });
+      } catch (error) {
+        rethrow(error, 'Gagal menyimpan perubahan jawaban.');
       }
     }),
 });

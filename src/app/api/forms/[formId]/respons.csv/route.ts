@@ -81,6 +81,7 @@ export async function GET(
               csvRow(
                 {
                   submittedAt: row.submittedAt,
+                  updatedAt: row.updatedAt,
                   name: row.respondent.name,
                   nim: row.respondent.nim,
                   answers: row.answers,

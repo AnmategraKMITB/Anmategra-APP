@@ -110,6 +110,8 @@ export function toFormOutput(row: FormRow): FormOutput {
     status: row.status,
     closesAt: row.closesAt,
     allowMultipleSubmissions: row.allowMultipleSubmissions,
+    allowEditAfterSubmit: row.allowEditAfterSubmit,
+    maxResponses: row.maxResponses,
     publishedAt: row.publishedAt,
     previewEnabled: row.previewEnabled,
     previewToken: row.previewToken,
@@ -121,12 +123,17 @@ export function toFormOutput(row: FormRow): FormOutput {
   };
 }
 
-/** Published and not past its deadline. */
+/** Published and not past its deadline. Quota is checked separately. */
 export function isAcceptingResponses(row: FormRow, now = new Date()): boolean {
   return (
     row.status === 'Published' &&
     (row.closesAt === null || row.closesAt.getTime() > now.getTime())
   );
+}
+
+/** Kuota respons sudah terpakai habis. */
+export function hasReachedQuota(row: FormRow, count: number): boolean {
+  return row.maxResponses !== null && count >= row.maxResponses;
 }
 
 export async function countSubmissions(
@@ -483,14 +490,17 @@ export async function buildPublicForm(
   mode: 'form' | 'preview',
   userId: string | null = null,
 ): Promise<GetPublicFormOutput> {
-  const [fields, sections, owner, submitted] = await Promise.all([
+  const [fields, sections, owner, submitted, counts] = await Promise.all([
     loadActiveFields(db, row.id),
     loadSections(db, row.id),
     ownerOf(db, row),
     mode === 'form' && userId
       ? hasSubmitted(db, row.id, userId)
       : Promise.resolve(null),
+    countSubmissions(db, [row.id]),
   ]);
+  const responseCount = counts.get(row.id) ?? 0;
+  const full = mode === 'form' && hasReachedQuota(row, responseCount);
   return {
     id: row.id,
     title: row.title,
@@ -498,8 +508,12 @@ export async function buildPublicForm(
     status: row.status,
     closesAt: row.closesAt,
     allowMultipleSubmissions: row.allowMultipleSubmissions,
+    allowEditAfterSubmit: row.allowEditAfterSubmit,
+    maxResponses: row.maxResponses,
+    isOpen: isAcceptingResponses(row),
+    isFull: full,
     owner,
-    isAcceptingResponses: mode === 'form' && isAcceptingResponses(row),
+    isAcceptingResponses: mode === 'form' && isAcceptingResponses(row) && !full,
     hasSubmitted: submitted,
     mode,
     settings: readFormSettings(row),

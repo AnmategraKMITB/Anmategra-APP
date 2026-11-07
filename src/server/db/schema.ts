@@ -1496,6 +1496,12 @@ export const form = createTable(
     allowMultipleSubmissions: boolean('allow_multiple_submissions')
       .notNull()
       .default(false),
+    /** Hanya sah bila `allowMultipleSubmissions` mati (CHECK di migrasi). */
+    allowEditAfterSubmit: boolean('allow_edit_after_submit')
+      .notNull()
+      .default(false),
+    /** `null` = tanpa kuota; CHECK (NULL atau > 0) di migrasi. */
+    maxResponses: integer('max_responses'),
     publishedAt: timestamp('published_at', {
       mode: 'date',
       withTimezone: true,
@@ -1692,6 +1698,11 @@ export const formSubmission = createTable(
     submittedAt: timestamp('submitted_at', { mode: 'date', withTimezone: true })
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
+    /** Berubah saat pengisi menyunting jawaban; `submittedAt` tetap. */
+    updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
   },
   (table) => ({
     formUserIdx: index('form_submission_form_user_idx').on(

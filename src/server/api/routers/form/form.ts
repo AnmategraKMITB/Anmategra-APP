@@ -1,12 +1,17 @@
 import { TRPCError } from '@trpc/server';
-import { desc, eq } from 'drizzle-orm';
+import { desc, eq, sql } from 'drizzle-orm';
 import {
   createTRPCRouter,
   eventScopedProcedure,
   formScopedProcedure,
   lembagaScopedProcedure,
 } from '~/server/api/trpc';
-import { type FormStatus, form, formField } from '~/server/db/schema';
+import {
+  type FormStatus,
+  form,
+  formField,
+  formSubmission,
+} from '~/server/db/schema';
 import { deleteUploadedFiles, keyFromUploadUrl } from '~/server/uploads';
 
 import {
@@ -71,6 +76,20 @@ const TRANSITIONS: Record<FormStatus, readonly FormStatus[]> = {
   Closed: ['Published', 'Draft'],
 };
 
+/**
+ * Menyunting jawaban hanya masuk akal untuk form satu respons. Kombinasi
+ * keduanya ditolak, bukan diabaikan diam-diam.
+ */
+function assertResponseMode(allowMultiple: boolean, allowEdit: boolean) {
+  if (allowMultiple && allowEdit) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message:
+        'Formulir yang boleh diisi berkali-kali tidak bisa mengizinkan pengubahan jawaban.',
+    });
+  }
+}
+
 /** URL banner dan logo dari kolom theme (jsonb, tidak dipercaya). */
 function readThemeImages(theme: unknown): string[] {
   const parsed = StoredFormThemeSchema.safeParse(theme);
@@ -84,6 +103,9 @@ export const formFormRouter = createTRPCRouter({
     .output(CreateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
+        const allowMultiple = input.allowMultipleSubmissions ?? false;
+        const allowEdit = input.allowEditAfterSubmit ?? false;
+        assertResponseMode(allowMultiple, allowEdit);
         const [row] = await ctx.db
           .insert(form)
           .values({
@@ -91,7 +113,9 @@ export const formFormRouter = createTRPCRouter({
             title: input.title,
             description: input.description ?? null,
             closesAt: input.closesAt ?? null,
-            allowMultipleSubmissions: input.allowMultipleSubmissions ?? false,
+            allowMultipleSubmissions: allowMultiple,
+            allowEditAfterSubmit: allowEdit,
+            maxResponses: input.maxResponses ?? null,
             createdBy: ctx.session.user.id,
           })
           .returning();
@@ -106,6 +130,9 @@ export const formFormRouter = createTRPCRouter({
     .output(CreateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
+        const allowMultiple = input.allowMultipleSubmissions ?? false;
+        const allowEdit = input.allowEditAfterSubmit ?? false;
+        assertResponseMode(allowMultiple, allowEdit);
         const [row] = await ctx.db
           .insert(form)
           .values({
@@ -113,7 +140,9 @@ export const formFormRouter = createTRPCRouter({
             title: input.title,
             description: input.description ?? null,
             closesAt: input.closesAt ?? null,
-            allowMultipleSubmissions: input.allowMultipleSubmissions ?? false,
+            allowMultipleSubmissions: allowMultiple,
+            allowEditAfterSubmit: allowEdit,
+            maxResponses: input.maxResponses ?? null,
             createdBy: ctx.session.user.id,
           })
           .returning();
@@ -193,6 +222,31 @@ export const formFormRouter = createTRPCRouter({
             });
           }
 
+          const allowMultiple =
+            input.allowMultipleSubmissions ?? current.allowMultipleSubmissions;
+          const allowEdit =
+            input.allowEditAfterSubmit ?? current.allowEditAfterSubmit;
+          assertResponseMode(allowMultiple, allowEdit);
+
+          // Mengubah ke satu respons per akun tidak boleh menyembunyikan
+          // respons kedua yang sudah terlanjur dikirim.
+          if (current.allowMultipleSubmissions && !allowMultiple) {
+            const [duplicate] = await tx
+              .select({ userId: formSubmission.userId })
+              .from(formSubmission)
+              .where(eq(formSubmission.formId, current.id))
+              .groupBy(formSubmission.userId)
+              .having(sql`count(*) > 1`)
+              .limit(1);
+            if (duplicate) {
+              throw new TRPCError({
+                code: 'CONFLICT',
+                message:
+                  'Tidak bisa mengubah ke satu respons per akun karena ada pengguna yang sudah mengirim lebih dari sekali.',
+              });
+            }
+          }
+
           const [updated] = await tx
             .update(form)
             .set({
@@ -203,6 +257,12 @@ export const formFormRouter = createTRPCRouter({
               ...(input.closesAt !== undefined && { closesAt: input.closesAt }),
               ...(input.allowMultipleSubmissions !== undefined && {
                 allowMultipleSubmissions: input.allowMultipleSubmissions,
+              }),
+              ...(input.allowEditAfterSubmit !== undefined && {
+                allowEditAfterSubmit: input.allowEditAfterSubmit,
+              }),
+              ...(input.maxResponses !== undefined && {
+                maxResponses: input.maxResponses,
               }),
               // Each JSON block is replaced as a whole, not merged.
               ...(input.settings !== undefined && { settings: input.settings }),

@@ -67,6 +67,7 @@ function toColumns(fields: Awaited<ReturnType<typeof loadResponseFields>>) {
 type ResponseRowOut = {
   id: string;
   submittedAt: Date;
+  updatedAt: Date;
   respondent: { name: string | null; nim: number | null; email: string | null };
   answers: Record<string, unknown>;
 };
@@ -107,6 +108,7 @@ function submissionQuery(db: Queryable) {
     .select({
       id: formSubmission.id,
       submittedAt: formSubmission.submittedAt,
+      updatedAt: formSubmission.updatedAt,
       name: users.name,
       email: users.email,
       nim: mahasiswa.nim,
@@ -119,6 +121,7 @@ function submissionQuery(db: Queryable) {
 function toRespondent(r: {
   id: string;
   submittedAt: Date;
+  updatedAt: Date;
   name: string | null;
   email: string | null;
   nim: number | null;
@@ -126,6 +129,7 @@ function toRespondent(r: {
   return {
     id: r.id,
     submittedAt: r.submittedAt,
+    updatedAt: r.updatedAt,
     respondent: { name: r.name, nim: r.nim, email: r.email },
   };
 }
