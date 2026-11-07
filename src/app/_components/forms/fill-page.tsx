@@ -1,6 +1,5 @@
 import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import type { GetPublicFormOutput } from '~/server/api/types/form.type';
 import { getServerAuthSession } from '~/server/auth';
@@ -9,38 +8,9 @@ import { mahasiswa } from '~/server/db/schema';
 import { api } from '~/trpc/server';
 
 import { FillForm } from './fill-form';
+import { DEFAULT_CLOSED_MESSAGE, Notice } from './notice';
 import { RichText } from './rich-text-view';
-
-const DEFAULT_CLOSED_MESSAGE =
-  'Form ini sudah ditutup dan tidak menerima jawaban lagi.';
-
-function Notice({
-  title,
-  children,
-}: {
-  title: string;
-  children?: React.ReactNode;
-}) {
-  return (
-    <main className="mx-auto grid min-h-[60vh] w-full max-w-2xl place-items-center px-4 py-10">
-      <div
-        role="status"
-        className="w-full rounded-[24px] border border-neutral-400 bg-neutral-50 p-8 text-center"
-      >
-        <h1 className="text-2xl font-semibold text-neutral-1000">{title}</h1>
-        {children ? (
-          <div className="mt-2 text-neutral-700">{children}</div>
-        ) : null}
-        <Link
-          href="/"
-          className="mt-6 inline-block text-sm font-medium text-primary-400 underline-offset-4 hover:underline"
-        >
-          Kembali ke beranda
-        </Link>
-      </div>
-    </main>
-  );
-}
+import { SubmittedFill } from './submitted-fill';
 
 /**
  * Halaman mengisi form (`/forms/[formId]`), untuk semua peran yang sudah login.
@@ -76,18 +46,13 @@ export async function FillPage({ formId }: { formId: string }) {
     );
   }
 
-  if (!form.isAcceptingResponses) {
-    return (
-      <Notice title={form.title}>
-        {form.settings.closedMessage.trim() === ''
-          ? DEFAULT_CLOSED_MESSAGE
-          : form.settings.closedMessage}
-      </Notice>
-    );
-  }
-
   if (form.hasSubmitted && !form.allowMultipleSubmissions) {
     const mine = await api.form.getMySubmission({ formId });
+    // Kuota hanya membatasi kiriman baru; menyunting jawaban sendiri tetap
+    // boleh selama form masih terbuka dan saklar edit menyala.
+    if (form.isOpen && form.allowEditAfterSubmit && mine) {
+      return <SubmittedFill form={form} submission={mine} />;
+    }
     const when = mine?.submittedAt.toLocaleString('id-ID', {
       dateStyle: 'long',
       timeStyle: 'short',
@@ -100,6 +65,16 @@ export async function FillPage({ formId }: { formId: string }) {
           : null}
       </Notice>
     );
+  }
+
+  if (!form.isAcceptingResponses) {
+    const closed =
+      form.settings.closedMessage.trim() === ''
+        ? form.isFull
+          ? 'Form ini sudah menerima jumlah jawaban maksimum.'
+          : DEFAULT_CLOSED_MESSAGE
+        : form.settings.closedMessage;
+    return <Notice title={form.title}>{closed}</Notice>;
   }
 
   return (

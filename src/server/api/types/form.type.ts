@@ -652,6 +652,10 @@ const FormOutputSchema = z.object({
   status: FormStatusSchema,
   closesAt: z.date().nullable(),
   allowMultipleSubmissions: z.boolean(),
+  /** Pengisi boleh menyunting jawabannya; hanya untuk form satu respons. */
+  allowEditAfterSubmit: z.boolean(),
+  /** `null` = tanpa batas jumlah respons. */
+  maxResponses: z.number().int().nullable(),
   publishedAt: z.date().nullable(),
   /** Managers only: the public preview link is `/forms/preview/<token>`. */
   previewEnabled: z.boolean(),
@@ -699,6 +703,8 @@ const formMeta = {
     .nullish(),
   closesAt: z.coerce.date().nullish(),
   allowMultipleSubmissions: z.boolean().optional(),
+  allowEditAfterSubmit: z.boolean().optional(),
+  maxResponses: z.number().int().min(1).max(1_000_000).nullish(),
 };
 
 export const CreateFormForLembagaInputSchema = z.object({
@@ -724,6 +730,8 @@ export const UpdateFormInputSchema = z.object({
   description: formMeta.description,
   closesAt: formMeta.closesAt,
   allowMultipleSubmissions: formMeta.allowMultipleSubmissions,
+  allowEditAfterSubmit: formMeta.allowEditAfterSubmit,
+  maxResponses: formMeta.maxResponses,
   /** The three JSON blocks are replaced as a whole when present. */
   settings: FormSettingsSchema.optional(),
   theme: FormThemeSchema.optional(),
@@ -913,6 +921,12 @@ export const GetPublicFormOutputSchema = z.object({
   status: FormStatusSchema,
   closesAt: z.date().nullable(),
   allowMultipleSubmissions: z.boolean(),
+  allowEditAfterSubmit: z.boolean(),
+  maxResponses: z.number().int().nullable(),
+  /** Terbit dan belum lewat tenggat, tanpa melihat kuota. */
+  isOpen: z.boolean(),
+  /** Kuota respons sudah habis; form tetap Terbit tetapi tidak menerima jawaban. */
+  isFull: z.boolean(),
   owner: z.object({
     type: z.enum(['lembaga', 'event']),
     id: z.string(),
@@ -985,6 +999,7 @@ export const SubmitFormInputSchema = z.object({
 export const SubmitFormOutputSchema = z.object({
   submissionId: z.string(),
   submittedAt: z.date(),
+  updatedAt: z.date(),
   /** Layar penutup terpilih; `null` = ucapan terima kasih standar. */
   ending: z
     .object({
@@ -997,8 +1012,18 @@ export const SubmitFormOutputSchema = z.object({
 
 export const GetMySubmissionInputSchema = z.object({ formId: IdSchema });
 export const GetMySubmissionOutputSchema = z
-  .object({ id: z.string(), submittedAt: z.date() })
+  .object({
+    id: z.string(),
+    submittedAt: z.date(),
+    updatedAt: z.date(),
+    /** Jawaban aktif dalam bentuk yang sama dengan input pengisian. */
+    answers: z.record(IdSchema, AnswerValueSchema),
+  })
   .nullable();
+
+/** Menyunting jawaban yang sudah dikirim: bentuknya sama dengan `submit`. */
+export const UpdateSubmissionInputSchema = SubmitFormInputSchema;
+export const UpdateSubmissionOutputSchema = SubmitFormOutputSchema;
 
 export const RESPONSES_MAX_PAGE_SIZE = 100;
 export const ResponsesListInputSchema = z.object({
@@ -1023,6 +1048,7 @@ export const ResponseColumnSchema = z.object({
 export const ResponseRowSchema = z.object({
   id: z.string(),
   submittedAt: z.date(),
+  updatedAt: z.date(),
   respondent: z.object({
     name: z.string().nullable(),
     nim: z.number().int().nullable(),
@@ -1113,6 +1139,9 @@ export const ResponsesSummaryOutputSchema = z.object({
   total: z.number().int(),
   fields: z.array(FieldSummarySchema),
 });
+
+/** Shape of one answer as sent by the client (`submit` and edit). */
+export type AnswerInputValue = z.infer<typeof AnswerValueSchema>;
 
 /** Stored shape of `form_answer.value`. */
 export type StoredAnswerValue =
