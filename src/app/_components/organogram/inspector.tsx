@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
+import { Textarea } from '~/components/ui/textarea';
 
 import {
   type Draft,
@@ -21,18 +22,37 @@ import {
   type PlacementsByPosition,
   type Unit,
   descendantsOf,
+  endIndexOfPositions,
   levelLabelFor,
   levelOf,
   pathOf,
+  planPositionDrop,
+  planUnitsDrop,
+  planUnitsToRoot,
+  selectionRoots,
   statsOf,
 } from './model';
 import { PositionRow, type PositionRowProps } from './position-row';
+
+const ROOT_TARGET = '__root__';
+
+/** Gabungan bagian dan seluruh turunannya. */
+function subtreeIdsOf(units: Unit[], ids: readonly string[]): Set<string> {
+  const all = new Set<string>();
+  for (const id of ids) {
+    for (const member of descendantsOf(units, id)) all.add(member);
+  }
+  return all;
+}
 
 export type InspectorProps = {
   draft: Draft;
   placements: PlacementsByPosition;
   selectedId: string | null;
+  /** Seluruh pilihan; lebih dari satu bagian menampilkan panel aksi massal. */
+  selectedIds: readonly string[];
   onSelect: (id: string | null) => void;
+  onSelectIds: (ids: string[]) => void;
   dispatch: (a: EditorAction) => void;
   readOnly: boolean;
   canEditUnit: (unitId: string) => boolean;
@@ -48,7 +68,9 @@ export function Inspector(props: InspectorProps): JSX.Element {
     draft,
     placements,
     selectedId,
+    selectedIds,
     onSelect,
+    onSelectIds,
     dispatch,
     readOnly,
     canEditUnit,
@@ -80,6 +102,68 @@ export function Inspector(props: InspectorProps): JSX.Element {
       : draft.positions
           .filter((position) => position.unitId === unit.id)
           .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  // Nama bagian lengkap dengan induknya, untuk menu "Pindahkan ke bagian lain".
+  const namePathOf = (id: string): string => {
+    const names: string[] = [];
+    let current = draft.units.find((item) => item.id === id);
+    for (let depth = 0; current && depth < MAX_DEPTH; depth += 1) {
+      names.unshift(current.name);
+      const parentId: string | null = current.parentId;
+      current = parentId
+        ? draft.units.find((item) => item.id === parentId)
+        : undefined;
+    }
+    return names.join(' › ');
+  };
+  const unitOptions =
+    unit === null
+      ? []
+      : draft.units
+          .filter((item) => item.id !== unit.id && canEditUnit(item.id))
+          .map((item) => ({ id: item.id, label: namePathOf(item.id) }));
+
+  const handleDropPosition = (
+    draggedId: string,
+    targetId: string,
+    where: 'before' | 'after',
+  ) => {
+    const dragged = draft.positions.find((item) => item.id === draggedId);
+    const plan = planPositionDrop(draft.positions, draggedId, targetId, where);
+    if (!dragged || !plan) return;
+    if (
+      plan.unitId !== dragged.unitId &&
+      !(canEditUnit(plan.unitId) && canEditUnit(dragged.unitId))
+    ) {
+      return;
+    }
+    dispatch({
+      type: 'movePosition',
+      id: draggedId,
+      unitId: plan.unitId,
+      index: plan.index,
+    });
+  };
+
+  const handleMoveStep = (positionId: string, direction: -1 | 1) => {
+    const at = positions.findIndex((item) => item.id === positionId);
+    if (at < 0 || unit === null) return;
+    dispatch({
+      type: 'movePosition',
+      id: positionId,
+      unitId: unit.id,
+      index: at + direction,
+    });
+  };
+
+  const handleMoveToUnit = (positionId: string, unitId: string) => {
+    dispatch({
+      type: 'movePosition',
+      id: positionId,
+      unitId,
+      index: endIndexOfPositions(draft.positions, unitId, positionId),
+    });
+  };
 
   const targetDepth = unit === null ? 1 : unitDepth + 1;
   const targetLevelLabel = levelLabelFor(targetDepth, draft.levelLabels);
@@ -121,7 +205,7 @@ export function Inspector(props: InspectorProps): JSX.Element {
   return (
     <div className="flex h-full min-h-0 flex-col border-l border-neutral-400 bg-neutral-50">
       <div className="p-4 pb-0">
-        <h2 className="truncate text-lg font-semibold text-neutral-1000">
+        <h2 className="line-clamp-2 break-words text-lg font-semibold text-neutral-1000">
           {draft.name}
         </h2>
       </div>
@@ -135,7 +219,7 @@ export function Inspector(props: InspectorProps): JSX.Element {
           <StatBlock value={stats.depth} label="Kedalaman" />
         </div>
 
-        {!readOnly ? (
+        {!readOnly && selectedIds.length <= 1 ? (
           <Button
             variant="light_blue"
             className="w-full"
@@ -148,11 +232,29 @@ export function Inspector(props: InspectorProps): JSX.Element {
           </Button>
         ) : null}
 
-        {unit === null ? (
-          <p className="text-sm text-neutral-700">
-            Pilih satu {level1Label.toLowerCase()} di Struktur atau bagan untuk
-            melihat dan mengubahnya.
-          </p>
+        {selectedIds.length > 1 ? (
+          <BulkPanel
+            draft={draft}
+            ids={selectedIds}
+            readOnly={readOnly}
+            canEditUnit={canEditUnit}
+            canEditRoot={canEditRoot}
+            namePathOf={namePathOf}
+            dispatch={dispatch}
+            onSelectIds={onSelectIds}
+          />
+        ) : unit === null ? (
+          <div className="space-y-2 text-sm text-neutral-700">
+            <p>
+              Tidak ada {level1Label.toLowerCase()} yang dipilih. Pilih satu di
+              Struktur atau bagan untuk melihat dan mengubahnya.
+            </p>
+            <p>
+              Tahan Ctrl atau Cmd lalu klik untuk memilih beberapa; di Struktur,
+              Shift + klik memilih rentang, dan di bagan, Shift + seret ruang
+              kosong memilih dengan kotak.
+            </p>
+          </div>
         ) : (
           <div className="space-y-4">
             <UnitNameField
@@ -184,6 +286,28 @@ export function Inspector(props: InspectorProps): JSX.Element {
                 Dipakai sebagai label kecil di atas nama. Kosongkan untuk
                 memakai nama level.
               </p>
+            </div>
+
+            <div className="space-y-1">
+              <Label htmlFor={`unit-${unit.id}-description`}>
+                Deskripsi kerja
+              </Label>
+              <Textarea
+                id={`unit-${unit.id}-description`}
+                value={unit.description ?? ''}
+                maxLength={2000}
+                rows={4}
+                onChange={(event) =>
+                  dispatch({
+                    type: 'setUnitDescription',
+                    id: unit.id,
+                    description: event.target.value,
+                  })
+                }
+                placeholder={`Apa yang dikerjakan ${levelLabelFor(unitDepth, draft.levelLabels).toLowerCase()} ini`}
+                disabled={!unitEditable}
+                className="rounded-[8px] border-neutral-400 text-sm text-neutral-1000"
+              />
             </div>
 
             <div className="flex items-center justify-between gap-2 text-sm">
@@ -302,7 +426,7 @@ export function Inspector(props: InspectorProps): JSX.Element {
                 </p>
               ) : (
                 <div>
-                  {positions.map((position) => (
+                  {positions.map((position, positionIndex) => (
                     <PositionRow
                       key={position.id}
                       position={position}
@@ -315,6 +439,12 @@ export function Inspector(props: InspectorProps): JSX.Element {
                       dispatch={dispatch}
                       onAddPerson={onAddPerson}
                       onRemovePerson={onRemovePerson}
+                      onDropPosition={handleDropPosition}
+                      onMoveStep={handleMoveStep}
+                      canMoveUp={positionIndex > 0}
+                      canMoveDown={positionIndex < positions.length - 1}
+                      unitOptions={unitOptions}
+                      onMoveToUnit={handleMoveToUnit}
                     />
                   ))}
                 </div>
@@ -335,6 +465,227 @@ export function Inspector(props: InspectorProps): JSX.Element {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+/** Aksi massal untuk beberapa bagian yang dipilih; setiap aksi satu langkah urungkan. */
+function BulkPanel(props: {
+  draft: Draft;
+  ids: readonly string[];
+  readOnly: boolean;
+  canEditUnit: (unitId: string) => boolean;
+  canEditRoot: boolean;
+  namePathOf: (id: string) => string;
+  dispatch: (action: EditorAction) => void;
+  onSelectIds: (ids: string[]) => void;
+}): JSX.Element {
+  const {
+    draft,
+    ids,
+    readOnly,
+    canEditUnit,
+    canEditRoot,
+    namePathOf,
+    dispatch,
+    onSelectIds,
+  } = props;
+  const [confirming, setConfirming] = useState(false);
+  const [moveError, setMoveError] = useState<string | null>(null);
+
+  const roots = selectionRoots(draft.units, ids);
+  const units = ids
+    .map((id) => draft.units.find((unit) => unit.id === id))
+    .filter((unit): unit is Unit => unit !== undefined);
+  const editable = !readOnly && units.every((unit) => canEditUnit(unit.id));
+  const hiddenCount = units.filter(
+    (unit) => unit.layout.hidden === true,
+  ).length;
+  const removedCount = Math.max(
+    0,
+    subtreeIdsOf(
+      draft.units,
+      roots.map((unit) => unit.id),
+    ).size - roots.length,
+  );
+
+  // Tujuan pemindahan: bagian di luar pilihan (dan turunannya) yang boleh diubah.
+  const inMoved = subtreeIdsOf(
+    draft.units,
+    roots.map((unit) => unit.id),
+  );
+  const targets = draft.units.filter(
+    (unit) => !inMoved.has(unit.id) && canEditUnit(unit.id),
+  );
+
+  const moveTo = (value: string) => {
+    setMoveError(null);
+    const plan =
+      value === ROOT_TARGET
+        ? planUnitsToRoot(draft.units, ids)
+        : planUnitsDrop(draft.units, ids, value, 'inside');
+    if (!plan.ok) {
+      setMoveError(plan.reason);
+      return;
+    }
+    if (plan.parentId === null && !canEditRoot) {
+      setMoveError('Anda tidak berhak mengubah tingkat teratas.');
+      return;
+    }
+    dispatch({
+      type: 'moveUnits',
+      ids: plan.ids,
+      parentId: plan.parentId,
+      index: plan.index,
+    });
+  };
+
+  const shown = units.slice(0, 6);
+
+  return (
+    <div className="space-y-4">
+      <section className="space-y-2">
+        <h3 className="text-sm font-semibold text-neutral-1000">
+          {units.length} bagian dipilih
+        </h3>
+        <ul className="space-y-0.5 text-sm text-neutral-700">
+          {shown.map((unit) => (
+            <li key={unit.id} className="truncate">
+              {unit.name}
+            </li>
+          ))}
+          {units.length > shown.length ? (
+            <li>dan {units.length - shown.length} lainnya</li>
+          ) : null}
+        </ul>
+        <Button
+          variant="dark_blue_outline"
+          size="sm"
+          onClick={() => onSelectIds([])}
+        >
+          Kosongkan pilihan
+        </Button>
+      </section>
+
+      {!editable ? (
+        <p className="text-sm text-neutral-700">
+          Anda tidak berhak mengubah sebagian bagian yang dipilih.
+        </p>
+      ) : (
+        <>
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold text-neutral-1000">
+              Tampilan di bagan
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="dark_blue_outline"
+                size="sm"
+                disabled={hiddenCount === units.length}
+                onClick={() =>
+                  dispatch({
+                    type: 'setUnitsLayout',
+                    ids: [...ids],
+                    patch: { hidden: true },
+                  })
+                }
+              >
+                <EyeOff className="size-4" />
+                Sembunyikan
+              </Button>
+              <Button
+                variant="dark_blue_outline"
+                size="sm"
+                disabled={hiddenCount === 0}
+                onClick={() =>
+                  dispatch({
+                    type: 'setUnitsLayout',
+                    ids: [...ids],
+                    patch: { hidden: false },
+                  })
+                }
+              >
+                <Eye className="size-4" />
+                Tampilkan
+              </Button>
+            </div>
+          </section>
+
+          <section className="space-y-2">
+            <Label htmlFor="bulk-move">Pindahkan ke</Label>
+            <Select value="" onValueChange={moveTo}>
+              <SelectTrigger
+                id="bulk-move"
+                className="rounded-[8px] border-neutral-400"
+              >
+                <SelectValue placeholder="Pilih bagian tujuan" />
+              </SelectTrigger>
+              <SelectContent>
+                {canEditRoot ? (
+                  <SelectItem value={ROOT_TARGET}>
+                    Jadikan tingkat teratas
+                  </SelectItem>
+                ) : null}
+                {targets.map((unit) => (
+                  <SelectItem key={unit.id} value={unit.id}>
+                    {namePathOf(unit.id)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {moveError !== null ? (
+              <p role="alert" className="text-sm text-danger-dark">
+                {moveError}
+              </p>
+            ) : null}
+          </section>
+
+          <section className="rounded-[20px] bg-danger-light p-4">
+            <h3 className="text-sm font-semibold text-danger-dark">
+              Zona Bahaya
+            </h3>
+            <p className="mt-1 text-xs text-danger-dark">
+              Menghapus {roots.length} bagian ini juga menghapus {removedCount}{' '}
+              sub-bagian beserta seluruh jabatannya.
+            </p>
+            {confirming ? (
+              <div className="mt-3 space-y-2">
+                <p className="text-xs text-danger-dark">
+                  Yakin? Penghapusan baru berlaku setelah Simpan.
+                </p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="warning"
+                    size="sm"
+                    onClick={() => {
+                      dispatch({ type: 'deleteUnits', ids: [...ids] });
+                      onSelectIds([]);
+                    }}
+                  >
+                    Ya, hapus
+                  </Button>
+                  <Button
+                    variant="dark_blue_outline"
+                    size="sm"
+                    onClick={() => setConfirming(false)}
+                  >
+                    Batal
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <Button
+                variant="warning"
+                size="sm"
+                className="mt-3"
+                onClick={() => setConfirming(true)}
+              >
+                Hapus {units.length} bagian
+              </Button>
+            )}
+          </section>
+        </>
+      )}
     </div>
   );
 }

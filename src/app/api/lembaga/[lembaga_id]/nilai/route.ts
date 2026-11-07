@@ -2,8 +2,8 @@ import { eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
+import { lembagaMembersSq } from '~/server/api/routers/organization/membership';
 import {
-  kehimpunan,
   mahasiswa,
   nilaiProfilLembaga,
   profilLembaga,
@@ -50,16 +50,16 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   }
 
   // --- Fetch anggota lembaga data ---
+  const members = await lembagaMembersSq(db, lembaga_id);
   const anggotaLembaga = await db
-    .select()
-    .from(kehimpunan)
-    .leftJoin(users, eq(kehimpunan.userId, users.id))
-    .leftJoin(mahasiswa, eq(kehimpunan.userId, mahasiswa.userId))
-    .where(eq(kehimpunan.lembagaId, lembaga_id))
+    .select({ user: users, mahasiswa })
+    .from(members)
+    .leftJoin(users, eq(members.userId, users.id))
+    .leftJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
     .orderBy(
-      kehimpunan.index,
-      kehimpunan.division,
-      kehimpunan.position,
+      members.index,
+      members.division,
+      members.position,
       mahasiswa.nim,
       users.name,
     );
@@ -264,11 +264,11 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
     });
 
     // --- Get list of kehimpunan for this lembaga to validate NIMs ---
+    const memberRows = await lembagaMembersSq(db, lembaga_id);
     const kehimpunanList = await db
-      .select()
-      .from(kehimpunan)
-      .leftJoin(mahasiswa, eq(kehimpunan.userId, mahasiswa.userId))
-      .where(eq(kehimpunan.lembagaId, lembaga_id));
+      .select({ memberId: memberRows.userId, mahasiswa })
+      .from(memberRows)
+      .leftJoin(mahasiswa, eq(memberRows.userId, mahasiswa.userId));
 
     // --- Process data rows ---
     const mahasiswaIds: string[] = [];
@@ -329,7 +329,7 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
       const member = kehimpunanList.find(
         (k) => k.mahasiswa?.nim?.toString() === nim,
       );
-      if (!member?.kehimpunan) {
+      if (!member?.memberId) {
         return apiError(
           400,
           `Member with NIM ${nim} is not registered in this organization.`,

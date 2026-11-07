@@ -25,7 +25,7 @@ export type OrganogramData = NonNullable<
 const EMPTY_DRAFT: Draft = {
   name: '',
   levelLabels: null,
-  rankLabels: null,
+  ranks: null,
   units: [],
   positions: [],
 };

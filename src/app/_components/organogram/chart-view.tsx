@@ -3,9 +3,11 @@
 import {
   ChevronDown,
   ChevronRight,
+  GripVertical,
   Minus,
   Plus,
   ScanSearch,
+  Trash2,
 } from 'lucide-react';
 import {
   useCallback,
@@ -22,13 +24,23 @@ import { Button } from '~/components/ui/button';
 import {
   CANVAS_PAD,
   GROUP_H,
-  HEADER_H,
+  PERSON_H,
   SEAT_H,
   boundsOf,
   layoutChart,
+  rowHeight,
 } from './chart-layout';
 import type { ChartNode, SeatRow } from './chart-layout';
-import { type Draft, type PlacementsByPosition, unitTypeLabel } from './model';
+import {
+  type Draft,
+  MAX_DEPTH,
+  type PlacementsByPosition,
+  type UnitDropPosition,
+  levelLabelFor,
+  planUnitsDrop,
+  unitTypeLabel,
+} from './model';
+import { draggedPositionId, isPositionDrag } from './position-dnd';
 
 const MIN_SCALE = 0.25;
 const MAX_SCALE = 2;
@@ -42,7 +54,58 @@ export type ChartViewProps = {
   draft: Draft;
   placements: PlacementsByPosition;
   selectedId: string | null;
+  /** Seluruh pilihan; Ctrl/Cmd atau Shift + klik menambah atau mencabut, Shift + seret ruang kosong memilih dengan kotak. */
+  selectedIds: readonly string[];
   onSelect: (id: string) => void;
+  onSelectIds: (ids: string[]) => void;
+  /** Bagian boleh diseret ke bagian lain (menjadi anak, atau saudara sebelum/sesudahnya). */
+  onMoveUnit?: (
+    activeId: string,
+    targetId: string,
+    position: UnitDropPosition,
+  ) => void;
+  /** Jabatan dari panel Detail boleh dilepas ke sebuah bagian. */
+  onDropPositionOnUnit?: (positionId: string, unitId: string) => void;
+  canEditUnit?: (unitId: string) => boolean;
+  /** Tombol + pada node terpilih: tambah bagian di dalamnya. */
+  onAddChild?: (unitId: string) => void;
+  /** Tombol sampah pada node terpilih; pemanggil yang meminta konfirmasi. */
+  onRequestDelete?: (unitId: string) => void;
+};
+
+const DRAG_THRESHOLD = 6;
+const EDGE_ZONE = 56;
+const EDGE_MAX_SPEED = 18;
+
+/** Kecepatan gulir otomatis (piksel per bingkai) menurut jarak penunjuk dari tepi; 0 di tengah. */
+function edgeSpeed(position: number, size: number): number {
+  if (position < EDGE_ZONE) {
+    return -EDGE_MAX_SPEED * Math.min(1, (EDGE_ZONE - position) / EDGE_ZONE);
+  }
+  if (position > size - EDGE_ZONE) {
+    return (
+      EDGE_MAX_SPEED * Math.min(1, (position - (size - EDGE_ZONE)) / EDGE_ZONE)
+    );
+  }
+  return 0;
+}
+
+type Marquee = {
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+  ids: string[];
+};
+
+type NodeDrag = {
+  id: string;
+  name: string;
+  x: number;
+  y: number;
+  overId: string | null;
+  position: UnitDropPosition | null;
+  valid: boolean;
 };
 
 const clampScale = (scale: number): number =>
@@ -74,27 +137,58 @@ function PersonAvatar(props: {
   );
 }
 
-function RowView(props: { row: SeatRow }): JSX.Element {
-  const { row } = props;
+/** Warna pil jabatan menurut urutan rank: yang paling senior paling pekat; semuanya lolos kontras AA. */
+function pillClass(rankIndex: number): string {
+  if (rankIndex === 0) return 'bg-primary-400 text-white';
+  if (rankIndex === 1) return 'bg-secondary-800 text-white';
+  if (rankIndex === 2) return 'bg-primary-200 text-primary-400';
+  return 'bg-neutral-200 text-neutral-1000';
+}
+
+function RowView(props: {
+  row: SeatRow;
+  tone: 'main' | 'ns';
+  onToggleGroup: (positionId: string) => void;
+}): JSX.Element {
+  const { row, tone, onToggleGroup } = props;
   if (row.kind === 'seat') {
     const name = row.person?.name ?? null;
     return (
       <li className="flex items-center gap-2 px-3" style={{ height: SEAT_H }}>
         {row.person ? (
-          <PersonAvatar name={name ?? 'Tanpa nama'} image={row.person.image} />
+          <>
+            <PersonAvatar
+              name={name ?? 'Tanpa nama'}
+              image={row.person.image}
+            />
+            <span
+              className="min-w-0 flex-1 truncate text-sm font-semibold text-primary-400"
+              title={name ?? 'Tanpa nama'}
+            >
+              {name ?? 'Tanpa nama'}
+            </span>
+            <span
+              className={`max-w-[48%] shrink-0 truncate rounded-full px-2.5 py-0.5 text-xs font-semibold ${pillClass(row.rankIndex)}`}
+              title={row.title}
+            >
+              {row.title}
+            </span>
+          </>
         ) : (
-          <span
-            aria-hidden
-            className="size-6 shrink-0 rounded-full border border-dashed border-neutral-400"
-          />
+          <>
+            <span
+              aria-hidden
+              className="size-6 shrink-0 rounded-full border border-dashed border-neutral-500"
+            />
+            <span
+              className="min-w-0 flex-1 truncate text-sm text-neutral-700"
+              title={`${row.title} (kosong)`}
+            >
+              {row.title}
+            </span>
+            <span className="sr-only">kosong</span>
+          </>
         )}
-        <span className="min-w-0 flex-1 truncate text-sm text-neutral-1000">
-          <span className="font-semibold">{row.title}</span>
-          <span className="text-neutral-700">
-            {' · '}
-            {row.person ? (name ?? 'Tanpa nama') : 'Kosong'}
-          </span>
-        </span>
       </li>
     );
   }
@@ -103,26 +197,77 @@ function RowView(props: { row: SeatRow }): JSX.Element {
   const extra = row.people.length - shown.length;
   const count =
     row.quota === 0 ? `${row.filled} orang` : `${row.filled}/${row.quota}`;
+  const border =
+    tone === 'ns' ? 'border-success-dark/40' : 'border-neutral-400';
   return (
-    <li className="flex items-center gap-2 px-3" style={{ height: GROUP_H }}>
-      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-neutral-1000">
-        {row.title}
-      </span>
-      <span className="flex -space-x-1.5" aria-hidden>
-        {shown.map((person) => (
-          <PersonAvatar
-            key={person.id}
-            name={person.name ?? 'Tanpa nama'}
-            image={person.image}
-          />
-        ))}
-      </span>
-      {extra > 0 ? (
-        <span className="text-xs tabular-nums text-neutral-700">+{extra}</span>
-      ) : null}
-      <span className="text-xs font-semibold tabular-nums text-neutral-700">
-        {count}
-      </span>
+    <li className="px-2" style={{ height: rowHeight(row) }}>
+      <div
+        className={`overflow-hidden rounded-[8px] border bg-white ${border}`}
+        style={{ height: rowHeight(row) - 4 }}
+      >
+        <button
+          type="button"
+          data-chart-toggle
+          onClick={() => onToggleGroup(row.positionId)}
+          aria-expanded={row.expanded}
+          aria-label={`${row.expanded ? 'Tutup' : 'Buka'} daftar ${row.title}`}
+          className="flex w-full items-center gap-2 px-1.5 text-left hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
+          style={{ height: GROUP_H - 4 }}
+        >
+          {row.expanded ? (
+            <ChevronDown className="size-4 shrink-0 text-primary-400" />
+          ) : (
+            <ChevronRight className="size-4 shrink-0 text-primary-400" />
+          )}
+          <span
+            className="min-w-0 flex-1 truncate text-sm font-semibold text-neutral-1000"
+            title={row.title}
+          >
+            {row.title}
+          </span>
+          {!row.expanded ? (
+            <span className="flex -space-x-1.5" aria-hidden>
+              {shown.map((person) => (
+                <PersonAvatar
+                  key={person.id}
+                  name={person.name ?? 'Tanpa nama'}
+                  image={person.image}
+                />
+              ))}
+            </span>
+          ) : null}
+          {!row.expanded && extra > 0 ? (
+            <span className="text-xs tabular-nums text-neutral-700">
+              +{extra}
+            </span>
+          ) : null}
+          <span className="text-xs font-semibold tabular-nums text-neutral-1000">
+            {count}
+          </span>
+        </button>
+        {row.expanded ? (
+          <ul className="px-1.5">
+            {row.people.map((person) => (
+              <li
+                key={person.id}
+                className="flex items-center gap-2"
+                style={{ height: PERSON_H }}
+              >
+                <PersonAvatar
+                  name={person.name ?? 'Tanpa nama'}
+                  image={person.image}
+                />
+                <span
+                  className="min-w-0 flex-1 truncate text-sm font-semibold text-primary-400"
+                  title={person.name ?? 'Tanpa nama'}
+                >
+                  {person.name ?? 'Tanpa nama'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : null}
+      </div>
     </li>
   );
 }
@@ -131,67 +276,213 @@ function NodeCard(props: {
   node: ChartNode;
   draft: Draft;
   selected: boolean;
-  onSelect: (id: string) => void;
+  onSelect: (id: string, additive: boolean) => void;
   onToggle: (id: string) => void;
+  onToggleGroup: (positionId: string) => void;
+  /** Sasaran seretan bagian: tempat jatuhnya, dan apakah dibolehkan. */
+  dropPosition: UnitDropPosition | null;
+  dropValid: boolean;
+  dragging: boolean;
+  onDropPosition?: (positionId: string, unitId: string) => void;
+  canDropPosition: boolean;
+  /** Tombol aksi cepat di samping node terpilih (tambah anak, hapus). */
+  quickActions: boolean;
+  childLabel: string;
+  canAddChild: boolean;
+  onAddChild?: (unitId: string) => void;
+  onRequestDelete?: (unitId: string) => void;
 }): JSX.Element {
-  const { node, draft, selected, onSelect, onToggle } = props;
+  const {
+    node,
+    draft,
+    selected,
+    onSelect,
+    onToggle,
+    onToggleGroup,
+    dropPosition,
+    dropValid,
+    dragging,
+    onDropPosition,
+    canDropPosition,
+    quickActions,
+    childLabel,
+    canAddChild,
+    onAddChild,
+    onRequestDelete,
+  } = props;
   const typeLabel = unitTypeLabel(node.unit, node.depth, draft.levelLabels);
+  const [positionOver, setPositionOver] = useState(false);
+
+  const highlight =
+    positionOver || (dropPosition === 'inside' && dropValid)
+      ? 'border-primary-400 bg-primary-100 ring-2 ring-primary-400'
+      : dropPosition === 'inside' && !dropValid
+        ? 'border-danger-dark ring-2 ring-danger-dark'
+        : null;
 
   return (
     <div
       data-chart-node
-      className={`absolute overflow-hidden rounded-[12px] border transition-colors duration-150 ${
-        selected
-          ? 'border-primary-400 bg-primary-100'
-          : 'border-neutral-400 bg-white'
-      }`}
+      data-node-id={node.id}
+      onDragOver={(event) => {
+        if (!canDropPosition || !isPositionDrag(event)) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        setPositionOver(true);
+      }}
+      onDragLeave={() => setPositionOver(false)}
+      onDrop={(event) => {
+        setPositionOver(false);
+        const positionId = draggedPositionId(event);
+        if (positionId === null || !onDropPosition) return;
+        event.preventDefault();
+        onDropPosition(positionId, node.id);
+      }}
+      className={`absolute ${dragging ? 'opacity-50' : ''}`}
       style={{ left: node.x, top: node.y, width: node.w, height: node.h }}
     >
-      <div className="flex items-center" style={{ height: HEADER_H }}>
-        <button
-          type="button"
-          onClick={() => onSelect(node.id)}
-          aria-pressed={selected}
-          className="flex h-full min-w-0 flex-1 flex-col justify-center px-3 text-left hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
-        >
-          <span className="truncate text-sm font-semibold text-neutral-1000">
-            {node.unit.name}
-          </span>
-          <span className="truncate text-xs text-neutral-700">{typeLabel}</span>
-        </button>
-        {node.hasChildren ? (
+      {dropPosition === 'before' || dropPosition === 'after' ? (
+        <span
+          aria-hidden
+          className={`absolute -top-1 h-[calc(100%+8px)] w-1 rounded-full ${
+            dropValid ? 'bg-primary-400' : 'bg-danger-dark'
+          } ${dropPosition === 'before' ? '-left-2' : '-right-2'}`}
+        />
+      ) : null}
+
+      <div
+        className={`overflow-hidden rounded-[12px] border transition-colors duration-150 ${
+          highlight ??
+          (selected
+            ? 'border-primary-400 bg-primary-100'
+            : 'border-neutral-400 bg-white')
+        }`}
+        style={{ height: node.mainH }}
+      >
+        <div className="flex items-stretch" style={{ height: node.headerH }}>
           <button
             type="button"
-            onClick={() => onToggle(node.id)}
-            aria-expanded={!node.collapsed}
-            aria-label={
-              node.collapsed
-                ? `Buka bagian di bawah ${node.unit.name}`
-                : `Ciutkan bagian di bawah ${node.unit.name}`
+            onClick={(event) =>
+              onSelect(
+                node.id,
+                event.shiftKey || event.ctrlKey || event.metaKey,
+              )
             }
-            className="flex size-11 shrink-0 items-center justify-center text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
+            aria-pressed={selected}
+            className="flex h-full min-w-0 flex-1 select-none flex-col justify-center px-3 text-left hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
+            title={node.unit.name}
           >
-            {node.collapsed ? (
-              <ChevronRight className="size-4" />
-            ) : (
-              <ChevronDown className="size-4" />
-            )}
+            <span className="line-clamp-3 break-words text-sm font-semibold leading-[18px] text-neutral-1000">
+              {node.unit.name}
+            </span>
+            <span className="truncate text-xs leading-4 text-neutral-700">
+              {typeLabel}
+            </span>
           </button>
+          {node.hasChildren ? (
+            <button
+              type="button"
+              onClick={() => onToggle(node.id)}
+              data-chart-toggle
+              aria-expanded={!node.collapsed}
+              aria-label={
+                node.collapsed
+                  ? `Buka bagian di bawah ${node.unit.name}`
+                  : `Ciutkan bagian di bawah ${node.unit.name}`
+              }
+              className="flex w-11 shrink-0 items-center justify-center text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
+            >
+              {node.collapsed ? (
+                <ChevronRight className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
+            </button>
+          ) : null}
+        </div>
+        {node.rows.length > 0 ? (
+          <ul className="border-t border-neutral-200">
+            {node.rows.map((row) => (
+              <RowView
+                key={row.positionId}
+                row={row}
+                tone="main"
+                onToggleGroup={onToggleGroup}
+              />
+            ))}
+          </ul>
         ) : null}
       </div>
-      {node.rows.length > 0 ? (
-        <ul className="border-t border-neutral-200">
-          {node.rows.map((row) => (
-            <RowView key={row.positionId} row={row} />
-          ))}
-        </ul>
+
+      {node.nsRows.length > 0 ? (
+        <div
+          className="mt-2 overflow-hidden rounded-[12px] border border-success-dark/40 bg-success-light"
+          style={{ height: node.nsH }}
+        >
+          <ul className="pt-1">
+            {node.nsRows.map((row) => (
+              <RowView
+                key={row.positionId}
+                row={row}
+                tone="ns"
+                onToggleGroup={onToggleGroup}
+              />
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {quickActions ? (
+        <>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -left-[30px] top-3 grid h-9 w-6 place-items-center rounded-[8px] border border-neutral-400 bg-white text-primary-400"
+          >
+            <GripVertical className="size-4" />
+          </span>
+          <div className="absolute -top-11 right-0 flex gap-2">
+            <button
+              type="button"
+              data-chart-toggle
+              disabled={!canAddChild}
+              onClick={() => onAddChild?.(node.id)}
+              aria-label={`Tambah ${childLabel} di dalam ${node.unit.name}`}
+              title={`Tambah ${childLabel}`}
+              className="grid size-9 place-items-center rounded-[10px] bg-secondary-800 text-white hover:bg-secondary-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <Plus className="size-5" />
+            </button>
+            <button
+              type="button"
+              data-chart-toggle
+              onClick={() => onRequestDelete?.(node.id)}
+              aria-label={`Hapus ${node.unit.name}`}
+              title="Hapus"
+              className="grid size-9 place-items-center rounded-[10px] bg-danger-dark text-white hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-1"
+            >
+              <Trash2 className="size-5" />
+            </button>
+          </div>
+        </>
       ) : null}
     </div>
   );
 }
 
 export function ChartView(props: ChartViewProps): JSX.Element {
-  const { draft, placements, selectedId, onSelect } = props;
+  const {
+    draft,
+    placements,
+    selectedId,
+    selectedIds,
+    onSelect,
+    onSelectIds,
+    onMoveUnit,
+    onDropPositionOnUnit,
+    canEditUnit,
+    onAddChild,
+    onRequestDelete,
+  } = props;
   const markerId = useId();
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<{
@@ -200,17 +491,62 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     startY: number;
     originX: number;
     originY: number;
+    moved: boolean;
+    onNode: boolean;
   } | null>(null);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{ dist: number; mx: number; my: number } | null>(
+    null,
+  );
+  const lastPointerRef = useRef({ x: 0, y: 0 });
+  const marqueeRef = useRef<{ pointerId: number; additive: boolean } | null>(
+    null,
+  );
+  const [marquee, setMarquee] = useState<Marquee | null>(null);
   const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(
     () => new Set(),
   );
   const [view, setView] = useState<View>({ x: 0, y: 0, scale: 1 });
   const [panning, setPanning] = useState(false);
+  const [nodeDrag, setNodeDrag] = useState<NodeDrag | null>(null);
+  const nodeCandidateRef = useRef<{
+    pointerId: number;
+    id: string;
+    name: string;
+    startX: number;
+    startY: number;
+    active: boolean;
+  } | null>(null);
   const touchedRef = useRef(false);
 
+  // Esc membatalkan seretan bagian.
+  const dragging = nodeDrag !== null;
+  useEffect(() => {
+    if (!dragging) return;
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape') return;
+      nodeCandidateRef.current = null;
+      setNodeDrag(null);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [dragging]);
+
+  const [expandedGroups, setExpandedGroups] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const toggleGroup = useCallback((positionId: string) => {
+    setExpandedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(positionId)) next.delete(positionId);
+      else next.add(positionId);
+      return next;
+    });
+  }, []);
+
   const layout = useMemo(
-    () => layoutChart(draft, placements, collapsed),
-    [draft, placements, collapsed],
+    () => layoutChart(draft, placements, collapsed, expandedGroups),
+    [draft, placements, collapsed, expandedGroups],
   );
 
   const fit = useCallback(() => {
@@ -264,18 +600,56 @@ export function ChartView(props: ChartViewProps): JSX.Element {
   useEffect(() => {
     const el = viewportRef.current;
     if (!el) return;
+    // Trackpad: cubit dua jari datang sebagai wheel dengan ctrlKey (Chrome, Firefox, Edge) dan
+    // gesture* (Safari) untuk memperbesar; geser dua jari datang sebagai wheel biasa untuk menggeser.
     const onWheel = (event: WheelEvent) => {
-      if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
+      const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1;
+      if (event.ctrlKey || event.metaKey) {
+        const rect = el.getBoundingClientRect();
+        const delta = Math.max(-30, Math.min(30, event.deltaY * unit));
+        zoomAt(
+          Math.exp(-delta * 0.012),
+          event.clientX - rect.left,
+          event.clientY - rect.top,
+        );
+        return;
+      }
+      touchedRef.current = true;
+      const horizontal = event.shiftKey && event.deltaX === 0;
+      const dx = (horizontal ? event.deltaY : event.deltaX) * unit;
+      const dy = (horizontal ? 0 : event.deltaY) * unit;
+      setView((prev) => ({ ...prev, x: prev.x - dx, y: prev.y - dy }));
+    };
+    type GestureEvent = Event & {
+      scale: number;
+      clientX: number;
+      clientY: number;
+    };
+    let lastScale = 1;
+    const onGestureStart = (event: Event) => {
+      event.preventDefault();
+      lastScale = 1;
+    };
+    const onGestureChange = (event: Event) => {
+      event.preventDefault();
+      const gesture = event as GestureEvent;
       const rect = el.getBoundingClientRect();
       zoomAt(
-        event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP,
-        event.clientX - rect.left,
-        event.clientY - rect.top,
+        gesture.scale / lastScale,
+        gesture.clientX - rect.left,
+        gesture.clientY - rect.top,
       );
+      lastScale = gesture.scale;
     };
     el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
+    el.addEventListener('gesturestart', onGestureStart);
+    el.addEventListener('gesturechange', onGestureChange);
+    return () => {
+      el.removeEventListener('wheel', onWheel);
+      el.removeEventListener('gesturestart', onGestureStart);
+      el.removeEventListener('gesturechange', onGestureChange);
+    };
   }, [zoomAt]);
 
   // Tampilkan bagian yang dipilih dari panel Struktur.
@@ -304,6 +678,45 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     });
   }, [selectedBounds]);
 
+  const handleNodeSelect = (id: string, additive: boolean) => {
+    if (!additive) {
+      onSelect(id);
+      return;
+    }
+    onSelectIds(
+      selectedIds.includes(id)
+        ? selectedIds.filter((item) => item !== id)
+        : [...selectedIds, id],
+    );
+  };
+
+  // Kolom persen zoom yang bisa diketik: null = tampilkan nilai sekarang.
+  const [zoomDraft, setZoomDraft] = useState<string | null>(null);
+  // Zoom absolut ke tengah kanvas: dipanggil berulang dengan nilai sama tidak mengubah apa pun.
+  const applyZoomPercent = (percent: number) => {
+    touchedRef.current = true;
+    const target = Math.min(MAX_SCALE, Math.max(MIN_SCALE, percent / 100));
+    const rect = viewportRef.current?.getBoundingClientRect();
+    const px = rect ? rect.width / 2 : 0;
+    const py = rect ? rect.height / 2 : 0;
+    setView((prev) => {
+      const ratio = target / prev.scale;
+      return {
+        scale: target,
+        x: px - (px - prev.x) * ratio,
+        y: py - (py - prev.y) * ratio,
+      };
+    });
+  };
+  const zoomCancelRef = useRef(false);
+  const commitZoom = (text: string | null) => {
+    setZoomDraft(null);
+    if (text === null || text === '') return;
+    const percent = Number(text);
+    if (!Number.isFinite(percent) || percent <= 0) return;
+    applyZoomPercent(percent);
+  };
+
   const toggle = useCallback((id: string) => {
     setCollapsed((prev) => {
       const next = new Set(prev);
@@ -313,24 +726,270 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     });
   }, []);
 
+  // Id yang ikut berpindah: seluruh pilihan bila bagian yang diseret termasuk di dalamnya.
+  const dragIdsFor = (activeId: string): string[] =>
+    selectedIds.length > 1 && selectedIds.includes(activeId)
+      ? [...selectedIds]
+      : [activeId];
+
+  const computeNodeDrag = (
+    candidate: { id: string; name: string },
+    x: number,
+    y: number,
+  ): NodeDrag => {
+    const overEl = document
+      .elementFromPoint(x, y)
+      ?.closest<HTMLElement>('[data-chart-node]');
+    const overId = overEl?.dataset.nodeId ?? null;
+    const ids = dragIdsFor(candidate.id);
+    const overSelf = overId === candidate.id;
+    let position: UnitDropPosition | null = null;
+    let valid = false;
+    if (overEl && overId && !overSelf) {
+      const rect = overEl.getBoundingClientRect();
+      const ratio = rect.width > 0 ? (x - rect.left) / rect.width : 0.5;
+      position = ratio < 0.2 ? 'before' : ratio > 0.8 ? 'after' : 'inside';
+      valid = planUnitsDrop(draft.units, ids, overId, position).ok;
+    }
+    return {
+      id: candidate.id,
+      name:
+        ids.length > 1
+          ? `${candidate.name} dan ${ids.length - 1} lainnya`
+          : candidate.name,
+      x,
+      y,
+      overId: overSelf ? null : overId,
+      position,
+      valid,
+    };
+  };
+
+  // Salinan terbaru untuk putaran gulir otomatis, yang berjalan di luar siklus render.
+  const computeRef = useRef(computeNodeDrag);
+  useEffect(() => {
+    computeRef.current = computeNodeDrag;
+  });
+
+  // Gulir otomatis: menyeret bagian ke tepi kanvas menggeser bagan.
+  useEffect(() => {
+    if (!dragging) return;
+    let frame = 0;
+    let scrolledLastFrame = false;
+    const tick = () => {
+      const el = viewportRef.current;
+      const candidate = nodeCandidateRef.current;
+      if (el && candidate?.active) {
+        const { x, y } = lastPointerRef.current;
+        if (scrolledLastFrame) {
+          // Isi kanvas sudah bergeser; hitung ulang sasaran di bawah penunjuk.
+          setNodeDrag(computeRef.current(candidate, x, y));
+        }
+        const rect = el.getBoundingClientRect();
+        const vx = edgeSpeed(x - rect.left, rect.width);
+        const vy = edgeSpeed(y - rect.top, rect.height);
+        scrolledLastFrame = vx !== 0 || vy !== 0;
+        if (scrolledLastFrame) {
+          touchedRef.current = true;
+          setView((prev) => ({ ...prev, x: prev.x - vx, y: prev.y - vy }));
+        }
+      }
+      frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [dragging]);
+
+  const idsInRect = (x0: number, y0: number, x1: number, y1: number) => {
+    const left = Math.min(x0, x1);
+    const right = Math.max(x0, x1);
+    const top = Math.min(y0, y1);
+    const bottom = Math.max(y0, y1);
+    return layout.nodes
+      .filter((node) => {
+        const nl = node.x * view.scale + view.x;
+        const nt = node.y * view.scale + view.y;
+        return (
+          nl < right &&
+          nl + node.w * view.scale > left &&
+          nt < bottom &&
+          nt + node.h * view.scale > top
+        );
+      })
+      .map((node) => node.id);
+  };
+
+  const startPinch = () => {
+    nodeCandidateRef.current = null;
+    setNodeDrag(null);
+    dragRef.current = null;
+    setPanning(false);
+    marqueeRef.current = null;
+    setMarquee(null);
+    const [a, b] = [...pointersRef.current.values()];
+    if (!a || !b) return;
+    pinchRef.current = {
+      dist: Math.hypot(a.x - b.x, a.y - b.y),
+      mx: (a.x + b.x) / 2,
+      my: (a.y + b.y) / 2,
+    };
+  };
+
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    pointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+    lastPointerRef.current = { x: event.clientX, y: event.clientY };
+    if (pointersRef.current.size === 2) {
+      startPinch();
+      return;
+    }
     if (event.button !== 0) return;
-    if ((event.target as HTMLElement).closest('button')) return;
+    const target = event.target as HTMLElement;
+    // Menekan sebuah bagian lalu menggeser mulai menyeretnya (bila boleh); diam saja berarti klik biasa.
+    const nodeEl = target.closest<HTMLElement>('[data-chart-node]');
+    const nodeId = nodeEl?.dataset.nodeId;
+    if (
+      nodeId &&
+      onMoveUnit &&
+      !target.closest('[data-chart-toggle]') &&
+      (canEditUnit?.(nodeId) ?? true)
+    ) {
+      nodeCandidateRef.current = {
+        pointerId: event.pointerId,
+        id: nodeId,
+        name: draft.units.find((unit) => unit.id === nodeId)?.name ?? '',
+        startX: event.clientX,
+        startY: event.clientY,
+        active: false,
+      };
+      return;
+    }
+    if (target.closest('button')) return;
     touchedRef.current = true;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // Penunjuk sintetis tidak bisa ditangkap.
+    }
+    // Shift + seret di ruang kosong: kotak pilih (marquee).
+    if (event.shiftKey && !nodeEl) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      marqueeRef.current = {
+        pointerId: event.pointerId,
+        additive: event.ctrlKey || event.metaKey,
+      };
+      setMarquee({ x0: x, y0: y, x1: x, y1: y, ids: [] });
+      return;
+    }
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       originX: view.x,
       originY: view.y,
+      moved: false,
+      onNode: nodeEl !== null,
     };
     setPanning(true);
   };
 
+  const updateNodeDrag = (event: PointerEvent<HTMLDivElement>) => {
+    const candidate = nodeCandidateRef.current;
+    if (candidate?.pointerId !== event.pointerId) return false;
+    if (!candidate.active) {
+      const moved = Math.hypot(
+        event.clientX - candidate.startX,
+        event.clientY - candidate.startY,
+      );
+      if (moved < DRAG_THRESHOLD) return true;
+      candidate.active = true;
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        // Penunjuk sintetis tidak bisa ditangkap; seretan tetap jalan.
+      }
+    }
+    setNodeDrag(computeNodeDrag(candidate, event.clientX, event.clientY));
+    return true;
+  };
+
+  const finishNodeDrag = (
+    event: PointerEvent<HTMLDivElement>,
+    drop: boolean,
+  ) => {
+    const candidate = nodeCandidateRef.current;
+    if (candidate?.pointerId !== event.pointerId) return false;
+    nodeCandidateRef.current = null;
+    const drag = nodeDrag;
+    setNodeDrag(null);
+    if (
+      drop &&
+      candidate.active &&
+      drag?.overId &&
+      drag.position &&
+      drag.valid
+    ) {
+      onMoveUnit?.(candidate.id, drag.overId, drag.position);
+    }
+    return true;
+  };
+
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (pointersRef.current.has(event.pointerId)) {
+      pointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+    lastPointerRef.current = { x: event.clientX, y: event.clientY };
+
+    // Cubit dua jari di layar sentuh: perbesar dan geser sekaligus.
+    const pinch = pinchRef.current;
+    if (pinch && pointersRef.current.size >= 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      if (!a || !b) return;
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      const mx = (a.x + b.x) / 2;
+      const my = (a.y + b.y) / 2;
+      const rect = event.currentTarget.getBoundingClientRect();
+      if (pinch.dist > 0 && dist > 0) {
+        zoomAt(dist / pinch.dist, mx - rect.left, my - rect.top);
+      }
+      setView((prev) => ({
+        ...prev,
+        x: prev.x + (mx - pinch.mx),
+        y: prev.y + (my - pinch.my),
+      }));
+      pinchRef.current = { dist, mx, my };
+      return;
+    }
+
+    const marqueeState = marqueeRef.current;
+    if (marqueeState?.pointerId === event.pointerId) {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x1 = event.clientX - rect.left;
+      const y1 = event.clientY - rect.top;
+      setMarquee((prev) =>
+        prev
+          ? { ...prev, x1, y1, ids: idsInRect(prev.x0, prev.y0, x1, y1) }
+          : prev,
+      );
+      return;
+    }
+
+    if (updateNodeDrag(event)) return;
     const drag = dragRef.current;
     if (drag?.pointerId !== event.pointerId) return;
+    if (
+      !drag.moved &&
+      Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY) > 3
+    ) {
+      drag.moved = true;
+    }
     setView((prev) => ({
       ...prev,
       x: drag.originX + event.clientX - drag.startX,
@@ -339,9 +998,32 @@ export function ChartView(props: ChartViewProps): JSX.Element {
   };
 
   const endPan = (event: PointerEvent<HTMLDivElement>) => {
-    if (dragRef.current?.pointerId !== event.pointerId) return;
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
+
+    const marqueeState = marqueeRef.current;
+    if (marqueeState?.pointerId === event.pointerId) {
+      marqueeRef.current = null;
+      const current = marquee;
+      setMarquee(null);
+      if (current && event.type === 'pointerup') {
+        onSelectIds(
+          marqueeState.additive
+            ? [...new Set([...selectedIds, ...current.ids])]
+            : current.ids,
+        );
+      }
+      return;
+    }
+    if (finishNodeDrag(event, event.type === 'pointerup')) return;
+    const drag = dragRef.current;
+    if (drag?.pointerId !== event.pointerId) return;
     dragRef.current = null;
     setPanning(false);
+    // Klik di ruang kosong (tanpa menggeser) mengosongkan pilihan.
+    if (event.type === 'pointerup' && !drag.moved && !drag.onNode) {
+      onSelectIds([]);
+    }
   };
 
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -403,8 +1085,8 @@ export function ChartView(props: ChartViewProps): JSX.Element {
         onPointerUp={endPan}
         onPointerCancel={endPan}
         onKeyDown={onKeyDown}
-        className={`absolute inset-0 touch-none overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${
-          panning ? 'cursor-grabbing' : 'cursor-grab'
+        className={`absolute inset-0 touch-none select-none overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${
+          panning || nodeDrag !== null ? 'cursor-grabbing' : 'cursor-grab'
         }`}
       >
         <div
@@ -450,9 +1132,39 @@ export function ChartView(props: ChartViewProps): JSX.Element {
               key={node.id}
               node={node}
               draft={draft}
-              selected={node.id === selectedId}
-              onSelect={onSelect}
+              selected={
+                selectedIds.includes(node.id) ||
+                (marquee?.ids.includes(node.id) ?? false)
+              }
+              onSelect={handleNodeSelect}
               onToggle={toggle}
+              onToggleGroup={toggleGroup}
+              quickActions={
+                onAddChild !== undefined &&
+                selectedIds.length === 1 &&
+                selectedIds[0] === node.id &&
+                (canEditUnit?.(node.id) ?? true)
+              }
+              childLabel={levelLabelFor(node.depth + 1, draft.levelLabels)}
+              canAddChild={node.depth + 1 <= MAX_DEPTH}
+              onAddChild={onAddChild}
+              onRequestDelete={onRequestDelete}
+              dropPosition={
+                nodeDrag?.overId === node.id ? nodeDrag.position : null
+              }
+              dropValid={nodeDrag?.overId === node.id && nodeDrag.valid}
+              dragging={
+                nodeDrag !== null &&
+                (nodeDrag.id === node.id ||
+                  (selectedIds.length > 1 &&
+                    selectedIds.includes(nodeDrag.id) &&
+                    selectedIds.includes(node.id)))
+              }
+              onDropPosition={onDropPositionOnUnit}
+              canDropPosition={
+                onDropPositionOnUnit !== undefined &&
+                (canEditUnit?.(node.id) ?? true)
+              }
             />
           ))}
         </div>
@@ -467,12 +1179,52 @@ export function ChartView(props: ChartViewProps): JSX.Element {
         >
           <Minus className="size-4" />
         </Button>
-        <span
-          className="w-12 text-center text-xs font-semibold tabular-nums text-neutral-700"
-          aria-live="polite"
-        >
-          {Math.round(view.scale * 100)}%
-        </span>
+        <input
+          type="text"
+          inputMode="numeric"
+          aria-label="Tingkat zoom dalam persen"
+          title="Ketik angka lalu Enter. Panah atas/bawah menambah atau mengurangi 10."
+          value={zoomDraft ?? `${Math.round(view.scale * 100)}%`}
+          onFocus={(event) => {
+            setZoomDraft(String(Math.round(view.scale * 100)));
+            event.currentTarget.select();
+          }}
+          onChange={(event) =>
+            setZoomDraft(event.target.value.replace(/[^\d]/g, '').slice(0, 3))
+          }
+          onBlur={() => {
+            if (zoomCancelRef.current) {
+              zoomCancelRef.current = false;
+              setZoomDraft(null);
+              return;
+            }
+            commitZoom(zoomDraft);
+          }}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter') {
+              event.preventDefault();
+              event.currentTarget.blur();
+            } else if (event.key === 'Escape') {
+              event.preventDefault();
+              zoomCancelRef.current = true;
+              event.currentTarget.blur();
+            } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+              event.preventDefault();
+              const base = Number(zoomDraft ?? Math.round(view.scale * 100));
+              const step = event.key === 'ArrowUp' ? 10 : -10;
+              const next = Math.min(
+                MAX_SCALE * 100,
+                Math.max(
+                  MIN_SCALE * 100,
+                  (Number.isNaN(base) ? 100 : base) + step,
+                ),
+              );
+              setZoomDraft(String(next));
+              applyZoomPercent(next);
+            }
+          }}
+          className="h-8 w-14 rounded-[8px] border border-transparent bg-transparent text-center text-xs font-semibold tabular-nums text-neutral-1000 hover:border-neutral-400 focus-visible:border-primary-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-400"
+        />
         <Button
           variant="ghost"
           size="icon"
@@ -493,6 +1245,27 @@ export function ChartView(props: ChartViewProps): JSX.Element {
           <ScanSearch className="size-4" />
         </Button>
       </div>
+      {marquee ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute z-10 rounded-[4px] border border-primary-400 bg-primary-100/40"
+          style={{
+            left: Math.min(marquee.x0, marquee.x1),
+            top: Math.min(marquee.y0, marquee.y1),
+            width: Math.abs(marquee.x1 - marquee.x0),
+            height: Math.abs(marquee.y1 - marquee.y0),
+          }}
+        />
+      ) : null}
+      {nodeDrag ? (
+        <div
+          aria-hidden
+          className="pointer-events-none fixed z-50 max-w-[220px] truncate rounded-full border border-primary-400 bg-white px-3 py-1 text-sm font-semibold text-neutral-1000"
+          style={{ left: nodeDrag.x + 12, top: nodeDrag.y + 12 }}
+        >
+          {nodeDrag.name}
+        </div>
+      ) : null}
     </div>
   );
 }

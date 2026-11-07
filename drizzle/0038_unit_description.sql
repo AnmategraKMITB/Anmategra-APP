@@ -1,0 +1,1 @@
+ALTER TABLE "anmategra_organization_unit" ADD COLUMN "description" text;

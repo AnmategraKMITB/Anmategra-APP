@@ -1,11 +1,16 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { canManageLembaga } from '~/server/api/trpc';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import {
-  kehimpunan,
+  addLembagaMember,
+  lembagaMembersSq,
+  removeLembagaMember,
+} from '~/server/api/routers/organization/membership';
+import {
   lembaga,
+  lembagaMembership,
   mahasiswa,
   riwayatOrganisasi,
   users,
@@ -45,16 +50,21 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   }
 
   // --- Fetch lembaga member data ---
+  const members = await lembagaMembersSq(db, lembaga_id);
   const anggotaLembaga = await db
-    .select()
-    .from(kehimpunan)
-    .leftJoin(users, eq(kehimpunan.userId, users.id))
-    .leftJoin(mahasiswa, eq(kehimpunan.userId, mahasiswa.userId))
-    .where(eq(kehimpunan.lembagaId, lembaga_id))
+    .select({
+      name: users.name,
+      nim: mahasiswa.nim,
+      division: members.division,
+      position: members.position,
+    })
+    .from(members)
+    .leftJoin(users, eq(members.userId, users.id))
+    .leftJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
     .orderBy(
-      kehimpunan.index,
-      kehimpunan.division,
-      kehimpunan.position,
+      members.index,
+      members.division,
+      members.position,
       mahasiswa.nim,
       users.name,
     );
@@ -86,10 +96,10 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   // --- Add data rows ---
   anggotaLembaga.forEach((anggota) => {
     const row = sheet.addRow([
-      anggota.user?.name ?? '',
-      anggota.mahasiswa?.nim ?? '',
-      anggota.kehimpunan.division ?? '',
-      anggota.kehimpunan.position ?? 'Anggota',
+      anggota.name ?? '',
+      anggota.nim ?? '',
+      anggota.division,
+      anggota.position,
     ]);
 
     // --- Add borders to data rows ---
@@ -265,37 +275,49 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
     let insertedCount = 0;
     await db.transaction(async (tx) => {
       // --- Snapshot existing members to riwayat before wiping (H-03) ---
-      const existingMembers = await tx.query.kehimpunan.findMany({
-        where: eq(kehimpunan.lembagaId, lembaga_id),
-      });
+      const currentMembers = await lembagaMembersSq(tx, lembaga_id);
+      const existingMembers = await tx.select().from(currentMembers);
+      const joined = await tx
+        .select({
+          userId: lembagaMembership.userId,
+          joinedAt: lembagaMembership.joinedAt,
+        })
+        .from(lembagaMembership)
+        .where(
+          and(
+            eq(lembagaMembership.lembagaId, lembaga_id),
+            eq(lembagaMembership.status, 'aktif'),
+          ),
+        );
+      const joinedAt = new Map(joined.map((j) => [j.userId, j.joinedAt]));
       if (existingMembers.length > 0) {
         await tx.insert(riwayatOrganisasi).values(
           existingMembers.map((member) => ({
             userId: member.userId,
-            lembagaId: member.lembagaId,
+            lembagaId: lembaga_id,
             lembagaNama: userLembaga.name,
             lembagaTipe: userLembaga.type,
             division: member.division,
             position: member.position,
-            startedAt: member.created_at,
+            startedAt: joinedAt.get(member.userId) ?? new Date(),
             endedAt: new Date(),
             endReason: 'removed' as const,
           })),
         );
       }
 
-      // --- Delete existing data for this lembaga ---
-      await tx.delete(kehimpunan).where(eq(kehimpunan.lembagaId, lembaga_id));
+      // --- Replace existing members and placements of this lembaga ---
+      for (const member of existingMembers) {
+        await removeLembagaMember(tx, lembaga_id, member.userId);
+      }
 
       for (const anggota of anggotaData) {
-        // Insert kehimpunan
-        await tx.insert(kehimpunan).values({
-          // id: kehimpunanId,
+        await addLembagaMember(tx, {
           lembagaId: lembaga_id,
           userId: anggota.userId,
-          position: anggota.posisi,
           division: anggota.divisi,
-          index: anggota.index,
+          position: anggota.posisi,
+          actorId: session.user.id,
         });
 
         insertedCount++;

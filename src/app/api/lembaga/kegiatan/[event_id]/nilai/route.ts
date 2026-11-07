@@ -2,8 +2,8 @@ import { eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
+import { periodMembersSq } from '~/server/api/routers/organization/membership';
 import {
-  keanggotaan,
   mahasiswa,
   nilaiProfilKegiatan,
   profilKegiatan,
@@ -56,16 +56,16 @@ export async function GET(request: Request, props: { params: Promise<{ event_id:
   }
 
   // --- Fetch panitia data ---
+  const members = periodMembersSq(db, event_id);
   const panitiaKegiatan = await db
-    .select()
-    .from(keanggotaan)
-    .leftJoin(users, eq(keanggotaan.user_id, users.id))
-    .leftJoin(mahasiswa, eq(keanggotaan.user_id, mahasiswa.userId))
-    .where(eq(keanggotaan.event_id, event_id))
+    .select({ user: users, mahasiswa })
+    .from(members)
+    .leftJoin(users, eq(members.userId, users.id))
+    .leftJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
     .orderBy(
-      keanggotaan.index,
-      keanggotaan.division,
-      keanggotaan.position,
+      members.index,
+      members.division,
+      members.position,
       mahasiswa.nim,
       users.name,
     );
@@ -277,11 +277,11 @@ export async function POST(request: Request, props: { params: Promise<{ event_id
 
     const mahasiswaIds: string[] = [];
     // --- Get list of keanggotaan for this event to validate NIMs ---
+    const memberRows = periodMembersSq(db, event_id);
     const keanggotaanList = await db
-      .select()
-      .from(keanggotaan)
-      .leftJoin(mahasiswa, eq(keanggotaan.user_id, mahasiswa.userId))
-      .where(eq(keanggotaan.event_id, event_id));
+      .select({ memberId: memberRows.userId, mahasiswa })
+      .from(memberRows)
+      .leftJoin(mahasiswa, eq(memberRows.userId, mahasiswa.userId));
 
     // --- Process data rows ---
 
@@ -341,7 +341,7 @@ export async function POST(request: Request, props: { params: Promise<{ event_id
       const member = keanggotaanList.find(
         (k) => k.mahasiswa?.nim?.toString() === nim,
       );
-      if (!member?.keanggotaan) {
+      if (!member?.memberId) {
         return apiError(
           400,
           `Row ${rowNumber}: NIM ${nim} not found in event members`,

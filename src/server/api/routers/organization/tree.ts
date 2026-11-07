@@ -18,6 +18,7 @@ export type UnitNode = {
   parentId: string | null;
   name: string;
   typeLabel: string | null;
+  description?: string | null;
   sortOrder: number;
   layout: Record<string, unknown> | null;
 };
@@ -133,6 +134,7 @@ const unitChanged = (a: UnitNode, b: UnitNode) =>
   a.parentId !== b.parentId ||
   a.name !== b.name ||
   a.typeLabel !== b.typeLabel ||
+  (a.description ?? null) !== (b.description ?? null) ||
   a.sortOrder !== b.sortOrder ||
   !sameJson(a.layout, b.layout);
 

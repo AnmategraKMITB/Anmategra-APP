@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import {
+  type SQL,
   and,
   count,
   desc,
@@ -24,8 +25,6 @@ import {
   bestStaffKegiatan,
   bestStaffLembaga,
   events,
-  keanggotaan,
-  kehimpunan,
   lembaga,
   mahasiswa,
   riwayatOrganisasi,
@@ -97,9 +96,20 @@ import {
   editAnggotaLembagaOutputSchema,
 } from '../types/lembaga.type';
 import {
-  isUniqueViolation,
-  resolveOrgAssignment,
-} from './organization/services';
+  addLembagaMember,
+  currentLembagaPeriodId,
+  editLembagaMember,
+  isLembagaMember,
+  isPeriodMember,
+  lembagaMemberOf,
+  lembagaMembersSq,
+  periodMembersSq,
+  periodTextOptions,
+  removeLembagaMember,
+  reorderPeriodMembers,
+  upsertPlacementByText,
+} from './organization/membership';
+import { isUniqueViolation } from './organization/services';
 
 export const lembagaRouter = createTRPCRouter({
   // Fetch lembaga general information
@@ -147,7 +157,8 @@ export const lembagaRouter = createTRPCRouter({
     .output(GetAllAnggotaLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        const conditions = [eq(kehimpunan.lembagaId, input.lembagaId)];
+        const members = await lembagaMembersSq(ctx.db, input.lembagaId);
+        const conditions: SQL[] = [];
 
         if (input.namaOrNim) {
           if (isNaN(Number(input.namaOrNim))) {
@@ -158,24 +169,24 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         if (input.divisi) {
-          conditions.push(eq(kehimpunan.division, input.divisi));
+          conditions.push(eq(members.division, input.divisi));
         }
         const anggota = await ctx.db
           .select({
             id: users.id,
             nama: users.name,
             nim: mahasiswa.nim,
-            divisi: kehimpunan.division,
-            posisi: kehimpunan.position,
+            divisi: members.division,
+            posisi: members.position,
           })
-          .from(kehimpunan)
-          .innerJoin(users, eq(kehimpunan.userId, users.id))
+          .from(members)
+          .innerJoin(users, eq(members.userId, users.id))
           .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
           .where(and(...conditions))
           .orderBy(
-            kehimpunan.index,
-            kehimpunan.division,
-            kehimpunan.position,
+            members.index,
+            members.division,
+            members.position,
             mahasiswa.nim,
             users.name,
           );
@@ -424,22 +435,21 @@ export const lembagaRouter = createTRPCRouter({
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        const assignment = await resolveOrgAssignment(ctx.db, {
-          ownerType: 'lembaga',
-          ownerId: ctx.session.user.lembagaId!,
-          org_unit_id: input.org_unit_id,
-          org_role_id: input.org_role_id,
-        });
-
-        await ctx.db.insert(kehimpunan).values({
-          id: input.user_id + '_' + ctx.session.user.id,
-          lembagaId: ctx.session.user.lembagaId!,
-          userId: input.user_id,
-          org_unit_id: assignment.org_unit_id,
-          org_role_id: assignment.org_role_id,
-          division: assignment.division ?? input.division,
-          position: assignment.position ?? input.position,
-        });
+        const added = await ctx.db.transaction((tx) =>
+          addLembagaMember(tx, {
+            lembagaId: ctx.session.user.lembagaId!,
+            userId: input.user_id,
+            division: input.division ?? '',
+            position: input.position ?? '',
+            actorId: ctx.session.user.id,
+          }),
+        );
+        if (!added) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
+          });
+        }
 
         return {
           success: true,
@@ -466,13 +476,6 @@ export const lembagaRouter = createTRPCRouter({
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        const assignment = await resolveOrgAssignment(ctx.db, {
-          ownerType: 'lembaga',
-          ownerId: ctx.session.user.lembagaId!,
-          org_unit_id: input.org_unit_id,
-          org_role_id: input.org_role_id,
-        });
-
         // Check if user already exists by email (primary identifier)
         const email = `${input.nim}@mahasiswa.itb.ac.id`;
         const existingUser = await ctx.db.query.users.findFirst({
@@ -488,16 +491,22 @@ export const lembagaRouter = createTRPCRouter({
             });
           }
 
-          // User exists, just add them to kehimpunan
-          await ctx.db.insert(kehimpunan).values({
-            id: existingUser.id + '_' + ctx.session.user.id,
-            lembagaId: ctx.session.user.lembagaId!,
-            userId: existingUser.id,
-            org_unit_id: assignment.org_unit_id,
-            org_role_id: assignment.org_role_id,
-            division: assignment.division ?? input.division,
-            position: assignment.position ?? input.position,
-          });
+          // User exists, just add them to the lembaga
+          const added = await ctx.db.transaction((tx) =>
+            addLembagaMember(tx, {
+              lembagaId: ctx.session.user.lembagaId!,
+              userId: existingUser.id,
+              division: input.division ?? '',
+              position: input.position ?? '',
+              actorId: ctx.session.user.id,
+            }),
+          );
+          if (!added) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
+            });
+          }
 
           return { success: true };
         }
@@ -528,14 +537,12 @@ export const lembagaRouter = createTRPCRouter({
             angkatan: angkatan,
           });
 
-          await tx.insert(kehimpunan).values({
-            id: user[0]!.id + '_' + ctx.session.user.id,
+          await addLembagaMember(tx, {
             lembagaId: ctx.session.user.lembagaId!,
             userId: user[0]!.id,
-            org_unit_id: assignment.org_unit_id,
-            org_role_id: assignment.org_role_id,
-            division: assignment.division ?? input.division,
-            position: assignment.position ?? input.position,
+            division: input.division ?? '',
+            position: input.position ?? '',
+            actorId: ctx.session.user.id,
           });
         });
 
@@ -565,12 +572,11 @@ export const lembagaRouter = createTRPCRouter({
     .input(RemoveAnggotaLembagaInputSchema)
     .output(RemoveAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const existingKehimpunan = await ctx.db.query.kehimpunan.findFirst({
-        where: and(
-          eq(kehimpunan.userId, input.user_id),
-          eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
-        ),
-      });
+      const existingKehimpunan = await lembagaMemberOf(
+        ctx.db,
+        ctx.session.user.lembagaId!,
+        input.user_id,
+      );
 
       if (!existingKehimpunan) {
         throw new TRPCError({
@@ -587,24 +593,17 @@ export const lembagaRouter = createTRPCRouter({
       await ctx.db.transaction(async (tx) => {
         await tx.insert(riwayatOrganisasi).values({
           userId: existingKehimpunan.userId,
-          lembagaId: existingKehimpunan.lembagaId,
+          lembagaId: ctx.session.user.lembagaId!,
           lembagaNama: lembagaRow?.name ?? 'Lembaga',
           lembagaTipe: lembagaRow?.type ?? null,
           division: existingKehimpunan.division,
           position: existingKehimpunan.position,
-          startedAt: existingKehimpunan.created_at,
+          startedAt: existingKehimpunan.joinedAt ?? new Date(),
           endedAt: new Date(),
           endReason: 'removed',
         });
 
-        await tx
-          .delete(kehimpunan)
-          .where(
-            and(
-              eq(kehimpunan.userId, input.user_id),
-              eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
-            ),
-          );
+        await removeLembagaMember(tx, ctx.session.user.lembagaId!, input.user_id);
       });
 
       return {
@@ -617,34 +616,17 @@ export const lembagaRouter = createTRPCRouter({
     .output(editAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        const hasOrgAssignmentInput =
-          input.org_unit_id !== undefined || input.org_role_id !== undefined;
-        const assignment = await resolveOrgAssignment(ctx.db, {
-          ownerType: 'lembaga',
-          ownerId: ctx.session.user.lembagaId!,
-          org_unit_id: input.org_unit_id,
-          org_role_id: input.org_role_id,
-        });
+        const updated = await ctx.db.transaction((tx) =>
+          editLembagaMember(tx, {
+            lembagaId: ctx.session.user.lembagaId!,
+            userId: input.user_id,
+            division: input.division ?? '',
+            position: input.position ?? '',
+            actorId: ctx.session.user.id,
+          }),
+        );
 
-        const updated = await ctx.db
-          .update(kehimpunan)
-          .set({
-            ...(hasOrgAssignmentInput && {
-              org_unit_id: assignment.org_unit_id,
-              org_role_id: assignment.org_role_id,
-            }),
-            position: assignment.position ?? input.position,
-            division: assignment.division ?? input.division,
-          })
-          .where(
-            and(
-              eq(kehimpunan.userId, input.user_id),
-              eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
-            ),
-          )
-          .returning({ id: kehimpunan.id });
-
-        if (updated.length === 0) {
+        if (!updated) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Anggota tidak ditemukan',
@@ -726,17 +708,7 @@ export const lembagaRouter = createTRPCRouter({
           });
         }
 
-        const isUserAlreadyParticipant = await ctx.db
-          .select({ id: keanggotaan.id })
-          .from(keanggotaan)
-          .where(
-            and(
-              eq(keanggotaan.event_id, input.event_id),
-              eq(keanggotaan.user_id, input.user_id),
-            ),
-          )
-          .limit(1);
-        if (isUserAlreadyParticipant.length > 0) {
+        if (await isPeriodMember(ctx.db, input.event_id, input.user_id)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message:
@@ -762,12 +734,12 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         await ctx.db.transaction(async (tx) => {
-          await tx.insert(keanggotaan).values({
-            id: input.event_id + '_' + input.user_id,
-            event_id: input.event_id,
-            user_id: input.user_id,
-            position: input.position,
+          await upsertPlacementByText(tx, {
+            periodId: input.event_id,
+            userId: input.user_id,
             division: input.division,
+            position: input.position,
+            createdBy: ctx.session.user.id,
           });
 
           await tx
@@ -864,10 +836,10 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
+      const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
       const divisionsRaw = await ctx.db
-        .select({ division: kehimpunan.division })
-        .from(kehimpunan)
-        .where(eq(kehimpunan.lembagaId, input.lembaga_id));
+        .select({ division: members.division })
+        .from(members);
 
       const uniqueDivisions = Array.from(
         new Set(divisionsRaw.map((row) => row.division)),
@@ -893,10 +865,10 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
+      const members = periodMembersSq(ctx.db, input.event_id);
       const divisionsRaw = await ctx.db
-        .select({ division: keanggotaan.division })
-        .from(keanggotaan)
-        .where(eq(keanggotaan.event_id, input.event_id));
+        .select({ division: members.division })
+        .from(members);
 
       const uniqueDivisions = Array.from(
         new Set(divisionsRaw.map((row) => row.division)),
@@ -922,19 +894,15 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
+      const members = periodMembersSq(ctx.db, input.event_id);
       const staffOptions = await ctx.db
         .select({
           user_id: users.id,
           name: users.name,
         })
-        .from(keanggotaan)
-        .innerJoin(users, eq(keanggotaan.user_id, users.id))
-        .where(
-          and(
-            eq(keanggotaan.event_id, input.event_id),
-            eq(keanggotaan.division, input.division),
-          ),
-        );
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
+        .where(eq(members.division, input.division));
 
       return {
         staff_options: staffOptions.map((staff) => ({
@@ -1014,18 +982,13 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         // Check if user is already a member of the lembaga
-        const isUserAlreadyMember = await ctx.db
-          .select({ id: kehimpunan.id })
-          .from(kehimpunan)
-          .where(
-            and(
-              eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
-              eq(kehimpunan.userId, input.user_id),
-            ),
+        if (
+          await isLembagaMember(
+            ctx.db,
+            ctx.session.user.lembagaId!,
+            input.user_id,
           )
-          .limit(1);
-
-        if (isUserAlreadyMember.length > 0) {
+        ) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message:
@@ -1034,12 +997,13 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         await ctx.db.transaction(async (tx) => {
-          // Add user to kehimpunan
-          await tx.insert(kehimpunan).values({
+          // Add user to the lembaga
+          await addLembagaMember(tx, {
             lembagaId: ctx.session.user.lembagaId!,
             userId: input.user_id,
-            position: input.position,
             division: input.division,
+            position: input.position,
+            actorId: ctx.session.user.id,
           });
 
           // Update the association request status to 'Accepted'
@@ -1192,19 +1156,15 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
+      const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
       const staffOptions = await ctx.db
         .select({
           user_id: users.id,
           name: users.name,
         })
-        .from(kehimpunan)
-        .innerJoin(users, eq(kehimpunan.userId, users.id))
-        .where(
-          and(
-            eq(kehimpunan.lembagaId, input.lembaga_id),
-            eq(kehimpunan.division, input.division),
-          ),
-        );
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
+        .where(eq(members.division, input.division));
 
       return {
         staff_options: staffOptions.map((staff) => ({
@@ -1601,28 +1561,17 @@ export const lembagaRouter = createTRPCRouter({
   getPosisiBidangOptions: lembagaProcedure
     .output(GetPosisiBidangOptionsOutputSchema)
     .query(async ({ ctx }) => {
-      const list_posisi_bidang = await ctx.db.query.kehimpunan.findMany({
-        where: (kehimpunan, { eq }) =>
-          eq(kehimpunan.lembagaId, ctx.session.user.lembagaId!),
-        columns: {
-          position: true,
-          division: true,
-        },
-      });
-      const uniquePosisi = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.position)),
+      const options = await periodTextOptions(
+        ctx.db,
+        await currentLembagaPeriodId(ctx.db, ctx.session.user.lembagaId!),
       );
-      const posisi_list = uniquePosisi.map((position) => ({
+      const posisi_list = options.positions.map((position) => ({
         value: position,
-        label: position ?? '',
+        label: position,
       }));
-
-      const uniqueBidang = Array.from(
-        new Set(list_posisi_bidang.map((item) => item.division)),
-      );
-      const bidang_list = uniqueBidang.map((division) => ({
+      const bidang_list = options.divisions.map((division) => ({
         value: division,
-        label: division ?? '',
+        label: division,
       }));
 
       return {
@@ -1668,10 +1617,10 @@ export const lembagaRouter = createTRPCRouter({
           });
         }
 
+        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
         const [totalAnggotaResult] = await ctx.db
           .select({ count: count() })
-          .from(kehimpunan)
-          .where(eq(kehimpunan.lembagaId, input.lembaga_id));
+          .from(members);
         const totalAnggota = totalAnggotaResult?.count ?? 0;
 
         if (input.user_ids.length !== totalAnggota) {
@@ -1682,19 +1631,15 @@ export const lembagaRouter = createTRPCRouter({
           });
         }
 
-        await ctx.db.transaction(async (tx) => {
-          for (let i = 0; i < input.user_ids.length; i++) {
-            await tx
-              .update(kehimpunan)
-              .set({ index: i })
-              .where(
-                and(
-                  eq(kehimpunan.userId, input.user_ids[i]!),
-                  eq(kehimpunan.lembagaId, input.lembaga_id),
-                ),
-              );
-          }
-        });
+        const periodId = await currentLembagaPeriodId(
+          ctx.db,
+          input.lembaga_id,
+        );
+        if (periodId) {
+          await ctx.db.transaction((tx) =>
+            reorderPeriodMembers(tx, periodId, input.user_ids),
+          );
+        }
 
         return { success: true };
       } catch (error) {
@@ -1732,19 +1677,9 @@ export const lembagaRouter = createTRPCRouter({
       }
 
       try {
-        await ctx.db.transaction(async (tx) => {
-          for (let i = 0; i < input.user_ids.length; i++) {
-            await tx
-              .update(keanggotaan)
-              .set({ index: i })
-              .where(
-                and(
-                  eq(keanggotaan.user_id, input.user_ids[i]!),
-                  eq(keanggotaan.event_id, input.event_id),
-                ),
-              );
-          }
-        });
+        await ctx.db.transaction((tx) =>
+          reorderPeriodMembers(tx, input.event_id, input.user_ids),
+        );
 
         return { success: true };
       } catch (error) {

@@ -8,17 +8,45 @@ import {
   validateTree,
 } from '~/server/api/routers/organization/tree';
 
-export type Rank = 'head' | 'vice' | 'coordinator' | 'staff';
+/** Id rank; daftar dan labelnya disusun per organogram (lihat `Draft.ranks`). */
+export type Rank = string;
+export type RankDef = { id: Rank; label: string };
 export type PositionKind = 'struktural' | 'nonstruktural';
 
-export const RANKS: readonly Rank[] = ['head', 'vice', 'coordinator', 'staff'];
+/** Daftar rank bawaan (senior ke junior), dipakai selama organogram belum menyusunnya sendiri. */
+export const DEFAULT_RANKS: readonly RankDef[] = [
+  { id: 'head', label: 'Kepala' },
+  { id: 'vice', label: 'Wakil' },
+  { id: 'coordinator', label: 'Koordinator' },
+  { id: 'staff', label: 'Staf' },
+];
 
-export const DEFAULT_RANK_LABELS: Record<Rank, string> = {
-  head: 'Kepala',
-  vice: 'Wakil',
-  coordinator: 'Koordinator',
-  staff: 'Staf',
-};
+export const MAX_RANKS = 24;
+export const MAX_RANK_LABEL = 60;
+
+/** Daftar rank yang berlaku: milik organogram, atau bawaan bila belum disusun. */
+export function effectiveRanks(ranks: RankDef[] | null): readonly RankDef[] {
+  return ranks ?? DEFAULT_RANKS;
+}
+
+/** Id rank baru dari sebuah label: huruf kecil, tanpa aksen, unik terhadap yang sudah ada. */
+export function newRankId(label: string, existing: readonly RankDef[]): Rank {
+  const base =
+    label
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 28) || 'rank';
+  const taken = new Set(existing.map((rank) => rank.id));
+  if (!taken.has(base)) return base;
+  for (let n = 2; n < 1000; n += 1) {
+    const candidate = `${base}-${n}`;
+    if (!taken.has(candidate)) return candidate;
+  }
+  return `${base}-${Date.now() % 100000}`;
+}
 
 export type UnitLayout = {
   tier?: 'depth' | 'manual';
@@ -43,7 +71,7 @@ export type PlacementsByPosition = Record<string, Person[]>;
 export type Draft = {
   name: string;
   levelLabels: string[] | null;
-  rankLabels: Partial<Record<Rank, string>> | null;
+  ranks: RankDef[] | null;
   units: Unit[];
   positions: Position[];
 };
@@ -59,12 +87,13 @@ export type EditorHistory = {
 export type ServerOrganogram = {
   name: string;
   levelLabels: string[] | null;
-  rankLabels: Partial<Record<Rank, string>> | null;
+  ranks: RankDef[] | null;
   units: {
     id: string;
     parentId: string | null;
     name: string;
     typeLabel: string | null;
+    description?: string | null;
     sortOrder: number;
     layout: Record<string, unknown> | null;
   }[];
@@ -149,7 +178,7 @@ function cloneDraft(draft: Draft): Draft {
   return {
     name: draft.name,
     levelLabels: draft.levelLabels ? [...draft.levelLabels] : null,
-    rankLabels: draft.rankLabels ? { ...draft.rankLabels } : null,
+    ranks: draft.ranks ? draft.ranks.map((rank) => ({ ...rank })) : null,
     units: draft.units.map((unit) => ({ ...unit, layout: { ...unit.layout } })),
     positions: draft.positions.map((position) => ({ ...position })),
   };
@@ -163,12 +192,13 @@ function draftKey(draft: Draft): string {
   return JSON.stringify([
     draft.name,
     draft.levelLabels,
-    RANKS.map((rank) => draft.rankLabels?.[rank] ?? null),
+    draft.ranks ? draft.ranks.map((rank) => [rank.id, rank.label]) : null,
     draft.units.map((unit) => [
       unit.id,
       unit.parentId,
       unit.name,
       unit.typeLabel,
+      unit.description ?? null,
       unit.sortOrder,
       unit.layout.tier ?? null,
       unit.layout.childrenMode ?? null,
@@ -284,16 +314,24 @@ function cleanLevelLabels(labels: string[] | null): string[] | null {
   return cleaned.length > 0 ? cleaned : null;
 }
 
-function cleanRankLabels(
-  labels: Partial<Record<Rank, string>> | null,
-): Partial<Record<Rank, string>> | null {
-  if (!labels) return null;
-  const cleaned: Partial<Record<Rank, string>> = {};
-  for (const rank of RANKS) {
-    const trimmed = labels[rank]?.trim();
-    if (trimmed) cleaned[rank] = trimmed;
-  }
-  return Object.keys(cleaned).length > 0 ? cleaned : null;
+/** Membersihkan daftar rank sebelum dikirim; daftar yang sama dengan bawaan dikirim sebagai null. */
+function cleanRanks(ranks: RankDef[] | null): RankDef[] | null {
+  if (!ranks) return null;
+  const cleaned = ranks
+    .map((rank) => ({
+      id: rank.id,
+      label: rank.label.trim().slice(0, MAX_RANK_LABEL),
+    }))
+    .filter((rank) => rank.id !== '' && rank.label !== '');
+  if (cleaned.length === 0) return null;
+  const same =
+    cleaned.length === DEFAULT_RANKS.length &&
+    cleaned.every(
+      (rank, index) =>
+        rank.id === DEFAULT_RANKS[index]?.id &&
+        rank.label === DEFAULT_RANKS[index]?.label,
+    );
+  return same ? null : cleaned;
 }
 
 export function toDraft(server: ServerOrganogram): Draft {
@@ -303,6 +341,7 @@ export function toDraft(server: ServerOrganogram): Draft {
       parentId: unit.parentId,
       name: unit.name,
       typeLabel: unit.typeLabel,
+      description: unit.description ?? null,
       sortOrder: unit.sortOrder,
       layout: normalizeLayout(unit.layout),
     })),
@@ -314,7 +353,7 @@ export function toDraft(server: ServerOrganogram): Draft {
   return {
     name: server.name,
     levelLabels: server.levelLabels ? [...server.levelLabels] : null,
-    rankLabels: server.rankLabels ? { ...server.rankLabels } : null,
+    ranks: server.ranks ? server.ranks.map((rank) => ({ ...rank })) : null,
     units,
     positions,
   };
@@ -334,7 +373,7 @@ export function toPlacements(server: ServerOrganogram): PlacementsByPosition {
 export function toSavePayload(d: Draft): {
   name: string;
   levelLabels: string[] | null;
-  rankLabels: Partial<Record<Rank, string>> | null;
+  ranks: RankDef[] | null;
   units: UnitNode[];
   positions: PositionNode[];
 } {
@@ -348,6 +387,7 @@ export function toSavePayload(d: Draft): {
       parentId: unit.parentId,
       name: unit.name,
       typeLabel: unit.typeLabel,
+      description: unit.description ?? null,
       sortOrder,
       layout: layoutToRecord(unit.layout),
     };
@@ -363,7 +403,7 @@ export function toSavePayload(d: Draft): {
   return {
     name: d.name,
     levelLabels: cleanLevelLabels(d.levelLabels),
-    rankLabels: cleanRankLabels(d.rankLabels),
+    ranks: cleanRanks(d.ranks),
     units,
     positions,
   };
@@ -398,7 +438,7 @@ export type EditorAction =
   | { type: 'redo' }
   | { type: 'setName'; name: string }
   | { type: 'setLevelLabels'; labels: string[] | null }
-  | { type: 'setRankLabels'; labels: Partial<Record<Rank, string>> | null }
+  | { type: 'setRanks'; ranks: RankDef[] | null }
   | {
       type: 'addUnit';
       id: string;
@@ -408,8 +448,13 @@ export type EditorAction =
     }
   | { type: 'renameUnit'; id: string; name: string }
   | { type: 'setUnitType'; id: string; typeLabel: string | null }
+  | { type: 'setUnitDescription'; id: string; description: string | null }
   | { type: 'setUnitLayout'; id: string; patch: Partial<UnitLayout> }
   | { type: 'moveUnit'; id: string; parentId: string | null; index: number }
+  // Aksi massal untuk pilihan ganda: satu langkah urungkan untuk seluruh perubahan.
+  | { type: 'moveUnits'; ids: string[]; parentId: string | null; index: number }
+  | { type: 'deleteUnits'; ids: string[] }
+  | { type: 'setUnitsLayout'; ids: string[]; patch: Partial<UnitLayout> }
   | { type: 'deleteUnit'; id: string }
   | {
       type: 'addPosition';
@@ -423,6 +468,14 @@ export type EditorAction =
   | { type: 'updatePosition'; id: string; patch: PositionPatch }
   | { type: 'deletePosition'; id: string }
   | { type: 'movePosition'; id: string; unitId: string; index: number };
+
+/** Menjalankan beberapa aksi lalu mencatatnya sebagai satu langkah riwayat. */
+function applyBatch(h: EditorHistory, actions: EditorAction[]): EditorHistory {
+  let next: EditorHistory = h;
+  for (const action of actions) next = editorReducer(next, action);
+  if (draftKey(next.present) === draftKey(h.present)) return h;
+  return commit(h, next.present, null);
+}
 
 function commit(
   h: EditorHistory,
@@ -522,10 +575,13 @@ export function editorReducer(
         null,
       );
     }
-    case 'setRankLabels': {
+    case 'setRanks': {
       return commit(
         h,
-        { ...h.present, rankLabels: a.labels ? { ...a.labels } : null },
+        {
+          ...h.present,
+          ranks: a.ranks ? a.ranks.map((rank) => ({ ...rank })) : null,
+        },
         null,
       );
     }
@@ -555,6 +611,7 @@ export function editorReducer(
         parentId: a.parentId,
         name,
         typeLabel: null,
+        description: null,
         sortOrder: index,
         layout: {},
       };
@@ -586,6 +643,19 @@ export function editorReducer(
         unit.id === a.id ? { ...unit, typeLabel } : unit,
       );
       return commit(h, { ...h.present, units }, `type:${a.id}`);
+    }
+    case 'setUnitDescription': {
+      const target = h.present.units.find((unit) => unit.id === a.id);
+      if (!target) return h;
+      const description =
+        a.description !== null && a.description.trim() !== ''
+          ? a.description
+          : null;
+      if ((target.description ?? null) === description) return h;
+      const units = h.present.units.map((unit) =>
+        unit.id === a.id ? { ...unit, description } : unit,
+      );
+      return commit(h, { ...h.present, units }, `desc:${a.id}`);
     }
     case 'setUnitLayout': {
       const target = h.present.units.find((unit) => unit.id === a.id);
@@ -647,6 +717,33 @@ export function editorReducer(
       );
       return commit(h, { ...h.present, units: nextUnits }, null);
     }
+    case 'moveUnits': {
+      return applyBatch(
+        h,
+        a.ids.map((id, k) => ({
+          type: 'moveUnit' as const,
+          id,
+          parentId: a.parentId,
+          index: a.index + k,
+        })),
+      );
+    }
+    case 'deleteUnits': {
+      return applyBatch(
+        h,
+        a.ids.map((id) => ({ type: 'deleteUnit' as const, id })),
+      );
+    }
+    case 'setUnitsLayout': {
+      return applyBatch(
+        h,
+        a.ids.map((id) => ({
+          type: 'setUnitLayout' as const,
+          id,
+          patch: a.patch,
+        })),
+      );
+    }
     case 'deleteUnit': {
       const units = h.present.units;
       if (!units.some((unit) => unit.id === a.id)) return h;
@@ -686,7 +783,7 @@ export function editorReducer(
           a.title !== undefined && a.title.trim() !== ''
             ? a.title
             : DEFAULT_POSITION_TITLE,
-        rank: a.rank ?? 'staff',
+        rank: a.rank ?? defaultNewRank(h.present.ranks),
         kind: a.kind ?? 'struktural',
         quota: a.quota === undefined ? 0 : normalizeQuota(a.quota),
         hidden: false,
@@ -822,14 +919,22 @@ export function levelLabelFor(
     : trimmed;
 }
 
-export function rankLabelFor(
-  rank: Rank,
-  rankLabels: Partial<Record<Rank, string>> | null,
-): string {
-  const trimmed = rankLabels?.[rank]?.trim();
-  return trimmed === undefined || trimmed === ''
-    ? DEFAULT_RANK_LABELS[rank]
-    : trimmed;
+export function rankLabelFor(rank: Rank, ranks: RankDef[] | null): string {
+  const found = effectiveRanks(ranks).find((item) => item.id === rank);
+  const trimmed = found?.label.trim();
+  return trimmed === undefined || trimmed === '' ? rank : trimmed;
+}
+
+/** Urutan rank (0 = paling senior); rank yang tidak dikenal paling akhir. */
+export function rankIndexOf(rank: Rank, ranks: RankDef[] | null): number {
+  const index = effectiveRanks(ranks).findIndex((item) => item.id === rank);
+  return index < 0 ? Number.MAX_SAFE_INTEGER : index;
+}
+
+/** Rank untuk jabatan baru: yang paling junior (biasanya Staf). */
+export function defaultNewRank(ranks: RankDef[] | null): Rank {
+  const list = effectiveRanks(ranks);
+  return list[list.length - 1]?.id ?? 'staff';
 }
 
 export function unitTypeLabel(
@@ -1034,10 +1139,209 @@ export function validateDraft(d: Draft): string[] {
       parentId: unit.parentId,
       name: unit.name,
       typeLabel: unit.typeLabel,
+      description: unit.description ?? null,
       sortOrder: unit.sortOrder,
       layout: layoutToRecord(unit.layout),
     })),
     positions: d.positions.map((position) => ({ ...position })),
   };
-  return validateTree(tree);
+  const problems = validateTree(tree);
+  const known = new Set(effectiveRanks(d.ranks).map((rank) => rank.id));
+  for (const position of d.positions) {
+    if (!known.has(position.rank)) {
+      problems.push(
+        `Jabatan "${position.title}" memakai rank yang tidak ada di daftar rank.`,
+      );
+    }
+  }
+  return problems;
+}
+
+export type UnitDropPosition = 'before' | 'after' | 'inside';
+
+/**
+ * Rencana pemindahan bagian ke sasaran seretan: induk baru dan urutannya di antara
+ * saudara. Dipakai bersama oleh pohon Struktur dan bagan; kebijakan hak ubah ada di pemanggil.
+ */
+export function planUnitDrop(
+  units: Unit[],
+  activeId: string,
+  targetId: string,
+  position: UnitDropPosition,
+):
+  | { ok: true; parentId: string | null; index: number }
+  | { ok: false; reason: string } {
+  const target = units.find((unit) => unit.id === targetId);
+  if (!units.some((unit) => unit.id === activeId) || !target) {
+    return { ok: false, reason: 'Bagian tidak ditemukan.' };
+  }
+  const parentId = position === 'inside' ? target.id : target.parentId;
+  const siblings = childrenOf(units, parentId).filter(
+    (unit) => unit.id !== activeId,
+  );
+  let index = siblings.length;
+  if (position !== 'inside') {
+    const targetIndex = siblings.findIndex((unit) => unit.id === targetId);
+    if (targetIndex < 0) {
+      return { ok: false, reason: 'Tujuan pemindahan tidak ditemukan.' };
+    }
+    index = position === 'before' ? targetIndex : targetIndex + 1;
+  }
+  const check = canMoveUnit(units, activeId, parentId);
+  if (!check.ok) return check;
+  return { ok: true, parentId, index };
+}
+
+/** Indeks di akhir daftar jabatan sebuah bagian, tidak menghitung jabatan yang dipindah. */
+export function endIndexOfPositions(
+  positions: Position[],
+  unitId: string,
+  movedId: string,
+): number {
+  return positions.filter(
+    (position) => position.unitId === unitId && position.id !== movedId,
+  ).length;
+}
+
+/**
+ * Rencana pemindahan jabatan ke posisi relatif terhadap jabatan lain:
+ * bagian tujuan dan indeks di antara jabatan bagian itu (tanpa jabatan yang dipindah).
+ */
+export function planPositionDrop(
+  positions: Position[],
+  movedId: string,
+  targetId: string,
+  where: 'before' | 'after',
+): { unitId: string; index: number } | null {
+  const target = positions.find((position) => position.id === targetId);
+  if (!target || movedId === targetId) return null;
+  const siblings = positions.filter(
+    (position) => position.unitId === target.unitId && position.id !== movedId,
+  );
+  const at = siblings.findIndex((position) => position.id === targetId);
+  if (at < 0) return null;
+  return { unitId: target.unitId, index: where === 'before' ? at : at + 1 };
+}
+
+/**
+ * Bagian induk dari sebuah pilihan: yang tidak punya leluhur ikut terpilih, dalam urutan
+ * kanonik pohon. Memindah atau menghapus induk sudah membawa turunannya.
+ */
+export function selectionRoots(units: Unit[], ids: readonly string[]): Unit[] {
+  const chosen = new Set(ids);
+  const byId = new Map(units.map((unit) => [unit.id, unit] as const));
+  const hasChosenAncestor = (unit: Unit): boolean => {
+    let parentId = unit.parentId;
+    for (
+      let depth = 0;
+      parentId !== null && depth < MAX_DEPTH + 2;
+      depth += 1
+    ) {
+      if (chosen.has(parentId)) return true;
+      parentId = byId.get(parentId)?.parentId ?? null;
+    }
+    return false;
+  };
+  return units.filter(
+    (unit) => chosen.has(unit.id) && !hasChosenAncestor(unit),
+  );
+}
+
+/** Rencana memindahkan beberapa bagian sekaligus ke sasaran seretan (urutan kanonik dipertahankan). */
+export function planUnitsDrop(
+  units: Unit[],
+  ids: readonly string[],
+  targetId: string,
+  position: UnitDropPosition,
+):
+  | { ok: true; ids: string[]; parentId: string | null; index: number }
+  | { ok: false; reason: string } {
+  const roots = selectionRoots(units, ids);
+  const target = units.find((unit) => unit.id === targetId);
+  if (roots.length === 0 || !target) {
+    return { ok: false, reason: 'Bagian tidak ditemukan.' };
+  }
+  const moved = subtreeIds(
+    units,
+    roots.map((unit) => unit.id),
+  );
+  if (moved.has(targetId)) {
+    return {
+      ok: false,
+      reason: 'Bagian tidak bisa dipindahkan ke dalam dirinya sendiri.',
+    };
+  }
+  const parentId = position === 'inside' ? target.id : target.parentId;
+  const rootIds = new Set(roots.map((unit) => unit.id));
+  const siblings = childrenOf(units, parentId).filter(
+    (unit) => !rootIds.has(unit.id),
+  );
+  let index = siblings.length;
+  if (position !== 'inside') {
+    const at = siblings.findIndex((unit) => unit.id === targetId);
+    if (at < 0)
+      return { ok: false, reason: 'Tujuan pemindahan tidak ditemukan.' };
+    index = position === 'before' ? at : at + 1;
+  }
+  for (const unit of roots) {
+    const check = canMoveUnit(units, unit.id, parentId);
+    if (!check.ok) return check;
+  }
+  return { ok: true, ids: roots.map((unit) => unit.id), parentId, index };
+}
+
+/** Rencana menjadikan beberapa bagian sebagai tingkat teratas (di akhir daftar akar). */
+export function planUnitsToRoot(
+  units: Unit[],
+  ids: readonly string[],
+):
+  | { ok: true; ids: string[]; parentId: null; index: number }
+  | { ok: false; reason: string } {
+  const roots = selectionRoots(units, ids);
+  if (roots.length === 0)
+    return { ok: false, reason: 'Bagian tidak ditemukan.' };
+  const rootIds = new Set(roots.map((unit) => unit.id));
+  const index = childrenOf(units, null).filter(
+    (unit) => !rootIds.has(unit.id),
+  ).length;
+  for (const unit of roots) {
+    const check = canMoveUnit(units, unit.id, null);
+    if (!check.ok) return check;
+  }
+  return { ok: true, ids: roots.map((unit) => unit.id), parentId: null, index };
+}
+
+/**
+ * Teks toast "Urungkan" untuk aksi yang merusak atau memindahkan banyak hal; null untuk aksi
+ * biasa. Dihitung sebelum aksi dijalankan, supaya nama dan jumlahnya masih ada.
+ */
+export function describeUndoable(
+  action: EditorAction,
+  draft: Draft,
+): string | null {
+  switch (action.type) {
+    case 'deleteUnit': {
+      const unit = draft.units.find((item) => item.id === action.id);
+      if (!unit) return null;
+      const subs = descendantsOf(draft.units, unit.id).size - 1;
+      return subs > 0
+        ? `"${unit.name}" dan ${subs} sub-bagiannya dihapus.`
+        : `"${unit.name}" dihapus.`;
+    }
+    case 'deleteUnits': {
+      const roots = selectionRoots(draft.units, action.ids);
+      if (roots.length === 0) return null;
+      return `${roots.length} bagian dihapus.`;
+    }
+    case 'moveUnits': {
+      const roots = selectionRoots(draft.units, action.ids);
+      return roots.length > 1 ? `${roots.length} bagian dipindahkan.` : null;
+    }
+    case 'deletePosition': {
+      const position = draft.positions.find((item) => item.id === action.id);
+      return position ? `Jabatan "${position.title}" dihapus.` : null;
+    }
+    default:
+      return null;
+  }
 }

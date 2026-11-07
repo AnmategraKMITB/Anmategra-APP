@@ -7,6 +7,7 @@ import {
   DragOverlay,
   type DragStartEvent,
   PointerSensor,
+  pointerWithin,
   useDraggable,
   useDroppable,
   useSensor,
@@ -14,13 +15,18 @@ import {
 } from '@dnd-kit/core';
 import {
   ChevronRight,
+  Eye,
+  EyeOff,
   GripVertical,
+  Keyboard,
   MoreHorizontal,
   Plus,
   Search,
   X,
 } from 'lucide-react';
 import {
+  type CSSProperties,
+  Fragment,
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
   memo,
@@ -50,6 +56,7 @@ import {
   Popover,
   PopoverAnchor,
   PopoverContent,
+  PopoverTrigger,
 } from '~/components/ui/popover';
 import { cn } from '~/lib/utils';
 
@@ -63,19 +70,40 @@ import {
   canMoveUnit,
   childrenOf,
   descendantsOf,
+  endIndexOfPositions,
   levelLabelFor,
   levelOf,
   pathOf,
   peopleCountBySubtree,
+  planUnitsDrop,
   unitTypeLabel,
   visibleRows,
 } from './model';
+import { draggedPositionId, isPositionDrag } from './position-dnd';
+
+const SHORTCUTS: [string, string][] = [
+  ['Enter', 'Tambah sejajar di bawah'],
+  ['Shift + Enter', 'Tambah di dalam'],
+  ['F2 atau klik dua kali', 'Ganti nama'],
+  ['Alt + ↑ ↓', 'Naik atau turun urutan'],
+  ['Alt + ← →', 'Naik atau turun tingkat'],
+  ['Delete', 'Hapus'],
+  ['Ctrl/Cmd + klik', 'Pilih beberapa'],
+  ['Shift + klik', 'Pilih rentang'],
+  ['Ctrl/Cmd + A', 'Pilih semua'],
+  ['Esc', 'Kosongkan pilihan'],
+  ['Ctrl/Cmd + Z', 'Urungkan (Shift: ulangi)'],
+  ['Ctrl/Cmd + \\', 'Tutup atau buka panel samping'],
+];
 
 export type StructurePanelProps = {
   draft: Draft;
   placements: PlacementsByPosition;
   selectedId: string | null;
+  /** Seluruh pilihan (kosong, satu, atau banyak bagian). */
+  selectedIds: readonly string[];
   onSelect: (id: string | null) => void;
+  onSelectIds: (ids: string[]) => void;
   dispatch: (action: EditorAction) => void;
   canEditUnit: (unitId: string) => boolean;
   canEditRoot: boolean;
@@ -103,7 +131,10 @@ type TreeRowProps = {
   renameValue: string;
   confirmingDelete: boolean;
   dropPosition: DropPosition | null;
-  onSelect: (id: string | null) => void;
+  onSelect: (
+    id: string,
+    modifiers: { toggle: boolean; range: boolean },
+  ) => void;
   onToggle: (id: string) => void;
   onFocusRow: (id: string) => void;
   onKeyDown: (e: ReactKeyboardEvent<HTMLDivElement>, id: string) => void;
@@ -114,6 +145,8 @@ type TreeRowProps = {
   onAddChild: (id: string) => void;
   onMoveRelative: (id: string, direction: MoveDirection) => void;
   onRequestDelete: (id: string) => void;
+  onToggleHidden: (id: string) => void;
+  onPositionDrop: (positionId: string, unitId: string) => void;
   onConfirmDelete: (id: string) => void;
   onCancelDelete: () => void;
   onMoveTo: (id: string, parentId: string | null) => void;
@@ -270,6 +303,8 @@ const TreeRow = memo(function TreeRow({
   onAddChild,
   onMoveRelative,
   onRequestDelete,
+  onToggleHidden,
+  onPositionDrop,
   onConfirmDelete,
   onCancelDelete,
   onMoveTo,
@@ -278,8 +313,14 @@ const TreeRow = memo(function TreeRow({
   const { unit, depth, hasChildren, expanded } = row;
   const rowRef = useRef<HTMLDivElement | null>(null);
   const [moveToOpen, setMoveToOpen] = useState(false);
+  const [positionOver, setPositionOver] = useState(false);
   const { setNodeRef: setDropRef } = useDroppable({ id: unit.id });
-  const { attributes, listeners, setActivatorNodeRef } = useDraggable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDragRef,
+    setActivatorNodeRef,
+  } = useDraggable({
     id: unit.id,
     disabled: !canEdit,
   });
@@ -287,9 +328,11 @@ const TreeRow = memo(function TreeRow({
   const setRefs = (node: HTMLDivElement | null) => {
     rowRef.current = node;
     setDropRef(node);
+    setDragRef(node);
     registerRef(unit.id, node);
   };
 
+  const isHidden = unit.layout.hidden === true;
   const childLevelLabel = levelLabelFor(depth + 1, draft.levelLabels);
   const childDisabled = depth + 1 > MAX_DEPTH;
   const canMoveUp = siblingIndex > 0;
@@ -298,10 +341,11 @@ const TreeRow = memo(function TreeRow({
   const canIndent = siblingIndex > 0;
 
   const rowClasses = cn(
-    'group relative flex min-h-[48px] w-full items-center gap-1 rounded-[8px] pr-1 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
+    'group relative flex min-h-[34px] w-full select-none items-center gap-0.5 rounded-[8px] py-0.5 pr-0.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400',
     selected && dropPosition !== 'inside' && 'bg-primary-200',
     !selected && dropPosition !== 'inside' && 'hover:bg-neutral-200',
-    dropPosition === 'inside' && 'bg-primary-100 ring-1 ring-primary-400',
+    (dropPosition === 'inside' || positionOver) &&
+      'bg-primary-100 ring-1 ring-primary-400',
   );
 
   return (
@@ -318,13 +362,35 @@ const TreeRow = memo(function TreeRow({
           onClick={
             confirmingDelete
               ? undefined
-              : () => {
-                  onSelect(unit.id);
+              : (event) => {
+                  onSelect(unit.id, {
+                    toggle: event.ctrlKey || event.metaKey,
+                    range: event.shiftKey,
+                  });
                   rowRef.current?.focus();
                 }
           }
           onFocus={() => onFocusRow(unit.id)}
           onKeyDown={(event) => onKeyDown(event, unit.id)}
+          onDoubleClick={(event) => {
+            // Klik dua kali pada nama mengganti namanya (bila boleh).
+            if ((event.target as HTMLElement).closest('button, input')) return;
+            if (canEdit) onStartRename(unit.id);
+          }}
+          onDragOver={(event) => {
+            if (!canEditUnit(unit.id) || !isPositionDrag(event)) return;
+            event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+            setPositionOver(true);
+          }}
+          onDragLeave={() => setPositionOver(false)}
+          onDrop={(event) => {
+            setPositionOver(false);
+            const positionId = draggedPositionId(event);
+            if (positionId === null) return;
+            event.preventDefault();
+            onPositionDrop(positionId, unit.id);
+          }}
         >
           {confirmingDelete ? (
             <DeleteConfirm
@@ -338,14 +404,14 @@ const TreeRow = memo(function TreeRow({
             <>
               <div
                 className="relative flex h-full shrink-0 items-stretch"
-                style={{ width: depth * 16 }}
+                style={{ width: depth * 12 }}
                 aria-hidden
               >
                 {Array.from({ length: depth - 1 }).map((_, index) => (
                   <span
                     key={index}
                     className="absolute bottom-0 top-0 border-l border-neutral-200"
-                    style={{ left: (index + 1) * 16 }}
+                    style={{ left: (index + 1) * 12 }}
                   />
                 ))}
               </div>
@@ -380,7 +446,7 @@ const TreeRow = memo(function TreeRow({
                   ref={(node) => setActivatorNodeRef(node)}
                   {...listeners}
                   {...attributes}
-                  className="grid size-6 shrink-0 cursor-grab place-items-center rounded-[8px] text-neutral-500 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 active:cursor-grabbing"
+                  className="grid size-5 shrink-0 cursor-grab place-items-center rounded-[8px] text-neutral-500 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 active:cursor-grabbing"
                   aria-label={`Seret ${unit.name}`}
                   onClick={(event) => event.stopPropagation()}
                 >
@@ -388,10 +454,10 @@ const TreeRow = memo(function TreeRow({
                 </button>
               ) : null}
 
-              <div className="min-w-0 flex-1 py-1">
-                <div className="truncate text-xs text-neutral-700">
-                  {unitTypeLabel(unit, depth, draft.levelLabels)}
-                </div>
+              <div
+                className="min-w-0 flex-1"
+                title={`${unitTypeLabel(unit, depth, draft.levelLabels)}: ${unit.name}`}
+              >
                 {renaming ? (
                   <Input
                     autoFocus
@@ -420,8 +486,9 @@ const TreeRow = memo(function TreeRow({
                 ) : (
                   <div
                     className={cn(
-                      'truncate text-sm font-semibold',
+                      'line-clamp-2 break-words text-sm font-semibold leading-5',
                       selected ? 'text-primary-400' : 'text-neutral-1000',
+                      isHidden && 'opacity-60',
                     )}
                   >
                     {unit.name}
@@ -440,13 +507,47 @@ const TreeRow = memo(function TreeRow({
                 {peopleCount}
               </div>
 
+              {canEdit || isHidden ? (
+                <button
+                  type="button"
+                  disabled={!canEdit}
+                  className={cn(
+                    'grid size-6 shrink-0 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-default disabled:hover:bg-transparent',
+                    isHidden || selected
+                      ? 'opacity-100'
+                      : 'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100',
+                  )}
+                  aria-label={
+                    isHidden
+                      ? `Tampilkan ${unit.name} di bagan`
+                      : `Sembunyikan ${unit.name} dari bagan`
+                  }
+                  aria-pressed={isHidden}
+                  title={
+                    isHidden
+                      ? 'Disembunyikan dari bagan. Klik untuk menampilkan.'
+                      : 'Sembunyikan dari bagan'
+                  }
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onToggleHidden(unit.id);
+                  }}
+                >
+                  {isHidden ? (
+                    <EyeOff className="size-4" />
+                  ) : (
+                    <Eye className="size-4" />
+                  )}
+                </button>
+              ) : null}
+
               {canEdit ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
                       type="button"
                       className={cn(
-                        'grid size-8 shrink-0 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 data-[state=open]:opacity-100',
+                        'grid size-6 shrink-0 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 data-[state=open]:opacity-100',
                         selected
                           ? 'opacity-100'
                           : 'opacity-0 group-focus-within:opacity-100 group-hover:opacity-100',
@@ -520,13 +621,13 @@ const TreeRow = memo(function TreeRow({
           {dropPosition === 'before' ? (
             <div
               className="pointer-events-none absolute left-0 right-0 top-0 h-0.5 bg-primary-400"
-              style={{ marginLeft: depth * 16 }}
+              style={{ marginLeft: depth * 12 }}
             />
           ) : null}
           {dropPosition === 'after' ? (
             <div
               className="pointer-events-none absolute bottom-0 left-0 right-0 h-0.5 bg-primary-400"
-              style={{ marginLeft: depth * 16 }}
+              style={{ marginLeft: depth * 12 }}
             />
           ) : null}
         </div>
@@ -556,7 +657,9 @@ export function StructurePanel({
   draft,
   placements,
   selectedId,
+  selectedIds,
   onSelect,
+  onSelectIds,
   dispatch,
   canEditUnit,
   canEditRoot,
@@ -676,6 +779,41 @@ export function StructurePanel({
     [draft, expanded, search],
   );
 
+  // Jangkar untuk Shift-klik; diperbarui oleh klik biasa dan Ctrl/Cmd-klik.
+  const anchorRef = useRef<string | null>(null);
+
+  const handleSelectRow = useCallback(
+    (id: string, modifiers: { toggle: boolean; range: boolean }) => {
+      const visible = rows.map((row) => row.unit.id);
+      if (modifiers.range && anchorRef.current !== null) {
+        const from = visible.indexOf(anchorRef.current);
+        const to = visible.indexOf(id);
+        if (from >= 0 && to >= 0) {
+          const [start, end] = from < to ? [from, to] : [to, from];
+          const range = visible.slice(start, end + 1);
+          onSelectIds(
+            modifiers.toggle ? [...new Set([...selectedIds, ...range])] : range,
+          );
+          setFocusedId(id);
+          return;
+        }
+      }
+      if (modifiers.toggle) {
+        onSelectIds(
+          selectedIds.includes(id)
+            ? selectedIds.filter((item) => item !== id)
+            : [...selectedIds, id],
+        );
+        anchorRef.current = id;
+        setFocusedId(id);
+        return;
+      }
+      anchorRef.current = id;
+      handleSelect(id);
+    },
+    [rows, selectedIds, onSelectIds, handleSelect],
+  );
+
   const peopleCounts = useMemo(
     () => peopleCountBySubtree(draft, placements),
     [draft, placements],
@@ -715,7 +853,7 @@ export function StructurePanel({
         : firstRowId;
 
   const handleAdd = useCallback(
-    (parentId: string | null, startRename: boolean) => {
+    (parentId: string | null, startRename: boolean, index?: number) => {
       if (readOnly) return;
       if (parentId === null) {
         if (!canEditRoot) {
@@ -742,7 +880,7 @@ export function StructurePanel({
 
       const id = newId();
       const name = `${levelLabelFor(parentDepth + 1, draft.levelLabels)} baru`;
-      dispatch({ type: 'addUnit', id, parentId, name });
+      dispatch({ type: 'addUnit', id, parentId, name, index });
 
       if (parentId !== null) {
         setExtraExpanded((prev) => new Set(prev).add(parentId));
@@ -750,11 +888,13 @@ export function StructurePanel({
       setSearch('');
       onSelect(id);
       setFocusedId(id);
-      pendingFocusRef.current = id;
 
       if (startRename) {
+        // Kolom nama sudah memegang fokus; memindahkannya ke baris menutup isiannya.
         setRenamingId(id);
         setRenameValue(name);
+      } else {
+        pendingFocusRef.current = id;
       }
     },
     [
@@ -899,13 +1039,16 @@ export function StructurePanel({
         dispatch({ type: 'renameUnit', id, name: trimmed });
       }
       setRenamingId(null);
+      requestAnimationFrame(() => focusRow(id));
     },
-    [renamingId, renameValue, dispatch],
+    [renamingId, renameValue, dispatch, focusRow],
   );
 
   const handleCancelRename = useCallback(() => {
+    const id = renamingId;
     setRenamingId(null);
-  }, []);
+    if (id !== null) requestAnimationFrame(() => focusRow(id));
+  }, [renamingId, focusRow]);
 
   const handleRequestDelete = useCallback(
     (id: string) => {
@@ -968,46 +1111,87 @@ export function StructurePanel({
     [readOnly, canEditUnit, mayEditParent, announce, draft.units, dispatch],
   );
 
+  const handlePositionDrop = useCallback(
+    (positionId: string, unitId: string) => {
+      if (readOnly) return;
+      const position = draft.positions.find((item) => item.id === positionId);
+      const target = draft.units.find((item) => item.id === unitId);
+      if (!position || !target || position.unitId === unitId) return;
+      if (!canEditUnit(position.unitId) || !canEditUnit(unitId)) {
+        announce('Anda tidak punya izin memindahkan jabatan ini.');
+        return;
+      }
+      dispatch({
+        type: 'movePosition',
+        id: positionId,
+        unitId,
+        index: endIndexOfPositions(draft.positions, unitId, positionId),
+      });
+      onSelect(unitId);
+      announce(`Jabatan ${position.title} dipindahkan ke ${target.name}.`);
+    },
+    [
+      readOnly,
+      draft.positions,
+      draft.units,
+      canEditUnit,
+      dispatch,
+      onSelect,
+      announce,
+    ],
+  );
+
+  const handleToggleHidden = useCallback(
+    (id: string) => {
+      const unit = draft.units.find((item) => item.id === id);
+      if (!unit || !canEditUnit(id)) return;
+      dispatch({
+        type: 'setUnitLayout',
+        id,
+        patch: { hidden: unit.layout.hidden !== true },
+      });
+    },
+    [draft.units, canEditUnit, dispatch],
+  );
+
   const handleDrop = useCallback(
     (activeId: string, targetId: string, position: DropPosition) => {
       if (readOnly) return;
       const activeUnit = draft.units.find((unit) => unit.id === activeId);
       const targetUnit = draft.units.find((unit) => unit.id === targetId);
       if (!activeUnit || !targetUnit) return;
-      if (!canEditUnit(activeId)) {
+
+      // Menyeret salah satu bagian yang terpilih memindahkan seluruh pilihan.
+      const ids =
+        selectedIds.length > 1 && selectedIds.includes(activeId)
+          ? selectedIds
+          : [activeId];
+      const plan = planUnitsDrop(draft.units, ids, targetId, position);
+      if (!plan.ok) {
+        announce(plan.reason);
+        return;
+      }
+      if (!plan.ids.every((id) => canEditUnit(id))) {
         announce('Anda tidak punya izin memindahkan bagian ini.');
         return;
       }
-
-      const parentId =
-        position === 'inside' ? targetUnit.id : targetUnit.parentId;
+      const { parentId, index } = plan;
       if (!mayEditParent(parentId)) return;
 
-      const siblings = childrenOf(draft.units, parentId).filter(
-        (unit) => unit.id !== activeId,
-      );
-      let index = siblings.length;
-      if (position !== 'inside') {
-        const targetIndex = siblings.findIndex((unit) => unit.id === targetId);
-        if (targetIndex < 0) {
-          announce('Tujuan pemindahan tidak ditemukan.');
-          return;
-        }
-        index = position === 'before' ? targetIndex : targetIndex + 1;
-      }
-
-      const check = canMoveUnit(draft.units, activeId, parentId);
-      if (!check.ok) {
-        announce(check.reason);
-        return;
-      }
-
-      dispatch({ type: 'moveUnit', id: activeId, parentId, index });
+      dispatch({ type: 'moveUnits', ids: plan.ids, parentId, index });
       if (parentId !== null) {
         setExtraExpanded((prev) => new Set(prev).add(parentId));
       }
     },
-    [readOnly, draft.units, canEditUnit, mayEditParent, announce, dispatch],
+    [
+      readOnly,
+      draft.units,
+      selectedIds,
+      canEditUnit,
+      mayEditParent,
+      announce,
+      dispatch,
+    ],
   );
 
   const handleRowKeyDown = useCallback(
@@ -1036,6 +1220,16 @@ export function StructurePanel({
         setFocusedId(targetId);
         focusRow(targetId);
       };
+
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        event.key.toLowerCase() === 'a'
+      ) {
+        event.preventDefault();
+        onSelectIds(rows.map((item) => item.unit.id));
+        return;
+      }
 
       if (event.altKey) {
         const directions: Record<string, MoveDirection | undefined> = {
@@ -1113,7 +1307,23 @@ export function StructurePanel({
           }
           break;
         }
-        case 'Enter':
+        case 'Enter': {
+          event.preventDefault();
+          // Enter menambah bagian sejajar tepat di bawah; Shift + Enter menambah di dalamnya.
+          // Tanpa hak ubah, Enter hanya memilih.
+          if (readOnly || !canEditUnit(id)) {
+            handleSelect(id);
+          } else if (event.shiftKey) {
+            handleAdd(id, true);
+          } else {
+            const siblingIndex = childrenOf(
+              draft.units,
+              unit.parentId,
+            ).findIndex((item) => item.id === id);
+            handleAdd(unit.parentId, true, siblingIndex + 1);
+          }
+          break;
+        }
         case ' ': {
           event.preventDefault();
           handleSelect(id);
@@ -1152,6 +1362,11 @@ export function StructurePanel({
       handleStartRename,
       handleRequestDelete,
       handleAddChild,
+      handleAdd,
+      canEditUnit,
+      readOnly,
+      draft.units,
+      onSelectIds,
       focusRow,
     ],
   );
@@ -1162,10 +1377,16 @@ export function StructurePanel({
     }),
   );
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveDragId(String(event.active.id));
-    setDropTarget(null);
-  }, []);
+  const handleDragStart = useCallback(
+    (event: DragStartEvent) => {
+      const id = String(event.active.id);
+      setActiveDragId(id);
+      setDropTarget(null);
+      // Menyeret bagian yang belum terpilih memilihnya lebih dulu (seperti di Figma).
+      if (!selectedIds.includes(id)) onSelect(id);
+    },
+    [selectedIds, onSelect],
+  );
 
   const handleDragMove = useCallback((event: DragMoveEvent) => {
     if (!event.over) {
@@ -1219,6 +1440,26 @@ export function StructurePanel({
     : null;
 
   const level1 = levelLabelFor(1, draft.levelLabels);
+  // Tombol tambah di dasar pohon mengikuti pilihan: bagian terpilih mendapat anak dengan nama level berikutnya.
+  const selectedUnit =
+    selectedIds.length === 1
+      ? (draft.units.find((unit) => unit.id === selectedIds[0]) ?? null)
+      : null;
+  const selectedDepth = selectedUnit
+    ? levelOf(draft.units, selectedUnit.id)
+    : 0;
+  const childLabel = levelLabelFor(selectedDepth + 1, draft.levelLabels);
+  // Tombol tambah muncul tepat di bawah bagian terpilih: setelah baris terakhir dalam subpohonnya yang tampak.
+  let addAfterId: string | null = null;
+  if (selectedUnit && !readOnly && canEditUnit(selectedUnit.id)) {
+    const start = rows.findIndex((row) => row.unit.id === selectedUnit.id);
+    const base = rows[start]?.depth;
+    if (start >= 0 && base !== undefined) {
+      let last = start;
+      while ((rows[last + 1]?.depth ?? 0) > base) last += 1;
+      addAfterId = rows[last]?.unit.id ?? null;
+    }
+  }
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col border-r border-neutral-400 bg-neutral-50">
@@ -1226,10 +1467,44 @@ export function StructurePanel({
         {notice}
       </div>
 
-      <div className="flex flex-col gap-3 px-4 pb-3 pt-4">
-        <h2 className="text-[18px] font-semibold leading-6 text-neutral-1000">
-          Struktur
-        </h2>
+      <div className="flex flex-col gap-2 px-3 pb-2 pt-3">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-base font-semibold leading-6 text-neutral-1000">
+            Struktur
+          </h2>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="Pintasan papan ketik"
+                title="Pintasan papan ketik"
+                className="grid size-7 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              >
+                <Keyboard className="size-4" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent align="end" className="w-80 p-3">
+              <h3 className="text-sm font-semibold text-neutral-1000">
+                Pintasan papan ketik
+              </h3>
+              <dl className="mt-2 space-y-1.5 text-sm">
+                {SHORTCUTS.map(([keys, effect]) => (
+                  <div
+                    key={keys}
+                    className="flex items-start justify-between gap-3"
+                  >
+                    <dt>
+                      <kbd className="rounded-[4px] border border-neutral-400 bg-neutral-50 px-1.5 py-0.5 text-xs font-semibold text-neutral-1000">
+                        {keys}
+                      </kbd>
+                    </dt>
+                    <dd className="text-right text-neutral-700">{effect}</dd>
+                  </div>
+                ))}
+              </dl>
+            </PopoverContent>
+          </Popover>
+        </div>
 
         <Input
           value={search}
@@ -1248,7 +1523,7 @@ export function StructurePanel({
               </button>
             ) : null
           }
-          className="h-9 rounded-full border-neutral-400 bg-neutral-50 pr-9 text-sm text-neutral-1000 shadow-none placeholder:text-neutral-500 focus-visible:border-primary-400 focus-visible:ring-1 focus-visible:ring-primary-400"
+          className="h-8 rounded-full border-neutral-400 bg-neutral-50 pr-9 text-sm text-neutral-1000 shadow-none placeholder:text-neutral-500 focus-visible:border-primary-400 focus-visible:ring-1 focus-visible:ring-primary-400"
           aria-label={`Cari ${level1.toLowerCase()}`}
         />
 
@@ -1259,7 +1534,7 @@ export function StructurePanel({
         ) : null}
 
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-sm font-semibold text-primary-400">
+          <span className="line-clamp-2 break-words text-sm font-semibold text-primary-400">
             {draft.name}
           </span>
           <span
@@ -1273,12 +1548,19 @@ export function StructurePanel({
 
       <DndContext
         sensors={sensors}
+        collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragMove={handleDragMove}
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto px-2 py-1">
+        <div
+          className="min-h-0 flex-1 overflow-y-auto px-1 py-0.5"
+          onClick={(event) => {
+            // Klik di ruang kosong mengosongkan pilihan.
+            if (event.target === event.currentTarget) onSelect(null);
+          }}
+        >
           {draft.units.length === 0 ? (
             <div className="px-3 py-6 text-sm text-neutral-700">
               {!readOnly && canEditRoot ? (
@@ -1304,41 +1586,66 @@ export function StructurePanel({
                   const sibling = siblingInfo.get(unit.id);
                   const canEdit = !readOnly && canEditUnit(unit.id);
                   return (
-                    <TreeRow
-                      key={unit.id}
-                      row={row}
-                      selected={selectedId === unit.id}
-                      tabbable={activeRowId === unit.id}
-                      canEdit={canEdit}
-                      canEditRoot={canEditRoot}
-                      canEditUnit={canEditUnit}
-                      draft={draft}
-                      placements={placements}
-                      peopleCount={peopleCounts[unit.id] ?? 0}
-                      siblingIndex={sibling?.index ?? 0}
-                      siblingCount={sibling?.count ?? 1}
-                      renaming={renamingId === unit.id}
-                      renameValue={renameValue}
-                      confirmingDelete={confirmingDeleteId === unit.id}
-                      dropPosition={
-                        dropTarget?.id === unit.id ? dropTarget.position : null
-                      }
-                      onSelect={handleSelect}
-                      onToggle={toggleExpanded}
-                      onFocusRow={handleFocusRow}
-                      onKeyDown={handleRowKeyDown}
-                      onStartRename={handleStartRename}
-                      onRenameChange={setRenameValue}
-                      onRenameCommit={handleCommitRename}
-                      onRenameCancel={handleCancelRename}
-                      onAddChild={handleAddChild}
-                      onMoveRelative={moveRelative}
-                      onRequestDelete={handleRequestDelete}
-                      onConfirmDelete={handleConfirmDelete}
-                      onCancelDelete={handleCancelDelete}
-                      onMoveTo={handleMoveTo}
-                      registerRef={registerRef}
-                    />
+                    <Fragment key={unit.id}>
+                      <TreeRow
+                        row={row}
+                        selected={selectedIds.includes(unit.id)}
+                        tabbable={activeRowId === unit.id}
+                        canEdit={canEdit}
+                        canEditRoot={canEditRoot}
+                        canEditUnit={canEditUnit}
+                        draft={draft}
+                        placements={placements}
+                        peopleCount={peopleCounts[unit.id] ?? 0}
+                        siblingIndex={sibling?.index ?? 0}
+                        siblingCount={sibling?.count ?? 1}
+                        renaming={renamingId === unit.id}
+                        renameValue={renameValue}
+                        confirmingDelete={confirmingDeleteId === unit.id}
+                        dropPosition={
+                          dropTarget?.id === unit.id
+                            ? dropTarget.position
+                            : null
+                        }
+                        onSelect={handleSelectRow}
+                        onToggle={toggleExpanded}
+                        onFocusRow={handleFocusRow}
+                        onKeyDown={handleRowKeyDown}
+                        onStartRename={handleStartRename}
+                        onRenameChange={setRenameValue}
+                        onRenameCommit={handleCommitRename}
+                        onRenameCancel={handleCancelRename}
+                        onAddChild={handleAddChild}
+                        onMoveRelative={moveRelative}
+                        onRequestDelete={handleRequestDelete}
+                        onToggleHidden={handleToggleHidden}
+                        onPositionDrop={handlePositionDrop}
+                        onConfirmDelete={handleConfirmDelete}
+                        onCancelDelete={handleCancelDelete}
+                        onMoveTo={handleMoveTo}
+                        registerRef={registerRef}
+                      />
+                      {unit.id === addAfterId && selectedUnit ? (
+                        <button
+                          type="button"
+                          className="flex w-[calc(100%-var(--indent))] items-center gap-1 rounded-[8px] py-1 pr-2 text-left text-sm font-semibold text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          style={
+                            {
+                              marginLeft: (selectedDepth + 1) * 12 + 24,
+                              '--indent': `${(selectedDepth + 1) * 12 + 24}px`,
+                            } as CSSProperties
+                          }
+                          onClick={() => handleAddChild(selectedUnit.id)}
+                          disabled={selectedDepth + 1 > MAX_DEPTH}
+                          title={`Tambah ${childLabel} di dalam ${selectedUnit.name}`}
+                        >
+                          <Plus className="size-4 shrink-0" />
+                          <span className="min-w-0 break-words">
+                            Tambah {childLabel}
+                          </span>
+                        </button>
+                      ) : null}
+                    </Fragment>
                   );
                 })}
               </div>
@@ -1352,10 +1659,10 @@ export function StructurePanel({
               {!readOnly && canEditRoot ? (
                 <button
                   type="button"
-                  className="mt-2 flex w-full items-center gap-1 rounded-[8px] px-2 py-1.5 text-left text-sm font-semibold text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                  className="flex w-full items-center gap-1 rounded-[8px] px-2 py-1.5 text-left text-sm font-semibold text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                   onClick={handleAddRoot}
                 >
-                  <Plus className="size-4" />
+                  <Plus className="size-4 shrink-0" />
                   Tambah {level1}
                 </button>
               ) : null}
@@ -1367,13 +1674,18 @@ export function StructurePanel({
           {activeUnit ? (
             <div className="rounded-[8px] border border-neutral-400 bg-neutral-50 px-3 py-2 text-sm font-semibold text-neutral-1000 shadow-lg">
               {activeUnit.name}
+              {selectedIds.length > 1 && selectedIds.includes(activeUnit.id)
+                ? ` dan ${selectedIds.length - 1} lainnya`
+                : ''}
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
       {profileSlot ? (
-        <div className="border-t border-neutral-200 p-4">{profileSlot}</div>
+        <div className="border-t border-neutral-200 px-3 py-2">
+          {profileSlot}
+        </div>
       ) : null}
     </div>
   );

@@ -4,6 +4,7 @@ import { type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 import Navbar from './navbar';
 import { type Session } from 'next-auth';
+import { isOrganogramWorkspace } from '~/lib/workspace';
 
 export function WidthWrapper({
   children,
@@ -17,7 +18,7 @@ export function WidthWrapper({
   const pathname = usePathname();
   const isLandingPage = pathname === landingPath;
   // Editor organogram adalah ruang kerja lebar penuh (tiga panel), bukan halaman berkolom.
-  const isWorkspace = /\/kegiatan\/[^/]+\/organogram\/?$/.test(pathname);
+  const isWorkspace = isOrganogramWorkspace(pathname);
 
   if (isWorkspace) {
     return (

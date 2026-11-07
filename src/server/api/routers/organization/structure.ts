@@ -15,6 +15,7 @@ import {
   SetOrganogramLockOutputSchema,
 } from '~/server/api/types/organization.type';
 import {
+  DEFAULT_ORGANIZATION_RANKS,
   events,
   organizationPosition,
   organizationStructure,
@@ -63,6 +64,7 @@ async function loadTree(database: Reader, structureId: string) {
     parentId: u.parent_id,
     name: u.name,
     typeLabel: u.typeLabel ?? u.kind ?? null,
+    description: u.description ?? null,
     sortOrder: u.sort_order,
     layout: u.layout ?? null,
   }));
@@ -140,7 +142,7 @@ export const organizationStructureRouter = createTRPCRouter({
         periodId: input.periodId,
         name: structure.name,
         levelLabels: structure.levelLabels ?? null,
-        rankLabels: structure.rankLabels ?? null,
+        ranks: structure.ranks ?? null,
         editLocked: structure.editLocked,
         lockedBy: structure.lockedBy,
         lockedAt: structure.lockedAt,
@@ -260,6 +262,7 @@ export const organizationStructureRouter = createTRPCRouter({
               parentId: u.parentId,
               name: u.name.trim(),
               typeLabel: u.typeLabel === null || u.typeLabel.trim() === '' ? null : u.typeLabel.trim(),
+              description: u.description === undefined || u.description === null || u.description.trim() === '' ? null : u.description.trim(),
               sortOrder: u.sortOrder,
               layout: u.layout,
             })),
@@ -276,9 +279,21 @@ export const organizationStructureRouter = createTRPCRouter({
           const nameChanged = input.name !== undefined && input.name !== structure.name;
           const levelLabelsChanged =
             input.levelLabels !== undefined && !sameJson(input.levelLabels, structure.levelLabels);
-          const rankLabelsChanged =
-            input.rankLabels !== undefined && !sameJson(input.rankLabels, structure.rankLabels);
-          const structureFieldsChanged = nameChanged || levelLabelsChanged || rankLabelsChanged;
+          const ranksChanged =
+            input.ranks !== undefined && !sameJson(input.ranks, structure.ranks);
+          const structureFieldsChanged = nameChanged || levelLabelsChanged || ranksChanged;
+
+          // Setiap jabatan harus memakai rank yang ada di daftar (yang baru atau yang sudah tersimpan).
+          const effectiveRanks =
+            input.ranks !== undefined ? input.ranks : structure.ranks;
+          const knownRanks = new Set((effectiveRanks ?? DEFAULT_ORGANIZATION_RANKS).map((r) => r.id));
+          const unknownRank = next.positions.find((p) => !knownRanks.has(p.rank));
+          if (unknownRank) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: `Jabatan "${unknownRank.title}" memakai rank yang tidak ada di daftar rank.`,
+            });
+          }
 
           if (!access.isManager) {
             if (structureFieldsChanged) {
@@ -334,6 +349,7 @@ export const organizationStructureRouter = createTRPCRouter({
                 level: levels.get(u.id)!,
                 sort_order: u.sortOrder,
                 typeLabel: u.typeLabel,
+                description: u.description ?? null,
                 layout: u.layout,
               })),
             );
@@ -347,6 +363,7 @@ export const organizationStructureRouter = createTRPCRouter({
                 parent_id: u.parentId,
                 name: u.name,
                 typeLabel: u.typeLabel,
+                description: u.description ?? null,
                 sort_order: u.sortOrder,
                 layout: u.layout,
                 level: levels.get(id)!,
@@ -401,7 +418,7 @@ export const organizationStructureRouter = createTRPCRouter({
               updated_at: new Date(),
               ...(nameChanged ? { name: input.name } : {}),
               ...(levelLabelsChanged ? { levelLabels: input.levelLabels } : {}),
-              ...(rankLabelsChanged ? { rankLabels: input.rankLabels } : {}),
+              ...(ranksChanged ? { ranks: input.ranks } : {}),
             })
             .where(eq(organizationStructure.id, structure.id))
             .returning({ version: organizationStructure.version });

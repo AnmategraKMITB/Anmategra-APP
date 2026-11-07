@@ -4,6 +4,7 @@ import { GeistSans } from 'geist/font/sans';
 // Library Import
 import { type Metadata } from 'next';
 // Components Import
+import { Toaster as SonnerToaster } from '~/components/ui/sonner';
 import { Toaster } from '~/components/ui/toaster';
 import { env } from '~/env';
 import { BASE_URL, SITE_DESCRIPTION, SITE_NAME } from '~/lib/seo';
@@ -11,6 +12,7 @@ import '~/styles/globals.css';
 import { TRPCReactProvider } from '~/trpc/react';
 
 import Footer from './_components/layout/footer';
+import { FooterGate } from './_components/layout/footer-gate';
 
 // Metadata
 export const metadata: Metadata = {
@@ -76,11 +78,15 @@ export default function RootLayout({
           <div className="flex-1">
             <TRPCReactProvider>{children}</TRPCReactProvider>
           </div>
-          <div className="sticky z-[10]">
-            <Footer />
-          </div>
+          <FooterGate>
+            <div className="sticky z-[10]">
+              <Footer />
+            </div>
+          </FooterGate>
         </div>
         <Toaster />
+        {/* Editor organogram memakai sonner (toast dengan tombol aksi, mis. Urungkan). */}
+        <SonnerToaster position="bottom-center" />
         {/* Tanpa Measurement ID, GA tidak dipasang sama sekali — ini yang
             bikin kode aman di-merge sebelum property GA4-nya tersedia. */}
         {env.NEXT_PUBLIC_GA_ID && (

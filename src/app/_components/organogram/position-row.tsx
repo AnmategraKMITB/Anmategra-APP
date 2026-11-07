@@ -3,12 +3,14 @@
 import {
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Eye,
   EyeOff,
+  GripVertical,
   Trash2,
   X,
 } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { JSX } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
 import { Button } from '~/components/ui/button';
@@ -21,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
+import { cn } from '~/lib/utils';
 
 import {
   type Draft,
@@ -28,12 +31,16 @@ import {
   type Person,
   type Position,
   type PositionKind,
-  RANKS,
-  type Rank,
+  effectiveRanks,
   filledOfQuota,
-  rankLabelFor,
 } from './model';
 import { PersonPicker } from './person-picker';
+import {
+  draggedPositionId,
+  endPositionDrag,
+  isPositionDrag,
+  startPositionDrag,
+} from './position-dnd';
 import type { PlacementResult } from './use-organogram-editor';
 
 export type PositionRowProps = {
@@ -51,6 +58,19 @@ export type PositionRowProps = {
     allowOverQuota?: boolean,
   ) => Promise<PlacementResult>;
   onRemovePerson: (placementId: string) => Promise<PlacementResult>;
+  /** Jabatan lain dilepas di atas atau di bawah jabatan ini. */
+  onDropPosition: (
+    draggedId: string,
+    targetId: string,
+    where: 'before' | 'after',
+  ) => void;
+  /** Pengganti papan ketik untuk seretan: geser satu langkah dalam bagian. */
+  onMoveStep: (positionId: string, direction: -1 | 1) => void;
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  /** Bagian lain yang boleh dituju lewat menu "Pindahkan ke bagian". */
+  unitOptions: { id: string; label: string }[];
+  onMoveToUnit: (positionId: string, unitId: string) => void;
 };
 
 function initialsOf(name: string): string {
@@ -77,7 +97,16 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
     dispatch,
     onAddPerson,
     onRemovePerson,
+    onDropPosition,
+    onMoveStep,
+    canMoveUp,
+    canMoveDown,
+    unitOptions,
+    onMoveToUnit,
   } = props;
+
+  const rowRef = useRef<HTMLDivElement | null>(null);
+  const [dropWhere, setDropWhere] = useState<'before' | 'after' | null>(null);
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -170,8 +199,37 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
     setConfirmingDelete(false);
   };
 
+  const whereOf = (event: React.DragEvent<HTMLDivElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    return event.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+  };
+
   return (
-    <div className="border-b border-neutral-200">
+    <div
+      ref={rowRef}
+      className={cn(
+        'border-b border-neutral-200',
+        dropWhere === 'before' && 'border-t-2 border-t-primary-400',
+        dropWhere === 'after' && 'border-b-2 border-b-primary-400',
+      )}
+      onDragOver={(event) => {
+        if (!editable || !isPositionDrag(event)) return;
+        if (draggedPositionId() === position.id) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        setDropWhere(whereOf(event));
+      }}
+      onDragLeave={() => setDropWhere(null)}
+      onDrop={(event) => {
+        const where = dropWhere ?? whereOf(event);
+        setDropWhere(null);
+        const draggedId = draggedPositionId(event);
+        if (!editable || draggedId === null || draggedId === position.id)
+          return;
+        event.preventDefault();
+        onDropPosition(draggedId, position.id, where);
+      }}
+    >
       {confirmingDelete && editable ? (
         <div className="rounded-[8px] bg-danger-light px-3 py-2">
           <p className="text-sm font-medium text-danger-dark">
@@ -197,7 +255,22 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
           </div>
         </div>
       ) : (
-        <div className="flex min-h-11 items-center gap-2 px-1 py-1">
+        <div className="flex min-h-11 items-center gap-1 px-1 py-1">
+          {editable ? (
+            <button
+              type="button"
+              draggable
+              onDragStart={(event) =>
+                startPositionDrag(event, position.id, rowRef.current)
+              }
+              onDragEnd={endPositionDrag}
+              aria-label={`Seret jabatan ${position.title}`}
+              title="Seret untuk mengubah urutan atau memindahkan ke bagian lain"
+              className="grid size-6 shrink-0 cursor-grab place-items-center rounded-[8px] text-neutral-500 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 active:cursor-grabbing"
+            >
+              <GripVertical className="size-4" />
+            </button>
+          ) : null}
           <Button
             variant="ghost"
             size="icon"
@@ -274,6 +347,55 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
 
       {expanded ? (
         <div className="ml-6 space-y-3 border-l border-neutral-200 py-3 pl-3">
+          {editable ? (
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-neutral-1000">
+                Urutan dan bagian
+              </span>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  variant="dark_blue_outline"
+                  size="sm"
+                  disabled={!canMoveUp}
+                  aria-label={`Naikkan jabatan ${position.title}`}
+                  onClick={() => onMoveStep(position.id, -1)}
+                >
+                  <ChevronUp className="size-4" />
+                  Naik
+                </Button>
+                <Button
+                  variant="dark_blue_outline"
+                  size="sm"
+                  disabled={!canMoveDown}
+                  aria-label={`Turunkan jabatan ${position.title}`}
+                  onClick={() => onMoveStep(position.id, 1)}
+                >
+                  <ChevronDown className="size-4" />
+                  Turun
+                </Button>
+              </div>
+              {unitOptions.length > 0 ? (
+                <Select
+                  value=""
+                  onValueChange={(unitId) => onMoveToUnit(position.id, unitId)}
+                >
+                  <SelectTrigger
+                    aria-label={`Pindahkan jabatan ${position.title} ke bagian lain`}
+                    className="rounded-[8px] border-neutral-400"
+                  >
+                    <SelectValue placeholder="Pindahkan ke bagian lain" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unitOptions.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+            </div>
+          ) : null}
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label htmlFor={`${position.id}-rank`}>Rank</Label>
@@ -283,7 +405,7 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
                   dispatch({
                     type: 'updatePosition',
                     id: position.id,
-                    patch: { rank: value as Rank },
+                    patch: { rank: value },
                   })
                 }
                 disabled={!editable}
@@ -295,11 +417,18 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
                   <SelectValue placeholder="Pilih rank" />
                 </SelectTrigger>
                 <SelectContent>
-                  {RANKS.map((rank) => (
-                    <SelectItem key={rank} value={rank}>
-                      {rankLabelFor(rank, draft.rankLabels)}
+                  {effectiveRanks(draft.ranks).map((rank) => (
+                    <SelectItem key={rank.id} value={rank.id}>
+                      {rank.label}
                     </SelectItem>
                   ))}
+                  {effectiveRanks(draft.ranks).every(
+                    (rank) => rank.id !== position.rank,
+                  ) ? (
+                    <SelectItem value={position.rank}>
+                      {position.rank}
+                    </SelectItem>
+                  ) : null}
                 </SelectContent>
               </Select>
             </div>
