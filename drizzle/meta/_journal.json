@@ -246,6 +246,34 @@
       "when": 1794013396545,
       "tag": "0034_organogram_period_kind",
       "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794015209131,
+      "tag": "0035_placement_sort_order_and_count_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794017780198,
+      "tag": "0036_rank_list_per_structure",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794017781442,
+      "tag": "0037_rank_list_drop_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794021826275,
+      "tag": "0038_unit_description",
+      "breakpoints": true
     }
   ]
 }

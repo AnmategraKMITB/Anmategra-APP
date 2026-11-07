@@ -1,6 +1,6 @@
 'use client';
 
-import { PanelLeft, PanelRight, Redo2, Undo2 } from 'lucide-react';
+import { PanelLeft, PanelRight, Redo2, Undo2, X } from 'lucide-react';
 import type { Session } from 'next-auth';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
@@ -27,6 +27,14 @@ import { cn } from '~/lib/utils';
 import { ChartView } from './chart-view';
 import { ImportEntry } from './import-sheet';
 import { Inspector } from './inspector';
+import {
+  descendantsOf,
+  describeUndoable,
+  endIndexOfPositions,
+  planUnitsDrop,
+} from './model';
+import type { EditorAction, UnitDropPosition } from './model';
+import { ResizeHandle, usePanel } from './panel-resize';
 import { SettingsView } from './settings-view';
 import { StructurePanel } from './structure-panel';
 import { TableView } from './table-view';
@@ -63,6 +71,21 @@ function useMediaQuery(query: string): boolean {
 }
 
 const newId = (): string => crypto.randomUUID();
+
+const HINT_KEY = 'organogram.hint.dismissed';
+
+const LEFT_PANEL = {
+  storageKey: 'organogram.panel.left',
+  defaultWidth: 296,
+  min: 220,
+  max: 520,
+};
+const RIGHT_PANEL = {
+  storageKey: 'organogram.panel.right',
+  defaultWidth: 304,
+  min: 260,
+  max: 560,
+};
 
 function isTextTarget(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false;
@@ -110,7 +133,8 @@ export function OrganogramWorkspace(
   } = ed;
 
   const [mode, setMode] = useState<Mode>('bagan');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Pilihan bisa kosong, satu bagian, atau banyak bagian; id yang sudah terhapus disaring.
+  const [selectedIdsRaw, setSelectedIds] = useState<string[]>([]);
   const [structureOpen, setStructureOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
@@ -118,6 +142,8 @@ export function OrganogramWorkspace(
   const [keepConflict, setKeepConflict] = useState(false);
 
   const isWide = useMediaQuery('(min-width: 1024px)');
+  const leftPanel = usePanel(LEFT_PANEL);
+  const rightPanel = usePanel(RIGHT_PANEL);
   const isMedium = useMediaQuery('(min-width: 768px)');
 
   const readOnly = !isMedium || !(access?.canEdit ?? false);
@@ -147,6 +173,31 @@ export function OrganogramWorkspace(
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [readOnly, dispatch]);
 
+  // Ctrl/Cmd+\ menutup atau membuka kedua panel samping (seperti Figma).
+  const { collapsed: leftCollapsed, setCollapsed: setLeftCollapsed } =
+    leftPanel;
+  const { collapsed: rightCollapsed, setCollapsed: setRightCollapsed } =
+    rightPanel;
+  useEffect(() => {
+    if (!isWide) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey) || event.key !== '\\') return;
+      if (isTextTarget(event.target)) return;
+      event.preventDefault();
+      const hide = !(leftCollapsed && rightCollapsed);
+      setLeftCollapsed(hide);
+      setRightCollapsed(hide);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [
+    isWide,
+    leftCollapsed,
+    rightCollapsed,
+    setLeftCollapsed,
+    setRightCollapsed,
+  ]);
+
   const handleSave = async () => {
     setSaveError(null);
     const result = await ed.save();
@@ -175,10 +226,129 @@ export function OrganogramWorkspace(
     }
   };
 
+  // Aksi yang merusak atau memindahkan banyak hal memunculkan toast "Urungkan".
+  const dispatchAction = (action: EditorAction) => {
+    const message = describeUndoable(action, draft);
+    dispatch(action);
+    if (message !== null) {
+      toast(message, {
+        duration: 7000,
+        action: {
+          label: 'Urungkan',
+          onClick: () => dispatch({ type: 'undo' }),
+        },
+      });
+    }
+  };
+
+  // Tombol aksi cepat pada node terpilih di bagan.
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const pendingDeleteUnit =
+    pendingDeleteId === null
+      ? null
+      : (draft.units.find((unit) => unit.id === pendingDeleteId) ?? null);
+  const handleChartAddChild = (parentId: string) => {
+    const id = newId();
+    dispatch({ type: 'addUnit', id, parentId });
+    select(id);
+  };
+  const handleConfirmChartDelete = () => {
+    if (pendingDeleteUnit === null) return;
+    dispatchAction({ type: 'deleteUnit', id: pendingDeleteUnit.id });
+    select(pendingDeleteUnit.parentId);
+    setPendingDeleteId(null);
+  };
+
+  // Petunjuk di atas bagan; bisa ditutup dan diingat per peramban.
+  const [hintOpen, setHintOpen] = useState(() => {
+    try {
+      return window.localStorage.getItem(HINT_KEY) !== '1';
+    } catch {
+      return true;
+    }
+  });
+  const closeHint = () => {
+    setHintOpen(false);
+    try {
+      window.localStorage.setItem(HINT_KEY, '1');
+    } catch {
+      // Penyimpanan tidak tersedia: petunjuk muncul lagi lain kali.
+    }
+  };
+
+  // Seretan di bagan: bagian ke bagian lain, atau jabatan dari panel Detail ke sebuah bagian.
+  const handleChartMoveUnit = (
+    activeId: string,
+    targetId: string,
+    position: UnitDropPosition,
+  ) => {
+    // Menyeret salah satu bagian yang terpilih memindahkan seluruh pilihan.
+    const ids =
+      selectedIds.length > 1 && selectedIds.includes(activeId)
+        ? selectedIds
+        : [activeId];
+    const plan = planUnitsDrop(draft.units, ids, targetId, position);
+    if (!plan.ok) {
+      toast.error(plan.reason);
+      return;
+    }
+    const allowed =
+      plan.parentId === null ? canEditRoot : canEditUnit(plan.parentId);
+    if (!allowed || !plan.ids.every((id) => canEditUnit(id))) {
+      toast.error('Anda tidak punya izin memindahkan bagian ke sana.');
+      return;
+    }
+    dispatchAction({
+      type: 'moveUnits',
+      ids: plan.ids,
+      parentId: plan.parentId,
+      index: plan.index,
+    });
+  };
+
+  const handleDropPositionOnUnit = (positionId: string, unitId: string) => {
+    const moved = draft.positions.find((item) => item.id === positionId);
+    if (!moved || moved.unitId === unitId) return;
+    if (!canEditUnit(moved.unitId) || !canEditUnit(unitId)) {
+      toast.error('Anda tidak punya izin memindahkan jabatan ini.');
+      return;
+    }
+    dispatch({
+      type: 'movePosition',
+      id: positionId,
+      unitId,
+      index: endIndexOfPositions(draft.positions, unitId, positionId),
+    });
+  };
+
+  const selectedIds = selectedIdsRaw.filter((id) =>
+    draft.units.some((unit) => unit.id === id),
+  );
+  const selectedId = selectedIds.length === 1 ? (selectedIds[0] ?? null) : null;
+
   const select = (id: string | null) => {
-    setSelectedId(id);
+    setSelectedIds(id === null ? [] : [id]);
     if (id !== null && !isWide) setDetailOpen(true);
   };
+
+  const selectMany = (ids: string[]) => {
+    setSelectedIds(ids);
+    if (ids.length > 0 && !isWide) setDetailOpen(true);
+  };
+
+  // Esc mengosongkan pilihan (kecuali saat mengetik atau ada dialog terbuka).
+  const hasSelection = selectedIds.length > 0;
+  useEffect(() => {
+    if (!hasSelection) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.defaultPrevented) return;
+      if (isTextTarget(event.target)) return;
+      if (document.querySelector('[role="dialog"], [role="menu"]')) return;
+      setSelectedIds([]);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [hasSelection]);
 
   const profileSlot = <SidebarAccount session={session} />;
 
@@ -187,8 +357,10 @@ export function OrganogramWorkspace(
       draft={draft}
       placements={placements}
       selectedId={selectedId}
+      selectedIds={selectedIds}
       onSelect={select}
-      dispatch={dispatch}
+      onSelectIds={selectMany}
+      dispatch={dispatchAction}
       canEditUnit={canEditUnit}
       canEditRoot={canEditRoot}
       readOnly={readOnly}
@@ -202,8 +374,10 @@ export function OrganogramWorkspace(
       draft={draft}
       placements={placements}
       selectedId={selectedId}
-      onSelect={setSelectedId}
-      dispatch={dispatch}
+      selectedIds={selectedIds}
+      onSelect={select}
+      onSelectIds={selectMany}
+      dispatch={dispatchAction}
       readOnly={readOnly}
       canEditUnit={canEditUnit}
       canEditRoot={canEditRoot}
@@ -372,16 +546,23 @@ export function OrganogramWorkspace(
     <>
       <header className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-neutral-400 bg-white px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          {!isWide ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Buka panel Struktur"
-              onClick={() => setStructureOpen(true)}
-            >
-              <PanelLeft className="size-4" />
-            </Button>
-          ) : null}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={
+              isWide
+                ? leftPanel.collapsed
+                  ? 'Buka panel Struktur'
+                  : 'Tutup panel Struktur'
+                : 'Buka panel Struktur'
+            }
+            aria-pressed={isWide ? !leftPanel.collapsed : undefined}
+            onClick={() =>
+              isWide ? leftPanel.toggle() : setStructureOpen(true)
+            }
+          >
+            <PanelLeft className="size-4" />
+          </Button>
           {breadcrumb}
           {ed.editLocked ? (
             <span className="shrink-0 rounded-full bg-warning-light px-2 py-0.5 text-xs font-semibold text-neutral-1000">
@@ -446,16 +627,21 @@ export function OrganogramWorkspace(
             </>
           ) : null}
           {modeButtons}
-          {!isWide ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Buka panel Detail"
-              onClick={() => setDetailOpen(true)}
-            >
-              <PanelRight className="size-4" />
-            </Button>
-          ) : null}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={
+              isWide
+                ? rightPanel.collapsed
+                  ? 'Buka panel Detail'
+                  : 'Tutup panel Detail'
+                : 'Buka panel Detail'
+            }
+            aria-pressed={isWide ? !rightPanel.collapsed : undefined}
+            onClick={() => (isWide ? rightPanel.toggle() : setDetailOpen(true))}
+          >
+            <PanelRight className="size-4" />
+          </Button>
         </div>
       </header>
 
@@ -489,48 +675,107 @@ export function OrganogramWorkspace(
       ) : null}
 
       <div className="flex min-h-0 flex-1">
-        {isWide ? (
+        {isWide && !leftPanel.collapsed ? (
           <aside
             aria-label="Struktur"
-            className="w-[296px] shrink-0 border-r border-neutral-400 bg-white"
+            style={{ width: leftPanel.width }}
+            className="relative shrink-0 border-r border-neutral-400 bg-white"
           >
             {structurePanel}
+            <ResizeHandle
+              edge="right"
+              label="Ubah lebar panel Struktur"
+              width={leftPanel.width}
+              min={LEFT_PANEL.min}
+              max={LEFT_PANEL.max}
+              onResize={leftPanel.setWidth}
+              onCollapse={() => leftPanel.setCollapsed(true)}
+              onReset={leftPanel.reset}
+            />
           </aside>
         ) : null}
-        <main className="min-w-0 flex-1">
-          {mode === 'bagan' ? (
-            <ChartView
-              draft={draft}
-              placements={placements}
-              selectedId={selectedId}
-              onSelect={select}
-            />
+        <main className="flex min-w-0 flex-1 flex-col">
+          {mode === 'bagan' && hintOpen ? (
+            <div
+              role="note"
+              className="flex shrink-0 items-start gap-2 border-b border-neutral-400 bg-primary-100 px-3 py-1.5 text-sm text-primary-400"
+            >
+              <p className="min-w-0 flex-1">
+                {readOnly ? null : (
+                  <>
+                    Gunakan <strong>seret</strong> untuk memindahkan bagian atau
+                    jabatan.{' '}
+                  </>
+                )}
+                Ctrl atau Cmd + klik memilih beberapa, Shift + seret ruang
+                kosong memilih dengan kotak. Cubit atau geser dua jari untuk
+                zoom dan menggeser.
+              </p>
+              <button
+                type="button"
+                onClick={closeHint}
+                aria-label="Tutup petunjuk"
+                className="grid size-6 shrink-0 place-items-center rounded-[8px] hover:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
           ) : null}
-          {mode === 'tabel' ? (
-            <TableView
-              draft={draft}
-              placements={placements}
-              selectedId={selectedId}
-              onSelect={select}
-            />
-          ) : null}
-          {mode === 'pengaturan' ? (
-            <SettingsView
-              draft={draft}
-              dispatch={dispatch}
-              canManage={(access?.canManage ?? false) && !readOnly}
-              editLocked={ed.editLocked}
-              canLock={access?.canLock ?? false}
-              onSetLocked={ed.setLocked}
-            />
-          ) : null}
+          <div className="relative min-h-0 flex-1">
+            {mode === 'bagan' ? (
+              <ChartView
+                draft={draft}
+                placements={placements}
+                selectedId={selectedId}
+                selectedIds={selectedIds}
+                onSelect={select}
+                onSelectIds={selectMany}
+                canEditUnit={canEditUnit}
+                onMoveUnit={readOnly ? undefined : handleChartMoveUnit}
+                onDropPositionOnUnit={
+                  readOnly ? undefined : handleDropPositionOnUnit
+                }
+                onAddChild={readOnly ? undefined : handleChartAddChild}
+                onRequestDelete={readOnly ? undefined : setPendingDeleteId}
+              />
+            ) : null}
+            {mode === 'tabel' ? (
+              <TableView
+                draft={draft}
+                placements={placements}
+                selectedId={selectedId}
+                onSelect={select}
+              />
+            ) : null}
+            {mode === 'pengaturan' ? (
+              <SettingsView
+                draft={draft}
+                dispatch={dispatch}
+                canManage={(access?.canManage ?? false) && !readOnly}
+                editLocked={ed.editLocked}
+                canLock={access?.canLock ?? false}
+                onSetLocked={ed.setLocked}
+              />
+            ) : null}
+          </div>
         </main>
-        {isWide ? (
+        {isWide && !rightPanel.collapsed ? (
           <aside
             aria-label="Detail"
-            className="w-[304px] shrink-0 border-l border-neutral-400 bg-white"
+            style={{ width: rightPanel.width }}
+            className="relative shrink-0 border-l border-neutral-400 bg-white"
           >
             {inspector}
+            <ResizeHandle
+              edge="left"
+              label="Ubah lebar panel Detail"
+              width={rightPanel.width}
+              min={RIGHT_PANEL.min}
+              max={RIGHT_PANEL.max}
+              onResize={rightPanel.setWidth}
+              onCollapse={() => rightPanel.setCollapsed(true)}
+              onReset={rightPanel.reset}
+            />
           </aside>
         ) : null}
       </div>
@@ -557,6 +802,37 @@ export function OrganogramWorkspace(
           </Sheet>
         </>
       ) : null}
+
+      <Dialog
+        open={pendingDeleteUnit !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteId(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Hapus {pendingDeleteUnit?.name ?? 'bagian ini'}?
+            </DialogTitle>
+            <DialogDescription>
+              {pendingDeleteUnit !== null
+                ? `Ini juga menghapus ${Math.max(0, descendantsOf(draft.units, pendingDeleteUnit.id).size - 1)} sub-bagian beserta seluruh jabatannya. Penghapusan baru berlaku setelah Simpan dan bisa diurungkan sebelum itu.`
+                : null}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="dark_blue_outline"
+              onClick={() => setPendingDeleteId(null)}
+            >
+              Batal
+            </Button>
+            <Button variant="warning" onClick={handleConfirmChartDelete}>
+              Hapus
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={ed.conflict && !keepConflict}

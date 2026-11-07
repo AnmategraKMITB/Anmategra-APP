@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import {
   ORGANIZATION_POSITION_KINDS,
-  ORGANIZATION_POSITION_RANKS,
+  RANK_ID_PATTERN,
   placementSourceEnum,
 } from '~/server/db/schema';
 
@@ -11,7 +11,7 @@ import {
   MAX_UNITS,
 } from '../routers/organization/tree';
 
-const RankSchema = z.enum(ORGANIZATION_POSITION_RANKS);
+const RankSchema = z.string().regex(RANK_ID_PATTERN);
 const KindSchema = z.enum(ORGANIZATION_POSITION_KINDS);
 const SourceSchema = z.enum(placementSourceEnum.enumValues);
 
@@ -23,6 +23,7 @@ export const OrganogramUnitSchema = z.object({
   parentId: IdSchema.nullable(),
   name: z.string().trim().min(1).max(255),
   typeLabel: z.string().max(255).nullable(),
+  description: z.string().max(2000).nullable().optional(),
   sortOrder: z.number().int().min(0).max(1_000_000),
   layout: z.record(z.string(), z.unknown()).nullable(),
 });
@@ -50,7 +51,13 @@ export const OrganogramPlacementSchema = z.object({
 const LevelLabelsSchema = z
   .array(z.string().trim().min(1).max(255))
   .max(MAX_TREE_DEPTH);
-const RankLabelsSchema = z.partialRecord(RankSchema, z.string().trim().min(1).max(255));
+const RankDefSchema = z.object({ id: RankSchema, label: z.string().trim().min(1).max(60) });
+/** Daftar rank berurutan; id harus unik. */
+const RanksSchema = z
+  .array(RankDefSchema)
+  .min(1)
+  .max(24)
+  .refine((ranks) => new Set(ranks.map((r) => r.id)).size === ranks.length, 'Id rank harus unik.');
 
 export const OrganogramAccessSchema = z.object({
   /** Owner/admin lembaga atau admin periode: boleh semuanya, tidak terpengaruh kunci. */
@@ -69,7 +76,7 @@ export const GetOrganogramOutputSchema = z
     periodId: z.string(),
     name: z.string(),
     levelLabels: LevelLabelsSchema.nullable(),
-    rankLabels: RankLabelsSchema.nullable(),
+    ranks: RanksSchema.nullable(),
     editLocked: z.boolean(),
     lockedBy: z.string().nullable(),
     lockedAt: z.date().nullable(),
@@ -101,7 +108,7 @@ export const SaveOrganogramInputSchema = z.object({
   /** Hanya pengelola yang boleh mengubah nama dan label. undefined = tidak diubah. */
   name: z.string().trim().min(1).max(255).optional(),
   levelLabels: LevelLabelsSchema.nullable().optional(),
-  rankLabels: RankLabelsSchema.nullable().optional(),
+  ranks: RanksSchema.nullable().optional(),
   units: z.array(OrganogramUnitSchema).max(MAX_UNITS),
   positions: z.array(OrganogramPositionSchema).max(MAX_POSITIONS),
 });
@@ -160,7 +167,11 @@ export const ImportPlanSchema = z.object({
     }),
   ),
   placements: z.array(
-    z.object({ userId: z.string(), positionKey: ImportKeySchema }),
+    z.object({
+      userId: z.string(),
+      positionKey: ImportKeySchema,
+      order: z.number().int(),
+    }),
   ),
   membershipOnly: z.number().int(),
   duplicates: z.number().int(),

@@ -48,6 +48,7 @@ async function loadLegacyRows(
       userId: keanggotaan.user_id,
       division: keanggotaan.division,
       position: keanggotaan.position,
+      index: keanggotaan.index,
     })
     .from(keanggotaan)
     .where(eq(keanggotaan.event_id, period.id))
@@ -63,6 +64,7 @@ async function loadLegacyRows(
             userId: kehimpunan.userId,
             division: kehimpunan.division,
             position: kehimpunan.position,
+            index: kehimpunan.index,
           })
           .from(kehimpunan)
           .where(eq(kehimpunan.lembagaId, period.org_id))
@@ -277,6 +279,7 @@ export const organizationImportRouter = createTRPCRouter({
               positionId: positionIds.get(pl.positionKey)!,
               userId: pl.userId,
               source: 'import' as const,
+              sortOrder: pl.order,
               createdBy: user.id,
             })),
           );

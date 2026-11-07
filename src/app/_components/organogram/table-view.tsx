@@ -8,9 +8,16 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import { ArrowDown, ArrowUp, ChevronsUpDown, Search } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronsUpDown,
+  Download,
+  Search,
+} from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
 import type { JSX } from 'react';
+import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import {
   Table,
@@ -26,6 +33,7 @@ import {
   type Draft,
   type PlacementsByPosition,
   filledOfQuota,
+  levelOf,
   pathOf,
   rankLabelFor,
 } from './model';
@@ -42,6 +50,9 @@ type Row = {
   filled: number;
   hidden: boolean;
   peopleLabel: string;
+  depth: number;
+  tier: string;
+  visibility: string;
   searchText: string;
 };
 
@@ -63,7 +74,7 @@ const COLUMNS: ColumnDef<Row>[] = [
             {row.original.path}
           </p>
         ) : null}
-        <p className="truncate font-medium text-neutral-1000">
+        <p className="break-words font-medium text-neutral-1000">
           {row.original.unitName}
         </p>
       </div>
@@ -122,6 +133,40 @@ const COLUMNS: ColumnDef<Row>[] = [
     },
   },
   {
+    id: 'level',
+    accessorFn: (row) => row.depth,
+    header: 'Level',
+    cell: ({ row }) => (
+      <span className="tabular-nums text-neutral-700">
+        {row.original.depth}
+      </span>
+    ),
+  },
+  {
+    id: 'tier',
+    accessorFn: (row) => row.tier,
+    header: 'Tier',
+    cell: ({ row }) => (
+      <span className="text-neutral-700">{row.original.tier}</span>
+    ),
+  },
+  {
+    id: 'tampil',
+    accessorFn: (row) => row.visibility,
+    header: 'Tampil',
+    cell: ({ row }) => (
+      <span
+        className={
+          row.original.visibility === 'Tampil'
+            ? 'text-neutral-700'
+            : 'font-semibold text-neutral-1000'
+        }
+      >
+        {row.original.visibility}
+      </span>
+    ),
+  },
+  {
     id: 'orang',
     accessorFn: (row) => row.peopleLabel,
     header: 'Orang',
@@ -139,6 +184,50 @@ const COLUMNS: ColumnDef<Row>[] = [
     },
   },
 ];
+
+const CSV_HEADER = [
+  'Path',
+  'Bagian',
+  'Level',
+  'Jabatan',
+  'Rank',
+  'Jenis',
+  'Kuota',
+  'Terisi',
+  'Orang',
+  'Tier',
+  'Tampil',
+];
+
+const csvCell = (value: string | number): string => {
+  const text = String(value);
+  return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+};
+
+/** CSV dari baris yang sedang tampil (urutan dan pencarian ikut); "Orang" berisi nama, dipisah titik koma. */
+function toCsv(rows: Row[]): string {
+  const lines = [CSV_HEADER.join(',')];
+  for (const row of rows) {
+    lines.push(
+      [
+        row.path,
+        row.unitName,
+        row.depth,
+        row.title,
+        row.rankLabel,
+        row.kindLabel,
+        row.quota,
+        row.filled,
+        row.peopleLabel.split(', ').join('; '),
+        row.tier,
+        row.visibility,
+      ]
+        .map(csvCell)
+        .join(','),
+    );
+  }
+  return lines.join('\r\n');
+}
 
 function sortIcon(sorted: false | 'asc' | 'desc'): JSX.Element {
   if (sorted === 'asc') return <ArrowUp className="size-4" />;
@@ -178,7 +267,7 @@ export function TableView(props: {
       const peopleLabel = people
         .map((person) => person.name ?? 'Tanpa nama')
         .join(', ');
-      const rankLabel = rankLabelFor(position.rank, draft.rankLabels);
+      const rankLabel = rankLabelFor(position.rank, draft.ranks);
       const kindLabel =
         position.kind === 'struktural' ? 'Struktural' : 'Nonstruktural';
       const { filled, quota } = filledOfQuota(position, placements);
@@ -194,6 +283,12 @@ export function TableView(props: {
         filled,
         hidden: position.hidden,
         peopleLabel,
+        depth: unit === null ? 0 : levelOf(draft.units, unit.id),
+        tier: unit?.layout.tier === 'manual' ? 'Manual' : 'Ikut kedalaman',
+        visibility:
+          position.hidden || unit?.layout.hidden === true
+            ? 'Disembunyikan'
+            : 'Tampil',
         searchText:
           `${path} ${unitName} ${position.title} ${rankLabel} ${peopleLabel}`.toLowerCase(),
       };
@@ -222,17 +317,64 @@ export function TableView(props: {
     getRowId: (row) => row.positionId,
   });
 
+  const [copied, setCopied] = useState(false);
+  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shownRows = table.getRowModel().rows.map((row) => row.original);
+
+  const copyCsv = async () => {
+    try {
+      await navigator.clipboard.writeText(toCsv(shownRows));
+      setCopied(true);
+      if (copiedTimer.current) clearTimeout(copiedTimer.current);
+      copiedTimer.current = setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard diblokir: pengguna bisa memakai Unduh CSV.
+    }
+  };
+
+  const downloadCsv = () => {
+    // BOM supaya Excel membaca UTF-8 dengan benar.
+    const blob = new Blob(['\uFEFF', toCsv(shownRows)], {
+      type: 'text/csv;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    const slug = draft.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    link.href = url;
+    link.download = `organogram-${slug === '' ? 'tabel' : slug}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-neutral-400 bg-neutral-50 p-3">
+      <div className="flex flex-wrap items-center gap-2 border-b border-neutral-400 bg-neutral-50 p-3">
         <Input
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cari jabatan, bagian, atau orang"
           aria-label="Cari jabatan, bagian, atau orang"
           startAdornment={<Search className="size-4 text-neutral-500" />}
-          className="h-9 rounded-full border-neutral-400 text-sm text-neutral-1000"
+          className="h-9 min-w-[14rem] flex-1 rounded-full border-neutral-400 text-sm text-neutral-1000"
         />
+        <span className="text-sm tabular-nums text-neutral-700">
+          {shownRows.length} baris
+        </span>
+        <Button
+          variant="dark_blue_outline"
+          size="sm"
+          onClick={() => void copyCsv()}
+          aria-live="polite"
+        >
+          {copied ? 'Tersalin' : 'Salin CSV'}
+        </Button>
+        <Button variant="dark_blue_outline" size="sm" onClick={downloadCsv}>
+          <Download className="size-4" />
+          Unduh CSV
+        </Button>
       </div>
       <div className="min-h-0 flex-1 overflow-auto [&>div]:overflow-visible">
         <Table className="text-sm">

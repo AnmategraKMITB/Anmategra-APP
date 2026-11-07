@@ -478,7 +478,7 @@ table anmategra_organization_structure {
   name varchar(255) [not null]
   is_active boolean [not null, default: true]
   level_labels jsonb [note: "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan."]
-  rank_labels jsonb [note: "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}."]
+  ranks jsonb
   edit_locked boolean [not null, default: false, note: "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin. Pemilik/admin tidak terpengaruh kunci."]
   version integer [not null, default: 0, note: "Naik satu setiap penyimpanan pohon; klien mengirim kembali versi yang dibukanya untuk mendeteksi dua orang yang mengedit bersamaan."]
   locked_by varchar(255)
@@ -502,6 +502,7 @@ table anmategra_organization_unit {
   level integer [not null, note: "Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; dihitung ulang server saat pohon disimpan."]
   sort_order integer [not null, default: 0]
   type_label varchar(255) [note: "Label bebas pengganti `kind`."]
+  description text
   layout jsonb [note: "Pengaturan tampilan editor (tata letak, tier, sisi)."]
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
@@ -543,6 +544,7 @@ table anmategra_placement {
   source placement_source [not null]
   application_choice_id varchar(255) [note: "Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum ada FK."]
   note text
+  sort_order integer [not null, default: 0]
   created_by varchar(255)
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]

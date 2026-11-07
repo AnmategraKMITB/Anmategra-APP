@@ -673,8 +673,9 @@ export const organizationStructure = createTable(
     // Nama level per kedalaman, mis. ["Kemenkoan", "Kementerian"]; UI memakai
     // nama ini, bukan kata "unit". Null = pakai bawaan.
     levelLabels: jsonb('level_labels').$type<string[]>(),
-    // Label rank per struktur, mis. { head: "Ketua", staff: "Anggota" }.
-    rankLabels: jsonb('rank_labels').$type<Record<string, string>>(),
+    // Daftar rank berurutan (senior ke junior), mis. [{ id: "head", label: "Ketua" }, ...].
+    // Null = daftar bawaan (DEFAULT_ORGANIZATION_RANKS).
+    ranks: jsonb('ranks').$type<OrganizationRankDef[]>(),
     // Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah.
     editLocked: boolean('edit_locked').notNull().default(false),
     // Naik satu setiap penyimpanan pohon; dipakai untuk mendeteksi dua orang yang
@@ -745,6 +746,8 @@ export const organizationUnit = createTable(
     // Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level`
     // dibuang saat router baru menggantikan yang lama (Fase 2B).
     typeLabel: varchar('type_label', { length: 255 }),
+    // Deskripsi kerja bagian (apa yang dikerjakan); dipakai juga oleh formulir oprec nanti.
+    description: text('description'),
     // Pengaturan tampilan editor (tata letak, tier, sisi, ...).
     layout: jsonb('layout').$type<Record<string, unknown>>(),
     ...timestamps,
@@ -787,14 +790,20 @@ export const organizationRole = createTable(
 
 // Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode).
 // Menggantikan organization_role, yang menempel pada struktur dan bukan unit.
-export const ORGANIZATION_POSITION_RANKS = [
-  'head',
-  'vice',
-  'coordinator',
-  'staff',
-] as const;
-export type OrganizationPositionRank =
-  (typeof ORGANIZATION_POSITION_RANKS)[number];
+// Rank adalah urutan senioritas di dalam bagian dan bisa disusun per organogram
+// (mis. menambah Sekretaris dan Bendahara di antara Wakil dan Staf). Posisi
+// menyimpan id rank; daftar dan labelnya ada di organization_structure.ranks.
+export type OrganizationRankDef = { id: string; label: string };
+export type OrganizationPositionRank = string;
+export const RANK_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,31}$/;
+
+/** Daftar rank bawaan, dipakai selama sebuah struktur belum menyusun daftarnya sendiri. */
+export const DEFAULT_ORGANIZATION_RANKS: readonly OrganizationRankDef[] = [
+  { id: 'head', label: 'Kepala' },
+  { id: 'vice', label: 'Wakil' },
+  { id: 'coordinator', label: 'Koordinator' },
+  { id: 'staff', label: 'Staf' },
+];
 
 export const ORGANIZATION_POSITION_KINDS = [
   'struktural',
@@ -863,6 +872,8 @@ export const placement = createTable(
     // ada FK karena tabel oprec belum ada.
     applicationChoiceId: varchar('application_choice_id', { length: 255 }),
     note: text('note'),
+    // Urutan penempatan di daftar anggota periode (pengganti `index` keanggotaan).
+    sortOrder: integer('sort_order').notNull().default(0),
     // Nullable agar data hasil migrasi/impor tetap bisa masuk.
     createdBy: varchar('created_by', { length: 255 }).references(
       () => users.id,

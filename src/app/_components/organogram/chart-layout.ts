@@ -1,10 +1,25 @@
+import { rankIndexOf } from './model';
 import type { Draft, Person, PlacementsByPosition, Rank, Unit } from './model';
 
 export const NODE_W = 264;
 export const HEADER_H = 44;
-export const SEAT_H = 32;
+export const SEAT_H = 36;
 export const GROUP_H = 36;
+/** Tinggi satu baris orang di dalam kelompok jabatan yang dibuka. */
+export const PERSON_H = 28;
 export const NODE_PAD = 8;
+/** Jarak antara kartu bagian dan kotak jabatan nonstruktural di bawahnya. */
+export const NS_GAP = 8;
+/** Nama bagian boleh turun baris (paling banyak tiga), lalu dipotong dengan "...". */
+export const TITLE_LINE_H = 18;
+export const TITLE_MAX_LINES = 3;
+export const TYPE_LINE_H = 16;
+const HEADER_PAD_Y = 5;
+/** Perkiraan lebar rata-rata satu huruf nama bagian (14 px, tebal), sedikit berlebih agar aman. */
+const TITLE_CHAR_W = 7.8;
+/** Lebar teks nama di header: kartu dikurangi padding dan tombol ciutkan. */
+const TITLE_AVAIL_W = NODE_W - 24;
+const TITLE_AVAIL_W_TOGGLE = NODE_W - 24 - 44;
 /** Jarak antar subpohon saudara yang disusun berjajar. */
 export const H_GAP = 32;
 /** Dari dasar induk ke puncak anak (susunan berjajar). */
@@ -20,6 +35,8 @@ export type SeatRow =
       positionId: string;
       title: string;
       rank: Rank;
+      /** Urutan rank di organogram (0 = paling senior), untuk warna pil. */
+      rankIndex: number;
       person: Person | null;
     }
   | {
@@ -29,6 +46,7 @@ export type SeatRow =
       filled: number;
       quota: number;
       people: Person[];
+      expanded: boolean;
     };
 
 export type ChartNode = {
@@ -38,8 +56,16 @@ export type ChartNode = {
   x: number;
   y: number;
   w: number;
+  /** Tinggi seluruh node: kartu bagian ditambah kotak nonstruktural bila ada. */
   h: number;
+  /** Tinggi header (nama bagian bisa lebih dari satu baris). */
+  headerH: number;
+  /** Tinggi kartu bagian saja (header dan jabatan struktural). */
+  mainH: number;
   rows: SeatRow[];
+  /** Jabatan nonstruktural, digambar sebagai kotak hijau terpisah di bawah kartu. */
+  nsRows: SeatRow[];
+  nsH: number;
   hasChildren: boolean;
   collapsed: boolean;
 };
@@ -71,6 +97,45 @@ type Subtree = {
 };
 
 const CORNER = 8;
+
+/** Jumlah baris nama bagian setelah dibungkus per kata; dipotong di TITLE_MAX_LINES. */
+export function titleLines(name: string, hasToggle: boolean): number {
+  const avail = hasToggle ? TITLE_AVAIL_W_TOGGLE : TITLE_AVAIL_W;
+  const perLine = Math.max(1, Math.floor(avail / TITLE_CHAR_W));
+  let lines = 1;
+  let used = 0;
+  for (const word of name.trim().split(/\s+/)) {
+    if (word === '') continue;
+    const len = word.length;
+    if (len > perLine) {
+      // Kata panjang dipecah paksa (break-words) dan memulai baris baru.
+      if (used > 0) lines += 1;
+      lines += Math.ceil(len / perLine) - 1;
+      used = len % perLine === 0 ? perLine : len % perLine;
+      continue;
+    }
+    if (used === 0) used = len;
+    else if (used + 1 + len <= perLine) used += 1 + len;
+    else {
+      lines += 1;
+      used = len;
+    }
+  }
+  return Math.min(TITLE_MAX_LINES, lines);
+}
+
+export function headerHeight(name: string, hasToggle: boolean): number {
+  const lines = titleLines(name, hasToggle);
+  return Math.max(
+    HEADER_H,
+    HEADER_PAD_Y * 2 + lines * TITLE_LINE_H + TYPE_LINE_H,
+  );
+}
+
+export function rowHeight(row: SeatRow): number {
+  if (row.kind === 'seat') return SEAT_H;
+  return row.expanded ? GROUP_H + row.people.length * PERSON_H + 4 : GROUP_H;
+}
 
 function childrenModeOf(unit: Unit): 'hanging' | 'side' {
   return (
@@ -121,6 +186,7 @@ export function layoutChart(
   draft: Draft,
   placements: PlacementsByPosition,
   collapsed: ReadonlySet<string>,
+  expandedGroups: ReadonlySet<string> = new Set(),
 ): ChartLayout {
   const empty: ChartLayout = {
     nodes: [],
@@ -161,41 +227,71 @@ export function layoutChart(
     a.sortOrder - b.sortOrder || cmpText(a.title, b.title);
   for (const list of positionsByUnit.values()) list.sort(cmpPosition);
 
-  const rowsOf = (unitId: string): { h: number; rows: SeatRow[] } => {
-    const rows: SeatRow[] = (positionsByUnit.get(unitId) ?? []).map(
-      (position): SeatRow => {
-        const people = placements[position.id] ?? [];
-        if (position.quota === 1 && people.length <= 1) {
-          return {
-            kind: 'seat',
-            positionId: position.id,
-            title: position.title,
-            rank: position.rank,
-            person: people[0] ?? null,
-          };
-        }
-        return {
-          kind: 'group',
-          positionId: position.id,
-          title: position.title,
-          filled: people.filter((person) => person.source !== 'closerec')
-            .length,
-          quota: position.quota,
-          people,
-        };
-      },
-    );
-    const body = rows.reduce(
-      (sum, row) => sum + (row.kind === 'seat' ? SEAT_H : GROUP_H),
-      0,
-    );
-    return { h: HEADER_H + body + NODE_PAD, rows };
+  const toRow = (position: Position): SeatRow => {
+    const people = placements[position.id] ?? [];
+    // Kursi tunggal: kuota 1, atau kuota bebas (0) yang kini dipegang satu orang (umum setelah impor).
+    const single =
+      (position.quota === 1 && people.length <= 1) ||
+      (position.quota === 0 && people.length === 1);
+    if (single) {
+      return {
+        kind: 'seat',
+        positionId: position.id,
+        title: position.title,
+        rank: position.rank,
+        rankIndex: rankIndexOf(position.rank, draft.ranks),
+        person: people[0] ?? null,
+      };
+    }
+    return {
+      kind: 'group',
+      positionId: position.id,
+      title: position.title,
+      filled: people.filter((person) => person.source !== 'closerec').length,
+      quota: position.quota,
+      people,
+      expanded: expandedGroups.has(position.id),
+    };
+  };
+
+  const rowsOf = (
+    unit: Unit,
+    hasToggle: boolean,
+  ): {
+    headerH: number;
+    mainH: number;
+    nsH: number;
+    h: number;
+    rows: SeatRow[];
+    nsRows: SeatRow[];
+  } => {
+    const positions = positionsByUnit.get(unit.id) ?? [];
+    const rows = positions
+      .filter((position) => position.kind !== 'nonstruktural')
+      .map(toRow);
+    const nsRows = positions
+      .filter((position) => position.kind === 'nonstruktural')
+      .map(toRow);
+    const headerH = headerHeight(unit.name, hasToggle);
+    const body = rows.reduce((sum, row) => sum + rowHeight(row), 0);
+    const mainH = headerH + body + NODE_PAD;
+    const nsBody = nsRows.reduce((sum, row) => sum + rowHeight(row), 0);
+    const nsH = nsRows.length > 0 ? nsBody + NODE_PAD : 0;
+    const h = nsRows.length > 0 ? mainH + NS_GAP + nsH : mainH;
+    return { headerH, mainH, nsH, h, rows, nsRows };
   };
 
   const layoutUnit = (unit: Unit, depth: number): Subtree => {
-    const { h: nodeH, rows } = rowsOf(unit.id);
     const visibleChildren = childrenByParent.get(unit.id) ?? [];
     const hasChildren = visibleChildren.length > 0;
+    const {
+      h: nodeH,
+      headerH,
+      mainH,
+      nsH,
+      rows,
+      nsRows,
+    } = rowsOf(unit, hasChildren);
     const isCollapsed = collapsed.has(unit.id) && hasChildren;
 
     const own: ChartNode = {
@@ -206,7 +302,11 @@ export function layoutChart(
       y: 0,
       w: NODE_W,
       h: nodeH,
+      headerH,
+      mainH,
       rows,
+      nsRows,
+      nsH,
       hasChildren,
       collapsed: isCollapsed,
     };

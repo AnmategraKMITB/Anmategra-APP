@@ -23441,12 +23441,7 @@
                 },
                 "rank": {
                   "type": "string",
-                  "enum": [
-                    "head",
-                    "vice",
-                    "coordinator",
-                    "staff"
-                  ]
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
                 },
                 "kind": {
                   "type": "string",
@@ -23636,12 +23631,7 @@
                     },
                     "rank": {
                       "type": "string",
-                      "enum": [
-                        "head",
-                        "vice",
-                        "coordinator",
-                        "staff"
-                      ]
+                      "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
                     },
                     "kind": {
                       "type": "string",
@@ -23680,11 +23670,17 @@
                       "type": "string",
                       "minLength": 1,
                       "maxLength": 32
+                    },
+                    "order": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
                     "userId",
-                    "positionKey"
+                    "positionKey",
+                    "order"
                   ],
                   "additionalProperties": false
                 }
@@ -23986,13 +23982,29 @@
               "maxLength": 255
             }
           },
-          "rankLabels": {
+          "ranks": {
             "nullable": true,
-            "type": "object",
-            "additionalProperties": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 255
+            "minItems": 1,
+            "maxItems": 24,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ],
+              "additionalProperties": false
             }
           },
           "editLocked": {
@@ -24034,6 +24046,11 @@
                   "type": "string",
                   "maxLength": 255
                 },
+                "description": {
+                  "nullable": true,
+                  "type": "string",
+                  "maxLength": 2000
+                },
                 "sortOrder": {
                   "type": "integer",
                   "minimum": 0,
@@ -24074,12 +24091,7 @@
                 },
                 "rank": {
                   "type": "string",
-                  "enum": [
-                    "head",
-                    "vice",
-                    "coordinator",
-                    "staff"
-                  ]
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
                 },
                 "kind": {
                   "type": "string",
@@ -24194,7 +24206,7 @@
           "periodId",
           "name",
           "levelLabels",
-          "rankLabels",
+          "ranks",
           "editLocked",
           "lockedBy",
           "lockedAt",
@@ -24232,13 +24244,28 @@
               "maxLength": 255
             }
           },
-          "rankLabels": {
+          "ranks": {
             "nullable": true,
-            "type": "object",
-            "additionalProperties": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 255
+            "minItems": 1,
+            "maxItems": 24,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 60
+                }
+              },
+              "required": [
+                "id",
+                "label"
+              ]
             }
           },
           "units": {
@@ -24267,6 +24294,11 @@
                   "nullable": true,
                   "type": "string",
                   "maxLength": 255
+                },
+                "description": {
+                  "nullable": true,
+                  "type": "string",
+                  "maxLength": 2000
                 },
                 "sortOrder": {
                   "type": "integer",
@@ -24312,12 +24344,7 @@
                 },
                 "rank": {
                   "type": "string",
-                  "enum": [
-                    "head",
-                    "vice",
-                    "coordinator",
-                    "staff"
-                  ]
+                  "pattern": "^[a-z0-9][a-z0-9_-]{0,31}$"
                 },
                 "kind": {
                   "type": "string",

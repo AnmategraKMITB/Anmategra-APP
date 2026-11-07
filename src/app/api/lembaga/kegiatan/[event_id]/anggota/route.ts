@@ -2,7 +2,13 @@ import { eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { keanggotaan, mahasiswa, users } from '~/server/db/schema';
+import {
+  periodMemberIds,
+  periodMembersSq,
+  removeFromPeriod,
+  upsertPlacementByText,
+} from '~/server/api/routers/organization/membership';
+import { mahasiswa, users } from '~/server/db/schema';
 import { apiError } from '~/utils/api-error';
 
 export async function GET(request: Request, props: { params: Promise<{ event_id: string }> }) {
@@ -41,16 +47,21 @@ export async function GET(request: Request, props: { params: Promise<{ event_id:
   }
 
   // --- Fetch panitia data ---
+  const members = periodMembersSq(db, event_id);
   const panitiaKegiatan = await db
-    .select()
-    .from(keanggotaan)
-    .leftJoin(users, eq(keanggotaan.user_id, users.id))
-    .leftJoin(mahasiswa, eq(keanggotaan.user_id, mahasiswa.userId))
-    .where(eq(keanggotaan.event_id, event_id))
+    .select({
+      name: users.name,
+      nim: mahasiswa.nim,
+      division: members.division,
+      position: members.position,
+    })
+    .from(members)
+    .leftJoin(users, eq(members.userId, users.id))
+    .leftJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
     .orderBy(
-      keanggotaan.index,
-      keanggotaan.division,
-      keanggotaan.position,
+      members.index,
+      members.division,
+      members.position,
       mahasiswa.nim,
       users.name,
     );
@@ -82,10 +93,10 @@ export async function GET(request: Request, props: { params: Promise<{ event_id:
   // --- Add data rows ---
   panitiaKegiatan.forEach((panitia) => {
     const row = sheet.addRow([
-      panitia.user?.name ?? '',
-      panitia.mahasiswa?.nim ?? '',
-      panitia.keanggotaan.division ?? '',
-      panitia.keanggotaan.position ?? 'Anggota',
+      panitia.name ?? '',
+      panitia.nim ?? '',
+      panitia.division,
+      panitia.position,
     ]);
 
     // --- Add borders to data rows ---
@@ -264,19 +275,19 @@ export async function POST(request: Request, props: { params: Promise<{ event_id
     let insertedCount = 0;
 
     await db.transaction(async (tx) => {
-      // --- Delete existing data for this event ---
-      await tx.delete(keanggotaan).where(eq(keanggotaan.event_id, event_id));
+      // --- Delete existing placements for this event ---
+      for (const userId of await periodMemberIds(tx, event_id)) {
+        await removeFromPeriod(tx, event_id, userId);
+      }
       for (const anggota of anggotaData) {
-        // Insert keanggotaan
-        const keanggotaanId = crypto.randomUUID();
-        await tx.insert(keanggotaan).values({
-          id: keanggotaanId,
-          event_id: event_id,
-          user_id: anggota.userId,
-          position: anggota.posisi,
+        await upsertPlacementByText(tx, {
+          periodId: event_id,
+          userId: anggota.userId,
           division: anggota.divisi,
-          description: null,
-          index: anggota.index,
+          position: anggota.posisi,
+          createdBy: session.user.id,
+          source: 'import',
+          sortOrder: anggota.index,
         });
 
         insertedCount++;

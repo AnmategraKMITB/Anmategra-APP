@@ -13,6 +13,8 @@ export type LegacyRow = {
   userId: string;
   division: string;
   position: string;
+  /** Urutan lama (`index`); jadi `sort_order` penempatan. */
+  index?: number;
 };
 
 export type PlannedUnit = {
@@ -31,7 +33,11 @@ export type PlannedPosition = {
   variants: string[];
 };
 
-export type PlannedPlacement = { userId: string; positionKey: string };
+export type PlannedPlacement = {
+  userId: string;
+  positionKey: string;
+  order: number;
+};
 
 export type ImportPlan = {
   units: PlannedUnit[];
@@ -56,17 +62,23 @@ const POSITION_SYNONYMS: Record<string, string> = {
   anggota: 'Anggota',
 };
 
-function collapse(text: string): string {
+export function collapse(text: string): string {
   return text.replace(/\s+/g, ' ').trim();
 }
 
-function isBlank(text: string): boolean {
+export function isBlank(text: string): boolean {
   const value = collapse(text);
   return value === '' || /^[-–—]+$/.test(value);
 }
 
-function foldKey(text: string): string {
+export function foldKey(text: string): string {
   return collapse(text).normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+}
+
+/** Bentuk baku sebuah nama posisi (Staff dan Staf sama, Member dan Anggota sama). */
+export function canonicalPositionTitle(title: string): string {
+  const cleaned = collapse(title);
+  return POSITION_SYNONYMS[foldKey(cleaned)] ?? cleaned;
 }
 
 export function guessRank(title: string): OrganizationPositionRank {
@@ -103,7 +115,12 @@ export function planImport(rows: LegacyRow[]): ImportPlan {
   const positionUnit = new Map<string, string>();
   const unitOrder: string[] = [];
   const positionOrder: string[] = [];
-  const keyed: { userId: string; unitKey: string; positionKey: string }[] = [];
+  const keyed: {
+    userId: string;
+    unitKey: string;
+    positionKey: string;
+    order: number;
+  }[] = [];
   let membershipOnly = 0;
 
   for (const row of rows) {
@@ -137,7 +154,12 @@ export function planImport(rows: LegacyRow[]): ImportPlan {
     }
     tally(positionCounts.get(positionKey)!, canonical ?? rawPosition);
 
-    keyed.push({ userId: row.userId, unitKey, positionKey });
+    keyed.push({
+      userId: row.userId,
+      unitKey,
+      positionKey,
+      order: row.index ?? 0,
+    });
   }
 
   // Kunci internal (hasil lipatan teks) diganti kunci pendek berurutan agar
@@ -172,14 +194,18 @@ export function planImport(rows: LegacyRow[]): ImportPlan {
   const seen = new Set<string>();
   const placements: PlannedPlacement[] = [];
   let duplicates = 0;
-  for (const { userId, positionKey } of keyed) {
+  for (const { userId, positionKey, order } of keyed) {
     const id = `${positionKey}\u0001${userId}`;
     if (seen.has(id)) {
       duplicates += 1;
       continue;
     }
     seen.add(id);
-    placements.push({ userId, positionKey: positionKeyOf.get(positionKey)! });
+    placements.push({
+      userId,
+      positionKey: positionKeyOf.get(positionKey)!,
+      order,
+    });
   }
 
   return { units, positions, placements, membershipOnly, duplicates };
@@ -317,7 +343,7 @@ export function applyDecisions(
   const seen = new Set<string>();
   const placements: PlannedPlacement[] = [];
   let skippedPlacements = 0;
-  for (const { userId, positionKey } of plan.placements) {
+  for (const { userId, positionKey, order } of plan.placements) {
     const target = positionTarget.get(positionKey);
     if (target === null || target === undefined) {
       skippedPlacements += 1;
@@ -326,7 +352,7 @@ export function applyDecisions(
     const id = `${target}\u0001${userId}`;
     if (seen.has(id)) continue;
     seen.add(id);
-    placements.push({ userId, positionKey: target });
+    placements.push({ userId, positionKey: target, order });
   }
 
   return {
