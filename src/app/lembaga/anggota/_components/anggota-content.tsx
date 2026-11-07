@@ -20,7 +20,7 @@ import { Button } from '~/components/ui/button';
 import { toast } from '~/hooks/use-toast';
 import { api } from '~/trpc/react';
 
-import { Download, Edit, Save } from 'lucide-react';
+import { Download, Edit, Network, Save } from 'lucide-react';
 
 interface AnggotaContentProps {
   session: Session | null;
@@ -262,6 +262,17 @@ export default function AnggotaContent({
                   Pilih Best Staff
                 </Button>
               </Link>
+              {!isAnggota && eventId ? (
+                <Link href={`/lembaga/kegiatan/${eventId}/organogram`}>
+                  <Button
+                    variant="light_blue"
+                    className="rounded-[12px] px-3 shadow-none flex items-center gap-2"
+                  >
+                    <Network className="size-5" />
+                    Organogram
+                  </Button>
+                </Link>
+              ) : null}
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-x-2">
               <Button
