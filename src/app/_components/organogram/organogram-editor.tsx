@@ -1,6 +1,6 @@
 'use client';
 
-import { PanelLeft, PanelRight, Redo2, Undo2, X } from 'lucide-react';
+import { Download, PanelLeft, PanelRight, Redo2, Undo2, X } from 'lucide-react';
 import type { Session } from 'next-auth';
 import Link from 'next/link';
 import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
@@ -25,6 +25,7 @@ import {
 import { cn } from '~/lib/utils';
 
 import { ChartView } from './chart-view';
+import { ExportDialog } from './export-dialog';
 import { ImportEntry } from './import-sheet';
 import { Inspector } from './inspector';
 import {
@@ -137,6 +138,7 @@ export function OrganogramWorkspace(
   const [selectedIdsRaw, setSelectedIds] = useState<string[]>([]);
   const [structureOpen, setStructureOpen] = useState(false);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [keepConflict, setKeepConflict] = useState(false);
@@ -628,6 +630,14 @@ export function OrganogramWorkspace(
           ) : null}
           {modeButtons}
           <Button
+            variant="dark_blue_outline"
+            size="sm"
+            onClick={() => setExportOpen(true)}
+          >
+            <Download className="size-4" />
+            Ekspor
+          </Button>
+          <Button
             variant="ghost"
             size="icon"
             aria-label={
@@ -737,6 +747,16 @@ export function OrganogramWorkspace(
                 }
                 onAddChild={readOnly ? undefined : handleChartAddChild}
                 onRequestDelete={readOnly ? undefined : setPendingDeleteId}
+                onResizeUnit={
+                  readOnly
+                    ? undefined
+                    : (id, width) =>
+                        dispatch({
+                          type: 'setUnitLayout',
+                          id,
+                          patch: { width },
+                        })
+                }
               />
             ) : null}
             {mode === 'tabel' ? (
@@ -861,6 +881,12 @@ export function OrganogramWorkspace(
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <ExportDialog
+        open={exportOpen}
+        onOpenChange={setExportOpen}
+        draft={draft}
+        placements={placements}
+      />
     </>,
   );
 }

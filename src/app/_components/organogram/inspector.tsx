@@ -19,8 +19,12 @@ import {
   type Draft,
   type EditorAction,
   MAX_DEPTH,
+  NODE_WIDTH_DEFAULT,
+  NODE_WIDTH_MAX,
+  NODE_WIDTH_MIN,
   type PlacementsByPosition,
   type Unit,
+  clampNodeWidth,
   descendantsOf,
   endIndexOfPositions,
   levelLabelFor,
@@ -374,6 +378,66 @@ export function Inspector(props: InspectorProps): JSX.Element {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor={`unit-${unit.id}-width`}>Lebar kartu</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    key={`${unit.id}-${unit.layout.width ?? 'default'}`}
+                    id={`unit-${unit.id}-width`}
+                    type="number"
+                    inputMode="numeric"
+                    min={NODE_WIDTH_MIN}
+                    max={NODE_WIDTH_MAX}
+                    step={8}
+                    defaultValue={unit.layout.width ?? NODE_WIDTH_DEFAULT}
+                    disabled={!unitEditable}
+                    aria-describedby={`unit-${unit.id}-width-hint`}
+                    onBlur={(event) => {
+                      const value = Number(event.target.value);
+                      if (
+                        event.target.value === '' ||
+                        !Number.isFinite(value)
+                      ) {
+                        event.target.value = String(
+                          unit.layout.width ?? NODE_WIDTH_DEFAULT,
+                        );
+                        return;
+                      }
+                      dispatch({
+                        type: 'setUnitLayout',
+                        id: unit.id,
+                        patch: { width: clampNodeWidth(value) },
+                      });
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') event.currentTarget.blur();
+                    }}
+                    className="h-9 rounded-[8px] border-neutral-400 text-sm tabular-nums text-neutral-1000"
+                  />
+                  <Button
+                    variant="dark_blue_outline"
+                    size="sm"
+                    disabled={!unitEditable || unit.layout.width === undefined}
+                    onClick={() =>
+                      dispatch({
+                        type: 'setUnitLayout',
+                        id: unit.id,
+                        patch: { width: undefined },
+                      })
+                    }
+                  >
+                    Bawaan
+                  </Button>
+                </div>
+                <p
+                  id={`unit-${unit.id}-width-hint`}
+                  className="text-xs text-neutral-700"
+                >
+                  {NODE_WIDTH_MIN} sampai {NODE_WIDTH_MAX} px. Nama yang lebih
+                  panjang turun ke baris berikutnya. Di bagan, seret tepi kanan
+                  kartu yang dipilih.
+                </p>
               </div>
               <Button
                 variant={

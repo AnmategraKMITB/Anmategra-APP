@@ -250,7 +250,7 @@ function MoveToPopover({
         <CommandEmpty>Tidak ada tujuan yang bisa dipilih.</CommandEmpty>
         {canEditRoot ? (
           <CommandItem value="jadikan-teratas" onSelect={() => onMove(null)}>
-            <span className="text-sm font-semibold text-neutral-1000">
+            <span className="text-sm font-medium text-neutral-1000">
               Jadikan {levelLabelFor(1, draft.levelLabels)} teratas
             </span>
           </CommandItem>
@@ -262,7 +262,7 @@ function MoveToPopover({
             onSelect={() => onMove(candidate.id)}
           >
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-sm font-semibold text-neutral-1000">
+              <span className="truncate text-sm font-normal text-neutral-1000">
                 {candidate.name}
               </span>
               <span className="truncate text-xs tabular-nums text-neutral-700">
@@ -476,7 +476,7 @@ const TreeRow = memo(function TreeRow({
                     }}
                     onBlur={() => onRenameCommit(unit.id)}
                     onClick={(event) => event.stopPropagation()}
-                    className="mt-0.5 h-7 rounded-[8px] border-neutral-400 px-2 text-sm font-semibold text-neutral-1000 shadow-none focus-visible:ring-1 focus-visible:ring-primary-400"
+                    className="mt-0.5 h-7 rounded-[8px] border-neutral-400 px-2 text-sm font-medium text-neutral-1000 shadow-none focus-visible:ring-1 focus-visible:ring-primary-400"
                     aria-label={`Nama ${unitTypeLabel(
                       unit,
                       depth,
@@ -486,8 +486,10 @@ const TreeRow = memo(function TreeRow({
                 ) : (
                   <div
                     className={cn(
-                      'line-clamp-2 break-words text-sm font-semibold leading-5',
-                      selected ? 'text-primary-400' : 'text-neutral-1000',
+                      'line-clamp-2 break-words text-sm leading-5',
+                      selected
+                        ? 'font-medium text-primary-400'
+                        : 'font-normal text-neutral-1000',
                       isHidden && 'opacity-60',
                     )}
                   >
@@ -498,7 +500,7 @@ const TreeRow = memo(function TreeRow({
 
               <div
                 className={cn(
-                  'ml-1 shrink-0 text-sm font-semibold tabular-nums',
+                  'ml-1 shrink-0 text-sm font-normal tabular-nums',
                   peopleCount > 0 ? 'text-primary-400' : 'text-neutral-1000',
                 )}
                 title={`${peopleCount} orang`}
@@ -1484,7 +1486,7 @@ export function StructurePanel({
               </button>
             </PopoverTrigger>
             <PopoverContent align="end" className="w-80 p-3">
-              <h3 className="text-sm font-semibold text-neutral-1000">
+              <h3 className="text-sm font-medium text-neutral-1000">
                 Pintasan papan ketik
               </h3>
               <dl className="mt-2 space-y-1.5 text-sm">
@@ -1494,7 +1496,7 @@ export function StructurePanel({
                     className="flex items-start justify-between gap-3"
                   >
                     <dt>
-                      <kbd className="rounded-[4px] border border-neutral-400 bg-neutral-50 px-1.5 py-0.5 text-xs font-semibold text-neutral-1000">
+                      <kbd className="rounded-[4px] border border-neutral-400 bg-neutral-50 px-1.5 py-0.5 text-xs font-medium text-neutral-1000">
                         {keys}
                       </kbd>
                     </dt>
@@ -1534,11 +1536,11 @@ export function StructurePanel({
         ) : null}
 
         <div className="flex items-center justify-between gap-2">
-          <span className="line-clamp-2 break-words text-sm font-semibold text-primary-400">
+          <span className="line-clamp-2 break-words text-sm font-medium text-primary-400">
             {draft.name}
           </span>
           <span
-            className="text-sm font-semibold tabular-nums text-primary-400"
+            className="text-sm font-medium tabular-nums text-primary-400"
             aria-label={`${totalPeople} orang`}
           >
             {totalPeople}
@@ -1628,7 +1630,7 @@ export function StructurePanel({
                       {unit.id === addAfterId && selectedUnit ? (
                         <button
                           type="button"
-                          className="flex w-[calc(100%-var(--indent))] items-center gap-1 rounded-[8px] py-1 pr-2 text-left text-sm font-semibold text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex w-[calc(100%-var(--indent))] items-center gap-1 rounded-[8px] py-1 pr-2 text-left text-sm font-medium text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-50"
                           style={
                             {
                               marginLeft: (selectedDepth + 1) * 12 + 24,
@@ -1659,7 +1661,7 @@ export function StructurePanel({
               {!readOnly && canEditRoot ? (
                 <button
                   type="button"
-                  className="flex w-full items-center gap-1 rounded-[8px] px-2 py-1.5 text-left text-sm font-semibold text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                  className="flex w-full items-center gap-1 rounded-[8px] px-2 py-1.5 text-left text-sm font-medium text-primary-400 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                   onClick={handleAddRoot}
                 >
                   <Plus className="size-4 shrink-0" />
@@ -1672,7 +1674,7 @@ export function StructurePanel({
 
         <DragOverlay dropAnimation={null}>
           {activeUnit ? (
-            <div className="rounded-[8px] border border-neutral-400 bg-neutral-50 px-3 py-2 text-sm font-semibold text-neutral-1000 shadow-lg">
+            <div className="rounded-[8px] border border-neutral-400 bg-neutral-50 px-3 py-2 text-sm font-medium text-neutral-1000 shadow-lg">
               {activeUnit.name}
               {selectedIds.length > 1 && selectedIds.includes(activeUnit.id)
                 ? ` dan ${selectedIds.length - 1} lainnya`
