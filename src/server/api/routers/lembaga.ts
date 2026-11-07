@@ -543,8 +543,6 @@ export const lembagaRouter = createTRPCRouter({
           success: true,
         };
       } catch (error) {
-        // TRPCError extends Error, so this must stay above the `instanceof Error`
-        // branch below — otherwise every thrown code is downgraded to a 500.
         if (error instanceof TRPCError) {
           throw error;
         }
@@ -554,12 +552,8 @@ export const lembagaRouter = createTRPCRouter({
             message: 'Mahasiswa tersebut sudah terdaftar sebagai anggota.',
           });
         }
-        if (error instanceof Error) {
-          throw new TRPCError({
-            code: 'INTERNAL_SERVER_ERROR',
-            message: error.message ?? 'Gagal menambahkan anggota secara manual',
-          });
-        }
+        // Jangan teruskan error.message mentah ke klien: pesan driver DB bisa
+        // memuat nama tabel, kolom, dan nilai.
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Gagal menambahkan anggota secara manual',
