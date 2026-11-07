@@ -1463,6 +1463,11 @@ export const FORM_FIELD_TYPES = [
   'single_choice',
   'multiple_choice',
   'checkbox',
+  'text_block',
+  'link',
+  'matrix',
+  'scale',
+  'file',
 ] as const;
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
 
@@ -1499,11 +1504,57 @@ export const form = createTable(
       () => users.id,
       { onDelete: 'set null' },
     ),
+    // Public read-only preview link; the token is random and can be rotated.
+    previewToken: varchar('preview_token', { length: 64 }),
+    previewEnabled: boolean('preview_enabled').notNull().default(false),
+    // Shapes are enforced by Zod in form.type.ts (FormSettingsSchema etc.).
+    settings: jsonb('settings')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    theme: jsonb('theme')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    welcome: jsonb('welcome')
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
     ...timestamps,
   },
   (table) => ({
     lembagaIdx: index('form_lembaga_id_idx').on(table.lembagaId),
     eventIdx: index('form_period_id_idx').on(table.eventId),
+    previewTokenUnique: uniqueIndex('form_preview_token_unique').on(
+      table.previewToken,
+    ),
+  }),
+);
+
+export const formSection = createTable(
+  'form_section',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    // No UNIQUE: reordering rewrites every row inside one transaction.
+    // CHECK form_section_sort_order_check (>= 0) lives in the migration SQL.
+    sortOrder: integer('sort_order').notNull(),
+    /** Kondisi "tampil jika"; bentuknya divalidasi oleh `~/lib/forms/conditions`. */
+    condition: jsonb('condition'),
+    ...timestamps,
+  },
+  (table) => ({
+    formOrderIdx: index('form_section_form_order_idx').on(
+      table.formId,
+      table.sortOrder,
+    ),
   }),
 );
 
@@ -1517,6 +1568,11 @@ export const formField = createTable(
     formId: varchar('form_id', { length: 255 })
       .notNull()
       .references(() => form.id, { onDelete: 'cascade' }),
+    // NULL = field outside any section (the group shown first).
+    sectionId: varchar('section_id', { length: 255 }).references(
+      () => formSection.id,
+      { onDelete: 'set null' },
+    ),
     type: varchar('type', { length: 32 }).$type<FormFieldType>().notNull(),
     label: varchar('label', { length: 500 }).notNull(),
     description: text('description'),
@@ -1529,14 +1585,38 @@ export const formField = createTable(
     // No UNIQUE: reordering rewrites every row inside one transaction.
     sortOrder: integer('sort_order').notNull(),
     // Set instead of deleting once the field has answers.
+    /** Ilustrasi dekoratif `{ url, key, alt }` (UploadThing); bentuknya divalidasi di tipe API. */
+    image: jsonb('image'),
+    condition: jsonb('condition'),
     archivedAt: timestamp('archived_at', { mode: 'date', withTimezone: true }),
     ...timestamps,
   },
   (table) => ({
-    formOrderIdx: index('form_field_form_order_idx').on(
+    formSectionOrderIdx: index('form_field_form_section_order_idx').on(
       table.formId,
+      table.sectionId,
       table.sortOrder,
     ),
+  }),
+);
+
+/**
+ * Berkas UploadThing milik satu form. Baris dibuat saat unggahan selesai,
+ * sehingga menghapus gambar hanya bisa menyentuh berkas yang diunggah untuk
+ * form itu — bukan kunci sembarang yang dikirim klien.
+ */
+export const formImage = createTable(
+  'form_image',
+  {
+    key: varchar('key', { length: 255 }).notNull().primaryKey(),
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'cascade' }),
+    url: varchar('url', { length: 2048 }).notNull(),
+    ...timestamps,
+  },
+  (table) => ({
+    formIdx: index('form_image_form_id_idx').on(table.formId),
   }),
 );
 
@@ -1563,6 +1643,35 @@ export const formFieldOption = createTable(
   }),
 );
 
+/**
+ * Layar penutup setelah kirim. Yang bersyarat dan terpenuhi dipilih server
+ * lebih dulu (menurut `sort_order`), lalu yang tanpa syarat.
+ */
+export const formEnding = createTable(
+  'form_ending',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: text('description'),
+    // CHECK form_ending_sort_order_check (>= 0) lives in the migration SQL.
+    sortOrder: integer('sort_order').notNull(),
+    condition: jsonb('condition'),
+    ...timestamps,
+  },
+  (table) => ({
+    formOrderIdx: index('form_ending_form_order_idx').on(
+      table.formId,
+      table.sortOrder,
+    ),
+  }),
+);
+
 export const formSubmission = createTable(
   'form_submission',
   {
@@ -1576,6 +1685,10 @@ export const formSubmission = createTable(
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    endingId: varchar('ending_id', { length: 255 }).references(
+      () => formEnding.id,
+      { onDelete: 'set null' },
+    ),
     submittedAt: timestamp('submitted_at', { mode: 'date', withTimezone: true })
       .notNull()
       .default(sql`CURRENT_TIMESTAMP`),
