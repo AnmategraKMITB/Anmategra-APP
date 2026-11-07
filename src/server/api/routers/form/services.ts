@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import type { inferAsyncReturnType } from '@trpc/server';
-import { and, asc, count, eq, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { type createTRPCContext } from '~/server/api/trpc';
 import {
   type FormFieldType,
@@ -11,10 +11,11 @@ import {
   formSubmission,
 } from '~/server/db/schema';
 
-import type {
-  FieldConfig,
-  FieldOutput,
-  FormOutput,
+import {
+  type FieldConfig,
+  FieldConfigSchema,
+  type FieldOutput,
+  type FormOutput,
 } from '../../types/form.type';
 
 type TRPCContext = inferAsyncReturnType<typeof createTRPCContext>;
@@ -71,6 +72,61 @@ export async function countSubmissions(
   return new Map(rows.map((r) => [r.formId, r.n]));
 }
 
+type FieldRow = typeof formField.$inferSelect;
+type OptionRow = typeof formFieldOption.$inferSelect;
+
+/**
+ * `form_field.config` adalah jsonb, jadi isinya tidak dijamin oleh tipe apa
+ * pun — sebelumnya hanya di-cast. Baris yang bentuknya tak dikenal (misalnya
+ * ditulis tangan ke database, atau sisa dari versi skema lama) membuat aturan
+ * validasinya **dilewati diam-diam** saat jawaban diperiksa: pertanyaan yang
+ * seharusnya mewajibkan format tertentu jadi menerima apa saja. Lebih baik
+ * gagal terang-terangan daripada memvalidasi setengah-setengah.
+ */
+function parseFieldConfig(field: FieldRow): FieldConfig {
+  const hasil = FieldConfigSchema.safeParse(field.config);
+  if (!hasil.success) {
+    console.error('config pertanyaan tidak valid', {
+      fieldId: field.id,
+      issues: hasil.error.issues,
+    });
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: `Konfigurasi pertanyaan "${field.label}" tidak valid. Hubungi pengelola formulir.`,
+    });
+  }
+  return hasil.data;
+}
+
+function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
+  return {
+    id: field.id,
+    type: field.type,
+    label: field.label,
+    description: field.description,
+    required: field.required,
+    config: parseFieldConfig(field),
+    sortOrder: field.sortOrder,
+    options: options
+      .filter((o) => o.fieldId === field.id)
+      .map((o) => ({ id: o.id, label: o.label, sortOrder: o.sortOrder })),
+  };
+}
+
+/** Active options of the given fields, in display order. */
+function loadActiveOptions(db: Queryable, fieldIds: string[]) {
+  return db
+    .select()
+    .from(formFieldOption)
+    .where(
+      and(
+        inArray(formFieldOption.fieldId, fieldIds),
+        isNull(formFieldOption.archivedAt),
+      ),
+    )
+    .orderBy(asc(formFieldOption.sortOrder), asc(formFieldOption.created_at));
+}
+
 /** Active (non-archived) fields with their active options, in display order. */
 export async function loadActiveFields(
   db: Queryable,
@@ -83,32 +139,12 @@ export async function loadActiveFields(
     .orderBy(asc(formField.sortOrder), asc(formField.created_at));
   if (fields.length === 0) return [];
 
-  const options = await db
-    .select()
-    .from(formFieldOption)
-    .where(
-      and(
-        inArray(
-          formFieldOption.fieldId,
-          fields.map((f) => f.id),
-        ),
-        isNull(formFieldOption.archivedAt),
-      ),
-    )
-    .orderBy(asc(formFieldOption.sortOrder), asc(formFieldOption.created_at));
+  const options = await loadActiveOptions(
+    db,
+    fields.map((f) => f.id),
+  );
 
-  return fields.map((f) => ({
-    id: f.id,
-    type: f.type,
-    label: f.label,
-    description: f.description,
-    required: f.required,
-    config: f.config as FieldConfig,
-    sortOrder: f.sortOrder,
-    options: options
-      .filter((o) => o.fieldId === f.id)
-      .map((o) => ({ id: o.id, label: o.label, sortOrder: o.sortOrder })),
-  }));
+  return fields.map((f) => toFieldOutput(f, options));
 }
 
 /**
@@ -243,28 +279,33 @@ export async function fieldHasAnswers(db: Queryable, fieldId: string) {
   return !!row;
 }
 
-/** Whether any answer picked this option (single or multiple choice). */
-export async function optionHasAnswers(
+/**
+ * Which of `optionIds` were picked by an answer (single or multiple choice).
+ *
+ * One query for the whole set: `syncOptions` needs the answer, option by
+ * option, and asking per option meant one round-trip each.
+ */
+export async function optionsWithAnswers(
   db: Queryable,
   fieldId: string,
-  optionId: string,
-) {
-  const single = JSON.stringify({ optionId });
-  const multiple = JSON.stringify([{ optionId }]);
-  const [row] = await db
-    .select({ id: formAnswer.id })
-    .from(formAnswer)
-    .where(
-      and(
-        eq(formAnswer.fieldId, fieldId),
-        or(
-          sql`${formAnswer.value} @> ${single}::jsonb`,
-          sql`${formAnswer.value} @> ${multiple}::jsonb`,
-        ),
-      ),
-    )
-    .limit(1);
-  return !!row;
+  optionIds: string[],
+): Promise<Set<string>> {
+  if (optionIds.length === 0) return new Set();
+  const daftar = sql.join(
+    optionIds.map((id) => sql`(${id}::varchar)`),
+    sql`, `,
+  );
+  const rows = await db.execute<{ id: string }>(
+    sql`select v.id from (values ${daftar}) as v(id)
+        where exists (
+          select 1
+          from ${formAnswer} a
+          where a.field_id = ${fieldId}
+            and (a.value @> jsonb_build_object('optionId', v.id)
+                 or a.value @> jsonb_build_array(jsonb_build_object('optionId', v.id)))
+        )`,
+  );
+  return new Set([...rows].map((r) => r.id));
 }
 
 /** Fetches one field in output shape (active options only). */
@@ -273,15 +314,10 @@ export async function loadFieldOutput(
   formId: string,
   fieldId: string,
 ): Promise<FieldOutput> {
-  const fields = await loadActiveFields(db, formId);
-  const found = fields.find((f) => f.id === fieldId);
-  if (!found) {
-    throw new TRPCError({
-      code: 'NOT_FOUND',
-      message: 'Pertanyaan tidak ditemukan pada formulir ini.',
-    });
-  }
-  return found;
+  // Scoped by formId inside getActiveField, which also raises NOT_FOUND.
+  const field = await getActiveField(db, formId, fieldId);
+  const options = await loadActiveOptions(db, [field.id]);
+  return toFieldOutput(field, options);
 }
 
 /** Re-throws TRPCErrors untouched; anything else becomes a generic 500. */

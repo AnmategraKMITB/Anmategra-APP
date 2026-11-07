@@ -58,7 +58,23 @@ const TextPatternPresetSchema = z.enum(TEXT_PATTERN_PRESETS, {
 });
 
 /** Semua kolom id di skema ini `varchar(255)`. */
-const IdSchema = z.string().min(1).max(255, 'Id terlalu panjang');
+/**
+ * Postgres menolak byte NUL di `jsonb` maupun `varchar`, jadi teks yang
+ * memuatnya gagal di driver dan muncul sebagai 500 — bukan pesan validasi.
+ * Dijaga di sini supaya ditolak sebagai BAD_REQUEST, termasuk pada jawaban
+ * mahasiswa (tanpa ini transaksinya rollback dan jawabannya hilang).
+ *
+ * Kelas karakter yang dinegasikan tetap mengizinkan baris baru, jadi jawaban
+ * teks panjang tidak terpengaruh.
+ */
+const TANPA_NUL = /^[^\u0000]*$/;
+const PESAN_NUL = 'Teks memuat karakter yang tidak didukung';
+
+const IdSchema = z
+  .string()
+  .min(1)
+  .max(255, 'Id terlalu panjang')
+  .regex(TANPA_NUL, PESAN_NUL);
 
 // ---------------------------------------------------------------------------
 // Field config per type
@@ -99,7 +115,8 @@ const OptionInputSchema = z.object({
     .string()
     .trim()
     .min(1, 'Pilihan tidak boleh kosong')
-    .max(255, 'Pilihan maksimal 255 karakter'),
+    .max(255, 'Pilihan maksimal 255 karakter')
+    .regex(TANPA_NUL, PESAN_NUL),
 });
 
 const OptionsInputSchema = z
@@ -112,8 +129,14 @@ const fieldBase = {
     .string()
     .trim()
     .min(1, 'Pertanyaan tidak boleh kosong')
-    .max(500, 'Pertanyaan maksimal 500 karakter'),
-  description: z.string().trim().max(2000).nullish(),
+    .max(500, 'Pertanyaan maksimal 500 karakter')
+    .regex(TANPA_NUL, PESAN_NUL),
+  description: z
+    .string()
+    .trim()
+    .max(2000)
+    .regex(TANPA_NUL, PESAN_NUL)
+    .nullish(),
   required: z.boolean().default(false),
 };
 
@@ -227,22 +250,23 @@ const updateFieldVariants = [
   fieldVariants.checkbox.extend(updateShape),
 ] as const;
 
-/** Normalised config as stored in `form_field.config`. */
-export type FieldConfig = {
-  minLength?: number;
-  maxLength?: number;
-  pattern?: TextPatternPreset;
-  min?: number;
-  max?: number;
-  minSelections?: number;
-  maxSelections?: number;
-};
+/**
+ * Bentuk `form_field.config` seperti tersimpan di jsonb. Diturunkan dari
+ * `FieldConfigSchema` supaya tipe dan validator tidak bisa berbeda diam-diam.
+ */
+export type FieldConfig = z.infer<typeof FieldConfigSchema>;
 
 // ---------------------------------------------------------------------------
 // Shared output pieces
 // ---------------------------------------------------------------------------
 
-const FieldConfigOutputSchema = z.object({
+/**
+ * Dipakai dua arah: menyusun bentuk output, dan memvalidasi `config` yang
+ * dibaca dari jsonb (lihat `parseFieldConfig` di router form). Kunci asing
+ * dibuang, bukan ditolak, supaya deploy lama tetap bisa membaca baris yang
+ * ditulis versi lebih baru.
+ */
+export const FieldConfigSchema = z.object({
   minLength: z.number().int().optional(),
   maxLength: z.number().int().optional(),
   pattern: TextPatternPresetSchema.optional(),
@@ -264,7 +288,7 @@ const FieldOutputSchema = z.object({
   label: z.string(),
   description: z.string().nullable(),
   required: z.boolean(),
-  config: FieldConfigOutputSchema,
+  config: FieldConfigSchema,
   sortOrder: z.number().int(),
   /** Empty for non-choice types. Archived options are never included. */
   options: z.array(FieldOptionOutputSchema),
@@ -308,8 +332,14 @@ const formMeta = {
     .string()
     .trim()
     .min(1, 'Judul formulir tidak boleh kosong')
-    .max(255, 'Judul formulir maksimal 255 karakter'),
-  description: z.string().trim().max(5000).nullish(),
+    .max(255, 'Judul formulir maksimal 255 karakter')
+    .regex(TANPA_NUL, PESAN_NUL),
+  description: z
+    .string()
+    .trim()
+    .max(5000)
+    .regex(TANPA_NUL, PESAN_NUL)
+    .nullish(),
   closesAt: z.coerce.date().nullish(),
   allowMultipleSubmissions: z.boolean().optional(),
 };
@@ -426,7 +456,10 @@ export const AnswerValueSchema = z.union(
     // Batas atas kasar, bukan aturan per pertanyaan: `validateAnswers` yang
     // menegakkan `maxLength` tiap field. Tanpa batas di sini, payload sebesar
     // apa pun tetap diparse dan divalidasi lebih dulu.
-    z.string().max(LONG_TEXT_MAX_LENGTH, 'Jawaban teks terlalu panjang'),
+    z
+      .string()
+      .max(LONG_TEXT_MAX_LENGTH, 'Jawaban teks terlalu panjang')
+      .regex(TANPA_NUL, PESAN_NUL),
     z.number(),
     z.boolean(),
     z

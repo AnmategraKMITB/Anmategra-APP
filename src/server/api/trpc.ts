@@ -9,7 +9,7 @@
 import { TRPCError, initTRPC } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import superjson from 'superjson';
-import { ZodError, z } from 'zod';
+import { type ZodError, type ZodIssue, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { form } from '~/server/db/schema';
@@ -60,6 +60,23 @@ export type ApiMeta = {
     | 'form-scoped';
 };
 
+/**
+ * Mengambil `issues` validasi dari `cause` sebuah TRPCError.
+ *
+ * Dicocokkan dari bentuknya, bukan `instanceof`. Error lemparan zod sendiri
+ * memang turunan `Error`, jadi tRPC meneruskannya apa adanya. Tapi `ZodError`
+ * yang dibangun manual bukan turunan `Error` di Zod 4, sehingga tRPC
+ * menyalinnya ke `UnknownCauseError` lewat `Object.assign` dan `issues` — own
+ * property yang non-enumerable — ikut hilang. Endpoint yang perlu mengirim
+ * issue sendiri karena itu memakai cause turunan `Error` dengan `issues`
+ * sebagai properti biasa (lihat `AnswerIssuesError` di router form).
+ */
+export function zodIssuesFromCause(cause: unknown): ZodIssue[] | null {
+  if (typeof cause !== 'object' || cause === null) return null;
+  const { issues } = cause as { issues?: unknown };
+  return Array.isArray(issues) ? (issues as ZodIssue[]) : null;
+}
+
 const t = initTRPC
   .context<typeof createTRPCContext>()
   .meta<ApiMeta>()
@@ -67,9 +84,9 @@ const t = initTRPC
     transformer: superjson,
     errorFormatter({ shape, error }) {
       // Customize message for Zod validation errors
-      if (error.cause instanceof ZodError) {
-        const zodError = error.cause;
-        const formattedMessage = zodError.issues
+      const issues = zodIssuesFromCause(error.cause);
+      if (issues) {
+        const formattedMessage = issues
           .map((e) => {
             return e.message;
           })
@@ -80,7 +97,7 @@ const t = initTRPC
           message: formattedMessage,
           data: {
             ...shape.data,
-            zodError: z.flattenError(zodError),
+            zodError: z.flattenError({ issues } as unknown as ZodError),
           },
         };
       }
@@ -232,6 +249,21 @@ import {
 export { canManageEvent, canManageLembaga, type LembagaAccess };
 
 /**
+ * Id dari input mentah sebuah scoped procedure.
+ *
+ * Middleware tRPC berjalan **sebelum** schema `.input()` diparse, jadi nilai di
+ * sini belum tersentuh Zod padahal langsung dipakai menanyai database. Tanpa
+ * penjagaan bentuk, id yang memuat byte NUL membuat driver Postgres gagal dan
+ * muncul sebagai 500, bukan BAD_REQUEST. Panjangnya dibatasi selebar kolom id.
+ */
+function rawId(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  if (value.length === 0 || value.length > 255) return undefined;
+  if (value.includes('\u0000')) return undefined;
+  return value;
+}
+
+/**
  * Procedure baru untuk mutation/query yang menerima `lembagaId` di input
  * dan boleh diakses Owner ATAU Admin Lembaga. Endpoint lama yang masih
  * pakai `lembagaProcedure` (Owner-only via role, tanpa cek input) TIDAK
@@ -242,8 +274,7 @@ export const lembagaScopedProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { lembagaId?: unknown };
-    const lembagaId =
-      typeof raw?.lembagaId === 'string' ? raw.lembagaId : undefined;
+    const lembagaId = rawId(raw?.lembagaId);
     if (!lembagaId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -286,7 +317,7 @@ export const eventScopedProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { eventId?: unknown };
-    const eventId = typeof raw?.eventId === 'string' ? raw.eventId : undefined;
+    const eventId = rawId(raw?.eventId);
     if (!eventId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
@@ -322,7 +353,7 @@ export const formScopedProcedure = protectedProcedure
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
     const raw = (await getRawInput()) as { formId?: unknown };
-    const formId = typeof raw?.formId === 'string' ? raw.formId : undefined;
+    const formId = rawId(raw?.formId);
     if (!formId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',

@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, isNull, max } from 'drizzle-orm';
+import { and, count, eq, inArray, isNull, max, sql } from 'drizzle-orm';
 import { createTRPCRouter, formScopedProcedure } from '~/server/api/trpc';
 import { formField, formFieldOption } from '~/server/db/schema';
 
@@ -22,7 +22,7 @@ import {
   isChoiceType,
   loadFieldOutput,
   lockForm,
-  optionHasAnswers,
+  optionsWithAnswers,
   rethrow,
 } from './services';
 
@@ -39,7 +39,7 @@ function optionsOf(input: CreateFieldInput): OptionInput[] {
  */
 async function syncOptions(tx: Tx, fieldId: string, wanted: OptionInput[]) {
   const existing = await tx
-    .select()
+    .select({ id: formFieldOption.id })
     .from(formFieldOption)
     .where(
       and(
@@ -61,38 +61,64 @@ async function syncOptions(tx: Tx, fieldId: string, wanted: OptionInput[]) {
     seen.add(option.id);
   }
 
-  for (const old of existing) {
-    if (seen.has(old.id)) continue;
-    if (await optionHasAnswers(tx, fieldId, old.id)) {
+  // Dibuang: satu query untuk mencari mana yang sudah pernah dipilih, lalu dua
+  // perintah massal — bukan satu pasang query per opsi.
+  const dibuang = existing.map((o) => o.id).filter((id) => !seen.has(id));
+  if (dibuang.length > 0) {
+    const terpakai = await optionsWithAnswers(tx, fieldId, dibuang);
+    const diarsipkan = dibuang.filter((id) => terpakai.has(id));
+    const dihapus = dibuang.filter((id) => !terpakai.has(id));
+    if (diarsipkan.length > 0) {
       await tx
         .update(formFieldOption)
         .set({ archivedAt: new Date() })
-        .where(eq(formFieldOption.id, old.id));
-    } else {
-      await tx.delete(formFieldOption).where(eq(formFieldOption.id, old.id));
+        .where(inArray(formFieldOption.id, diarsipkan));
+    }
+    if (dihapus.length > 0) {
+      await tx
+        .delete(formFieldOption)
+        .where(inArray(formFieldOption.id, dihapus));
     }
   }
 
-  for (const [sortOrder, option] of wanted.entries()) {
-    if (option.id) {
-      await tx
-        .update(formFieldOption)
-        .set({ label: option.label, sortOrder })
-        .where(eq(formFieldOption.id, option.id));
-    } else {
-      await tx
-        .insert(formFieldOption)
-        .values({ fieldId, label: option.label, sortOrder });
-    }
+  const bernomor = wanted.map((option, sortOrder) => ({ ...option, sortOrder }));
+
+  const diperbarui = bernomor.filter((o) => o.id !== undefined);
+  if (diperbarui.length > 0) {
+    const nilai = sql.join(
+      diperbarui.map(
+        (o) =>
+          sql`(${o.id!}::varchar, ${o.label}::varchar, ${o.sortOrder}::integer)`,
+      ),
+      sql`, `,
+    );
+    // `updated_at` diset manual: lihat catatan di `reorder`.
+    await tx.execute(
+      sql`update ${formFieldOption} as o
+          set label = v.label, sort_order = v.sort_order, updated_at = now()
+          from (values ${nilai}) as v(id, label, sort_order)
+          where o.id = v.id and o.field_id = ${fieldId}`,
+    );
+  }
+
+  const ditambahkan = bernomor.filter((o) => o.id === undefined);
+  if (ditambahkan.length > 0) {
+    await tx.insert(formFieldOption).values(
+      ditambahkan.map((o) => ({
+        fieldId,
+        label: o.label,
+        sortOrder: o.sortOrder,
+      })),
+    );
   }
 }
 
 async function countActiveFields(tx: Tx, formId: string) {
-  const rows = await tx
-    .select({ id: formField.id })
+  const [row] = await tx
+    .select({ n: count() })
     .from(formField)
     .where(and(eq(formField.formId, formId), isNull(formField.archivedAt)));
-  return rows.length;
+  return row?.n ?? 0;
 }
 
 export const formFieldRouter = createTRPCRouter({
@@ -148,6 +174,10 @@ export const formFieldRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.db.transaction(async (tx) => {
+          // Same lock as the other field writes: without it two concurrent
+          // updates (or an update racing a delete) read the same field state
+          // and the last writer silently wins.
+          await lockForm(tx, ctx.form.id);
           const field = await getActiveField(tx, ctx.form.id, input.fieldId);
 
           // Old answers were validated against the old type; reinterpreting
@@ -260,14 +290,22 @@ export const formFieldRouter = createTRPCRouter({
             });
           }
 
-          for (const [sortOrder, id] of input.fieldIds.entries()) {
-            await tx
-              .update(formField)
-              .set({ sortOrder })
-              .where(
-                and(eq(formField.id, id), eq(formField.formId, ctx.form.id)),
-              );
-          }
+          // Satu UPDATE untuk semua baris. Casting eksplisit karena parameter
+          // di dalam VALUES tidak punya tipe yang bisa disimpulkan Postgres.
+          const urutan = sql.join(
+            input.fieldIds.map(
+              (id, i) => sql`(${id}::varchar, ${i}::integer)`,
+            ),
+            sql`, `,
+          );
+          // `updated_at` diset manual: `$onUpdate` milik Drizzle hanya jalan
+          // lewat `db.update()`, tidak lewat SQL mentah.
+          await tx.execute(
+            sql`update ${formField} as f
+                set sort_order = v.sort_order, updated_at = now()
+                from (values ${urutan}) as v(id, sort_order)
+                where f.id = v.id and f.form_id = ${ctx.form.id}`,
+          );
         });
         return {
           success: true as const,
