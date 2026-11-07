@@ -228,6 +228,8 @@ table anmategra_form {
   status varchar(16) [not null, default: 'Draft', note: "Draft | Published | Closed (CHECK `form_status_check`)."]
   closes_at "timestamp with time zone" [note: "Tenggat opsional. Formulir menerima jawaban jika Published dan belum lewat tenggat."]
   allow_multiple_submissions boolean [not null, default: false]
+  allow_edit_after_submit boolean [not null, default: false]
+  max_responses integer
   published_at "timestamp with time zone" [note: "Waktu pertama kali dirilis; tidak berubah saat dibuka ulang."]
   created_by varchar(255)
   preview_token varchar(64)
@@ -346,6 +348,7 @@ table anmategra_form_submission {
   user_id varchar(255) [not null]
   ending_id varchar(255)
   submitted_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
     (form_id, user_id) [name: 'form_submission_form_user_idx']

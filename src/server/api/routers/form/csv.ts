@@ -7,6 +7,7 @@ export type ResponseColumn = {
 
 export type ResponseRow = {
   submittedAt: Date;
+  updatedAt: Date;
   name: string | null;
   nim: number | string | null;
   answers: Record<string, unknown>;
@@ -142,7 +143,7 @@ export function formatCsvAnswer(type: string, value: unknown): string {
 }
 
 export function csvHeader(columns: ResponseColumn[]): string {
-  const cells = ['Waktu kirim', 'Nama', 'NIM'];
+  const cells = ['Waktu kirim', 'Diubah pada', 'Nama', 'NIM'];
   for (const column of columns) {
     const suffix = column.archived ? ' (diarsipkan)' : '';
     cells.push(`${stripMarkdownLite(column.label)}${suffix}`);
@@ -153,6 +154,7 @@ export function csvHeader(columns: ResponseColumn[]): string {
 export function csvRow(row: ResponseRow, columns: ResponseColumn[]): string {
   const cells = [
     formatWib(row.submittedAt),
+    formatWib(row.updatedAt),
     escapeCsvCell(row.name),
     escapeCsvCell(row.nim),
   ];

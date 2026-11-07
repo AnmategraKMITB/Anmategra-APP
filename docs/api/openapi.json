@@ -6615,6 +6615,127 @@
         }
       }
     },
+    "/api/trpc/form.updateSubmission": {
+      "post": {
+        "operationId": "form_updateSubmission",
+        "tags": [
+          "form"
+        ],
+        "summary": "form.updateSubmission",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/form_updateSubmission_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/form_updateSubmission_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/kegiatan.getAllByLembaga": {
       "get": {
         "operationId": "kegiatan_getAllByLembaga",
@@ -20888,6 +21009,15 @@
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
+          },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
           }
         },
         "required": [
@@ -20932,6 +21062,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -21068,6 +21207,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -21107,6 +21248,15 @@
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
+          },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
           }
         },
         "required": [
@@ -21151,6 +21301,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -21287,6 +21446,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -27209,6 +27370,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -27921,6 +28091,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -27960,11 +28132,127 @@
           "submittedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "answers": {
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 5000,
+                  "pattern": "^[^\\u0000]*$"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "boolean"
+                },
+                {
+                  "maxItems": 100,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                {
+                  "maxItems": 5,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "itemId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                      },
+                      "driveId": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\u0000]*$"
+                      },
+                      "size": {
+                        "type": "integer",
+                        "minimum": 0,
+                        "maximum": 9007199254740991
+                      },
+                      "mime": {
+                        "type": "string",
+                        "maxLength": 150
+                      },
+                      "url": {
+                        "type": "string",
+                        "maxLength": 2048
+                      },
+                      "eTag": {
+                        "type": "string",
+                        "maxLength": 255
+                      },
+                      "scope": {
+                        "type": "string",
+                        "enum": [
+                          "anyone",
+                          "organization"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "itemId",
+                      "driveId",
+                      "name",
+                      "size",
+                      "mime",
+                      "url",
+                      "scope"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\u0000]*$"
+                      },
+                      {
+                        "maxItems": 10,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255,
+                          "pattern": "^[^\\u0000]*$"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
           }
         },
         "required": [
           "id",
-          "submittedAt"
+          "submittedAt",
+          "updatedAt",
+          "answers"
         ],
         "additionalProperties": false
       },
@@ -28009,6 +28297,21 @@
             "format": "date-time"
           },
           "allowMultipleSubmissions": {
+            "type": "boolean"
+          },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "isOpen": {
+            "type": "boolean"
+          },
+          "isFull": {
             "type": "boolean"
           },
           "owner": {
@@ -28602,6 +28905,10 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
+          "isOpen",
+          "isFull",
           "owner",
           "isAcceptingResponses",
           "hasSubmitted",
@@ -28657,6 +28964,21 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "isOpen": {
+            "type": "boolean"
+          },
+          "isFull": {
+            "type": "boolean"
+          },
           "owner": {
             "type": "object",
             "properties": {
@@ -29248,6 +29570,10 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
+          "isOpen",
+          "isFull",
           "owner",
           "isAcceptingResponses",
           "hasSubmitted",
@@ -29312,6 +29638,15 @@
             },
             "allowMultipleSubmissions": {
               "type": "boolean"
+            },
+            "allowEditAfterSubmit": {
+              "type": "boolean"
+            },
+            "maxResponses": {
+              "nullable": true,
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
             },
             "publishedAt": {
               "nullable": true,
@@ -29454,6 +29789,8 @@
             "status",
             "closesAt",
             "allowMultipleSubmissions",
+            "allowEditAfterSubmit",
+            "maxResponses",
             "publishedAt",
             "previewEnabled",
             "previewToken",
@@ -29520,6 +29857,15 @@
             "allowMultipleSubmissions": {
               "type": "boolean"
             },
+            "allowEditAfterSubmit": {
+              "type": "boolean"
+            },
+            "maxResponses": {
+              "nullable": true,
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            },
             "publishedAt": {
               "nullable": true,
               "type": "string",
@@ -29661,6 +30007,8 @@
             "status",
             "closesAt",
             "allowMultipleSubmissions",
+            "allowEditAfterSubmit",
+            "maxResponses",
             "publishedAt",
             "previewEnabled",
             "previewToken",
@@ -29749,6 +30097,10 @@
                 "type": "string",
                 "format": "date-time"
               },
+              "updatedAt": {
+                "type": "string",
+                "format": "date-time"
+              },
               "respondent": {
                 "type": "object",
                 "properties": {
@@ -29782,6 +30134,7 @@
             "required": [
               "id",
               "submittedAt",
+              "updatedAt",
               "respondent",
               "answers"
             ],
@@ -29880,6 +30233,10 @@
                   "type": "string",
                   "format": "date-time"
                 },
+                "updatedAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
                 "respondent": {
                   "type": "object",
                   "properties": {
@@ -29913,6 +30270,7 @@
               "required": [
                 "id",
                 "submittedAt",
+                "updatedAt",
                 "respondent",
                 "answers"
               ],
@@ -30343,6 +30701,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -30479,6 +30846,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -31035,6 +31404,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -31171,6 +31549,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -31242,6 +31622,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -31378,6 +31767,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -31540,6 +31931,10 @@
             "type": "string",
             "format": "date-time"
           },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
           "ending": {
             "nullable": true,
             "type": "object",
@@ -31566,6 +31961,7 @@
         "required": [
           "submissionId",
           "submittedAt",
+          "updatedAt",
           "ending"
         ],
         "additionalProperties": false
@@ -31598,6 +31994,15 @@
           },
           "allowMultipleSubmissions": {
             "type": "boolean"
+          },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000000
           },
           "settings": {
             "type": "object",
@@ -31737,6 +32142,15 @@
           "allowMultipleSubmissions": {
             "type": "boolean"
           },
+          "allowEditAfterSubmit": {
+            "type": "boolean"
+          },
+          "maxResponses": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
           "publishedAt": {
             "nullable": true,
             "type": "string",
@@ -31873,6 +32287,8 @@
           "status",
           "closesAt",
           "allowMultipleSubmissions",
+          "allowEditAfterSubmit",
+          "maxResponses",
           "publishedAt",
           "previewEnabled",
           "previewToken",
@@ -31881,6 +32297,192 @@
           "welcome",
           "createdAt",
           "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "form_updateSubmission_input": {
+        "type": "object",
+        "properties": {
+          "formId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "pattern": "^[^\\u0000]*$"
+          },
+          "answers": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "fieldId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255,
+                  "pattern": "^[^\\u0000]*$"
+                },
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "maxLength": 5000,
+                      "pattern": "^[^\\u0000]*$"
+                    },
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "boolean"
+                    },
+                    {
+                      "maxItems": 100,
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 255,
+                        "pattern": "^[^\\u0000]*$"
+                      }
+                    },
+                    {
+                      "maxItems": 5,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "itemId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255
+                          },
+                          "driveId": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255
+                          },
+                          "name": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255,
+                            "pattern": "^[^\\u0000]*$"
+                          },
+                          "size": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "maximum": 9007199254740991
+                          },
+                          "mime": {
+                            "type": "string",
+                            "maxLength": 150
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048
+                          },
+                          "eTag": {
+                            "type": "string",
+                            "maxLength": 255
+                          },
+                          "scope": {
+                            "type": "string",
+                            "enum": [
+                              "anyone",
+                              "organization"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "itemId",
+                          "driveId",
+                          "name",
+                          "size",
+                          "mime",
+                          "url",
+                          "scope"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "additionalProperties": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 255,
+                            "pattern": "^[^\\u0000]*$"
+                          },
+                          {
+                            "maxItems": 10,
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 255,
+                              "pattern": "^[^\\u0000]*$"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "fieldId",
+                "value"
+              ]
+            }
+          }
+        },
+        "required": [
+          "formId",
+          "answers"
+        ]
+      },
+      "form_updateSubmission_output": {
+        "type": "object",
+        "properties": {
+          "submissionId": {
+            "type": "string"
+          },
+          "submittedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ending": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "nullable": true,
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "title",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "submissionId",
+          "submittedAt",
+          "updatedAt",
+          "ending"
         ],
         "additionalProperties": false
       },

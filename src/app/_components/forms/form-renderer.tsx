@@ -193,18 +193,25 @@ export function FormRenderer({
   mode,
   onSubmit,
   storageKey,
+  initialAnswers,
 }: {
   form: RendererForm;
-  mode: 'preview' | 'fill';
+  mode: 'preview' | 'fill' | 'edit';
   onSubmit?: (answers: Record<string, unknown>) => Promise<FillSubmitResult>;
   storageKey?: string;
+  /** Jawaban yang sudah tersimpan, saat menyunting kiriman sebelumnya. */
+  initialAnswers?: Record<string, unknown>;
 }) {
-  const filling = mode === 'fill';
+  const filling = mode !== 'preview';
+  const editing = mode === 'edit';
+  // Draf hanya untuk pengisian baru: saat menyunting, sumber kebenarannya
+  // jawaban server, bukan draf lama di perangkat.
   const draftKey =
-    filling && form.settings.autosaveDraft ? storageKey : undefined;
-  const [answers, setAnswers] = useState<Record<string, unknown>>(() =>
-    readDraft(draftKey, form.fields),
-  );
+    mode === 'fill' && form.settings.autosaveDraft ? storageKey : undefined;
+  const [answers, setAnswers] = useState<Record<string, unknown>>(() => ({
+    ...initialAnswers,
+    ...readDraft(draftKey, form.fields),
+  }));
   // Pertanyaan dan bagian yang tampil menurut jawaban saat ini; yang
   // tersembunyi tidak ikut dihitung, divalidasi, atau dikirim.
   const visibility = computeVisibility(
@@ -386,9 +393,11 @@ export function FormRenderer({
         <p className="mt-2 whitespace-pre-line text-neutral-700">
           {ending
             ? ending.description
-            : filling
-              ? 'Jawabanmu sudah terkirim.'
-              : 'Ini hanya pratinjau, jadi jawaban tidak dikirim.'}
+            : editing
+              ? 'Perubahan jawabanmu sudah tersimpan.'
+              : filling
+                ? 'Jawabanmu sudah terkirim.'
+                : 'Ini hanya pratinjau, jadi jawaban tidak dikirim.'}
         </p>
         {ending && !filling ? (
           <p className="mt-2 text-sm text-neutral-700">
@@ -610,11 +619,15 @@ export function FormRenderer({
         </Button>
         <Button className={primary} onClick={next} disabled={submitting}>
           {submitting
-            ? 'Mengirim…'
+            ? editing
+              ? 'Menyimpan…'
+              : 'Mengirim…'
             : page?.kind === 'welcome'
               ? (form.welcome.buttonLabel ?? 'Mulai')
               : pageIndex >= lastIndex
-                ? 'Kirim'
+                ? editing
+                  ? 'Simpan perubahan'
+                  : 'Kirim'
                 : 'Lanjut'}
         </Button>
       </div>
