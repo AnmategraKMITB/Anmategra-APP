@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { api } from '~/trpc/server';
 
-import { loadManagedOprec } from './access';
+import { loadManagedOprec, canOpenResults } from './access';
 import { ApplicantsView } from './applicants-view';
 import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';
@@ -19,6 +19,7 @@ export async function ApplicantsPage({
   const managed = await loadManagedOprec(recruitmentId);
   if (managed?.periodId !== kegiatanId) notFound();
   const event = await api.event.getByID({ id: kegiatanId });
+  const showHasil = await canOpenResults(recruitmentId);
 
   return (
     <ApplicantsView
@@ -34,6 +35,7 @@ export async function ApplicantsPage({
           current="pendaftar"
           showPendaftar
           showPenempatan
+          showHasil={showHasil}
         />
       }
     />

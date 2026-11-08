@@ -11,6 +11,7 @@ import { ClientFormRenderer } from './client-form-renderer';
 import type { FillSubmitResult } from './form-renderer';
 import { Notice } from './notice';
 import { buildSubmitPayload, extractFieldErrors } from './submit-payload';
+import { ApplicantResultCard } from './applicant-result-card';
 
 type Submission = NonNullable<RouterOutputs['form']['getMySubmission']>;
 
@@ -28,9 +29,12 @@ const when = (date: Date) =>
 export function SubmittedFill({
   form,
   submission,
+  recruitmentId = null,
 }: {
   form: GetPublicFormOutput;
   submission: Submission;
+  /** Oprec pemilik formulir ini, bila ada. */
+  recruitmentId?: string | null;
 }) {
   const [editing, setEditing] = useState(false);
   const update = api.form.updateSubmission.useMutation();
@@ -61,27 +65,30 @@ export function SubmittedFill({
     const changed =
       submission.updatedAt.getTime() !== submission.submittedAt.getTime();
     return (
-      <Notice
-        title="Kamu sudah mengirim jawaban"
-        action={
-          <Button variant="light_blue" onClick={() => setEditing(true)}>
-            Ubah jawaban
-          </Button>
-        }
-      >
-        <p>
-          Jawabanmu untuk “{form.title}” terkirim pada{' '}
-          {when(submission.submittedAt)} WIB.
-        </p>
-        {changed ? (
-          <p className="mt-1">
-            Terakhir diubah {when(submission.updatedAt)} WIB.
+      <div className="grid gap-3">
+        <Notice
+          title="Kamu sudah mengirim jawaban"
+          action={
+            <Button variant="light_blue" onClick={() => setEditing(true)}>
+              Ubah jawaban
+            </Button>
+          }
+        >
+          <p>
+            Jawabanmu untuk “{form.title}” terkirim pada{' '}
+            {when(submission.submittedAt)} WIB.
           </p>
-        ) : null}
-        <p className="mt-2 text-sm">
-          Kamu masih bisa mengubah jawaban selama formulir belum ditutup.
-        </p>
-      </Notice>
+          {changed ? (
+            <p className="mt-1">
+              Terakhir diubah {when(submission.updatedAt)} WIB.
+            </p>
+          ) : null}
+          <p className="mt-2 text-sm">
+            Kamu masih bisa mengubah jawaban selama formulir belum ditutup.
+          </p>
+        </Notice>
+        <ApplicantResultCard recruitmentId={recruitmentId} />
+      </div>
     );
   }
 

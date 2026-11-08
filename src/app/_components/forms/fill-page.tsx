@@ -4,9 +4,10 @@ import { notFound, redirect } from 'next/navigation';
 import type { GetPublicFormOutput } from '~/server/api/types/form.type';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { mahasiswa } from '~/server/db/schema';
+import { mahasiswa, recruitment } from '~/server/db/schema';
 import { api } from '~/trpc/server';
 
+import { ApplicantResultCard } from './applicant-result-card';
 import { FillForm } from './fill-form';
 import { DEFAULT_CLOSED_MESSAGE, Notice } from './notice';
 import { RichText } from './rich-text-view';
@@ -30,6 +31,11 @@ export async function FillPage({ formId }: { formId: string }) {
   }
 
   const userId = session.user.id;
+  const [rec] = await db
+    .select({ id: recruitment.id })
+    .from(recruitment)
+    .where(eq(recruitment.formId, formId));
+  const recruitmentId = rec?.id ?? null;
   const [student] =
     session.user.role === 'mahasiswa'
       ? await db
@@ -51,7 +57,13 @@ export async function FillPage({ formId }: { formId: string }) {
     // Kuota hanya membatasi kiriman baru; menyunting jawaban sendiri tetap
     // boleh selama form masih terbuka dan saklar edit menyala.
     if (form.isOpen && form.allowEditAfterSubmit && mine) {
-      return <SubmittedFill form={form} submission={mine} />;
+      return (
+        <SubmittedFill
+          form={form}
+          submission={mine}
+          recruitmentId={recruitmentId}
+        />
+      );
     }
     const when = mine?.submittedAt.toLocaleString('id-ID', {
       dateStyle: 'long',
@@ -59,11 +71,14 @@ export async function FillPage({ formId }: { formId: string }) {
       timeZone: 'Asia/Jakarta',
     });
     return (
-      <Notice title="Kamu sudah mengirim jawaban">
-        {when
-          ? `Jawabanmu untuk “${form.title}” terkirim pada ${when} WIB.`
-          : null}
-      </Notice>
+      <div className="grid gap-3">
+        <Notice title="Kamu sudah mengirim jawaban">
+          {when
+            ? `Jawabanmu untuk “${form.title}” terkirim pada ${when} WIB.`
+            : null}
+        </Notice>
+        <ApplicantResultCard recruitmentId={recruitmentId} />
+      </div>
     );
   }
 

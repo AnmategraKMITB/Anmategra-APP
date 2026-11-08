@@ -112,7 +112,7 @@ export function ApplicantsSummary({
             Per pilihan
           </h2>
           <div
-            role="tablist"
+            role="group"
             aria-label="Urutan pilihan"
             className="flex gap-1 rounded-full bg-neutral-200 p-1"
           >
@@ -120,8 +120,7 @@ export function ApplicantsSummary({
               <button
                 key={r.rank}
                 type="button"
-                role="tab"
-                aria-selected={rank === r.rank}
+                aria-pressed={rank === r.rank}
                 onClick={() => setRank(r.rank)}
                 className={cn(
                   'rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',

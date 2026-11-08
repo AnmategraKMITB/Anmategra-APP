@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { resultsMode } from '~/lib/oprec/results';
 import { canManageEvent } from '~/server/api/access';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { getServerAuthSession } from '~/server/auth';
@@ -55,4 +56,33 @@ export async function loadAssessableOprec(recruitmentId: string) {
     row,
   );
   return access ? { recruitment: row, access } : null;
+}
+
+/**
+ * Apakah pengguna ini boleh membuka menu Hasil (S20). Aturannya sama dengan
+ * `resultsOverview` di server; dipakai untuk menampilkan tab dan rute.
+ */
+export async function canOpenResults(recruitmentId: string) {
+  const session = await getServerAuthSession();
+  if (!session) return false;
+  const [row] = await db
+    .select()
+    .from(recruitment)
+    .where(eq(recruitment.id, recruitmentId));
+  if (!row) return false;
+  const access = await resolveAssessAccess(
+    db,
+    {
+      id: session.user.id,
+      role: session.user.role,
+      lembagaId: session.user.lembagaId,
+    },
+    row,
+  );
+  if (!access) return false;
+  if (access.isAdmin) return true;
+  const mode = resultsMode(row.setupAnswers);
+  if (mode === 'admin') return false;
+  if (mode === 'admin_ketua') return access.deciderDivisionIds.size > 0;
+  return access.divisionIds.size > 0;
 }

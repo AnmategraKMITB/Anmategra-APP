@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
-import { loadAssessableOprec } from './access';
+import { canOpenResults, loadAssessableOprec } from './access';
 import { NilaiView } from './nilai/nilai-view';
 import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';
@@ -18,6 +18,7 @@ export async function NilaiPage({
 }) {
   const found = await loadAssessableOprec(recruitmentId);
   if (found?.recruitment.periodId !== kegiatanId) notFound();
+  const showHasil = await canOpenResults(recruitmentId);
 
   return (
     <div className="py-6 sm:py-8">
@@ -38,6 +39,7 @@ export async function NilaiPage({
         showPenempatan={
           found.access.isAdmin || found.access.deciderDivisionIds.size > 0
         }
+        showHasil={showHasil}
       />
       <div className="mt-6">
         <NilaiView recruitmentId={recruitmentId} />

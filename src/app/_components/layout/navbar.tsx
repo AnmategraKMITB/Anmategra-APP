@@ -79,6 +79,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   variant="ghost"
                   size="icon"
                   className="w-8 h-8"
+                  aria-label="Cari"
                 >
                   <Search className="w-5 h-5" />
                 </Button>
@@ -88,6 +89,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   variant="ghost"
                   size="icon"
                   className="w-8 h-8"
+                  aria-label="Buka menu"
                 >
                   <Menu className="w-6 h-6" />
                 </Button>
@@ -103,6 +105,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   variant="ghost"
                   size="icon"
                   className="w-9 h-9"
+                  aria-label="Buka menu"
                 >
                   <Menu className="w-5 h-5" />
                 </Button>

@@ -61,7 +61,7 @@ export function NilaiView({
           <div className="mt-6 grid gap-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div
-                role="tablist"
+                role="group"
                 aria-label="Lingkup penilaian"
                 className="flex flex-wrap gap-1.5"
               >
@@ -71,8 +71,7 @@ export function NilaiView({
                     <button
                       key={item.scope}
                       type="button"
-                      role="tab"
-                      aria-selected={selected}
+                      aria-pressed={selected}
                       onClick={() => setScope(item.scope)}
                       className={`inline-flex h-9 items-center rounded-full border px-3 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
                         selected

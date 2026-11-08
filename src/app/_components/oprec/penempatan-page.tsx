@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { api } from '~/trpc/server';
 
-import { loadAssessableOprec } from './access';
+import { canOpenResults, loadAssessableOprec } from './access';
 import { OprecTabs } from './oprec-tabs';
 import { PlacementView } from './placement-view';
 import { type OprecBase } from './status';
@@ -24,6 +24,7 @@ export async function PenempatanPage({
   if (!canDecide) notFound();
 
   const event = await api.event.getByID({ id: kegiatanId });
+  const showHasil = await canOpenResults(recruitmentId);
 
   return (
     <PlacementView
@@ -40,6 +41,7 @@ export async function PenempatanPage({
           current="penempatan"
           showPendaftar={isAdmin}
           showPenempatan
+          showHasil={showHasil}
         />
       }
     />

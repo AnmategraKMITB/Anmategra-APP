@@ -7,6 +7,7 @@ const TABS = [
   ['pendaftar', 'Pendaftar'],
   ['penempatan', 'Penempatan'],
   ['nilai', 'Nilai'],
+  ['hasil', 'Hasil'],
 ] as const;
 
 /** Sub-navigasi satu oprec; "Pendaftar" hanya untuk pengelola oprec. */
@@ -17,24 +18,27 @@ export function OprecTabs({
   current,
   showPendaftar,
   showPenempatan = false,
+  showHasil = false,
 }: {
   basePath: OprecBase;
   kegiatanId: string;
   recruitmentId: string;
-  current: 'pendaftar' | 'penempatan' | 'nilai';
+  current: 'pendaftar' | 'penempatan' | 'nilai' | 'hasil';
   showPendaftar: boolean;
   showPenempatan?: boolean;
+  showHasil?: boolean;
 }) {
   const tabs = TABS.filter(
     ([id]) =>
       (id !== 'pendaftar' || showPendaftar) &&
-      (id !== 'penempatan' || showPenempatan),
+      (id !== 'penempatan' || showPenempatan) &&
+      (id !== 'hasil' || showHasil),
   );
   if (tabs.length < 2) return null;
   return (
     <nav
       aria-label="Bagian oprec"
-      className="mt-6 flex gap-1 overflow-x-auto border-b border-neutral-400"
+      className="mt-6 flex flex-wrap gap-1 border-b border-neutral-400"
     >
       {tabs.map(([id, label]) => (
         <Link
