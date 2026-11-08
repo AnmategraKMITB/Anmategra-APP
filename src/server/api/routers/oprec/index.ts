@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, inArray, max, notInArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNull, max } from 'drizzle-orm';
+import { MAX_RULES } from '~/lib/forms/conditions';
 import {
   createTRPCRouter,
   oprecPeriodProcedure,
@@ -9,11 +10,11 @@ import {
   application,
   applicationChoice,
   form,
+  formField,
   formSubmission,
   recruitment,
   recruitmentDivision,
   recruitmentEligibilityRule,
-  recruitmentSectionBinding,
   recruitmentWave,
 } from '~/server/db/schema';
 
@@ -32,7 +33,10 @@ import {
   SetSectionBindingsInputSchema,
   UpdateRecruitmentInputSchema,
 } from '../../types/oprec.type';
+import { lockForm } from '../form/services';
+import { applicantProcedures } from './applicants';
 import {
+  applySectionBinding,
   assertDivisionTarget,
   assertSectionsOfForm,
   conflict,
@@ -41,6 +45,7 @@ import {
   notFound,
   pgCode,
 } from './services';
+import { setupProcedures } from './setup';
 
 const OK = { success: true };
 
@@ -48,6 +53,8 @@ const OK = { success: true };
 const LOCKED_AFTER_APPLICATIONS = ['minChoices', 'maxChoices'] as const;
 
 export const oprecRouter = createTRPCRouter({
+  ...applicantProcedures,
+  ...setupProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {
@@ -107,6 +114,15 @@ export const oprecRouter = createTRPCRouter({
               'Formulir ini sudah menerima jawaban, sehingga tidak bisa dipakai untuk oprec. Buat formulir baru.',
             );
           }
+          // Formulir oprec: satu respons per akun, tanpa edit, tanpa kuota respons.
+          await tx
+            .update(form)
+            .set({
+              allowMultipleSubmissions: false,
+              allowEditAfterSubmit: false,
+              maxResponses: null,
+            })
+            .where(eq(form.id, input.formId));
           const [row] = await tx
             .insert(recruitment)
             .values({
@@ -191,6 +207,21 @@ export const oprecRouter = createTRPCRouter({
             .select({ n: count() })
             .from(recruitmentDivision)
             .where(eq(recruitmentDivision.recruitmentId, current.id));
+          const [choice] = await tx
+            .select({ n: count() })
+            .from(formField)
+            .where(
+              and(
+                eq(formField.formId, current.formId),
+                eq(formField.type, 'unit_choice'),
+                isNull(formField.archivedAt),
+              ),
+            );
+          if ((choice?.n ?? 0) === 0) {
+            conflict(
+              'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
+            );
+          }
           if ((divs?.n ?? 0) === 0) {
             conflict(
               'Pilih minimal satu tujuan penempatan sebelum membuka oprec.',
@@ -434,50 +465,20 @@ export const oprecRouter = createTRPCRouter({
         input.formSectionId,
       ]);
       const divisionIds = [...new Set(input.divisionIds)];
+      if (divisionIds.length > MAX_RULES) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Satu bagian formulir maksimal diikat ke ${MAX_RULES} tujuan.`,
+        });
+      }
       await ctx.db.transaction(async (tx) => {
-        if (divisionIds.length > 0) {
-          const rows = await tx
-            .select({ id: recruitmentDivision.id })
-            .from(recruitmentDivision)
-            .where(
-              and(
-                eq(recruitmentDivision.recruitmentId, input.recruitmentId),
-                inArray(recruitmentDivision.id, divisionIds),
-              ),
-            );
-          if (rows.length !== divisionIds.length) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Ada tujuan yang bukan milik oprec ini.',
-            });
-          }
-        }
-        const sameSection = and(
-          eq(recruitmentSectionBinding.recruitmentId, input.recruitmentId),
-          eq(recruitmentSectionBinding.formSectionId, input.formSectionId),
-        );
-        await tx
-          .delete(recruitmentSectionBinding)
-          .where(
-            divisionIds.length > 0
-              ? and(
-                  sameSection,
-                  notInArray(recruitmentSectionBinding.divisionId, divisionIds),
-                )
-              : sameSection,
-          );
-        if (divisionIds.length > 0) {
-          await tx
-            .insert(recruitmentSectionBinding)
-            .values(
-              divisionIds.map((divisionId) => ({
-                recruitmentId: input.recruitmentId,
-                formSectionId: input.formSectionId,
-                divisionId,
-              })),
-            )
-            .onConflictDoNothing();
-        }
+        await lockForm(tx, ctx.recruitment.formId);
+        await applySectionBinding(tx, {
+          recruitmentId: input.recruitmentId,
+          formId: ctx.recruitment.formId,
+          formSectionId: input.formSectionId,
+          divisionIds,
+        });
       });
       return OK;
     }),

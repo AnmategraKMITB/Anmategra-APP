@@ -10,6 +10,7 @@ type FieldType =
   | 'link'
   | 'matrix'
   | 'scale'
+  | 'unit_choice'
   | 'file';
 
 export type SummaryField = {
@@ -356,6 +357,8 @@ export function buildSummary(
     const mine = byField.get(field.id) ?? [];
     switch (field.type) {
       case 'text_block':
+      // Ringkasan pilihan divisi ada di halaman Pendaftar, bukan di sini.
+      case 'unit_choice':
         break;
       case 'single_choice':
       case 'multiple_choice':

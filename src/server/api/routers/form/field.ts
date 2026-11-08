@@ -24,6 +24,7 @@ import {
   type Queryable,
   type Tx,
   assertOwnedImage,
+  assertUnitChoiceAllowed,
   countAnswerableFields,
   enforceConditions,
   fieldHasAnswers,
@@ -227,6 +228,12 @@ export const formFieldRouter = createTRPCRouter({
             await assertOwnedImage(tx, ctx.form.id, input.image);
           }
 
+          if (input.type === 'unit_choice') {
+            await assertUnitChoiceAllowed(tx, ctx.form.id, {
+              willingFieldId: input.config.willingFieldId,
+            });
+          }
+
           // Archived fields count too, so a new field never reuses a slot.
           const [last] = await tx
             .select({ value: max(formField.sortOrder) })
@@ -240,7 +247,8 @@ export const formFieldRouter = createTRPCRouter({
               type: input.type,
               label: input.label,
               description: input.description ?? null,
-              required: input.required,
+              // Blok Pilihan selalu wajib: pendaftar tanpa pilihan tidak sah.
+              required: input.type === 'unit_choice' ? true : input.required,
               config: configOf(input),
               condition: input.condition ?? null,
               image: input.image ?? null,
@@ -307,13 +315,20 @@ export const formFieldRouter = createTRPCRouter({
             });
           }
 
+          if (input.type === 'unit_choice') {
+            await assertUnitChoiceAllowed(tx, ctx.form.id, {
+              willingFieldId: input.config.willingFieldId,
+              selfId: field.id,
+            });
+          }
+
           await tx
             .update(formField)
             .set({
               type: input.type,
               label: input.label,
               description: input.description ?? null,
-              required: input.required,
+              required: input.type === 'unit_choice' ? true : input.required,
               config: configOf(input),
               ...(input.condition === undefined
                 ? {}

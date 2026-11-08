@@ -187,6 +187,8 @@ export function defaultFieldInput(
       };
     case 'link':
       return { ...base, type: 'link', config: {} };
+    case 'unit_choice':
+      return { ...base, type: 'unit_choice', config: {} };
     case 'file':
       return {
         ...base,
@@ -304,6 +306,12 @@ export function fieldToUpdateInput(
           ...compact({ minLabel: c.minLabel, maxLabel: c.maxLabel }),
           tampilan: c.tampilan === 'bintang' ? 'bintang' : 'angka',
         },
+      };
+    case 'unit_choice':
+      return {
+        ...base,
+        type: 'unit_choice',
+        config: compact({ willingFieldId: c.willingFieldId }),
       };
   }
 }

@@ -168,3 +168,95 @@ export const SetSectionBindingsInputSchema = z.object({
 });
 
 export const OkOutputSchema = z.object({ success: z.boolean() });
+
+// ---------------------------------------------------------------------------
+// Pendaftar (ringkasan baca-saja)
+// ---------------------------------------------------------------------------
+
+export const APPLICANTS_MAX_PAGE_SIZE = 500;
+export const APPLICANT_SORTS = [
+  'nama',
+  'gelombang',
+  'angkatan',
+  'prodi',
+  'waktu',
+] as const;
+export const APPLICANT_GROUPS = [
+  'tanpa',
+  'gelombang',
+  'pilihan1',
+  'angkatan',
+  'prodi',
+] as const;
+
+export const ApplicantsListInputSchema = z.object({
+  recruitmentId: id,
+  /** Cocok dengan nama atau NIM. */
+  search: z.string().trim().max(100).optional(),
+  waveId: id.optional(),
+  /** Tujuan yang ada di pilihan mana pun. */
+  divisionId: id.optional(),
+  angkatan: z.number().int().optional(),
+  prodi: z.string().max(255).optional(),
+  sort: z.enum(APPLICANT_SORTS).default('nama'),
+  groupBy: z.enum(APPLICANT_GROUPS).default('tanpa'),
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(APPLICANTS_MAX_PAGE_SIZE).default(50),
+});
+
+export const ApplicantDetailInputSchema = z.object({
+  recruitmentId: id,
+  applicationId: id,
+});
+
+// ---------------------------------------------------------------------------
+// Setup oprec (wizard)
+// ---------------------------------------------------------------------------
+
+export const SETUP_MAX_DIVISIONS = 200;
+export const SETUP_MAX_ATTACHMENTS = 10;
+export const SETUP_GROUPINGS = ['per_divisi', 'satu_bagian'] as const;
+
+export const SetupOptionsInputSchema = z.object({
+  eventId: id,
+  /** Periode sumber organogram; bawaan periode oprec sendiri. */
+  sourcePeriodId: id.optional(),
+});
+
+export const SetupFormChoiceSchema = z.discriminatedUnion('mode', [
+  z.object({
+    mode: z.literal('template'),
+    title: z.string().trim().min(1).max(255).optional(),
+  }),
+  z.object({ mode: z.literal('existing'), formId: id }),
+]);
+
+export const CreateFromSetupInputSchema = z.object({
+  eventId: id,
+  name: RecruitmentSettingsShape.name,
+  form: SetupFormChoiceSchema,
+  divisions: z
+    .array(z.object({ unitId: id, positionId: id }))
+    .min(1, 'Pilih minimal satu tujuan.')
+    .max(SETUP_MAX_DIVISIONS),
+  minChoices: RecruitmentSettingsShape.minChoices,
+  maxChoices: RecruitmentSettingsShape.maxChoices,
+  allowRedirect: z.boolean().default(false),
+  grouping: z.enum(SETUP_GROUPINGS).default('per_divisi'),
+  /** Nama lampiran wajib (tautan), mis. "Twibbon". */
+  attachments: z
+    .array(z.string().trim().min(1).max(120))
+    .max(SETUP_MAX_ATTACHMENTS)
+    .default([]),
+  waves: z.array(WaveInputSchema).max(MAX_WAVES_PER_RECRUITMENT).default([]),
+  eligibility: z
+    .object({
+      match: z.enum(ELIGIBILITY_MATCHES),
+      rules: z.array(EligibilityRuleInputSchema).max(MAX_ELIGIBILITY_RULES),
+    })
+    .default({ match: 'all', rules: [] }),
+  /** Pengaturan penilaian dan hasil yang sudah punya kolom; lainnya cukup di `answers`. */
+  settings: RecruitmentSettingsPatchSchema.default({}),
+  /** Jawaban mentah wizard S1-S23, disimpan untuk riwayat. */
+  answers: z.record(z.string(), z.unknown()).default({}),
+});

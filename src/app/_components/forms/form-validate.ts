@@ -155,6 +155,12 @@ export function validateAnswer(
         : 'Tautan harus berupa URL http atau https yang valid.';
     }
 
+    case 'unit_choice':
+      // Jumlah dan keabsahan pilihan dicek server terhadap pengaturan oprec.
+      return Array.isArray(value) && value.every((v) => typeof v === 'string')
+        ? null
+        : `${label} harus berupa daftar pilihan.`;
+
     case 'file': {
       if (!isFileAnswerList(value)) return `Berkas pada ${label} tidak valid.`;
       return fileRuleProblem(value, c);

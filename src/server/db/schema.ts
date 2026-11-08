@@ -1469,6 +1469,8 @@ export const FORM_FIELD_TYPES = [
   'matrix',
   'scale',
   'file',
+  // Pilihan divisi untuk form terikat oprec; paling banyak satu per form.
+  'unit_choice',
 ] as const;
 export type FormFieldType = (typeof FORM_FIELD_TYPES)[number];
 
@@ -1604,6 +1606,10 @@ export const formField = createTable(
       table.sectionId,
       table.sortOrder,
     ),
+    // Satu blok Pilihan (unit_choice) aktif per form.
+    unitChoiceUnique: uniqueIndex('form_field_unit_choice_unique')
+      .on(table.formId)
+      .where(sql`${table.type} = 'unit_choice' AND ${table.archivedAt} IS NULL`),
   }),
 );
 

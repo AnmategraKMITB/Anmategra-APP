@@ -11982,6 +11982,384 @@
         }
       }
     },
+    "/api/trpc/oprec.applicantDetail": {
+      "get": {
+        "operationId": "oprec_applicantDetail",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.applicantDetail",
+        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_applicantDetail_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.applicants": {
+      "get": {
+        "operationId": "oprec_applicants",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.applicants",
+        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_applicants_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.applicantSummary": {
+      "get": {
+        "operationId": "oprec_applicantSummary",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.applicantSummary",
+        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_applicantSummary_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
     "/api/trpc/oprec.create": {
       "post": {
         "operationId": "oprec_create",
@@ -12091,6 +12469,127 @@
                 "properties": {
                   "json": {
                     "$ref": "#/components/schemas/oprec_create_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.createFromSetup": {
+      "post": {
+        "operationId": "oprec_createFromSetup",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.createFromSetup",
+        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_createFromSetup_input"
                   },
                   "meta": {
                     "type": "object",
@@ -13321,6 +13820,132 @@
             }
           }
         }
+      }
+    },
+    "/api/trpc/oprec.setupOptions": {
+      "get": {
+        "operationId": "oprec_setupOptions",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.setupOptions",
+        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_setupOptions_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "/api/trpc/oprec.update": {
@@ -25908,6 +26533,178 @@
               "label",
               "formId"
             ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "unit_choice"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "willingFieldId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "image": {
+                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "alt": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 255,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "required": [
+                  "url",
+                  "key"
+                ],
+                "additionalProperties": false
+              },
+              "condition": {
+                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "cocok": {
+                    "type": "string",
+                    "enum": [
+                      "semua",
+                      "salah-satu"
+                    ]
+                  },
+                  "aturan": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "jenis": {
+                          "type": "string",
+                          "enum": [
+                            "jawaban"
+                          ]
+                        },
+                        "fieldId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255,
+                          "pattern": "^[^\\u0000]*$"
+                        },
+                        "op": {
+                          "type": "string",
+                          "maxLength": 32
+                        },
+                        "nilai": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 200,
+                                  "pattern": "^[^\\u0000]*$"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            {
+                              "maxItems": 50,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            }
+                          ]
+                        },
+                        "nilai2": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 200,
+                              "pattern": "^[^\\u0000]*$"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "jenis",
+                        "fieldId",
+                        "op"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "cocok",
+                  "aturan"
+                ],
+                "additionalProperties": false
+              },
+              "clearDependents": {
+                "type": "boolean"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "description": {
+                "nullable": true,
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "required": {
+                "default": false,
+                "type": "boolean"
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "sectionId": {
+                "nullable": true,
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\u0000]*$"
+              }
+            },
+            "required": [
+              "type",
+              "config",
+              "label",
+              "formId"
+            ]
           }
         ]
       },
@@ -25931,7 +26728,8 @@
               "link",
               "matrix",
               "scale",
-              "file"
+              "file",
+              "unit_choice"
             ]
           },
           "label": {
@@ -26064,6 +26862,9 @@
                   "anyone",
                   "organization"
                 ]
+              },
+              "willingFieldId": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -28629,6 +29430,178 @@
               "formId",
               "fieldId"
             ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "unit_choice"
+                ]
+              },
+              "config": {
+                "type": "object",
+                "properties": {
+                  "willingFieldId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "image": {
+                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "maxLength": 2048
+                  },
+                  "key": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  },
+                  "alt": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 255,
+                    "pattern": "^[^\\u0000]*$"
+                  }
+                },
+                "required": [
+                  "url",
+                  "key"
+                ],
+                "additionalProperties": false
+              },
+              "condition": {
+                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "cocok": {
+                    "type": "string",
+                    "enum": [
+                      "semua",
+                      "salah-satu"
+                    ]
+                  },
+                  "aturan": {
+                    "maxItems": 10,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "jenis": {
+                          "type": "string",
+                          "enum": [
+                            "jawaban"
+                          ]
+                        },
+                        "fieldId": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 255,
+                          "pattern": "^[^\\u0000]*$"
+                        },
+                        "op": {
+                          "type": "string",
+                          "maxLength": 32
+                        },
+                        "nilai": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "type": "string",
+                                  "maxLength": 200,
+                                  "pattern": "^[^\\u0000]*$"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            },
+                            {
+                              "maxItems": 50,
+                              "type": "array",
+                              "items": {
+                                "type": "string",
+                                "maxLength": 200
+                              }
+                            }
+                          ]
+                        },
+                        "nilai2": {
+                          "anyOf": [
+                            {
+                              "type": "string",
+                              "maxLength": 200,
+                              "pattern": "^[^\\u0000]*$"
+                            },
+                            {
+                              "type": "number"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "jenis",
+                        "fieldId",
+                        "op"
+                      ],
+                      "additionalProperties": false
+                    }
+                  }
+                },
+                "required": [
+                  "cocok",
+                  "aturan"
+                ],
+                "additionalProperties": false
+              },
+              "clearDependents": {
+                "type": "boolean"
+              },
+              "label": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "description": {
+                "nullable": true,
+                "type": "string",
+                "maxLength": 2000,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "required": {
+                "default": false,
+                "type": "boolean"
+              },
+              "formId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\u0000]*$"
+              },
+              "fieldId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255,
+                "pattern": "^[^\\u0000]*$"
+              }
+            },
+            "required": [
+              "type",
+              "config",
+              "label",
+              "formId",
+              "fieldId"
+            ]
           }
         ]
       },
@@ -28652,7 +29625,8 @@
               "link",
               "matrix",
               "scale",
-              "file"
+              "file",
+              "unit_choice"
             ]
           },
           "label": {
@@ -28785,6 +29759,9 @@
                   "anyone",
                   "organization"
                 ]
+              },
+              "willingFieldId": {
+                "type": "string"
               }
             },
             "additionalProperties": false
@@ -29163,7 +30140,8 @@
                     "link",
                     "matrix",
                     "scale",
-                    "file"
+                    "file",
+                    "unit_choice"
                   ]
                 },
                 "label": {
@@ -29296,6 +30274,9 @@
                         "anyone",
                         "organization"
                       ]
+                    },
+                    "willingFieldId": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -29972,6 +30953,97 @@
           "isAcceptingResponses": {
             "type": "boolean"
           },
+          "oprec": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "recruitmentId": {
+                "type": "string"
+              },
+              "canApply": {
+                "type": "boolean"
+              },
+              "eligible": {
+                "type": "boolean"
+              },
+              "reason": {
+                "nullable": true,
+                "type": "string"
+              },
+              "minChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "maxChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "allowRedirect": {
+                "type": "boolean"
+              },
+              "wave": {
+                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "label",
+                  "startsAt",
+                  "endsAt"
+                ],
+                "additionalProperties": false
+              },
+              "divisions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "groupLabel": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "label",
+                    "groupLabel"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "recruitmentId",
+              "canApply",
+              "eligible",
+              "reason",
+              "minChoices",
+              "maxChoices",
+              "allowRedirect",
+              "wave",
+              "divisions"
+            ],
+            "additionalProperties": false
+          },
           "hasSubmitted": {
             "nullable": true,
             "type": "boolean"
@@ -30235,7 +31307,8 @@
                     "link",
                     "matrix",
                     "scale",
-                    "file"
+                    "file",
+                    "unit_choice"
                   ]
                 },
                 "label": {
@@ -30368,6 +31441,9 @@
                         "anyone",
                         "organization"
                       ]
+                    },
+                    "willingFieldId": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -30637,6 +31713,97 @@
           "isAcceptingResponses": {
             "type": "boolean"
           },
+          "oprec": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "recruitmentId": {
+                "type": "string"
+              },
+              "canApply": {
+                "type": "boolean"
+              },
+              "eligible": {
+                "type": "boolean"
+              },
+              "reason": {
+                "nullable": true,
+                "type": "string"
+              },
+              "minChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "maxChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "allowRedirect": {
+                "type": "boolean"
+              },
+              "wave": {
+                "nullable": true,
+                "type": "object",
+                "properties": {
+                  "label": {
+                    "type": "string"
+                  },
+                  "startsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  },
+                  "endsAt": {
+                    "type": "string",
+                    "format": "date-time"
+                  }
+                },
+                "required": [
+                  "label",
+                  "startsAt",
+                  "endsAt"
+                ],
+                "additionalProperties": false
+              },
+              "divisions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "groupLabel": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "label",
+                    "groupLabel"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "recruitmentId",
+              "canApply",
+              "eligible",
+              "reason",
+              "minChoices",
+              "maxChoices",
+              "allowRedirect",
+              "wave",
+              "divisions"
+            ],
+            "additionalProperties": false
+          },
           "hasSubmitted": {
             "nullable": true,
             "type": "boolean"
@@ -30900,7 +32067,8 @@
                     "link",
                     "matrix",
                     "scale",
-                    "file"
+                    "file",
+                    "unit_choice"
                   ]
                 },
                 "label": {
@@ -31033,6 +32201,9 @@
                         "anyone",
                         "organization"
                       ]
+                    },
+                    "willingFieldId": {
+                      "type": "string"
                     }
                   },
                   "additionalProperties": false
@@ -31699,7 +32870,8 @@
                     "link",
                     "matrix",
                     "scale",
-                    "file"
+                    "file",
+                    "unit_choice"
                   ]
                 },
                 "label": {
@@ -31833,7 +33005,8 @@
                     "link",
                     "matrix",
                     "scale",
-                    "file"
+                    "file",
+                    "unit_choice"
                   ]
                 },
                 "label": {
@@ -36431,6 +37604,108 @@
           "positionId"
         ]
       },
+      "oprec_applicantDetail_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "applicationId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "applicationId"
+        ]
+      },
+      "oprec_applicants_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "search": {
+            "type": "string",
+            "maxLength": 100
+          },
+          "waveId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "divisionId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "angkatan": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "prodi": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "sort": {
+            "default": "nama",
+            "type": "string",
+            "enum": [
+              "nama",
+              "gelombang",
+              "angkatan",
+              "prodi",
+              "waktu"
+            ]
+          },
+          "groupBy": {
+            "default": "tanpa",
+            "type": "string",
+            "enum": [
+              "tanpa",
+              "gelombang",
+              "pilihan1",
+              "angkatan",
+              "prodi"
+            ]
+          },
+          "page": {
+            "default": 1,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "default": 50,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_applicantSummary_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
       "oprec_create_input": {
         "type": "object",
         "properties": {
@@ -36454,6 +37729,328 @@
           "eventId",
           "formId",
           "name"
+        ]
+      },
+      "oprec_createFromSetup_input": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "form": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "template"
+                    ]
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  }
+                },
+                "required": [
+                  "mode"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "existing"
+                    ]
+                  },
+                  "formId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 255
+                  }
+                },
+                "required": [
+                  "mode",
+                  "formId"
+                ]
+              }
+            ]
+          },
+          "divisions": {
+            "minItems": 1,
+            "maxItems": 200,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "unitId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "positionId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                }
+              },
+              "required": [
+                "unitId",
+                "positionId"
+              ]
+            }
+          },
+          "minChoices": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "maxChoices": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 10
+          },
+          "allowRedirect": {
+            "default": false,
+            "type": "boolean"
+          },
+          "grouping": {
+            "default": "per_divisi",
+            "type": "string",
+            "enum": [
+              "per_divisi",
+              "satu_bagian"
+            ]
+          },
+          "attachments": {
+            "default": [],
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 120
+            }
+          },
+          "waves": {
+            "default": [],
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 255
+                },
+                "startsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "endsAt": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              },
+              "required": [
+                "label",
+                "startsAt",
+                "endsAt"
+              ]
+            }
+          },
+          "eligibility": {
+            "default": {
+              "match": "all",
+              "rules": []
+            },
+            "type": "object",
+            "properties": {
+              "match": {
+                "type": "string",
+                "enum": [
+                  "all",
+                  "any"
+                ]
+              },
+              "rules": {
+                "maxItems": 20,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "attribute": {
+                      "type": "string",
+                      "enum": [
+                        "angkatan_kuliah",
+                        "fakultas",
+                        "prodi",
+                        "status_mahasiswa",
+                        "keanggotaan_lembaga",
+                        "angkatan_lembaga"
+                      ]
+                    },
+                    "op": {
+                      "type": "string",
+                      "enum": [
+                        "eq",
+                        "neq",
+                        "in",
+                        "not_in",
+                        "gt",
+                        "gte",
+                        "lt",
+                        "lte",
+                        "between",
+                        "contains"
+                      ]
+                    },
+                    "value": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "number"
+                        },
+                        {
+                          "type": "boolean"
+                        },
+                        {
+                          "minItems": 1,
+                          "maxItems": 100,
+                          "type": "array",
+                          "items": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "number"
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "attribute",
+                    "op",
+                    "value"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "match",
+              "rules"
+            ]
+          },
+          "settings": {
+            "default": {},
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 255
+              },
+              "minChoices": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "maxChoices": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 10
+              },
+              "allowRedirect": {
+                "type": "boolean"
+              },
+              "scoringMode": {
+                "type": "string",
+                "enum": [
+                  "skor",
+                  "keputusan_langsung"
+                ]
+              },
+              "statusMethod": {
+                "type": "string",
+                "enum": [
+                  "ambang",
+                  "peringkat_kuota",
+                  "peringkat_kuota_minimum"
+                ]
+              },
+              "statusMinScore": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "scoreSource": {
+                "type": "string",
+                "enum": [
+                  "umum",
+                  "divisi",
+                  "gabungan"
+                ]
+              },
+              "weightUmum": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "minReviewers": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 5
+              },
+              "blind": {
+                "type": "boolean"
+              },
+              "allowEarlyAssessment": {
+                "type": "boolean"
+              },
+              "visibilityDefault": {
+                "type": "boolean"
+              },
+              "resultsVisibleToApplicants": {
+                "type": "boolean"
+              }
+            }
+          },
+          "answers": {
+            "default": {},
+            "type": "object",
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "eventId",
+          "name",
+          "form",
+          "divisions",
+          "minChoices",
+          "maxChoices"
         ]
       },
       "oprec_delete_input": {
@@ -36842,6 +38439,24 @@
           "success"
         ],
         "additionalProperties": false
+      },
+      "oprec_setupOptions_input": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "sourcePeriodId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "eventId"
+        ]
       },
       "oprec_update_input": {
         "type": "object",

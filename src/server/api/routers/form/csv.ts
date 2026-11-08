@@ -27,7 +27,7 @@ function stripMarkdownLite(text: string): string {
 }
 
 /** Waktu WIB (UTC+7), `YYYY-MM-DD HH:mm:ss`. */
-function formatWib(date: Date): string {
+export function formatWib(date: Date): string {
   const shifted = new Date(date.getTime() + 7 * 60 * 60 * 1000);
   if (Number.isNaN(shifted.getTime())) return '';
 
@@ -117,6 +117,14 @@ export function formatCsvAnswer(type: string, value: unknown): string {
       return value === true ? 'Ya' : value === false ? 'Tidak' : '';
     case 'single_choice':
       return optionLabel(value) ?? '';
+    case 'unit_choice':
+      return Array.isArray(value)
+        ? (value as unknown[])
+            .map(optionLabel)
+            .map((label, i) => (label === null ? null : `${i + 1}. ${label}`))
+            .filter((label): label is string => label !== null)
+            .join('; ')
+        : '';
     case 'multiple_choice':
       return Array.isArray(value)
         ? (value as unknown[])

@@ -11,6 +11,7 @@ import {
   Info,
   Link2,
   ListChecks,
+  ListOrdered,
   Paperclip,
   Plus,
   SlidersHorizontal,
@@ -40,6 +41,7 @@ const ICONS: Record<FieldKind, React.ComponentType<{ className?: string }>> = {
   link: Link2,
   file: Paperclip,
   text_block: Info,
+  unit_choice: ListOrdered,
 };
 
 export function KindIcon({
