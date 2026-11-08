@@ -1,14 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import {
-  and,
-  count,
-  desc,
-  eq,
-  inArray,
-  isNull,
-  max,
-  notInArray,
-} from 'drizzle-orm';
+import { and, count, desc, eq, inArray, isNull, max } from 'drizzle-orm';
 import { MAX_RULES } from '~/lib/forms/conditions';
 import {
   createTRPCRouter,
@@ -20,12 +11,10 @@ import {
   applicationChoice,
   form,
   formField,
-  formSection,
   formSubmission,
   recruitment,
   recruitmentDivision,
   recruitmentEligibilityRule,
-  recruitmentSectionBinding,
   recruitmentWave,
 } from '~/server/db/schema';
 
@@ -44,9 +33,10 @@ import {
   SetSectionBindingsInputSchema,
   UpdateRecruitmentInputSchema,
 } from '../../types/oprec.type';
-import { enforceConditions, lockForm } from '../form/services';
+import { lockForm } from '../form/services';
 import { applicantProcedures } from './applicants';
 import {
+  applySectionBinding,
   assertDivisionTarget,
   assertSectionsOfForm,
   conflict,
@@ -55,6 +45,7 @@ import {
   notFound,
   pgCode,
 } from './services';
+import { setupProcedures } from './setup';
 
 const OK = { success: true };
 
@@ -63,6 +54,7 @@ const LOCKED_AFTER_APPLICATIONS = ['minChoices', 'maxChoices'] as const;
 
 export const oprecRouter = createTRPCRouter({
   ...applicantProcedures,
+  ...setupProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {
@@ -481,86 +473,11 @@ export const oprecRouter = createTRPCRouter({
       }
       await ctx.db.transaction(async (tx) => {
         await lockForm(tx, ctx.recruitment.formId);
-        if (divisionIds.length > 0) {
-          const rows = await tx
-            .select({ id: recruitmentDivision.id })
-            .from(recruitmentDivision)
-            .where(
-              and(
-                eq(recruitmentDivision.recruitmentId, input.recruitmentId),
-                inArray(recruitmentDivision.id, divisionIds),
-              ),
-            );
-          if (rows.length !== divisionIds.length) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Ada tujuan yang bukan milik oprec ini.',
-            });
-          }
-        }
-        const sameSection = and(
-          eq(recruitmentSectionBinding.recruitmentId, input.recruitmentId),
-          eq(recruitmentSectionBinding.formSectionId, input.formSectionId),
-        );
-        await tx
-          .delete(recruitmentSectionBinding)
-          .where(
-            divisionIds.length > 0
-              ? and(
-                  sameSection,
-                  notInArray(recruitmentSectionBinding.divisionId, divisionIds),
-                )
-              : sameSection,
-          );
-        if (divisionIds.length > 0) {
-          await tx
-            .insert(recruitmentSectionBinding)
-            .values(
-              divisionIds.map((divisionId) => ({
-                recruitmentId: input.recruitmentId,
-                formSectionId: input.formSectionId,
-                divisionId,
-              })),
-            )
-            .onConflictDoNothing();
-        }
-
-        // Ikatan sekaligus menjadi kondisi tampil bagian itu: muncul bila salah
-        // satu tujuan terikat dipilih di pilihan mana pun.
-        const [choice] = await tx
-          .select({ id: formField.id })
-          .from(formField)
-          .where(
-            and(
-              eq(formField.formId, ctx.recruitment.formId),
-              eq(formField.type, 'unit_choice'),
-              isNull(formField.archivedAt),
-            ),
-          );
-        if (divisionIds.length > 0 && !choice) {
-          conflict(
-            'Tambahkan blok Pilihan tujuan ke formulir terlebih dahulu.',
-          );
-        }
-        await tx
-          .update(formSection)
-          .set({
-            condition:
-              divisionIds.length === 0 || !choice
-                ? null
-                : {
-                    cocok: 'salah-satu',
-                    aturan: divisionIds.map((divisionId) => ({
-                      jenis: 'jawaban',
-                      fieldId: choice.id,
-                      op: 'memilih',
-                      nilai: divisionId,
-                    })),
-                  },
-          })
-          .where(eq(formSection.id, input.formSectionId));
-        await enforceConditions(tx, ctx.recruitment.formId, {
-          edited: [input.formSectionId],
+        await applySectionBinding(tx, {
+          recruitmentId: input.recruitmentId,
+          formId: ctx.recruitment.formId,
+          formSectionId: input.formSectionId,
+          divisionIds,
         });
       });
       return OK;

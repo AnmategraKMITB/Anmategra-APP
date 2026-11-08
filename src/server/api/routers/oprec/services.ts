@@ -1,9 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, isNull, notInArray } from 'drizzle-orm';
 import { type db as Db } from '~/server/db';
 import {
   application,
   events,
+  formField,
   formSection,
   organizationPosition,
   organizationStructure,
@@ -14,6 +15,8 @@ import {
   recruitmentSectionBinding,
   recruitmentWave,
 } from '~/server/db/schema';
+
+import { type Tx, enforceConditions } from '../form/services';
 
 export type Database = typeof Db;
 export type Queryable = Pick<Database, 'select' | 'query'>;
@@ -55,7 +58,7 @@ export async function countApplications(
  * Apakah lembaga `descendantId` berada di bawah (atau sama dengan) `ancestorId`
  * pada pohon `lembaga.parent_id`.
  */
-async function isLembagaWithin(
+export async function isLembagaWithin(
   db: Queryable,
   descendantId: string,
   ancestorId: string,
@@ -231,4 +234,101 @@ export async function assertSectionsOfForm(
       message: 'Ada bagian formulir yang bukan milik form oprec ini.',
     });
   }
+}
+
+/**
+ * Menetapkan divisi mana yang menampilkan sebuah bagian formulir. Ikatan
+ * sekaligus menjadi kondisi tampil bagian itu (muncul bila salah satu tujuan
+ * terikat dipilih di pilihan mana pun). Dipanggil di dalam transaksi yang
+ * memegang `lockForm`.
+ */
+export async function applySectionBinding(
+  tx: Tx,
+  args: {
+    recruitmentId: string;
+    formId: string;
+    formSectionId: string;
+    divisionIds: string[];
+  },
+) {
+  const divisionIds = args.divisionIds;
+  if (divisionIds.length > 0) {
+    const rows = await tx
+      .select({ id: recruitmentDivision.id })
+      .from(recruitmentDivision)
+      .where(
+        and(
+          eq(recruitmentDivision.recruitmentId, args.recruitmentId),
+          inArray(recruitmentDivision.id, divisionIds),
+        ),
+      );
+    if (rows.length !== divisionIds.length) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Ada tujuan yang bukan milik oprec ini.',
+      });
+    }
+  }
+  const sameSection = and(
+    eq(recruitmentSectionBinding.recruitmentId, args.recruitmentId),
+    eq(recruitmentSectionBinding.formSectionId, args.formSectionId),
+  );
+  await tx
+    .delete(recruitmentSectionBinding)
+    .where(
+      divisionIds.length > 0
+        ? and(
+            sameSection,
+            notInArray(recruitmentSectionBinding.divisionId, divisionIds),
+          )
+        : sameSection,
+    );
+  if (divisionIds.length > 0) {
+    await tx
+      .insert(recruitmentSectionBinding)
+      .values(
+        divisionIds.map((divisionId) => ({
+          recruitmentId: args.recruitmentId,
+          formSectionId: args.formSectionId,
+          divisionId,
+        })),
+      )
+      .onConflictDoNothing();
+  }
+
+  // Ikatan sekaligus menjadi kondisi tampil bagian itu: muncul bila salah
+  // satu tujuan terikat dipilih di pilihan mana pun.
+  const [choice] = await tx
+    .select({ id: formField.id })
+    .from(formField)
+    .where(
+      and(
+        eq(formField.formId, args.formId),
+        eq(formField.type, 'unit_choice'),
+        isNull(formField.archivedAt),
+      ),
+    );
+  if (divisionIds.length > 0 && !choice) {
+    conflict('Tambahkan blok Pilihan tujuan ke formulir terlebih dahulu.');
+  }
+  await tx
+    .update(formSection)
+    .set({
+      condition:
+        divisionIds.length === 0 || !choice
+          ? null
+          : {
+              cocok: 'salah-satu',
+              aturan: divisionIds.map((divisionId) => ({
+                jenis: 'jawaban',
+                fieldId: choice.id,
+                op: 'memilih',
+                nilai: divisionId,
+              })),
+            },
+    })
+    .where(eq(formSection.id, args.formSectionId));
+  await enforceConditions(tx, args.formId, {
+    edited: [args.formSectionId],
+  });
 }
