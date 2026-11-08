@@ -40,6 +40,7 @@ import { assessorProcedures } from './assessors';
 import { criteriaProcedures } from './criteria';
 import { flagProcedures } from './flags';
 import { placementProcedures } from './placement';
+import { resultsProcedures } from './results';
 import {
   applySectionBinding,
   assertDivisionTarget,
@@ -65,6 +66,7 @@ export const oprecRouter = createTRPCRouter({
   ...flagProcedures,
   ...assessorProcedures,
   ...placementProcedures,
+  ...resultsProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {
