@@ -45,6 +45,7 @@ import {
   loadActiveFields,
   loadBoundOprec,
   loadEndings,
+  loadOprecBinding,
   loadSections,
   lockForm,
   ownedImageKeys,
@@ -181,11 +182,12 @@ export const formFormRouter = createTRPCRouter({
     .input(GetFormByIdInputSchema)
     .output(GetFormByIdOutputSchema)
     .query(async ({ ctx }) => {
-      const [fields, sections, endings, counts] = await Promise.all([
+      const [fields, sections, endings, counts, bound] = await Promise.all([
         loadActiveFields(ctx.db, ctx.form.id),
         loadSections(ctx.db, ctx.form.id),
         loadEndings(ctx.db, ctx.form.id),
         countSubmissions(ctx.db, [ctx.form.id]),
+        loadOprecBinding(ctx.db, ctx.form.id),
       ]);
       return {
         ...toFormOutput(ctx.form),
@@ -193,6 +195,7 @@ export const formFormRouter = createTRPCRouter({
         fields,
         sections,
         endings,
+        oprec: bound,
       };
     }),
 

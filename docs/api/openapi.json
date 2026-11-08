@@ -29945,6 +29945,16 @@
               },
               "willingFieldId": {
                 "type": "string"
+              },
+              "minChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "maxChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "additionalProperties": false
@@ -29973,6 +29983,10 @@
                   "type": "integer",
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
+                },
+                "group": {
+                  "nullable": true,
+                  "type": "string"
                 }
               },
               "required": [
@@ -32842,6 +32856,16 @@
               },
               "willingFieldId": {
                 "type": "string"
+              },
+              "minChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "maxChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
               }
             },
             "additionalProperties": false
@@ -32870,6 +32894,10 @@
                   "type": "integer",
                   "minimum": -9007199254740991,
                   "maximum": 9007199254740991
+                },
+                "group": {
+                  "nullable": true,
+                  "type": "string"
                 }
               },
               "required": [
@@ -33357,6 +33385,16 @@
                     },
                     "willingFieldId": {
                       "type": "string"
+                    },
+                    "minChoices": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "maxChoices": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "additionalProperties": false
@@ -33385,6 +33423,10 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "group": {
+                        "nullable": true,
+                        "type": "string"
                       }
                     },
                     "required": [
@@ -33772,6 +33814,35 @@
               ],
               "additionalProperties": false
             }
+          },
+          "oprec": {
+            "nullable": true,
+            "type": "object",
+            "properties": {
+              "recruitmentId": {
+                "type": "string"
+              },
+              "minChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "maxChoices": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "allowRedirect": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "recruitmentId",
+              "minChoices",
+              "maxChoices",
+              "allowRedirect"
+            ],
+            "additionalProperties": false
           }
         },
         "required": [
@@ -33796,7 +33867,8 @@
           "submissionCount",
           "fields",
           "sections",
-          "endings"
+          "endings",
+          "oprec"
         ],
         "additionalProperties": false
       },
@@ -34524,6 +34596,16 @@
                     },
                     "willingFieldId": {
                       "type": "string"
+                    },
+                    "minChoices": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "maxChoices": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "additionalProperties": false
@@ -34547,6 +34629,10 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "group": {
+                        "nullable": true,
+                        "type": "string"
                       }
                     },
                     "required": [
@@ -35284,6 +35370,16 @@
                     },
                     "willingFieldId": {
                       "type": "string"
+                    },
+                    "minChoices": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "maxChoices": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "additionalProperties": false
@@ -35307,6 +35403,10 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "group": {
+                        "nullable": true,
+                        "type": "string"
                       }
                     },
                     "required": [

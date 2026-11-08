@@ -10,6 +10,7 @@ import {
   notInArray,
   sql,
 } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { randomBytes } from 'node:crypto';
 import { richTextToPlain } from '~/app/_components/forms/rich-text';
 import {
@@ -31,6 +32,7 @@ import {
   formSection,
   formSubmission,
   lembaga,
+  organizationUnit,
   recruitment,
   recruitmentDivision,
 } from '~/server/db/schema';
@@ -280,7 +282,9 @@ function parseFieldConfig(field: FieldRow): FieldConfig {
   return hasil.data;
 }
 
-function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
+type OptionOut = OptionRow & { group?: string | null };
+
+function toFieldOutput(field: FieldRow, options: OptionOut[]): FieldOutput {
   return {
     id: field.id,
     type: field.type,
@@ -294,7 +298,12 @@ function toFieldOutput(field: FieldRow, options: OptionRow[]): FieldOutput {
     image: imageOut(field.image),
     options: options
       .filter((o) => o.fieldId === field.id)
-      .map((o) => ({ id: o.id, label: o.label, sortOrder: o.sortOrder })),
+      .map((o) => ({
+        id: o.id,
+        label: o.label,
+        sortOrder: o.sortOrder,
+        ...(o.group === undefined ? {} : { group: o.group }),
+      })),
   };
 }
 
@@ -381,12 +390,40 @@ export async function loadActiveFields(
   const fields = joined.map((r) => r.field);
   if (fields.length === 0) return [];
 
-  const options = await loadActiveOptions(
+  const options: OptionOut[] = await loadActiveOptions(
     db,
     fields.map((f) => f.id),
   );
+  // Blok Pilihan tujuan tidak punya opsi sendiri: opsinya adalah tujuan yang
+  // dibuka oleh oprec yang terikat pada form ini.
+  for (const f of fields.filter((x) => x.type === 'unit_choice')) {
+    for (const d of await loadDivisionOptions(db, formId)) {
+      options.push({
+        id: d.id,
+        fieldId: f.id,
+        label: d.label,
+        sortOrder: d.sortOrder,
+        group: d.group,
+      } as OptionOut);
+    }
+  }
 
-  return fields.map((f) => toFieldOutput(f, options));
+  const binding = fields.some((x) => x.type === 'unit_choice')
+    ? await loadOprecBinding(db, formId)
+    : null;
+  return fields.map((f) => {
+    const out = toFieldOutput(f, options);
+    return f.type === 'unit_choice' && binding
+      ? {
+          ...out,
+          config: {
+            ...out.config,
+            minChoices: binding.minChoices,
+            maxChoices: binding.maxChoices,
+          },
+        }
+      : out;
+  });
 }
 
 /**
@@ -660,6 +697,13 @@ export async function loadFieldOutput(
 ): Promise<FieldOutput> {
   // Scoped by formId inside getActiveField, which also raises NOT_FOUND.
   const field = await getActiveField(db, formId, fieldId);
+  if (field.type === 'unit_choice') {
+    // Opsi dan batas pilihannya berasal dari oprec; hanya `loadActiveFields` yang menyusunnya.
+    const found = (await loadActiveFields(db, formId)).find(
+      (f) => f.id === field.id,
+    );
+    if (found) return found;
+  }
   const options = await loadActiveOptions(db, [field.id]);
   return toFieldOutput(field, options);
 }
@@ -714,6 +758,45 @@ export function toCondFields(fields: FieldOutput[]): CondField[] {
  * - A condition broken as a side effect: CONFLICT listing what is affected, or,
  *   with `clearDependents`, those conditions are cleared and the change stands.
  */
+/** Ringkasan oprec yang terikat pada form untuk builder; null bila form biasa. */
+export async function loadOprecBinding(db: Queryable, formId: string) {
+  const [rec] = await db
+    .select({
+      recruitmentId: recruitment.id,
+      minChoices: recruitment.minChoices,
+      maxChoices: recruitment.maxChoices,
+      allowRedirect: recruitment.allowRedirect,
+    })
+    .from(recruitment)
+    .where(eq(recruitment.formId, formId));
+  return rec ?? null;
+}
+
+/** Tujuan oprec yang terikat pada form ini, berurutan, untuk opsi blok Pilihan. */
+export async function loadDivisionOptions(db: Queryable, formId: string) {
+  const parent = alias(organizationUnit, 'parent_unit');
+  const rows = await db
+    .select({
+      id: recruitmentDivision.id,
+      label: organizationUnit.name,
+      group: parent.name,
+      sortOrder: recruitmentDivision.sortOrder,
+    })
+    .from(recruitment)
+    .innerJoin(
+      recruitmentDivision,
+      eq(recruitmentDivision.recruitmentId, recruitment.id),
+    )
+    .innerJoin(
+      organizationUnit,
+      eq(organizationUnit.id, recruitmentDivision.unitId),
+    )
+    .leftJoin(parent, eq(parent.id, organizationUnit.parent_id))
+    .where(eq(recruitment.formId, formId))
+    .orderBy(asc(recruitmentDivision.sortOrder));
+  return rows;
+}
+
 /** Id divisi dan batas pilihan oprec yang terikat pada form; null bila form biasa. */
 export async function loadBoundOprec(db: Queryable, formId: string) {
   const [rec] = await db
