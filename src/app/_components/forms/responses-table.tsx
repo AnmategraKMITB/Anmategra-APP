@@ -42,7 +42,7 @@ const show = (column: ResponseColumn, row: ResponseRowOut) =>
  * Jawaban berkas ditampilkan sebagai tautan. Isi jawaban dikirim klien, jadi
  * hanya URL dari host OneDrive/SharePoint yang dijadikan tautan.
  */
-function FileAnswer({ value }: { value: unknown }) {
+export function FileAnswer({ value }: { value: unknown }) {
   const files = (isFileAnswerList(value) ? value : []).filter(
     (file, index, all) =>
       all.findIndex((other) => other.itemId === file.itemId) === index,
