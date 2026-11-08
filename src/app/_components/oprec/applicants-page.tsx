@@ -3,6 +3,7 @@ import { api } from '~/trpc/server';
 
 import { loadManagedOprec } from './access';
 import { ApplicantsView } from './applicants-view';
+import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';
 
 /** Halaman Pendaftar satu oprec; dipakai rute lembaga dan mahasiswa-admin. */
@@ -25,6 +26,15 @@ export async function ApplicantsPage({
       name={managed.name}
       periodName={event?.name ?? ''}
       backHref={`${basePath}/kegiatan/${kegiatanId}/oprec`}
+      tabs={
+        <OprecTabs
+          basePath={basePath}
+          kegiatanId={kegiatanId}
+          recruitmentId={recruitmentId}
+          current="pendaftar"
+          showPendaftar
+        />
+      }
     />
   );
 }

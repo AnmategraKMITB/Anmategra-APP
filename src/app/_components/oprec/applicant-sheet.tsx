@@ -13,6 +13,13 @@ import { api } from '~/trpc/react';
 
 import { FileAnswer } from '../forms/responses-table';
 import { richTextToPlain } from '../forms/rich-text';
+import { FLAG_STYLE, StatusBadge } from './nilai/status';
+
+const GATE_LABEL: Record<string, string> = {
+  memenuhi: 'Memenuhi',
+  ditinjau: 'Ditinjau',
+  tidak: 'Tidak memenuhi',
+};
 
 const when = (d: Date | null) =>
   d
@@ -109,25 +116,116 @@ export function ApplicantSheet({
                 id="sheet-pilihan"
                 className="text-sm font-semibold text-neutral-1000"
               >
-                Pilihan
+                Pilihan dan status
               </h3>
               <ol className="mt-2 grid gap-1.5">
-                {(d.choices as { rank: number | null; label: string }[]).map(
-                  (c, i) => (
-                    <li
-                      key={i}
-                      className="flex items-center gap-3 rounded-xl bg-neutral-100 px-3 py-2 text-sm"
-                    >
-                      <span className="w-16 shrink-0 text-neutral-700">
-                        {c.rank ? `Pilihan ${c.rank}` : 'Tambahan'}
-                      </span>
-                      <span className="font-semibold text-neutral-1000">
-                        {c.label}
+                {d.choices.map((c) => (
+                  <li
+                    key={c.id}
+                    className="rounded-xl bg-neutral-100 px-3 py-2 text-sm"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <span className="block text-neutral-700">
+                          {c.rank ? `Pilihan ${c.rank}` : 'Tambahan'}
+                        </span>
+                        <span className="break-words font-semibold text-neutral-1000">
+                          {c.label}
+                        </span>
+                      </div>
+                      <StatusBadge status={c.status} />
+                    </div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2 text-neutral-700">
+                      {typeof c.score === 'number' ? (
+                        <span>Skor {Math.round(c.score)}</span>
+                      ) : null}
+                      {c.overridden ? (
+                        <span className="inline-flex items-center rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-500">
+                          diubah manual
+                        </span>
+                      ) : null}
+                      {c.needsReview ? (
+                        <span className="inline-flex items-center rounded-full bg-warning-light px-2.5 py-0.5 text-xs font-semibold text-neutral-1000">
+                          perlu ditinjau ulang
+                        </span>
+                      ) : null}
+                    </div>
+                    {c.overridden && c.overrideReason ? (
+                      <p className="mt-1 text-neutral-700">
+                        Alasan: {c.overrideReason}
+                      </p>
+                    ) : null}
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            <section aria-labelledby="sheet-penilaian">
+              <h3
+                id="sheet-penilaian"
+                className="text-sm font-semibold text-neutral-1000"
+              >
+                Penilaian
+              </h3>
+              {d.assessments.length === 0 ? (
+                <p className="mt-2 text-sm text-neutral-700">
+                  Belum ada penilaian.
+                </p>
+              ) : (
+                <ul className="mt-2 grid gap-1.5">
+                  {d.assessments.map((a) => {
+                    const scopeLabel =
+                      a.scope === 'umum'
+                        ? 'Umum'
+                        : (d.choices.find((c) => c.divisionId === a.scope)
+                            ?.label ?? 'Pilihan');
+                    const result =
+                      typeof a.score === 'number'
+                        ? `Skor ${Math.round(a.score)}`
+                        : a.gate
+                          ? (GATE_LABEL[a.gate] ?? a.gate)
+                          : 'Belum cukup penilai';
+                    return (
+                      <li
+                        key={`${a.scope}-${a.criterionId}`}
+                        className="rounded-xl bg-neutral-100 px-3 py-2 text-sm"
+                      >
+                        <p className="font-semibold text-neutral-1000">
+                          {a.name}
+                        </p>
+                        <p className="mt-0.5 text-neutral-700">
+                          {scopeLabel} · {result} · {a.reviewers} penilai
+                        </p>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
+            <section aria-labelledby="sheet-flag">
+              <h3
+                id="sheet-flag"
+                className="text-sm font-semibold text-neutral-1000"
+              >
+                Flag
+              </h3>
+              {d.flags.length === 0 ? (
+                <p className="mt-2 text-sm text-neutral-700">Tidak ada flag.</p>
+              ) : (
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {d.flags.map((flag) => (
+                    <li key={flag.labelId}>
+                      <span
+                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${FLAG_STYLE[flag.color as keyof typeof FLAG_STYLE] ?? 'bg-neutral-100 text-neutral-700'}`}
+                      >
+                        {flag.name}
+                        {flag.isSensitive ? ' · sensitif' : ''}
                       </span>
                     </li>
-                  ),
-                )}
-              </ol>
+                  ))}
+                </ul>
+              )}
             </section>
 
             <section aria-labelledby="sheet-jawaban">
