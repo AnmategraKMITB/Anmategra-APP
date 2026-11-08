@@ -1,6 +1,7 @@
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
 import { api } from '~/trpc/server';
 
@@ -38,14 +39,21 @@ export async function OprecListPage({
       >
         ← {basePath === '/lembaga' ? 'Semua periode' : 'Kegiatan'}
       </Link>
-      <h1 className="mt-2 text-[32px] font-semibold text-neutral-1000">
-        Oprec
-      </h1>
-      <p className="mt-1 text-neutral-700">{event.name}</p>
+      <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-[32px] font-semibold text-neutral-1000">Oprec</h1>
+          <p className="mt-1 text-neutral-700">{event.name}</p>
+        </div>
+        <Button asChild variant="light_blue">
+          <Link href={`${basePath}/kegiatan/${kegiatanId}/oprec/baru`}>
+            <Plus /> Buat oprec
+          </Link>
+        </Button>
+      </div>
 
       {items.length === 0 ? (
         <p className="mt-8 rounded-[24px] border border-neutral-400 bg-neutral-50 p-8 text-center text-neutral-700">
-          Belum ada oprec di {event.name}.
+          Belum ada oprec di {event.name}. Mulai dengan “Buat oprec”.
         </p>
       ) : (
         <ul className="mt-6 divide-y divide-neutral-400 overflow-hidden rounded-[24px] border border-neutral-400 bg-neutral-50">
