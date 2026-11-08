@@ -11982,6 +11982,127 @@
         }
       }
     },
+    "/api/trpc/oprec.appealAccept": {
+      "post": {
+        "operationId": "oprec_appealAccept",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.appealAccept",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_appealAccept_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/oprec.applicantDetail": {
       "get": {
         "operationId": "oprec_applicantDetail",
@@ -13605,6 +13726,621 @@
         ]
       }
     },
+    "/api/trpc/oprec.autofillCommit": {
+      "post": {
+        "operationId": "oprec_autofillCommit",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.autofillCommit",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_autofillCommit_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.autofillPreview": {
+      "get": {
+        "operationId": "oprec_autofillPreview",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.autofillPreview",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_autofillPreview_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.closerecAdd": {
+      "post": {
+        "operationId": "oprec_closerecAdd",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.closerecAdd",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_closerecAdd_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.closerecList": {
+      "get": {
+        "operationId": "oprec_closerecList",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.closerecList",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_closerecList_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.closerecRemove": {
+      "post": {
+        "operationId": "oprec_closerecRemove",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.closerecRemove",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_closerecRemove_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/oprec.create": {
       "post": {
         "operationId": "oprec_create",
@@ -14704,6 +15440,127 @@
         }
       }
     },
+    "/api/trpc/oprec.decide": {
+      "post": {
+        "operationId": "oprec_decide",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.decide",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_decide_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/oprec.delete": {
       "post": {
         "operationId": "oprec_delete",
@@ -14813,6 +15670,127 @@
                 "properties": {
                   "json": {
                     "$ref": "#/components/schemas/oprec_delete_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.directMove": {
+      "post": {
+        "operationId": "oprec_directMove",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.directMove",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_directMove_input"
                   },
                   "meta": {
                     "type": "object",
@@ -16055,6 +17033,510 @@
         }
       }
     },
+    "/api/trpc/oprec.placementAccepted": {
+      "get": {
+        "operationId": "oprec_placementAccepted",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.placementAccepted",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_placementAccepted_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.placementHistory": {
+      "get": {
+        "operationId": "oprec_placementHistory",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.placementHistory",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_placementHistory_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.placementOverview": {
+      "get": {
+        "operationId": "oprec_placementOverview",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.placementOverview",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_placementOverview_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.placementRows": {
+      "get": {
+        "operationId": "oprec_placementRows",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.placementRows",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_placementRows_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
     "/api/trpc/oprec.removeDivision": {
       "post": {
         "operationId": "oprec_removeDivision",
@@ -16660,6 +18142,127 @@
         }
       }
     },
+    "/api/trpc/oprec.setPlacementState": {
+      "post": {
+        "operationId": "oprec_setPlacementState",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.setPlacementState",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_setPlacementState_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/oprec.setSectionBindings": {
       "post": {
         "operationId": "oprec_setSectionBindings",
@@ -17028,6 +18631,495 @@
         ]
       }
     },
+    "/api/trpc/oprec.transferCancel": {
+      "post": {
+        "operationId": "oprec_transferCancel",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.transferCancel",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_transferCancel_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.transferInbox": {
+      "get": {
+        "operationId": "oprec_transferInbox",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.transferInbox",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_transferInbox_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/oprec.transferRequest": {
+      "post": {
+        "operationId": "oprec_transferRequest",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.transferRequest",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_transferRequest_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.transferResolve": {
+      "post": {
+        "operationId": "oprec_transferResolve",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.transferResolve",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_transferResolve_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/oprec.update": {
       "post": {
         "operationId": "oprec_update",
@@ -17147,6 +19239,253 @@
             }
           }
         }
+      }
+    },
+    "/api/trpc/oprec.visibilitySave": {
+      "post": {
+        "operationId": "oprec_visibilitySave",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.visibilitySave",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/oprec_visibilitySave_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/oprec.visibilitySettings": {
+      "get": {
+        "operationId": "oprec_visibilitySettings",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.visibilitySettings",
+        "description": "**Akses:** Penilai Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Penilai Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_visibilitySettings_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "/api/trpc/organization.import.commit": {
@@ -40684,6 +43023,33 @@
           "positionId"
         ]
       },
+      "oprec_appealAccept_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "choiceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          },
+          "confirmOverQuota": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "choiceId",
+          "reason"
+        ]
+      },
       "oprec_applicantDetail_input": {
         "type": "object",
         "properties": {
@@ -41076,6 +43442,93 @@
         },
         "required": [
           "recruitmentId"
+        ]
+      },
+      "oprec_autofillCommit_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overQuota": {
+            "default": "tolak",
+            "type": "string",
+            "enum": [
+              "masukkan",
+              "tolak"
+            ]
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_autofillPreview_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_closerecAdd_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "identifier": {
+            "type": "string",
+            "minLength": 1
+          },
+          "divisionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "identifier",
+          "divisionId"
+        ]
+      },
+      "oprec_closerecList_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_closerecRemove_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "choiceId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "choiceId"
         ]
       },
       "oprec_create_input": {
@@ -41723,6 +44176,39 @@
           "fieldIds"
         ]
       },
+      "oprec_decide_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "choiceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "terima",
+              "tolak"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "confirmOverQuota": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "choiceId",
+          "decision"
+        ]
+      },
       "oprec_delete_input": {
         "type": "object",
         "properties": {
@@ -41747,6 +44233,34 @@
           "success"
         ],
         "additionalProperties": false
+      },
+      "oprec_directMove_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applicationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "toDivisionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "applicationId",
+          "toDivisionId",
+          "reason"
+        ]
       },
       "oprec_flagApply_input": {
         "type": "object",
@@ -41986,6 +44500,90 @@
           "success"
         ],
         "additionalProperties": false
+      },
+      "oprec_placementAccepted_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "divisionId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "divisionId"
+        ]
+      },
+      "oprec_placementHistory_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applicationId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "applicationId"
+        ]
+      },
+      "oprec_placementOverview_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_placementRows_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "divisionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rank": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "search": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "page": {
+            "default": 1,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "pageSize": {
+            "default": 25,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "divisionId"
+        ]
       },
       "oprec_removeDivision_input": {
         "type": "object",
@@ -42248,6 +44846,38 @@
         ],
         "additionalProperties": false
       },
+      "oprec_setPlacementState_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "berjalan",
+              "masa_banding",
+              "final"
+            ]
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "batalkan_semua",
+              "setujui_semua"
+            ]
+          },
+          "confirmOverQuota": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "state"
+        ]
+      },
       "oprec_setSectionBindings_input": {
         "type": "object",
         "properties": {
@@ -42339,6 +44969,96 @@
         },
         "required": [
           "eventId"
+        ]
+      },
+      "oprec_transferCancel_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "requestId"
+        ]
+      },
+      "oprec_transferInbox_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_transferRequest_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applicationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "toDivisionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "applicationId",
+          "toDivisionId",
+          "reason"
+        ]
+      },
+      "oprec_transferResolve_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resolution": {
+            "type": "string",
+            "enum": [
+              "setuju",
+              "tolak"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "confirmOverQuota": {
+            "default": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "recruitmentId",
+          "requestId",
+          "resolution"
         ]
       },
       "oprec_update_input": {
@@ -42439,6 +45159,59 @@
           "success"
         ],
         "additionalProperties": false
+      },
+      "oprec_visibilitySave_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "default": {
+            "type": "boolean"
+          },
+          "overrides": {
+            "default": [],
+            "maxItems": 400,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "viewerDivisionId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "targetDivisionId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "allowed": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "viewerDivisionId",
+                "targetDivisionId",
+                "allowed"
+              ]
+            }
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
+      },
+      "oprec_visibilitySettings_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId"
+        ]
       },
       "organization_import_commit_input": {
         "type": "object",
