@@ -168,3 +168,43 @@ export const SetSectionBindingsInputSchema = z.object({
 });
 
 export const OkOutputSchema = z.object({ success: z.boolean() });
+
+// ---------------------------------------------------------------------------
+// Pendaftar (ringkasan baca-saja)
+// ---------------------------------------------------------------------------
+
+export const APPLICANTS_MAX_PAGE_SIZE = 500;
+export const APPLICANT_SORTS = [
+  'nama',
+  'gelombang',
+  'angkatan',
+  'prodi',
+  'waktu',
+] as const;
+export const APPLICANT_GROUPS = [
+  'tanpa',
+  'gelombang',
+  'pilihan1',
+  'angkatan',
+  'prodi',
+] as const;
+
+export const ApplicantsListInputSchema = z.object({
+  recruitmentId: id,
+  /** Cocok dengan nama atau NIM. */
+  search: z.string().trim().max(100).optional(),
+  waveId: id.optional(),
+  /** Tujuan yang ada di pilihan mana pun. */
+  divisionId: id.optional(),
+  angkatan: z.number().int().optional(),
+  prodi: z.string().max(255).optional(),
+  sort: z.enum(APPLICANT_SORTS).default('nama'),
+  groupBy: z.enum(APPLICANT_GROUPS).default('tanpa'),
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(APPLICANTS_MAX_PAGE_SIZE).default(50),
+});
+
+export const ApplicantDetailInputSchema = z.object({
+  recruitmentId: id,
+  applicationId: id,
+});

@@ -27,7 +27,7 @@ function stripMarkdownLite(text: string): string {
 }
 
 /** Waktu WIB (UTC+7), `YYYY-MM-DD HH:mm:ss`. */
-function formatWib(date: Date): string {
+export function formatWib(date: Date): string {
   const shifted = new Date(date.getTime() + 7 * 60 * 60 * 1000);
   if (Number.isNaN(shifted.getTime())) return '';
 
