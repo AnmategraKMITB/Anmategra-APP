@@ -216,6 +216,32 @@ export const ApplicantDetailInputSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// Hasil
+// ---------------------------------------------------------------------------
+
+export const RESULTS_MAX_PAGE_SIZE = 100;
+
+export const ResultsListInputSchema = z.object({
+  recruitmentId: id,
+  /** Batasi ke satu tujuan; harus milik oprec ini. */
+  divisionId: id.optional(),
+  /** Cocok dengan nama atau NIM. */
+  search: z.string().trim().max(100).optional(),
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(RESULTS_MAX_PAGE_SIZE).default(50),
+});
+
+export const ResultsWithdrawInputSchema = z.object({
+  recruitmentId: id,
+  reason: z.string().trim().min(3, 'Alasan wajib diisi.').max(500),
+});
+
+export const ResultsLogExportInputSchema = z.object({
+  recruitmentId: id,
+  format: z.enum(['csv', 'xlsx']),
+});
+
+// ---------------------------------------------------------------------------
 // Setup oprec (wizard)
 // ---------------------------------------------------------------------------
 
