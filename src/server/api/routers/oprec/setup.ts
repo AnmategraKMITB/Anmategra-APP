@@ -6,6 +6,7 @@ import {
   MAX_SECTIONS_PER_FORM,
 } from '~/server/api/types/form.constants';
 import {
+  criterion,
   events,
   form,
   formField,
@@ -338,6 +339,32 @@ export const setupProcedures = {
           const divisionByUnit = new Map(
             divisionRows.map((d) => [d.unitId, d.id]),
           );
+
+          if (input.criteria.length > 0) {
+            const perSlot = new Map<string, number>();
+            await tx.insert(criterion).values(
+              input.criteria.map((c) => {
+                const divisionId =
+                  c.scope === 'umum' ? null : divisionByUnit.get(c.scope);
+                if (divisionId === undefined) {
+                  throw new TRPCError({
+                    code: 'BAD_REQUEST',
+                    message: 'Kriteria menyebut tujuan yang tidak dibuka.',
+                  });
+                }
+                const order = perSlot.get(c.scope) ?? 0;
+                perSlot.set(c.scope, order + 1);
+                return {
+                  recruitmentId,
+                  divisionId,
+                  name: c.name,
+                  kind: c.kind,
+                  weight: c.kind === 'skor' ? (c.weight ?? null) : null,
+                  sortOrder: order,
+                };
+              }),
+            );
+          }
 
           if (input.waves.length > 0) {
             await tx.insert(recruitmentWave).values(

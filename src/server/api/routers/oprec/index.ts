@@ -35,6 +35,10 @@ import {
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
 import { applicantProcedures } from './applicants';
+import { assessProcedures } from './assess';
+import { assessorProcedures } from './assessors';
+import { criteriaProcedures } from './criteria';
+import { flagProcedures } from './flags';
 import {
   applySectionBinding,
   assertDivisionTarget,
@@ -55,6 +59,10 @@ const LOCKED_AFTER_APPLICATIONS = ['minChoices', 'maxChoices'] as const;
 export const oprecRouter = createTRPCRouter({
   ...applicantProcedures,
   ...setupProcedures,
+  ...assessProcedures,
+  ...criteriaProcedures,
+  ...flagProcedures,
+  ...assessorProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {
