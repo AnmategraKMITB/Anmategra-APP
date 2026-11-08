@@ -22,13 +22,14 @@ import { FlowPane } from './flow-pane';
 import { StatusBadge } from './forms-list';
 import type { FormStatus, SectionOut } from './model';
 import { PagesPanel } from './pages-panel';
+import { PenilaianPane } from './penilaian/penilaian-pane';
 import { PreviewPane } from './preview-pane';
 import { SectionCard } from './section-card';
 import { SettingsSheet } from './settings-sheet';
 import { SharePopover } from './share-popover';
 import { type SaveState, useFormBuilder } from './use-form-builder';
 
-type Tab = 'konten' | 'alur' | 'pratinjau';
+type Tab = 'konten' | 'alur' | 'penilaian' | 'pratinjau';
 
 const SAVE_TEXT: Record<SaveState, string> = {
   idle: '',
@@ -51,6 +52,15 @@ export function FormBuilder({
   ownerName: string;
 }) {
   const builder = useFormBuilder(formId);
+  const tabItems: [Tab, string][] = [
+    ['konten', 'Konten'],
+    ['alur', 'Alur'],
+    // Penilaian hanya untuk formulir yang terikat oprec.
+    ...(builder.detail?.oprec
+      ? [['penilaian', 'Penilaian'] as [Tab, string]]
+      : []),
+    ['pratinjau', 'Pratinjau'],
+  ];
   const [tab, setTab] = useState<Tab>('konten');
   const [deleting, setDeleting] = useState<SectionOut | null>(null);
   const [pagesOpen, setPagesOpen] = useState(false);
@@ -231,13 +241,7 @@ export function FormBuilder({
           aria-label="Bagian builder"
           className="mt-6 flex gap-1 border-b border-neutral-400"
         >
-          {(
-            [
-              ['konten', 'Konten'],
-              ['alur', 'Alur'],
-              ['pratinjau', 'Pratinjau'],
-            ] as const
-          ).map(([id, label]) => (
+          {tabItems.map(([id, label]) => (
             <button
               key={id}
               role="tab"
@@ -361,6 +365,15 @@ export function FormBuilder({
                 );
               }}
             />
+          </div>
+        ) : tab === 'penilaian' && builder.detail?.oprec ? (
+          <div
+            role="tabpanel"
+            id="panel-penilaian"
+            aria-labelledby="tab-penilaian"
+            className="mt-6"
+          >
+            <PenilaianPane />
           </div>
         ) : (
           <div

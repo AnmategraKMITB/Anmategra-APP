@@ -60,7 +60,9 @@ function ruleComplete(rule: Rule): boolean {
   const filled = (v: unknown) =>
     v !== undefined && v !== null && v !== '' && !Array.isArray(v);
   if (!filled(rule.nilai)) return false;
-  return rule.op !== 'antara' || filled(rule.nilai2);
+  return (
+    (rule.op !== 'antara' && rule.op !== 'pilihan_ke') || filled(rule.nilai2)
+  );
 }
 
 function ValueInput({
@@ -74,7 +76,9 @@ function ValueInput({
 }) {
   if (!operatorNeedsValue(rule.op)) return null;
   const isChoice =
-    source.type === 'single_choice' || source.type === 'multiple_choice';
+    source.type === 'single_choice' ||
+    source.type === 'multiple_choice' ||
+    source.type === 'unit_choice';
 
   if (isChoice && operatorIsSet(rule.op)) {
     const chosen = Array.isArray(rule.nilai) ? rule.nilai : [];
@@ -101,21 +105,43 @@ function ValueInput({
 
   if (isChoice) {
     return (
-      <Select
-        value={typeof rule.nilai === 'string' ? rule.nilai : ''}
-        onValueChange={(nilai) => onChange({ nilai })}
-      >
-        <SelectTrigger aria-label="Pilihan">
-          <SelectValue placeholder="Pilih…" />
-        </SelectTrigger>
-        <SelectContent>
-          {source.options.map((o) => (
-            <SelectItem key={o.id} value={o.id}>
-              {o.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex items-center gap-2">
+        <Select
+          value={typeof rule.nilai === 'string' ? rule.nilai : ''}
+          onValueChange={(nilai) => onChange({ nilai })}
+        >
+          <SelectTrigger aria-label="Pilihan">
+            <SelectValue placeholder="Pilih…" />
+          </SelectTrigger>
+          <SelectContent>
+            {source.options.map((o) => (
+              <SelectItem key={o.id} value={o.id}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {rule.op === 'pilihan_ke' ? (
+          <>
+            <span className="shrink-0 text-sm text-neutral-700">
+              pilihan ke-
+            </span>
+            <Input
+              type="number"
+              min={1}
+              aria-label="Urutan pilihan"
+              className="w-20"
+              value={typeof rule.nilai2 === 'number' ? String(rule.nilai2) : ''}
+              onChange={(e) =>
+                onChange({
+                  nilai2:
+                    e.target.value === '' ? undefined : Number(e.target.value),
+                })
+              }
+            />
+          </>
+        ) : null}
+      </div>
     );
   }
 
