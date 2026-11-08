@@ -1,5 +1,15 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, inArray, max, notInArray } from 'drizzle-orm';
+import {
+  and,
+  count,
+  desc,
+  eq,
+  inArray,
+  isNull,
+  max,
+  notInArray,
+} from 'drizzle-orm';
+import { MAX_RULES } from '~/lib/forms/conditions';
 import {
   createTRPCRouter,
   oprecPeriodProcedure,
@@ -9,6 +19,8 @@ import {
   application,
   applicationChoice,
   form,
+  formField,
+  formSection,
   formSubmission,
   recruitment,
   recruitmentDivision,
@@ -32,6 +44,7 @@ import {
   SetSectionBindingsInputSchema,
   UpdateRecruitmentInputSchema,
 } from '../../types/oprec.type';
+import { enforceConditions, lockForm } from '../form/services';
 import {
   assertDivisionTarget,
   assertSectionsOfForm,
@@ -107,6 +120,15 @@ export const oprecRouter = createTRPCRouter({
               'Formulir ini sudah menerima jawaban, sehingga tidak bisa dipakai untuk oprec. Buat formulir baru.',
             );
           }
+          // Formulir oprec: satu respons per akun, tanpa edit, tanpa kuota respons.
+          await tx
+            .update(form)
+            .set({
+              allowMultipleSubmissions: false,
+              allowEditAfterSubmit: false,
+              maxResponses: null,
+            })
+            .where(eq(form.id, input.formId));
           const [row] = await tx
             .insert(recruitment)
             .values({
@@ -191,6 +213,21 @@ export const oprecRouter = createTRPCRouter({
             .select({ n: count() })
             .from(recruitmentDivision)
             .where(eq(recruitmentDivision.recruitmentId, current.id));
+          const [choice] = await tx
+            .select({ n: count() })
+            .from(formField)
+            .where(
+              and(
+                eq(formField.formId, current.formId),
+                eq(formField.type, 'unit_choice'),
+                isNull(formField.archivedAt),
+              ),
+            );
+          if ((choice?.n ?? 0) === 0) {
+            conflict(
+              'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
+            );
+          }
           if ((divs?.n ?? 0) === 0) {
             conflict(
               'Pilih minimal satu tujuan penempatan sebelum membuka oprec.',
@@ -434,7 +471,14 @@ export const oprecRouter = createTRPCRouter({
         input.formSectionId,
       ]);
       const divisionIds = [...new Set(input.divisionIds)];
+      if (divisionIds.length > MAX_RULES) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Satu bagian formulir maksimal diikat ke ${MAX_RULES} tujuan.`,
+        });
+      }
       await ctx.db.transaction(async (tx) => {
+        await lockForm(tx, ctx.recruitment.formId);
         if (divisionIds.length > 0) {
           const rows = await tx
             .select({ id: recruitmentDivision.id })
@@ -478,6 +522,44 @@ export const oprecRouter = createTRPCRouter({
             )
             .onConflictDoNothing();
         }
+
+        // Ikatan sekaligus menjadi kondisi tampil bagian itu: muncul bila salah
+        // satu tujuan terikat dipilih di pilihan mana pun.
+        const [choice] = await tx
+          .select({ id: formField.id })
+          .from(formField)
+          .where(
+            and(
+              eq(formField.formId, ctx.recruitment.formId),
+              eq(formField.type, 'unit_choice'),
+              isNull(formField.archivedAt),
+            ),
+          );
+        if (divisionIds.length > 0 && !choice) {
+          conflict(
+            'Tambahkan blok Pilihan tujuan ke formulir terlebih dahulu.',
+          );
+        }
+        await tx
+          .update(formSection)
+          .set({
+            condition:
+              divisionIds.length === 0 || !choice
+                ? null
+                : {
+                    cocok: 'salah-satu',
+                    aturan: divisionIds.map((divisionId) => ({
+                      jenis: 'jawaban',
+                      fieldId: choice.id,
+                      op: 'memilih',
+                      nilai: divisionId,
+                    })),
+                  },
+          })
+          .where(eq(formSection.id, input.formSectionId));
+        await enforceConditions(tx, ctx.recruitment.formId, {
+          edited: [input.formSectionId],
+        });
       });
       return OK;
     }),

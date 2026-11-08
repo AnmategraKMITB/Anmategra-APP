@@ -89,6 +89,14 @@ export function storedAnswerToInput(
             ) === index,
         );
     }
+    case 'unit_choice': {
+      // Tersimpan sebagai [{ optionId, label }] berurutan; kembalikan id-nya.
+      if (!Array.isArray(value)) return undefined;
+      const ids = value
+        .map((v) => (isRecord(v) ? v.optionId : undefined))
+        .filter((id): id is string => typeof id === 'string');
+      return ids.length > 0 ? ids : undefined;
+    }
     case 'text_block':
       return undefined;
     default:

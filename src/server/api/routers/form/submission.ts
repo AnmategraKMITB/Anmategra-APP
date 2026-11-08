@@ -36,6 +36,12 @@ import {
   UpdateSubmissionOutputSchema,
 } from '../../types/form.type';
 import {
+  type OprecForForm,
+  checkApplyGate,
+  createApplicationFromSubmission,
+  loadOprecForForm,
+} from '../oprec/application';
+import {
   type Db,
   type Tx,
   buildPublicForm,
@@ -126,6 +132,12 @@ function assertNever(value: never): never {
 export function validateAnswers(
   fields: FieldOutput[],
   answers: AnswerInput[],
+  oprec:
+    | (Pick<OprecForForm, 'divisions'> & {
+        minChoices: number;
+        maxChoices: number;
+      })
+    | null = null,
 ): { issues: ZodIssue[]; rows: AnswerRow[] } {
   const issues: ZodIssue[] = [];
   const rows: AnswerRow[] = [];
@@ -407,6 +419,41 @@ export function validateAnswers(
         break;
       }
 
+      case 'unit_choice': {
+        if (!oprec) {
+          fail(field.id, `${label} hanya berlaku untuk formulir oprec.`);
+          break;
+        }
+        if (!Array.isArray(raw) || raw.some((v) => typeof v !== 'string')) {
+          fail(field.id, `Pilihan pada ${label} tidak valid.`);
+          break;
+        }
+        const ids = raw as string[];
+        if (new Set(ids).size !== ids.length) {
+          fail(field.id, `${label} tidak boleh memilih yang sama dua kali.`);
+          break;
+        }
+        const picked = ids.map((id) =>
+          oprec.divisions.find((d) => d.id === id),
+        );
+        if (picked.some((d) => d === undefined)) {
+          fail(field.id, `Pilihan pada ${label} tidak valid.`);
+          break;
+        }
+        if (ids.length < oprec.minChoices || ids.length > oprec.maxChoices) {
+          fail(
+            field.id,
+            oprec.minChoices === oprec.maxChoices
+              ? `${label} harus memilih tepat ${oprec.minChoices}.`
+              : `${label} harus memilih ${oprec.minChoices} sampai ${oprec.maxChoices}.`,
+          );
+          break;
+        }
+        // Urutan = peringkat pilihan; disimpan berurutan sebagai [{ optionId, label }].
+        push(picked.map((d) => ({ optionId: d!.id, label: d!.label })));
+        break;
+      }
+
       default:
         assertNever(field.type);
     }
@@ -434,7 +481,12 @@ async function ensureActiveStudent(db: Db, role: string, userId: string) {
  * ending. Dipakai `submit` dan `submission.update` supaya keduanya tidak bisa
  * menyimpang aturannya.
  */
-async function prepareAnswers(tx: Tx, formId: string, answers: AnswerInput[]) {
+async function prepareAnswers(
+  tx: Tx,
+  formId: string,
+  answers: AnswerInput[],
+  oprec: OprecForForm | null = null,
+) {
   const allFields = await loadActiveFields(tx, formId);
   const [sections, endings] = await Promise.all([
     loadSections(tx, formId),
@@ -450,6 +502,13 @@ async function prepareAnswers(tx: Tx, formId: string, answers: AnswerInput[]) {
   const { issues, rows } = validateAnswers(
     fields,
     answers.filter((a) => !hidden.has(a.fieldId)),
+    oprec
+      ? {
+          divisions: oprec.divisions,
+          minChoices: oprec.recruitment.minChoices,
+          maxChoices: oprec.recruitment.maxChoices,
+        }
+      : null,
   );
   if (issues.length > 0) {
     // Cause yang membawa `issues` membuat errorFormatter memaparkan
@@ -466,6 +525,7 @@ async function prepareAnswers(tx: Tx, formId: string, answers: AnswerInput[]) {
     endingId,
     ending: endings.find((e) => e.id === endingId) ?? null,
     activeFieldIds: allFields.map((f) => f.id),
+    fields: allFields,
   };
 }
 
@@ -486,7 +546,43 @@ export const formSubmissionRouter = createTRPCRouter({
           message: 'Formulir tidak ditemukan.',
         });
       }
-      return buildPublicForm(ctx.db, row, 'form', ctx.session.user.id);
+      const base = await buildPublicForm(
+        ctx.db,
+        row,
+        'form',
+        ctx.session.user.id,
+      );
+      const oprec = await loadOprecForForm(ctx.db, row.id);
+      if (!oprec) return base;
+      const gate = await checkApplyGate(ctx.db, oprec, ctx.session.user.id);
+      const rec = oprec.recruitment;
+      return {
+        ...base,
+        // Yang belum memenuhi syarat melihat penjelasan, bukan isi formulir.
+        ...(gate.eligible ? {} : { sections: [], fields: [] }),
+        isAcceptingResponses: base.isAcceptingResponses && gate.canApply,
+        oprec: {
+          recruitmentId: rec.id,
+          canApply: gate.canApply,
+          eligible: gate.eligible,
+          reason: gate.reason,
+          minChoices: rec.minChoices,
+          maxChoices: rec.maxChoices,
+          allowRedirect: rec.allowRedirect,
+          wave: gate.wave
+            ? {
+                label: gate.wave.label,
+                startsAt: gate.wave.startsAt,
+                endsAt: gate.wave.endsAt,
+              }
+            : null,
+          divisions: oprec.divisions.map((d) => ({
+            id: d.id,
+            label: d.label,
+            groupLabel: d.groupLabel,
+          })),
+        },
+      };
     }),
 
   /** The caller's own latest submission to this form, or null. */
@@ -633,11 +729,33 @@ export const formSubmissionRouter = createTRPCRouter({
             }
           }
 
-          const { rows, endingId, ending } = await prepareAnswers(
+          // Form terikat oprec: oprec harus terbuka, di dalam gelombang, dan
+          // syarat pendaftar terpenuhi. Dicek di dalam transaksi yang sama
+          // dengan pembuatan pendaftar.
+          const oprec = await loadOprecForForm(tx, current.id);
+          const gate = oprec ? await checkApplyGate(tx, oprec, userId) : null;
+          if (gate && !gate.canApply) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message: gate.reason ?? 'Pendaftaran tidak dapat dikirim.',
+            });
+          }
+
+          const { rows, endingId, ending, fields } = await prepareAnswers(
             tx,
             current.id,
             input.answers,
+            oprec,
           );
+          const choiceRow = oprec
+            ? rows.find((r) => r.fieldType === 'unit_choice')
+            : undefined;
+          if (oprec && !choiceRow) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Formulir oprec ini belum punya pilihan tujuan.',
+            });
+          }
           const [submission] = await tx
             .insert(formSubmission)
             .values({ formId: current.id, userId, endingId })
@@ -648,6 +766,23 @@ export const formSubmissionRouter = createTRPCRouter({
               .values(
                 rows.map((r) => ({ ...r, submissionId: submission!.id })),
               );
+          }
+          if (oprec && choiceRow && gate) {
+            const choiceField = fields.find((f) => f.id === choiceRow.fieldId);
+            const willingId = choiceField?.config.willingFieldId;
+            await createApplicationFromSubmission(tx, {
+              recruitmentId: oprec.recruitment.id,
+              userId,
+              waveId: gate.wave?.id ?? null,
+              formSubmissionId: submission!.id,
+              divisionIds: (choiceRow.value as { optionId: string }[]).map(
+                (o) => o.optionId,
+              ),
+              willingToMove:
+                oprec.recruitment.allowRedirect &&
+                willingId !== undefined &&
+                rows.some((r) => r.fieldId === willingId && r.value === true),
+            });
           }
           return {
             submissionId: submission!.id,
