@@ -25,6 +25,7 @@ import {
   PopoverTrigger,
 } from '~/components/ui/popover';
 
+import { useBuilder } from './builder-context';
 import { FIELD_KINDS, type FieldKind } from './model';
 
 const ICONS: Record<FieldKind, React.ComponentType<{ className?: string }>> = {
@@ -66,6 +67,14 @@ export function AddMenu({
   variant?: 'dark_blue_outline' | 'light_blue';
 }) {
   const [open, setOpen] = useState(false);
+  const builder = useBuilder();
+  // Blok Pilihan tujuan hanya untuk form oprec, dan cukup satu.
+  const choiceAllowed =
+    !!builder.detail?.oprec &&
+    !builder.detail.fields.some((f) => f.type === 'unit_choice');
+  const kinds = FIELD_KINDS.filter(
+    (k) => k.kind !== 'unit_choice' || choiceAllowed,
+  );
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -79,7 +88,7 @@ export function AddMenu({
         className="max-h-[min(30rem,var(--radix-popover-content-available-height))] w-[min(22rem,90vw)] overflow-y-auto rounded-[20px] p-2"
       >
         <ul className="grid gap-0.5">
-          {FIELD_KINDS.map((item) => (
+          {kinds.map((item) => (
             <li key={item.kind}>
               <button
                 type="button"

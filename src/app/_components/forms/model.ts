@@ -61,6 +61,11 @@ export const FIELD_KINDS: { kind: FieldKind; label: string; hint: string }[] = [
     label: 'Blok teks',
     hint: 'Penjelasan tanpa pertanyaan',
   },
+  {
+    kind: 'unit_choice',
+    label: 'Pilihan tujuan',
+    hint: 'Pendaftar memilih tujuan penempatan (khusus oprec)',
+  },
 ];
 
 export function kindOf(field: FieldOut): FieldKind {

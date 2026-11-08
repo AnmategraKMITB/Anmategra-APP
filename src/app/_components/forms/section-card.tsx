@@ -9,6 +9,7 @@ import { useBuilder } from './builder-context';
 import { ConditionEditor } from './condition-editor';
 import { FieldCard } from './field-card';
 import { type ContentGroup, conditionSources } from './model';
+import { SectionBindingEditor } from './section-binding';
 
 /**
  * Satu bagian beserta pertanyaannya. Grup tanpa bagian (`section: null`)
@@ -90,16 +91,23 @@ export function SectionCard({
                 onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
               />
               <div>
-                <ConditionEditor
-                  title={section.title}
-                  value={section.condition}
-                  sources={conditionSources(builder.groups, {
-                    sectionId: section.id,
-                  })}
-                  onSave={(condition) =>
-                    void builder.editSection(section.id, { condition })
-                  }
-                />
+                {builder.detail?.oprec ? (
+                  <SectionBindingEditor
+                    sectionId={section.id}
+                    recruitmentId={builder.detail.oprec.recruitmentId}
+                  />
+                ) : (
+                  <ConditionEditor
+                    title={section.title}
+                    value={section.condition}
+                    sources={conditionSources(builder.groups, {
+                      sectionId: section.id,
+                    })}
+                    onSave={(condition) =>
+                      void builder.editSection(section.id, { condition })
+                    }
+                  />
+                )}
               </div>
             </div>
           ) : hideTitle ? null : (
