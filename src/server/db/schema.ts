@@ -2242,3 +2242,286 @@ export const applicationChoiceRelations = relations(
     }),
   }),
 );
+
+// ---------------------------------------------------------------------------
+// Oprec: penilaian (kriteria, nilai, override status, flag, penilai, log)
+//
+// Kolom berstatus memakai varchar + CHECK tulisan tangan di migrasi, seperti
+// tabel oprec lainnya. Unik yang mengandung kolom boleh-kosong (assessment,
+// recruitment_assessor) memakai NULLS NOT DISTINCT; itu ditulis tangan di
+// migrasi karena drizzle-kit tidak bisa membuatnya.
+// ---------------------------------------------------------------------------
+
+export const CRITERION_KINDS = [
+  'skor',
+  'gugur_otomatis',
+  'gugur_manual',
+] as const;
+export type CriterionKind = (typeof CRITERION_KINDS)[number];
+
+export const GATE_STATES = ['memenuhi', 'ditinjau', 'tidak'] as const;
+export type GateState = (typeof GATE_STATES)[number];
+
+export const OVERRIDE_STATUSES = ['lolos', 'tidak_lolos'] as const;
+export type OverrideStatus = (typeof OVERRIDE_STATUSES)[number];
+
+export const FLAG_COLORS = ['teal', 'amber', 'blue', 'red'] as const;
+export type FlagColor = (typeof FLAG_COLORS)[number];
+
+/** Aturan gugur otomatis: bentuk aturan kondisi Forms; gugur bila terpenuhi. */
+export type CriterionGateRule = {
+  fieldId: string;
+  op: string;
+  nilai?: unknown;
+  nilai2?: unknown;
+};
+
+export const criterion = createTable(
+  'criterion',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    // Null = kriteria umum (dinilai sekali per pendaftar).
+    divisionId: varchar('division_id', { length: 255 }).references(
+      () => recruitmentDivision.id,
+      { onDelete: 'cascade' },
+    ),
+    name: varchar('name', { length: 255 }).notNull(),
+    kind: varchar('kind', { length: 24 }).$type<CriterionKind>().notNull(),
+    // Hanya untuk kind skor (CHECK); 0-100.
+    weight: integer('weight'),
+    expectation: text('expectation'),
+    // Hanya untuk gugur_otomatis (CHECK).
+    gateRule: jsonb('gate_rule').$type<CriterionGateRule>(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    ...timestamps,
+  },
+  (table) => ({
+    recruitmentIdx: index('criterion_recruitment_idx').on(table.recruitmentId),
+    divisionIdx: index('criterion_division_idx').on(table.divisionId),
+  }),
+);
+
+/** Banyak-ke-banyak: satu kriteria menunjuk banyak pertanyaan, dan sebaliknya. */
+export const criterionField = createTable(
+  'criterion_field',
+  {
+    criterionId: varchar('criterion_id', { length: 255 })
+      .notNull()
+      .references(() => criterion.id, { onDelete: 'cascade' }),
+    formFieldId: varchar('form_field_id', { length: 255 })
+      .notNull()
+      .references(() => formField.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    pk: primaryKey({ columns: [table.criterionId, table.formFieldId] }),
+    fieldIdx: index('criterion_field_form_field_idx').on(table.formFieldId),
+  }),
+);
+
+export const assessment = createTable(
+  'assessment',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    applicationId: varchar('application_id', { length: 255 })
+      .notNull()
+      .references(() => application.id, { onDelete: 'cascade' }),
+    // Null untuk kriteria umum.
+    choiceId: varchar('choice_id', { length: 255 }).references(
+      () => applicationChoice.id,
+      { onDelete: 'cascade' },
+    ),
+    criterionId: varchar('criterion_id', { length: 255 })
+      .notNull()
+      .references(() => criterion.id, { onDelete: 'cascade' }),
+    assessorId: varchar('assessor_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    // Skala recruitment.rating_min..rating_max; dijaga aplikasi.
+    rating: integer('rating'),
+    gateState: varchar('gate_state', { length: 16 }).$type<GateState>(),
+    note: text('note'),
+    updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    applicationIdx: index('assessment_application_idx').on(table.applicationId),
+    choiceIdx: index('assessment_choice_idx').on(table.choiceId),
+    criterionIdx: index('assessment_criterion_idx').on(table.criterionId),
+    assessorIdx: index('assessment_assessor_idx').on(table.assessorId),
+    // NULLS NOT DISTINCT ditulis tangan di migrasi (choice_id boleh kosong).
+    uniquePerAssessor: uniqueIndex('assessment_unique').on(
+      table.applicationId,
+      table.choiceId,
+      table.criterionId,
+      table.assessorId,
+    ),
+  }),
+);
+
+export const choiceStatusOverride = createTable(
+  'choice_status_override',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    choiceId: varchar('choice_id', { length: 255 })
+      .notNull()
+      .references(() => applicationChoice.id, { onDelete: 'cascade' }),
+    status: varchar('status', { length: 16 })
+      .$type<OverrideStatus>()
+      .notNull(),
+    reason: text('reason').notNull(),
+    isSensitive: boolean('is_sensitive').notNull().default(false),
+    setBy: varchar('set_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    setAt: timestamp('set_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    // Null = override masih aktif; yang diganti menyimpan waktunya (riwayat).
+    clearedAt: timestamp('cleared_at', { mode: 'date', withTimezone: true }),
+    // Snapshot saat override, untuk penanda "perlu ditinjau ulang".
+    computedStatusAtOverride: varchar('computed_status_at_override', {
+      length: 16,
+    }).$type<ComputedStatus>(),
+    scoreAtOverride: numeric('score_at_override'),
+  },
+  (table) => ({
+    choiceIdx: index('choice_status_override_choice_idx').on(table.choiceId),
+    // Satu override aktif per pilihan.
+    activeUnique: uniqueIndex('choice_status_override_active_unique')
+      .on(table.choiceId)
+      .where(sql`${table.clearedAt} IS NULL`),
+  }),
+);
+
+export const flagLabel = createTable(
+  'flag_label',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    color: varchar('color', { length: 16 }).$type<FlagColor>().notNull(),
+    isSensitive: boolean('is_sensitive').notNull().default(false),
+    createdBy: varchar('created_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+  },
+  (table) => ({
+    nameUnique: uniqueIndex('flag_label_recruitment_name_unique').on(
+      table.recruitmentId,
+      table.name,
+    ),
+  }),
+);
+
+export const applicationFlag = createTable(
+  'application_flag',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    applicationId: varchar('application_id', { length: 255 })
+      .notNull()
+      .references(() => application.id, { onDelete: 'cascade' }),
+    labelId: varchar('label_id', { length: 255 })
+      .notNull()
+      .references(() => flagLabel.id, { onDelete: 'cascade' }),
+    appliedBy: varchar('applied_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    note: text('note'),
+    created_at: timestamp('created_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    labelIdx: index('application_flag_label_idx').on(table.labelId),
+    applicationLabelUnique: uniqueIndex('application_flag_unique').on(
+      table.applicationId,
+      table.labelId,
+    ),
+  }),
+);
+
+/**
+ * Penilai tambahan di luar struktur. Kadiv sebagai penilai divisi diturunkan
+ * dari organogram dan tidak punya baris di sini. `division_id` kosong = penilai
+ * umum. NULLS NOT DISTINCT ditulis tangan di migrasi.
+ */
+export const recruitmentAssessor = createTable(
+  'recruitment_assessor',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    divisionId: varchar('division_id', { length: 255 }).references(
+      () => recruitmentDivision.id,
+      { onDelete: 'cascade' },
+    ),
+  },
+  (table) => ({
+    userIdx: index('recruitment_assessor_user_idx').on(table.userId),
+    unique: uniqueIndex('recruitment_assessor_unique').on(
+      table.recruitmentId,
+      table.userId,
+      table.divisionId,
+    ),
+  }),
+);
+
+/** Audit semua tindakan pada oprec. Pelaku boleh kosong bila akunnya dihapus. */
+export const recruitmentLog = createTable(
+  'recruitment_log',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    actorId: varchar('actor_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'set null',
+    }),
+    action: varchar('action', { length: 100 }).notNull(),
+    entityType: varchar('entity_type', { length: 100 }).notNull(),
+    entityId: varchar('entity_id', { length: 255 }),
+    detail: jsonb('detail').$type<Record<string, unknown>>(),
+    created_at: timestamp('created_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    recruitmentTimeIdx: index('recruitment_log_recruitment_time_idx').on(
+      table.recruitmentId,
+      table.created_at,
+    ),
+    actorIdx: index('recruitment_log_actor_idx').on(table.actorId),
+  }),
+);

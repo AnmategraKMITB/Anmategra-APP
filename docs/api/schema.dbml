@@ -179,6 +179,40 @@ table anmategra_application_choice {
   }
 }
 
+table anmategra_application_flag {
+  id varchar(255) [pk, not null]
+  application_id varchar(255) [not null]
+  label_id varchar(255) [not null]
+  applied_by varchar(255) [not null]
+  note text
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    label_id [name: 'application_flag_label_idx']
+    (application_id, label_id) [name: 'application_flag_unique', unique]
+  }
+}
+
+table anmategra_assessment {
+  id varchar(255) [pk, not null]
+  application_id varchar(255) [not null]
+  choice_id varchar(255)
+  criterion_id varchar(255) [not null]
+  assessor_id varchar(255) [not null]
+  rating integer
+  gate_state varchar(16)
+  note text
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    application_id [name: 'assessment_application_idx']
+    choice_id [name: 'assessment_choice_idx']
+    criterion_id [name: 'assessment_criterion_idx']
+    assessor_id [name: 'assessment_assessor_idx']
+    (application_id, choice_id, criterion_id, assessor_id) [name: 'assessment_unique', unique]
+  }
+}
+
 table anmategra_association_request {
   id varchar(255) [pk, not null]
   period_id varchar(255)
@@ -227,6 +261,53 @@ table anmategra_best_staff_lembaga {
   Note: "Penghargaan \"best staff\" untuk mahasiswa pada suatu lembaga."
 }
 
+table anmategra_choice_status_override {
+  id varchar(255) [pk, not null]
+  choice_id varchar(255) [not null]
+  status varchar(16) [not null]
+  reason text [not null]
+  is_sensitive boolean [not null, default: false]
+  set_by varchar(255) [not null]
+  set_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  cleared_at "timestamp with time zone"
+  computed_status_at_override varchar(16)
+  score_at_override numeric
+
+  indexes {
+    choice_id [name: 'choice_status_override_choice_idx']
+    choice_id [name: 'choice_status_override_active_unique', unique]
+  }
+}
+
+table anmategra_criterion {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  division_id varchar(255)
+  name varchar(255) [not null]
+  kind varchar(24) [not null]
+  weight integer
+  expectation text
+  gate_rule jsonb
+  sort_order integer [not null, default: 0]
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    recruitment_id [name: 'criterion_recruitment_idx']
+    division_id [name: 'criterion_division_idx']
+  }
+}
+
+table anmategra_criterion_field {
+  criterion_id varchar(255) [not null]
+  form_field_id varchar(255) [not null]
+
+  indexes {
+    (criterion_id, form_field_id) [pk]
+    form_field_id [name: 'criterion_field_form_field_idx']
+  }
+}
+
 table anmategra_lembaga_period {
   id varchar(255) [pk, not null]
   lembaga_id varchar(255)
@@ -254,6 +335,19 @@ table anmategra_lembaga_period {
     lembaga_id [name: 'lembaga_period_highlighted_unique', unique]
   }
   Note: "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."
+}
+
+table anmategra_flag_label {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  name varchar(255) [not null]
+  color varchar(16) [not null]
+  is_sensitive boolean [not null, default: false]
+  created_by varchar(255) [not null]
+
+  indexes {
+    (recruitment_id, name) [name: 'flag_label_recruitment_name_unique', unique]
+  }
 }
 
 table anmategra_form {
@@ -706,6 +800,18 @@ table anmategra_recruitment {
   }
 }
 
+table anmategra_recruitment_assessor {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  user_id varchar(255) [not null]
+  division_id varchar(255)
+
+  indexes {
+    user_id [name: 'recruitment_assessor_user_idx']
+    (recruitment_id, user_id, division_id) [name: 'recruitment_assessor_unique', unique]
+  }
+}
+
 table anmategra_recruitment_division {
   id varchar(255) [pk, not null]
   recruitment_id varchar(255) [not null]
@@ -730,6 +836,22 @@ table anmategra_recruitment_eligibility_rule {
 
   indexes {
     recruitment_id [name: 'recruitment_eligibility_rule_recruitment_idx']
+  }
+}
+
+table anmategra_recruitment_log {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  actor_id varchar(255)
+  action varchar(100) [not null]
+  entity_type varchar(100) [not null]
+  entity_id varchar(255)
+  detail jsonb
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (recruitment_id, created_at) [name: 'recruitment_log_recruitment_time_idx']
+    actor_id [name: 'recruitment_log_actor_idx']
   }
 }
 

@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
+import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { db } from '~/server/db';
 import { form, recruitment } from '~/server/db/schema';
 
@@ -58,7 +59,8 @@ export type ApiMeta = {
     | 'lembaga-owner'
     | 'event-scoped'
     | 'form-scoped'
-    | 'oprec-scoped';
+    | 'oprec-scoped'
+    | 'oprec-assess';
 };
 
 /**
@@ -464,4 +466,45 @@ export const oprecPeriodProcedure = protectedProcedure
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, oprecAccess: access, eventId } });
+  });
+
+/**
+ * Di-scope oleh `recruitmentId` untuk peran penilaian: admin oprec, Kadiv,
+ * penilai umum, atau penilai tambahan. Peran dibawa di `ctx.assess`; tiap
+ * prosedur menegakkan batas lingkupnya sendiri (umum atau divisi tertentu).
+ */
+export const oprecAssessProcedure = protectedProcedure
+  .meta({ access: 'oprec-assess' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { recruitmentId?: unknown };
+    const recruitmentId = rawId(raw?.recruitmentId);
+    if (!recruitmentId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'recruitmentId is required',
+      });
+    }
+    const found = await ctx.db.query.recruitment.findFirst({
+      where: eq(recruitment.id, recruitmentId),
+    });
+    if (!found) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Oprec tidak ditemukan.',
+      });
+    }
+    const assess = await resolveAssessAccess(
+      ctx.db,
+      {
+        id: ctx.session.user.id,
+        role: ctx.session.user.role,
+        lembagaId: ctx.session.user.lembagaId,
+      },
+      found,
+    );
+    if (!assess) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, recruitment: found, assess } });
   });

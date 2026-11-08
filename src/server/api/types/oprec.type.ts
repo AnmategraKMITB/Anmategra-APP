@@ -198,6 +198,12 @@ export const ApplicantsListInputSchema = z.object({
   divisionId: id.optional(),
   angkatan: z.number().int().optional(),
   prodi: z.string().max(255).optional(),
+  /** Status efektif salah satu pilihan. */
+  status: z
+    .enum(['belum_lengkap', 'perlu_ditinjau', 'lolos', 'tidak_lolos'])
+    .optional(),
+  syaratUmum: z.enum(['lolos', 'gugur', 'perlu_ditinjau', 'belum']).optional(),
+  flagLabelId: id.optional(),
   sort: z.enum(APPLICANT_SORTS).default('nama'),
   groupBy: z.enum(APPLICANT_GROUPS).default('tanpa'),
   page: z.number().int().min(1).default(1),
@@ -257,6 +263,87 @@ export const CreateFromSetupInputSchema = z.object({
     .default({ match: 'all', rules: [] }),
   /** Pengaturan penilaian dan hasil yang sudah punya kolom; lainnya cukup di `answers`. */
   settings: RecruitmentSettingsPatchSchema.default({}),
+  /** Kriteria awal dari wizard (S23): 'umum' atau id bagian tujuan (unitId). */
+  criteria: z
+    .array(
+      z.object({
+        scope: z.string().min(1).max(255),
+        name: z.string().trim().min(1).max(255),
+        kind: z.enum(['skor', 'gugur_manual']),
+        weight: z.number().int().min(0).max(100).nullish(),
+      }),
+    )
+    .max(200)
+    .default([]),
   /** Jawaban mentah wizard S1-S23, disimpan untuk riwayat. */
   answers: z.record(z.string(), z.unknown()).default({}),
 });
+
+// ---------------------------------------------------------------------------
+// Penilaian
+// ---------------------------------------------------------------------------
+
+export const ASSESS_MAX_PAGE_SIZE = 100;
+/** Lingkup penilaian: 'umum' atau id divisi. */
+const ScopeSchema = z.string().min(1).max(255);
+
+export const AssessQueueInputSchema = z.object({
+  recruitmentId: id,
+  scope: ScopeSchema,
+  search: z.string().trim().max(100).optional(),
+  /** Hanya yang belum selesai dinilai di lingkup ini. */
+  onlyIncomplete: z.boolean().default(false),
+  /** Sertakan nilai milik pemanggil per kriteria (tampilan sheet). */
+  withValues: z.boolean().default(false),
+  page: z.number().int().min(1).default(1),
+  pageSize: z.number().int().min(1).max(ASSESS_MAX_PAGE_SIZE).default(50),
+});
+
+export const AssessGetInputSchema = z.object({
+  recruitmentId: id,
+  applicationId: id,
+  scope: ScopeSchema,
+});
+
+export const AssessSaveInputSchema = z
+  .object({
+    recruitmentId: id,
+    applicationId: id,
+    criterionId: id,
+    /** Wajib untuk kriteria divisi; kosong untuk kriteria umum. */
+    choiceId: id.nullish(),
+    rating: z.number().int().nullish(),
+    gateState: z.enum(['memenuhi', 'ditinjau', 'tidak']).nullish(),
+    note: z.string().trim().max(2000).nullish(),
+  })
+  .refine((v) => v.rating == null || v.gateState == null, {
+    message: 'Isi skor atau gate, tidak keduanya.',
+  });
+
+export const OverrideSetInputSchema = z.object({
+  recruitmentId: id,
+  choiceId: id,
+  status: z.enum(['lolos', 'tidak_lolos']),
+  reason: z.string().trim().min(1, 'Alasan wajib diisi.').max(2000),
+  isSensitive: z.boolean().default(false),
+});
+
+export const OverrideClearInputSchema = z.object({
+  recruitmentId: id,
+  choiceId: id,
+});
+
+export const OverrideHistoryInputSchema = z.object({
+  recruitmentId: id,
+  choiceId: id,
+});
+
+export const AssessStatusesSchema = z.array(
+  z.object({
+    choiceId: z.string(),
+    score: z.number().nullable(),
+    status: z
+      .enum(['belum_lengkap', 'perlu_ditinjau', 'lolos', 'tidak_lolos'])
+      .nullable(),
+  }),
+);
