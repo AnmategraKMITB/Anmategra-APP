@@ -82,6 +82,11 @@ const ACCESS: Record<
     description:
       'Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.',
   },
+  'oprec-assess': {
+    label: 'Penilai Oprec',
+    description:
+      'Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.',
+  },
   'oprec-scoped': {
     label: 'Pengelola Oprec',
     description:
