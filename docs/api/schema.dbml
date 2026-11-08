@@ -743,6 +743,22 @@ table anmategra_placement {
   Note: "Orang sungguhan di sebuah posisi. Periode diturunkan: posisi > unit > struktur > periode. Satu orang boleh memegang beberapa posisi. Akan menggantikan keanggotaan dan kehimpunan."
 }
 
+table anmategra_placement_decision {
+  id varchar(255) [pk, not null]
+  choice_id varchar(255) [not null]
+  decision varchar(16) [not null]
+  decided_by varchar(255) [not null]
+  decided_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  tag varchar(24)
+  reason text
+  over_quota_confirmed boolean [not null, default: false]
+
+  indexes {
+    choice_id [name: 'placement_decision_choice_unique', unique]
+    decided_by [name: 'placement_decision_decided_by_idx']
+  }
+}
+
 table anmategra_profil_km {
   id varchar(255) [pk, not null]
   description text [not null]
@@ -867,6 +883,18 @@ table anmategra_recruitment_section_binding {
   }
 }
 
+table anmategra_recruitment_visibility_override {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  viewer_division_id varchar(255) [not null]
+  target_division_id varchar(255) [not null]
+  allowed boolean [not null]
+
+  indexes {
+    (recruitment_id, viewer_division_id, target_division_id) [name: 'recruitment_visibility_override_unique', unique]
+  }
+}
+
 table anmategra_recruitment_wave {
   id varchar(255) [pk, not null]
   recruitment_id varchar(255) [not null]
@@ -953,6 +981,28 @@ table anmategra_support_reply {
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   Note: "Balasan/thread pada tiket support."
+}
+
+table anmategra_transfer_request {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  application_id varchar(255) [not null]
+  from_division_id varchar(255) [not null]
+  to_division_id varchar(255) [not null]
+  reason text [not null]
+  status varchar(16) [not null, default: 'diminta']
+  requested_by varchar(255) [not null]
+  resolved_by varchar(255)
+  resolved_at "timestamp with time zone"
+  resolution_note text
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    recruitment_id [name: 'transfer_request_recruitment_idx']
+    application_id [name: 'transfer_request_application_idx']
+    application_id [name: 'transfer_request_open_unique', unique]
+  }
 }
 
 table anmategra_user {
