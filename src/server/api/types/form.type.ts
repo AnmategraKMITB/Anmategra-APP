@@ -611,12 +611,17 @@ export const FieldConfigSchema = z.object({
   linkAccess: z.enum(['anyone', 'organization']).optional(),
   /** unit_choice: id pertanyaan checkbox "bersedia dipindahkan" di form yang sama. */
   willingFieldId: z.string().optional(),
+  /** unit_choice, hanya keluaran: batas jumlah pilihan dari oprec yang terikat. */
+  minChoices: z.number().int().optional(),
+  maxChoices: z.number().int().optional(),
 });
 
 const FieldOptionOutputSchema = z.object({
   id: z.string(),
   label: z.string(),
   sortOrder: z.number().int(),
+  /** Pengelompokan tampilan (mis. nama bidang) untuk pilihan tujuan oprec. */
+  group: z.string().nullable().optional(),
 });
 
 const FieldOutputSchema = z.object({
@@ -689,6 +694,15 @@ const FormDetailSchema = FormOutputSchema.extend({
   fields: z.array(FieldOutputSchema),
   sections: z.array(FormSectionOutputSchema),
   endings: z.array(FormEndingOutputSchema),
+  /** Ada bila form ini terikat oprec; builder memakainya untuk blok Pilihan dan ikatan bagian. */
+  oprec: z
+    .object({
+      recruitmentId: z.string(),
+      minChoices: z.number().int(),
+      maxChoices: z.number().int(),
+      allowRedirect: z.boolean(),
+    })
+    .nullable(),
 });
 
 const SuccessSchema = z.object({
