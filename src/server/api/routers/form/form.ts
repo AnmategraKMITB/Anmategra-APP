@@ -43,6 +43,7 @@ import {
   generatePreviewToken,
   imageOut,
   loadActiveFields,
+  loadBoundOprec,
   loadEndings,
   loadSections,
   lockForm,
@@ -208,6 +209,23 @@ export const formFormRouter = createTRPCRouter({
           // meloloskan formulir rilis yang tenggatnya sudah lewat.
           const current = await lockForm(tx, ctx.form.id);
 
+          // Formulir oprec: identitas dari akun, satu respons per akun, tanpa
+          // edit setelah kirim, dan tanpa kuota respons (kuota ada di tujuan
+          // penempatan). Mengaktifkannya akan merusak data pendaftar.
+          if (
+            (input.allowMultipleSubmissions === true ||
+              input.allowEditAfterSubmit === true ||
+              (input.maxResponses !== undefined &&
+                input.maxResponses !== null)) &&
+            (await loadBoundOprec(tx, current.id))
+          ) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message:
+                'Pengaturan ini dikunci untuk formulir oprec: satu respons per akun, tanpa edit setelah kirim, dan tanpa batas jumlah respons.',
+            });
+          }
+
           // A live form must not be silently closed by moving its deadline
           // into the past; close it explicitly instead.
           if (
@@ -313,6 +331,13 @@ export const formFormRouter = createTRPCRouter({
         await ctx.db.transaction(async (tx) => {
           // Lock first so a submission cannot land between the count and the delete.
           const current = await lockForm(tx, ctx.form.id);
+          if (await loadBoundOprec(tx, current.id)) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message:
+                'Formulir ini dipakai oleh oprec. Hapus oprec-nya lebih dulu.',
+            });
+          }
           const counts = await countSubmissions(tx, [ctx.form.id]);
           if ((counts.get(ctx.form.id) ?? 0) > 0) {
             throw new TRPCError({

@@ -31,6 +31,8 @@ import {
   formSection,
   formSubmission,
   lembaga,
+  recruitment,
+  recruitmentDivision,
 } from '~/server/db/schema';
 import { keyFromUploadUrl } from '~/server/uploads';
 
@@ -712,6 +714,77 @@ export function toCondFields(fields: FieldOutput[]): CondField[] {
  * - A condition broken as a side effect: CONFLICT listing what is affected, or,
  *   with `clearDependents`, those conditions are cleared and the change stands.
  */
+/** Id divisi dan batas pilihan oprec yang terikat pada form; null bila form biasa. */
+export async function loadBoundOprec(db: Queryable, formId: string) {
+  const [rec] = await db
+    .select({ id: recruitment.id, maxChoices: recruitment.maxChoices })
+    .from(recruitment)
+    .where(eq(recruitment.formId, formId));
+  if (!rec) return null;
+  const divisions = await db
+    .select({ id: recruitmentDivision.id })
+    .from(recruitmentDivision)
+    .where(eq(recruitmentDivision.recruitmentId, rec.id));
+  return {
+    recruitmentId: rec.id,
+    maxChoices: rec.maxChoices,
+    divisionIds: new Set(divisions.map((d) => d.id)),
+  };
+}
+
+/**
+ * Aturan blok Pilihan (`unit_choice`): hanya di form terikat oprec, paling
+ * banyak satu yang aktif, dan "bersedia dipindahkan" harus menunjuk kotak
+ * centang di form yang sama. Dipanggil di dalam transaksi yang memegang `lockForm`.
+ */
+export async function assertUnitChoiceAllowed(
+  tx: Tx,
+  formId: string,
+  input: { willingFieldId?: string; selfId?: string },
+) {
+  if (!(await loadBoundOprec(tx, formId))) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Blok Pilihan hanya bisa dipakai di formulir oprec.',
+    });
+  }
+  const others = await tx
+    .select({ id: formField.id })
+    .from(formField)
+    .where(
+      and(
+        eq(formField.formId, formId),
+        eq(formField.type, 'unit_choice'),
+        isNull(formField.archivedAt),
+      ),
+    );
+  if (others.some((f) => f.id !== input.selfId)) {
+    throw new TRPCError({
+      code: 'CONFLICT',
+      message: 'Formulir oprec hanya boleh punya satu blok Pilihan.',
+    });
+  }
+  if (input.willingFieldId !== undefined) {
+    const [target] = await tx
+      .select({ type: formField.type })
+      .from(formField)
+      .where(
+        and(
+          eq(formField.id, input.willingFieldId),
+          eq(formField.formId, formId),
+          isNull(formField.archivedAt),
+        ),
+      );
+    if (target?.type !== 'checkbox') {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message:
+          'Pertanyaan "bersedia dipindahkan" harus berupa kotak centang.',
+      });
+    }
+  }
+}
+
 export async function enforceConditions(
   tx: Tx,
   formId: string,
@@ -731,6 +804,10 @@ export async function enforceConditions(
     endings,
   );
   const flagged = new Set(issues.map((i) => i.targetId));
+  const typeById = new Map(fields.map((f) => [f.id, f.type]));
+  const bound = fields.some((f) => f.type === 'unit_choice')
+    ? await loadBoundOprec(tx, formId)
+    : null;
   const checkOptions = (
     targetId: string,
     kind: ConditionIssue['kind'],
@@ -738,6 +815,28 @@ export async function enforceConditions(
   ) => {
     if (flagged.has(targetId)) return;
     for (const rule of readCondition(condition)?.aturan ?? []) {
+      if (typeById.get(rule.fieldId) === 'unit_choice') {
+        const rank = rule.nilai2;
+        const badDivision =
+          typeof rule.nilai !== 'string' || !bound?.divisionIds.has(rule.nilai);
+        const badRank =
+          rule.op === 'pilihan_ke' &&
+          (typeof rank !== 'number' ||
+            !Number.isInteger(rank) ||
+            rank < 1 ||
+            rank > (bound?.maxChoices ?? 0));
+        if (badDivision || badRank) {
+          flagged.add(targetId);
+          issues.push({
+            targetId,
+            kind,
+            message:
+              'Tujuan atau urutan pilihan yang dirujuk kondisi sudah tidak ada.',
+          });
+          return;
+        }
+        continue;
+      }
       const known = optionIds.get(rule.fieldId);
       const wanted = [
         'adalah',

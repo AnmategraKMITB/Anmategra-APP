@@ -426,6 +426,10 @@ const fieldBase = {
   required: z.boolean().default(false),
 };
 
+const UnitChoiceConfigSchema = z
+  .object({ willingFieldId: IdSchema.optional() })
+  .strict();
+
 const fieldVariants = {
   short_text: z.object({
     type: z.literal('short_text'),
@@ -462,6 +466,10 @@ const fieldVariants = {
   file: z.object({ type: z.literal('file'), config: FileConfigSchema }),
   matrix: z.object({ type: z.literal('matrix'), config: MatrixConfigSchema }),
   scale: z.object({ type: z.literal('scale'), config: ScaleConfigSchema }),
+  unit_choice: z.object({
+    type: z.literal('unit_choice'),
+    config: UnitChoiceConfigSchema,
+  }),
 };
 
 type FieldVariant = z.infer<(typeof fieldVariants)[keyof typeof fieldVariants]>;
@@ -547,6 +555,7 @@ const createFieldVariants = [
   fieldVariants.file.extend(createShape),
   fieldVariants.matrix.extend(createShape),
   fieldVariants.scale.extend(createShape),
+  fieldVariants.unit_choice.extend(createShape),
 ] as const;
 
 const updateFieldVariants = [
@@ -562,6 +571,7 @@ const updateFieldVariants = [
   fieldVariants.file.extend(updateShape),
   fieldVariants.matrix.extend(updateShape),
   fieldVariants.scale.extend(updateShape),
+  fieldVariants.unit_choice.extend(updateShape),
 ] as const;
 
 /**
@@ -599,6 +609,8 @@ export const FieldConfigSchema = z.object({
   maxFiles: z.number().int().optional(),
   maxSizeMb: z.number().int().optional(),
   linkAccess: z.enum(['anyone', 'organization']).optional(),
+  /** unit_choice: id pertanyaan checkbox "bersedia dipindahkan" di form yang sama. */
+  willingFieldId: z.string().optional(),
 });
 
 const FieldOptionOutputSchema = z.object({
@@ -914,6 +926,29 @@ export const GetPreviewInputSchema = z.object({
 // ---------------------------------------------------------------------------
 
 export const GetPublicFormInputSchema = z.object({ formId: IdSchema });
+
+/** Keadaan form terikat oprec bagi pengisi yang sedang membukanya. */
+export const PublicOprecSchema = z.object({
+  recruitmentId: z.string(),
+  canApply: z.boolean(),
+  /** Syarat pendaftar terpenuhi; false = tampilkan penjelasan, bukan form. */
+  eligible: z.boolean(),
+  /** Kalimat siap tampil bila `canApply` false. */
+  reason: z.string().nullable(),
+  minChoices: z.number().int(),
+  maxChoices: z.number().int(),
+  allowRedirect: z.boolean(),
+  wave: z
+    .object({ label: z.string(), startsAt: z.date(), endsAt: z.date() })
+    .nullable(),
+  divisions: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      groupLabel: z.string().nullable(),
+    }),
+  ),
+});
 export const GetPublicFormOutputSchema = z.object({
   id: z.string(),
   title: z.string(),
@@ -934,6 +969,8 @@ export const GetPublicFormOutputSchema = z.object({
   }),
   /** Published and not past `closesAt`. */
   isAcceptingResponses: z.boolean(),
+  /** Hanya ada untuk form yang terikat oprec (dan bukan pratinjau). */
+  oprec: PublicOprecSchema.nullish(),
   /** `null` in preview mode. */
   hasSubmitted: z.boolean().nullable(),
   /** `preview` = opened through the public preview link; never accepts answers. */

@@ -51,6 +51,8 @@ export const OPERATORS_BY_TYPE: Record<string, string[]> = {
   scale: ['=', '!=', '>', '>=', '<', '<=', 'antara'],
   date: ['sebelum', 'sesudah', 'pada', 'antara'],
   checkbox: ['dicentang', 'tidak_dicentang'],
+  // nilai = id divisi oprec; jawabannya daftar id berurutan (pilihan ke-1..N).
+  unit_choice: ['memilih', 'tidak_memilih', 'pilihan_ke'],
 };
 
 const NO_VALUE_OPERATORS = new Set<string>([
@@ -134,6 +136,7 @@ export function evaluateRule(
   if (!operators?.includes(rule.op)) return false;
   if (!NO_VALUE_OPERATORS.has(rule.op) && !hasValue(rule.nilai)) return false;
   if (rule.op === 'antara' && !hasValue(rule.nilai2)) return false;
+  if (rule.op === 'pilihan_ke' && !hasValue(rule.nilai2)) return false;
   if (SET_OPERATORS.has(rule.op)) {
     const values = asArray(rule.nilai);
     if (!values?.length) return false;
@@ -199,6 +202,13 @@ export function evaluateRule(
     }
     case 'checkbox':
       return rule.op === 'dicentang' ? answer === true : answer !== true;
+    case 'unit_choice': {
+      const chosen = asArray(answer) ?? [];
+      if (rule.op === 'memilih') return chosen.includes(rule.nilai);
+      if (rule.op === 'tidak_memilih') return !chosen.includes(rule.nilai);
+      const rank = parseNumber(rule.nilai2);
+      return rank !== null && chosen[rank - 1] === rule.nilai;
+    }
     default:
       return false;
   }
@@ -346,6 +356,12 @@ function checkCondition(
     }
     if (rule.op === 'antara' && !hasValue(rule.nilai2)) {
       return 'Nilai kedua wajib diisi untuk "antara".';
+    }
+    if (rule.op === 'pilihan_ke') {
+      const rank = parseNumber(rule.nilai2);
+      if (rank === null || !Number.isInteger(rank) || rank < 1) {
+        return 'Urutan pilihan harus bilangan bulat mulai dari 1.';
+      }
     }
     if (SET_OPERATORS.has(rule.op) && !asArray(rule.nilai)?.length) {
       return 'Pilih minimal satu nilai.';

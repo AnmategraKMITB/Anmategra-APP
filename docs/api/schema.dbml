@@ -333,6 +333,7 @@ table anmategra_form_field {
 
   indexes {
     (form_id, section_id, sort_order) [name: 'form_field_form_section_order_idx']
+    form_id [name: 'form_field_unit_choice_unique', unique]
   }
   Note: "Pertanyaan pada formulir."
 }

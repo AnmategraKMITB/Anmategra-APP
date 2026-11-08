@@ -117,6 +117,14 @@ export function formatCsvAnswer(type: string, value: unknown): string {
       return value === true ? 'Ya' : value === false ? 'Tidak' : '';
     case 'single_choice':
       return optionLabel(value) ?? '';
+    case 'unit_choice':
+      return Array.isArray(value)
+        ? (value as unknown[])
+            .map(optionLabel)
+            .map((label, i) => (label === null ? null : `${i + 1}. ${label}`))
+            .filter((label): label is string => label !== null)
+            .join('; ')
+        : '';
     case 'multiple_choice':
       return Array.isArray(value)
         ? (value as unknown[])
