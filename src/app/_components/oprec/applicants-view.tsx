@@ -31,6 +31,23 @@ const GROUPS = [
 type Sort = (typeof SORTS)[number][0];
 type Group = (typeof GROUPS)[number][0];
 
+const STATUS_OPTIONS = [
+  ['lolos', 'Lolos'],
+  ['tidak_lolos', 'Tidak lolos'],
+  ['perlu_ditinjau', 'Perlu ditinjau'],
+  ['belum_lengkap', 'Belum lengkap'],
+] as const;
+
+const SYARAT_OPTIONS = [
+  ['lolos', 'Lolos'],
+  ['gugur', 'Gugur'],
+  ['perlu_ditinjau', 'Perlu ditinjau'],
+  ['belum', 'Belum'],
+] as const;
+
+type StatusFilter = (typeof STATUS_OPTIONS)[number][0];
+type SyaratFilter = (typeof SYARAT_OPTIONS)[number][0];
+
 const selectClass =
   'h-9 w-full rounded-lg border border-neutral-400 bg-neutral-50 px-3 text-sm text-neutral-1000 transition-colors duration-150 hover:border-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400';
 
@@ -55,17 +72,23 @@ export function ApplicantsView({
   name,
   periodName,
   backHref,
+  tabs,
 }: {
   recruitmentId: string;
   name: string;
   periodName: string;
   backHref: string;
+  /** Sub-navigasi oprec (Pendaftar / Nilai), dirender server. */
+  tabs?: React.ReactNode;
 }) {
   const [search, setSearch] = useState('');
   const [waveId, setWaveId] = useState('');
   const [divisionId, setDivisionId] = useState<string | undefined>();
   const [angkatan, setAngkatan] = useState('');
   const [prodi, setProdi] = useState('');
+  const [status, setStatus] = useState<StatusFilter | ''>('');
+  const [syaratUmum, setSyaratUmum] = useState<SyaratFilter | ''>('');
+  const [flagLabelId, setFlagLabelId] = useState('');
   const [sort, setSort] = useState<Sort>('nama');
   const [groupBy, setGroupBy] = useState<Group>('tanpa');
   const [pageState, setPageState] = useState({ key: '', page: 1 });
@@ -78,6 +101,9 @@ export function ApplicantsView({
     divisionId,
     angkatan: angkatan ? Number(angkatan) : undefined,
     prodi: prodi || undefined,
+    status: status || undefined,
+    syaratUmum: syaratUmum || undefined,
+    flagLabelId: flagLabelId || undefined,
     sort,
     groupBy,
   };
@@ -86,6 +112,11 @@ export function ApplicantsView({
   const page = pageState.key === key ? pageState.page : 1;
 
   const summary = api.oprec.applicantSummary.useQuery({ recruitmentId });
+  // Hanya admin oprec yang boleh; galatnya cukup menyembunyikan kartu progres.
+  const progress = api.oprec.assessProgress.useQuery(
+    { recruitmentId },
+    { retry: false },
+  );
   const list = api.oprec.applicants.useQuery(
     { recruitmentId, ...filters, page, pageSize: PAGE_SIZE },
     { placeholderData: (previous) => previous },
@@ -96,13 +127,19 @@ export function ApplicantsView({
     waveId !== '' ||
     divisionId !== undefined ||
     angkatan !== '' ||
-    prodi !== '';
+    prodi !== '' ||
+    status !== '' ||
+    syaratUmum !== '' ||
+    flagLabelId !== '';
   const reset = () => {
     setSearch('');
     setWaveId('');
     setDivisionId(undefined);
     setAngkatan('');
     setProdi('');
+    setStatus('');
+    setSyaratUmum('');
+    setFlagLabelId('');
   };
   const total = summary.data?.total;
   const exportHref = (format: 'csv' | 'xlsx') =>
@@ -149,12 +186,15 @@ export function ApplicantsView({
         </div>
       </header>
 
+      {tabs}
+
       <div className="mt-6">
         {summary.isError ? (
           <ErrorNote message={summary.error.message} />
         ) : summary.data ? (
           <ApplicantsSummary
             data={summary.data}
+            progress={progress.data}
             activeDivisionId={divisionId}
             onPickDivision={setDivisionId}
           />
@@ -237,6 +277,51 @@ export function ApplicantsView({
               {summary.data?.prodi.map((p) => (
                 <option key={p} value={p}>
                   {p}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Status pilihan">
+            <select
+              className={selectClass}
+              value={status}
+              onChange={(e) => setStatus(e.target.value as StatusFilter | '')}
+            >
+              <option value="">Semua</option>
+              {STATUS_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Syarat umum">
+            <select
+              className={selectClass}
+              value={syaratUmum}
+              onChange={(e) =>
+                setSyaratUmum(e.target.value as SyaratFilter | '')
+              }
+            >
+              <option value="">Semua</option>
+              {SYARAT_OPTIONS.map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Flag">
+            <select
+              className={selectClass}
+              value={flagLabelId}
+              onChange={(e) => setFlagLabelId(e.target.value)}
+            >
+              <option value="">Semua</option>
+              {summary.data?.flagLabels.map((flag) => (
+                <option key={flag.id} value={flag.id}>
+                  {flag.name}
+                  {flag.isSensitive ? ' · sensitif' : ''}
                 </option>
               ))}
             </select>

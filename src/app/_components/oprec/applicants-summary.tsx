@@ -5,6 +5,7 @@ import { cn } from '~/lib/utils';
 import { type RouterOutputs } from '~/trpc/react';
 
 type Summary = RouterOutputs['oprec']['applicantSummary'];
+type Progress = RouterOutputs['oprec']['assessProgress'];
 
 /**
  * Ringkasan baca-saja: total pendaftar, jumlah per gelombang, dan sebaran
@@ -12,15 +13,18 @@ type Summary = RouterOutputs['oprec']['applicantSummary'];
  */
 export function ApplicantsSummary({
   data,
+  progress,
   activeDivisionId,
   onPickDivision,
 }: {
   data: Summary;
+  progress: Progress | undefined;
   activeDivisionId: string | undefined;
   onPickDivision: (divisionId: string | undefined) => void;
 }) {
   const [rank, setRank] = useState(1);
   const current = data.byRank.find((r) => r.rank === rank) ?? data.byRank[0];
+  const scopes = progress?.scopes.filter((s) => s.assessable > 0) ?? [];
   const peak = Math.max(1, ...(current?.items.map((i) => i.count) ?? [1]));
 
   return (
@@ -32,6 +36,13 @@ export function ApplicantsSummary({
         <p className="text-sm text-neutral-700">Total pendaftar</p>
         <p className="mt-1 text-2xl font-semibold tabular-nums text-neutral-1000">
           {data.total}
+        </p>
+        <p className="mt-1 text-sm text-neutral-700">
+          Lolos syarat umum:{' '}
+          <span className="font-semibold tabular-nums text-neutral-1000">
+            {data.lolosSyaratUmum}
+          </span>{' '}
+          dari {data.total}
         </p>
         {data.byWave.length > 0 ? (
           <>
@@ -50,6 +61,46 @@ export function ApplicantsSummary({
                   </span>
                 </li>
               ))}
+            </ul>
+          </>
+        ) : null}
+        {scopes.length > 0 ? (
+          <>
+            <h2 className="mt-5 text-sm font-semibold text-neutral-1000">
+              Progres penilaian
+            </h2>
+            <ul className="mt-2 grid gap-2">
+              {scopes.map((scope) => {
+                const percent =
+                  scope.total > 0
+                    ? Math.min(100, (scope.completed / scope.total) * 100)
+                    : 0;
+                return (
+                  <li key={scope.scope} className="text-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="truncate text-neutral-700">
+                        {scope.label}
+                      </span>
+                      <span className="shrink-0 font-semibold tabular-nums text-neutral-1000">
+                        {scope.completed}/{scope.total}
+                      </span>
+                    </div>
+                    <div
+                      role="progressbar"
+                      aria-label={`Progres penilaian ${scope.label}`}
+                      aria-valuemin={0}
+                      aria-valuenow={scope.completed}
+                      aria-valuemax={scope.total}
+                      className="mt-1 h-1.5 overflow-hidden rounded-full bg-neutral-200"
+                    >
+                      <div
+                        className="h-full rounded-full bg-primary-300"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
           </>
         ) : null}

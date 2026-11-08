@@ -13,8 +13,10 @@ import {
 } from '~/components/ui/table';
 import { type RouterOutputs } from '~/trpc/react';
 
+import { FLAG_STYLE, StatusBadge, SyaratBadge } from './nilai/status';
+
 type Applicants = RouterOutputs['oprec']['applicants'];
-type Choice = { rank: number | null; label: string; origin: string };
+type Choice = Applicants['rows'][number]['choices'][number];
 
 const when = (d: Date | null) =>
   d
@@ -25,10 +27,32 @@ const when = (d: Date | null) =>
       })
     : '—';
 
-function ChoiceChip({ label }: { label: string }) {
+function ChoiceChip({ choice }: { choice: Choice }) {
   return (
-    <span className="inline-flex max-w-full items-center truncate rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-400">
-      {label}
+    <span className="inline-flex max-w-full flex-wrap items-center gap-1.5">
+      <span className="truncate rounded-full bg-primary-100 px-2.5 py-0.5 text-xs font-semibold text-primary-400">
+        {choice.label}
+      </span>
+      <StatusBadge status={choice.status} />
+    </span>
+  );
+}
+
+function SmallChip({
+  children,
+  title,
+  warning = false,
+}: {
+  children: React.ReactNode;
+  title: string;
+  warning?: boolean;
+}) {
+  return (
+    <span
+      title={title}
+      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${warning ? 'bg-warning-light text-neutral-1000' : 'bg-primary-100 text-primary-500'}`}
+    >
+      {children}
     </span>
   );
 }
@@ -53,7 +77,7 @@ export function ApplicantsTable({
   onOpen: (applicationId: string) => void;
 }) {
   const pages = Math.max(1, Math.ceil(data.total / data.pageSize));
-  const columns = 4 + maxChoices;
+  const columns = 6 + maxChoices;
 
   return (
     <div>
@@ -71,14 +95,14 @@ export function ApplicantsTable({
                   Pilihan {i + 1}
                 </TableHead>
               ))}
+              <TableHead className="whitespace-nowrap">Syarat umum</TableHead>
+              <TableHead className="whitespace-nowrap">Flag</TableHead>
               <TableHead className="whitespace-nowrap">Dikirim</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.rows.map((row, index) => {
-              const byRank = new Map(
-                (row.choices as Choice[]).map((c) => [c.rank, c.label]),
-              );
+              const byRank = new Map(row.choices.map((c) => [c.rank, c]));
               const showGroup =
                 groupLabel !== null &&
                 (index === 0 ||
@@ -120,17 +144,52 @@ export function ApplicantsTable({
                       {row.waveLabel ?? '—'}
                     </TableCell>
                     {Array.from({ length: maxChoices }, (_, i) => {
-                      const label = byRank.get(i + 1);
+                      const choice = byRank.get(i + 1);
                       return (
                         <TableCell key={i}>
-                          {label ? (
-                            <ChoiceChip label={label} />
+                          {choice ? (
+                            <div className="flex max-w-64 flex-wrap items-center gap-1.5">
+                              <ChoiceChip choice={choice} />
+                              {choice.overridden ? (
+                                <SmallChip title="Status pilihan ini diubah manual">
+                                  diubah manual
+                                </SmallChip>
+                              ) : null}
+                              {choice.needsReview ? (
+                                <SmallChip
+                                  warning
+                                  title="Nilai berubah sejak diubah manual"
+                                >
+                                  perlu ditinjau ulang
+                                </SmallChip>
+                              ) : null}
+                            </div>
                           ) : (
                             <span className="text-neutral-500">—</span>
                           )}
                         </TableCell>
                       );
                     })}
+                    <TableCell className="whitespace-nowrap">
+                      <SyaratBadge status={row.syaratUmum} />
+                    </TableCell>
+                    <TableCell>
+                      {row.flags.length === 0 ? (
+                        <span className="text-neutral-500">—</span>
+                      ) : (
+                        <div className="flex max-w-56 flex-wrap gap-1">
+                          {row.flags.map((flag) => (
+                            <span
+                              key={flag.labelId}
+                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${FLAG_STYLE[flag.color as keyof typeof FLAG_STYLE] ?? 'bg-neutral-100 text-neutral-700'}`}
+                            >
+                              {flag.name}
+                              {flag.isSensitive ? ' · sensitif' : ''}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </TableCell>
                     <TableCell className="whitespace-nowrap text-neutral-700">
                       {when(row.submittedAt)}
                     </TableCell>
