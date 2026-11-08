@@ -33,6 +33,7 @@ export async function ApplicantsPage({
           recruitmentId={recruitmentId}
           current="pendaftar"
           showPendaftar
+          showPenempatan
         />
       }
     />

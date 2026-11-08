@@ -869,9 +869,11 @@ export const placement = createTable(
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     source: placementSourceEnum('source').notNull(),
-    // Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum
-    // ada FK karena tabel oprec belum ada.
-    applicationChoiceId: varchar('application_choice_id', { length: 255 }),
+    // Pilihan oprec yang menghasilkan penempatan ini; null untuk placement
+    // manual/impor atau bila pilihannya dihapus.
+    applicationChoiceId: varchar('application_choice_id', {
+      length: 255,
+    }).references(() => applicationChoice.id, { onDelete: 'set null' }),
     note: text('note'),
     // Urutan penempatan di daftar anggota periode (pengganti `index` keanggotaan).
     sortOrder: integer('sort_order').notNull().default(0),
@@ -2268,6 +2270,24 @@ export type OverrideStatus = (typeof OVERRIDE_STATUSES)[number];
 export const FLAG_COLORS = ['teal', 'amber', 'blue', 'red'] as const;
 export type FlagColor = (typeof FLAG_COLORS)[number];
 
+export const DECISION_TYPES = ['terima', 'tolak'] as const;
+export type DecisionType = (typeof DECISION_TYPES)[number];
+
+export const DECISION_TAGS = [
+  'pindahan',
+  'lewat_banding',
+  'di_luar_pilihan',
+] as const;
+export type DecisionTag = (typeof DECISION_TAGS)[number];
+
+export const TRANSFER_STATUSES = [
+  'diminta',
+  'disetujui',
+  'ditolak',
+  'dibatalkan',
+] as const;
+export type TransferStatus = (typeof TRANSFER_STATUSES)[number];
+
 /** Aturan gugur otomatis: bentuk aturan kondisi Forms; gugur bila terpenuhi. */
 export type CriterionGateRule = {
   fieldId: string;
@@ -2523,5 +2543,135 @@ export const recruitmentLog = createTable(
       table.created_at,
     ),
     actorIdx: index('recruitment_log_actor_idx').on(table.actorId),
+  }),
+);
+
+// ---------------------------------------------------------------------------
+// Oprec: penempatan (keputusan terima/tolak, permintaan pindah, visibilitas)
+//
+// Alokasi berjenjang tidak disimpan sebagai kolom: tahap tiap pilihan
+// diturunkan dari keputusan dan status efektifnya (src/lib/oprec/allocation.ts).
+// ---------------------------------------------------------------------------
+
+/** Keputusan akhir satu pilihan; hanya terima atau tolak (tanpa cadangan). */
+export const placementDecision = createTable(
+  'placement_decision',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    choiceId: varchar('choice_id', { length: 255 })
+      .notNull()
+      .references(() => applicationChoice.id, { onDelete: 'cascade' }),
+    decision: varchar('decision', { length: 16 })
+      .$type<DecisionType>()
+      .notNull(),
+    decidedBy: varchar('decided_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    decidedAt: timestamp('decided_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+    tag: varchar('tag', { length: 24 }).$type<DecisionTag>(),
+    reason: text('reason'),
+    // Menerima melewati kuota butuh konfirmasi eksplisit.
+    overQuotaConfirmed: boolean('over_quota_confirmed')
+      .notNull()
+      .default(false),
+  },
+  (table) => ({
+    choiceUnique: uniqueIndex('placement_decision_choice_unique').on(
+      table.choiceId,
+    ),
+    decidedByIdx: index('placement_decision_decided_by_idx').on(
+      table.decidedBy,
+    ),
+  }),
+);
+
+/**
+ * Permintaan pindah selama masa banding. Satu permintaan terbuka per pendaftar
+ * (indeks unik parsial ditulis tangan di migrasi).
+ */
+export const transferRequest = createTable(
+  'transfer_request',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    applicationId: varchar('application_id', { length: 255 })
+      .notNull()
+      .references(() => application.id, { onDelete: 'cascade' }),
+    fromDivisionId: varchar('from_division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+    toDivisionId: varchar('to_division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+    reason: text('reason').notNull(),
+    status: varchar('status', { length: 16 })
+      .$type<TransferStatus>()
+      .notNull()
+      .default('diminta'),
+    requestedBy: varchar('requested_by', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    resolvedBy: varchar('resolved_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    resolvedAt: timestamp('resolved_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    resolutionNote: text('resolution_note'),
+    ...timestamps,
+  },
+  (table) => ({
+    recruitmentIdx: index('transfer_request_recruitment_idx').on(
+      table.recruitmentId,
+    ),
+    applicationIdx: index('transfer_request_application_idx').on(
+      table.applicationId,
+    ),
+    openUnique: uniqueIndex('transfer_request_open_unique')
+      .on(table.applicationId)
+      .where(sql`${table.status} = 'diminta'`),
+  }),
+);
+
+/**
+ * Pengecualian visibilitas antar divisi di atas `recruitment.visibility_default`.
+ * `allowed = false` mengecualikan walau bawaan benar. Hanya lihat, tanpa ubah.
+ */
+export const recruitmentVisibilityOverride = createTable(
+  'recruitment_visibility_override',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    viewerDivisionId: varchar('viewer_division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+    targetDivisionId: varchar('target_division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+    allowed: boolean('allowed').notNull(),
+  },
+  (table) => ({
+    pairUnique: uniqueIndex('recruitment_visibility_override_unique').on(
+      table.recruitmentId,
+      table.viewerDivisionId,
+      table.targetDivisionId,
+    ),
   }),
 );
