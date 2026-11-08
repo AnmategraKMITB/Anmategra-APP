@@ -9,13 +9,26 @@ import {
   exists,
   ilike,
   inArray,
+  isNull,
   or,
   sql,
 } from 'drizzle-orm';
+import {
+  type CriterionInput,
+  type CriterionResult,
+  aggregateCriterion,
+  effectiveStatus,
+  overrideNeedsReview,
+} from '~/lib/oprec/scoring';
 import { oprecScopedProcedure } from '~/server/api/trpc';
 import {
   application,
   applicationChoice,
+  applicationFlag,
+  assessment,
+  choiceStatusOverride,
+  criterion,
+  flagLabel,
   formSubmission,
   mahasiswa,
   organizationUnit,
@@ -36,7 +49,17 @@ import {
   toColumns,
   toRespondent,
 } from '../form/responses';
-import { type Queryable, loadRecruitmentDetail } from './services';
+import { type Tx } from '../form/services';
+import {
+  type GeneralGateStatus,
+  generalGateStatus,
+  loadGateAnswers,
+} from './gate-answers';
+import {
+  type Database,
+  type Queryable,
+  loadRecruitmentDetail,
+} from './services';
 
 type ApplicantsFilter = {
   search?: string;
@@ -44,6 +67,8 @@ type ApplicantsFilter = {
   divisionId?: string;
   angkatan?: number;
   prodi?: string;
+  status?: 'belum_lengkap' | 'perlu_ditinjau' | 'lolos' | 'tidak_lolos';
+  flagLabelId?: string;
 };
 
 /** Nama tampil: nama di data mahasiswa, lalu nama akun. */
@@ -75,6 +100,31 @@ function whereOf(recruitmentId: string, f: ApplicantsFilter): SQL {
       ),
     );
   }
+  if (f.status) {
+    // Status efektif: override aktif menggantikan computed_status.
+    parts.push(
+      exists(
+        sql`(select 1 from ${applicationChoice}
+          where ${applicationChoice.applicationId} = ${application.id}
+            and coalesce(
+              (select ${choiceStatusOverride.status} from ${choiceStatusOverride}
+                where ${choiceStatusOverride.choiceId} = ${applicationChoice.id}
+                  and ${choiceStatusOverride.clearedAt} is null
+                limit 1),
+              ${applicationChoice.computedStatus}
+            ) = ${f.status})`,
+      ),
+    );
+  }
+  if (f.flagLabelId) {
+    parts.push(
+      exists(
+        sql`(select 1 from ${applicationFlag}
+          where ${applicationFlag.applicationId} = ${application.id}
+            and ${applicationFlag.labelId} = ${f.flagLabelId})`,
+      ),
+    );
+  }
   return and(...parts)!;
 }
 
@@ -102,15 +152,30 @@ function groupKeyOf(groupBy: string) {
   }
 }
 
+type RecruitmentScoring = {
+  id: string;
+  formId: string;
+  scoringMode: string;
+  ratingMin: number;
+  ratingMax: number;
+  minReviewers: number;
+};
+
+/** Pilihan satu pendaftar beserta skor dan status efektif (override aktif menang). */
 async function choicesOf(db: Queryable, applicationIds: string[]) {
-  if (applicationIds.length === 0) return new Map<string, unknown[]>();
+  if (applicationIds.length === 0) {
+    return new Map<string, ReturnType<typeof choiceView>[]>();
+  }
   const rows = await db
     .select({
+      id: applicationChoice.id,
       applicationId: applicationChoice.applicationId,
       rank: applicationChoice.rank,
       origin: applicationChoice.origin,
       divisionId: applicationChoice.divisionId,
       label: organizationUnit.name,
+      score: applicationChoice.score,
+      computedStatus: applicationChoice.computedStatus,
     })
     .from(applicationChoice)
     .innerJoin(
@@ -123,11 +188,252 @@ async function choicesOf(db: Queryable, applicationIds: string[]) {
     )
     .where(inArray(applicationChoice.applicationId, applicationIds))
     .orderBy(asc(applicationChoice.rank));
-  const byApp = new Map<string, unknown[]>();
-  for (const { applicationId, ...choice } of rows) {
-    byApp.set(applicationId, [...(byApp.get(applicationId) ?? []), choice]);
+  const overrides = await db
+    .select()
+    .from(choiceStatusOverride)
+    .where(
+      and(
+        inArray(
+          choiceStatusOverride.choiceId,
+          rows.map((r) => r.id),
+        ),
+        isNull(choiceStatusOverride.clearedAt),
+      ),
+    );
+  const overrideOf = new Map(overrides.map((o) => [o.choiceId, o]));
+
+  const byApp = new Map<string, ReturnType<typeof choiceView>[]>();
+  for (const r of rows) {
+    byApp.set(r.applicationId, [
+      ...(byApp.get(r.applicationId) ?? []),
+      choiceView(r, overrideOf.get(r.id) ?? null),
+    ]);
   }
   return byApp;
+}
+
+function choiceView(
+  c: {
+    id: string;
+    rank: number | null;
+    origin: string;
+    divisionId: string;
+    label: string;
+    score: string | null;
+    computedStatus: CriterionStatus;
+  },
+  ov: typeof choiceStatusOverride.$inferSelect | null,
+) {
+  const score = c.score === null ? null : Number(c.score);
+  const active = ov
+    ? {
+        status: ov.status,
+        computedStatusAtOverride: ov.computedStatusAtOverride,
+        scoreAtOverride:
+          ov.scoreAtOverride === null ? null : Number(ov.scoreAtOverride),
+      }
+    : null;
+  return {
+    id: c.id,
+    rank: c.rank,
+    origin: c.origin,
+    divisionId: c.divisionId,
+    label: c.label,
+    score,
+    status: effectiveStatus(c.computedStatus, active),
+    overridden: ov !== null,
+    needsReview: overrideNeedsReview(active, c.computedStatus, score),
+    // Alasan yang sensitif tidak dikirim.
+    overrideReason: ov && !ov.isSensitive ? ov.reason : null,
+  };
+}
+type CriterionStatus = Parameters<typeof effectiveStatus>[0];
+
+/** Flag per pendaftar. Halaman ini hanya untuk pengelola oprec, jadi sensitif ikut. */
+async function flagsOf(db: Queryable, applicationIds: string[]) {
+  const byApp = new Map<
+    string,
+    { labelId: string; name: string; color: string; isSensitive: boolean }[]
+  >();
+  if (applicationIds.length === 0) return byApp;
+  const rows = await db
+    .select({
+      applicationId: applicationFlag.applicationId,
+      labelId: flagLabel.id,
+      name: flagLabel.name,
+      color: flagLabel.color,
+      isSensitive: flagLabel.isSensitive,
+    })
+    .from(applicationFlag)
+    .innerJoin(flagLabel, eq(flagLabel.id, applicationFlag.labelId))
+    .where(inArray(applicationFlag.applicationId, applicationIds))
+    .orderBy(asc(flagLabel.name));
+  for (const { applicationId, ...flag } of rows) {
+    byApp.set(applicationId, [...(byApp.get(applicationId) ?? []), flag]);
+  }
+  return byApp;
+}
+
+async function criteriaOf(
+  db: Queryable,
+  recruitmentId: string,
+): Promise<CriterionInput[]> {
+  const rows = await db
+    .select()
+    .from(criterion)
+    .where(eq(criterion.recruitmentId, recruitmentId));
+  return rows.map((c) => ({
+    id: c.id,
+    divisionId: c.divisionId,
+    kind: c.kind,
+    weight: c.weight,
+    gateRule: c.gateRule,
+  }));
+}
+
+/** Status syarat umum (gate lingkup umum) untuk sekumpulan pendaftar. */
+async function syaratUmumFor(
+  db: Tx | Database,
+  rec: RecruitmentScoring,
+  apps: { id: string; formSubmissionId: string | null }[],
+) {
+  const out = new Map<string, GeneralGateStatus>();
+  if (apps.length === 0) return out;
+  const criteria =
+    rec.scoringMode === 'keputusan_langsung'
+      ? []
+      : await criteriaOf(db, rec.id);
+  const umum = criteria.filter((c) => c.divisionId === null);
+  const gates = umum.filter(
+    (c) => c.kind === 'gugur_otomatis' || c.kind === 'gugur_manual',
+  );
+  if (gates.length === 0) {
+    for (const a of apps) out.set(a.id, 'lolos');
+    return out;
+  }
+  const rows = await db
+    .select({
+      applicationId: assessment.applicationId,
+      criterionId: assessment.criterionId,
+      assessorId: assessment.assessorId,
+      rating: assessment.rating,
+      gateState: assessment.gateState,
+    })
+    .from(assessment)
+    .where(
+      and(
+        inArray(
+          assessment.applicationId,
+          apps.map((a) => a.id),
+        ),
+        isNull(assessment.choiceId),
+        inArray(
+          assessment.criterionId,
+          gates.map((c) => c.id),
+        ),
+      ),
+    );
+  const { answersBySubmission, fieldTypes } = await loadGateAnswers(
+    db,
+    rec,
+    criteria,
+    apps.flatMap((a) => (a.formSubmissionId ? [a.formSubmissionId] : [])),
+  );
+  const settings = {
+    ratingMin: rec.ratingMin,
+    ratingMax: rec.ratingMax,
+    minReviewers: rec.minReviewers,
+  };
+  for (const a of apps) {
+    const mine = rows.filter((r) => r.applicationId === a.id);
+    const results = new Map<string, CriterionResult>(
+      gates.map((c) => [
+        c.id,
+        aggregateCriterion(
+          mine.filter((r) => r.criterionId === c.id),
+          settings,
+        ),
+      ]),
+    );
+    out.set(
+      a.id,
+      generalGateStatus(
+        umum,
+        results,
+        a.formSubmissionId
+          ? (answersBySubmission.get(a.formSubmissionId) ?? {})
+          : {},
+        fieldTypes,
+      ),
+    );
+  }
+  return out;
+}
+
+/** Nilai kriteria hasil gabungan penilai (umum dan tiap pilihan), hanya baca. */
+async function aggregatedAssessments(
+  db: Queryable,
+  rec: RecruitmentScoring,
+  applicationId: string,
+  choices: { id: string; divisionId: string }[],
+) {
+  const criteria = (await criteriaOf(db, rec.id)).filter(
+    (c) => c.kind !== 'gugur_otomatis',
+  );
+  if (criteria.length === 0) return [];
+  const names = await db
+    .select({ id: criterion.id, name: criterion.name })
+    .from(criterion)
+    .where(eq(criterion.recruitmentId, rec.id));
+  const nameOf = new Map(names.map((n) => [n.id, n.name]));
+  const rows = await db
+    .select({
+      choiceId: assessment.choiceId,
+      criterionId: assessment.criterionId,
+      assessorId: assessment.assessorId,
+      rating: assessment.rating,
+      gateState: assessment.gateState,
+    })
+    .from(assessment)
+    .where(eq(assessment.applicationId, applicationId));
+  const settings = {
+    ratingMin: rec.ratingMin,
+    ratingMax: rec.ratingMax,
+    minReviewers: rec.minReviewers,
+  };
+  const scopes = [
+    {
+      scope: 'umum',
+      divisionId: null as string | null,
+      choiceId: null as string | null,
+    },
+    ...choices.map((c) => ({
+      scope: c.divisionId,
+      divisionId: c.divisionId as string | null,
+      choiceId: c.id as string | null,
+    })),
+  ];
+  return scopes.flatMap((sc) =>
+    criteria
+      .filter((c) => c.divisionId === sc.divisionId)
+      .map((c) => {
+        const agg = aggregateCriterion(
+          rows.filter(
+            (r) => r.criterionId === c.id && r.choiceId === sc.choiceId,
+          ),
+          settings,
+        );
+        return {
+          criterionId: c.id,
+          name: nameOf.get(c.id) ?? '',
+          kind: c.kind,
+          scope: sc.scope,
+          score: agg.score,
+          gate: agg.gate,
+          reviewers: agg.reviewers,
+        };
+      }),
+  );
 }
 
 export const applicantProcedures = {
@@ -137,37 +443,60 @@ export const applicantProcedures = {
     .query(async ({ ctx, input }) => {
       const recruitmentId = input.recruitmentId;
       const detail = await loadRecruitmentDetail(ctx.db, recruitmentId);
-      const [byChoice, byWave, people] = await Promise.all([
-        ctx.db
-          .select({
-            rank: applicationChoice.rank,
-            divisionId: applicationChoice.divisionId,
-            n: count(),
-          })
-          .from(applicationChoice)
-          .innerJoin(
-            application,
-            eq(application.id, applicationChoice.applicationId),
-          )
-          .where(eq(application.recruitmentId, recruitmentId))
-          .groupBy(applicationChoice.rank, applicationChoice.divisionId),
-        ctx.db
-          .select({ waveId: application.waveId, n: count() })
-          .from(application)
-          .where(eq(application.recruitmentId, recruitmentId))
-          .groupBy(application.waveId),
-        ctx.db
-          .select({ angkatan: mahasiswa.angkatan, prodi: mahasiswa.jurusan })
-          .from(application)
-          .innerJoin(mahasiswa, eq(mahasiswa.userId, application.userId))
-          .where(eq(application.recruitmentId, recruitmentId))
-          .groupBy(mahasiswa.angkatan, mahasiswa.jurusan),
-      ]);
+      const [byChoice, byWave, people, appRows, flagLabels] = await Promise.all(
+        [
+          ctx.db
+            .select({
+              rank: applicationChoice.rank,
+              divisionId: applicationChoice.divisionId,
+              n: count(),
+            })
+            .from(applicationChoice)
+            .innerJoin(
+              application,
+              eq(application.id, applicationChoice.applicationId),
+            )
+            .where(eq(application.recruitmentId, recruitmentId))
+            .groupBy(applicationChoice.rank, applicationChoice.divisionId),
+          ctx.db
+            .select({ waveId: application.waveId, n: count() })
+            .from(application)
+            .where(eq(application.recruitmentId, recruitmentId))
+            .groupBy(application.waveId),
+          ctx.db
+            .select({ angkatan: mahasiswa.angkatan, prodi: mahasiswa.jurusan })
+            .from(application)
+            .innerJoin(mahasiswa, eq(mahasiswa.userId, application.userId))
+            .where(eq(application.recruitmentId, recruitmentId))
+            .groupBy(mahasiswa.angkatan, mahasiswa.jurusan),
+          ctx.db
+            .select({
+              id: application.id,
+              formSubmissionId: application.formSubmissionId,
+            })
+            .from(application)
+            .where(eq(application.recruitmentId, recruitmentId)),
+          ctx.db
+            .select({
+              id: flagLabel.id,
+              name: flagLabel.name,
+              color: flagLabel.color,
+              isSensitive: flagLabel.isSensitive,
+            })
+            .from(flagLabel)
+            .where(eq(flagLabel.recruitmentId, recruitmentId))
+            .orderBy(asc(flagLabel.name)),
+        ],
+      );
+      const syarat = await syaratUmumFor(ctx.db, ctx.recruitment, appRows);
       const labelOf = new Map(detail.divisions.map((d) => [d.id, d.unitName]));
       const waveCount = new Map(byWave.map((w) => [w.waveId, w.n]));
       const total = byWave.reduce((sum, w) => sum + w.n, 0);
       return {
         total,
+        lolosSyaratUmum: appRows.filter((a) => syarat.get(a.id) === 'lolos')
+          .length,
+        flagLabels,
         maxChoices: detail.maxChoices,
         // Hanya pilihan bernomor; closerec dan pilihan dialihkan tak punya urutan.
         byRank: Array.from({ length: detail.maxChoices }, (_, i) => ({
@@ -251,6 +580,7 @@ export const applicantProcedures = {
           source: application.source,
           willingToMove: application.willingToMove,
           submittedAt: application.submittedAt,
+          formSubmissionId: application.formSubmissionId,
           groupKey,
         })
         .from(application)
@@ -259,9 +589,45 @@ export const applicantProcedures = {
         .leftJoin(recruitmentWave, eq(recruitmentWave.id, application.waveId))
         .where(where);
 
+      const decorate = async (page: typeof rows) => {
+        const ids = page.map((r) => r.id);
+        const [choices, flags, syarat] = await Promise.all([
+          choicesOf(ctx.db, ids),
+          flagsOf(ctx.db, ids),
+          syaratUmumFor(ctx.db, ctx.recruitment, page),
+        ]);
+        return page.map(({ formSubmissionId: _f, ...r }) => ({
+          ...r,
+          choices: choices.get(r.id) ?? [],
+          flags: flags.get(r.id) ?? [],
+          syaratUmum: syarat.get(r.id) ?? ('lolos' as GeneralGateStatus),
+        }));
+      };
+      const ordered = [...groupOrder, ...sortOrder, asc(application.id)];
+
+      if (input.syaratUmum) {
+        // Syarat umum dihitung di memori, jadi saringan ini mengambil semua
+        // pendaftar yang lolos saringan SQL lalu memotong halaman sendiri.
+        const all = await base.orderBy(...ordered);
+        const syarat = await syaratUmumFor(ctx.db, ctx.recruitment, all);
+        const kept = all.filter(
+          (r) => (syarat.get(r.id) ?? 'lolos') === input.syaratUmum,
+        );
+        const pageRows = kept.slice(
+          (input.page - 1) * input.pageSize,
+          input.page * input.pageSize,
+        );
+        return {
+          total: kept.length,
+          page: input.page,
+          pageSize: input.pageSize,
+          rows: await decorate(pageRows),
+        };
+      }
+
       const [rows, [totalRow]] = await Promise.all([
         base
-          .orderBy(...groupOrder, ...sortOrder, asc(application.id))
+          .orderBy(...ordered)
           .limit(input.pageSize)
           .offset((input.page - 1) * input.pageSize),
         ctx.db
@@ -271,18 +637,11 @@ export const applicantProcedures = {
           .leftJoin(mahasiswa, eq(mahasiswa.userId, application.userId))
           .where(where),
       ]);
-      const choices = await choicesOf(
-        ctx.db,
-        rows.map((r) => r.id),
-      );
       return {
         total: totalRow?.n ?? 0,
         page: input.page,
         pageSize: input.pageSize,
-        rows: rows.map((r) => ({
-          ...r,
-          choices: choices.get(r.id) ?? [],
-        })),
+        rows: await decorate(rows),
       };
     }),
 
@@ -338,6 +697,13 @@ export const applicantProcedures = {
           );
         }
       }
-      return { ...app, choices, columns, answers };
+      const flags = (await flagsOf(ctx.db, [app.id])).get(app.id) ?? [];
+      const assessments = await aggregatedAssessments(
+        ctx.db,
+        ctx.recruitment,
+        app.id,
+        choices.map((c) => ({ id: c.id, divisionId: c.divisionId })),
+      );
+      return { ...app, choices, flags, assessments, columns, answers };
     }),
 };
