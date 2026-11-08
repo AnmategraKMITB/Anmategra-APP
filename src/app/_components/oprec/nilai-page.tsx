@@ -35,6 +35,9 @@ export async function NilaiPage({
         recruitmentId={recruitmentId}
         current="nilai"
         showPendaftar={found.access.isAdmin}
+        showPenempatan={
+          found.access.isAdmin || found.access.deciderDivisionIds.size > 0
+        }
       />
       <div className="mt-6">
         <NilaiView recruitmentId={recruitmentId} />
