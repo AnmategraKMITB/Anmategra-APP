@@ -45,6 +45,7 @@ import {
   UpdateRecruitmentInputSchema,
 } from '../../types/oprec.type';
 import { enforceConditions, lockForm } from '../form/services';
+import { applicantProcedures } from './applicants';
 import {
   assertDivisionTarget,
   assertSectionsOfForm,
@@ -61,6 +62,7 @@ const OK = { success: true };
 const LOCKED_AFTER_APPLICATIONS = ['minChoices', 'maxChoices'] as const;
 
 export const oprecRouter = createTRPCRouter({
+  ...applicantProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {

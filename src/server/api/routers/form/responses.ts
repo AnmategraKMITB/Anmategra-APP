@@ -36,7 +36,7 @@ import { type SummaryField, buildSummary } from './summary';
  * Semua pertanyaan yang bisa dijawab, termasuk yang sudah diarsipkan (jawaban
  * lamanya tetap perlu terbaca). Urutan form dulu, yang terarsip di akhir.
  */
-async function loadResponseFields(db: Queryable, formId: string) {
+export async function loadResponseFields(db: Queryable, formId: string) {
   const joined = await db
     .select({ field: formField })
     .from(formField)
@@ -55,7 +55,7 @@ async function loadResponseFields(db: Queryable, formId: string) {
   ];
 }
 
-function toColumns(fields: Awaited<ReturnType<typeof loadResponseFields>>) {
+export function toColumns(fields: Awaited<ReturnType<typeof loadResponseFields>>) {
   return fields.map((f) => ({
     fieldId: f.id,
     type: f.type,
@@ -72,7 +72,7 @@ type ResponseRowOut = {
   answers: Record<string, unknown>;
 };
 
-async function attachAnswers(
+export async function attachAnswers(
   db: Queryable,
   submissions: Omit<ResponseRowOut, 'answers'>[],
 ): Promise<ResponseRowOut[]> {
@@ -103,7 +103,7 @@ async function attachAnswers(
   }));
 }
 
-function submissionQuery(db: Queryable) {
+export function submissionQuery(db: Queryable) {
   return db
     .select({
       id: formSubmission.id,
@@ -118,7 +118,7 @@ function submissionQuery(db: Queryable) {
     .leftJoin(mahasiswa, eq(mahasiswa.userId, formSubmission.userId));
 }
 
-function toRespondent(r: {
+export function toRespondent(r: {
   id: string;
   submittedAt: Date;
   updatedAt: Date;
