@@ -8,6 +8,7 @@ import { formRouter } from './routers/form';
 import { kegiatanRouter } from './routers/kegiatan';
 import { landingRouter } from './routers/landing';
 import { lembagaRouter } from './routers/lembaga';
+import { oprecRouter } from './routers/oprec';
 import { organizationRouter } from './routers/organization';
 import { profilRouter } from './routers/profil';
 import { raporRouter } from './routers/rapor';
@@ -32,6 +33,7 @@ export const appRouter = createTRPCRouter({
   rapor: raporRouter,
   riwayat: riwayatRouter,
   organization: organizationRouter,
+  oprec: oprecRouter,
   form: formRouter,
 });
 

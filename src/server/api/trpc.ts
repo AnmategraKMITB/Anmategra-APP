@@ -12,7 +12,7 @@ import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { form } from '~/server/db/schema';
+import { form, recruitment } from '~/server/db/schema';
 
 /**
  * 1. CONTEXT
@@ -57,7 +57,8 @@ export type ApiMeta = {
     | 'lembaga-scoped'
     | 'lembaga-owner'
     | 'event-scoped'
-    | 'form-scoped';
+    | 'form-scoped'
+    | 'oprec-scoped';
 };
 
 /**
@@ -391,4 +392,76 @@ export const formScopedProcedure = protectedProcedure
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, form: found, formAccess: access } });
+  });
+
+/**
+ * Di-scope oleh `recruitmentId`. Oprec milik satu periode, jadi aksesnya
+ * diturunkan dari `canManageEvent` dengan fitur 'oprec' (atau 'admin'), sehingga
+ * admin lembaga bisa menunjuk orang lain yang hanya boleh mengurus oprec.
+ *
+ * Oprec yang tidak ada → NOT_FOUND, bukan milik → FORBIDDEN.
+ */
+export const oprecScopedProcedure = protectedProcedure
+  .meta({ access: 'oprec-scoped' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { recruitmentId?: unknown };
+    const recruitmentId = rawId(raw?.recruitmentId);
+    if (!recruitmentId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'recruitmentId is required',
+      });
+    }
+    const found = await ctx.db.query.recruitment.findFirst({
+      where: eq(recruitment.id, recruitmentId),
+    });
+    if (!found) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Oprec tidak ditemukan.',
+      });
+    }
+    const access = await canManageEvent(
+      ctx.db,
+      ctx.session.user.id,
+      ctx.session.user.role,
+      ctx.session.user.lembagaId,
+      found.periodId,
+      'oprec',
+    );
+    if (!access) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, recruitment: found, oprecAccess: access } });
+  });
+
+/**
+ * Analog `oprecScopedProcedure` tetapi di-scope oleh `eventId` (periode), untuk
+ * daftar dan pembuatan oprec yang belum punya `recruitmentId`.
+ */
+export const oprecPeriodProcedure = protectedProcedure
+  .meta({ access: 'oprec-scoped' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { eventId?: unknown };
+    const eventId = rawId(raw?.eventId);
+    if (!eventId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'eventId is required',
+      });
+    }
+    const access = await canManageEvent(
+      ctx.db,
+      ctx.session.user.id,
+      ctx.session.user.role,
+      ctx.session.user.lembagaId,
+      eventId,
+      'oprec',
+    );
+    if (!access) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, oprecAccess: access, eventId } });
   });

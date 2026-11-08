@@ -142,6 +142,43 @@ table anmategra_alumni_pending {
   Note: "Fallback upload CSV alumni: NIM lulus yang belum punya akun. Diterapkan otomatis lalu dihapus saat mahasiswa dengan NIM ini sign-in pertama kali."
 }
 
+table anmategra_application {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  user_id varchar(255) [not null]
+  wave_id varchar(255)
+  form_submission_id varchar(255)
+  source varchar(16) [not null]
+  willing_to_move boolean [not null, default: false]
+  submitted_at "timestamp with time zone"
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'application_user_idx']
+    wave_id [name: 'application_wave_idx']
+    (recruitment_id, user_id) [name: 'application_recruitment_user_unique', unique]
+    form_submission_id [name: 'application_form_submission_unique', unique]
+  }
+}
+
+table anmategra_application_choice {
+  id varchar(255) [pk, not null]
+  application_id varchar(255) [not null]
+  division_id varchar(255) [not null]
+  rank integer
+  origin varchar(16) [not null]
+  score numeric
+  computed_status varchar(16)
+  scored_at "timestamp with time zone"
+
+  indexes {
+    division_id [name: 'application_choice_division_idx']
+    (application_id, division_id) [name: 'application_choice_application_division_unique', unique]
+    (application_id, rank) [name: 'application_choice_application_rank_unique', unique]
+  }
+}
+
 table anmategra_association_request {
   id varchar(255) [pk, not null]
   period_id varchar(255)
@@ -633,6 +670,93 @@ table anmategra_profil_lembaga {
   Note: "Profil/kriteria penilaian spesifik milik satu lembaga."
 }
 
+table anmategra_recruitment {
+  id varchar(255) [pk, not null]
+  period_id varchar(255) [not null]
+  form_id varchar(255) [not null]
+  name varchar(255) [not null]
+  status varchar(16) [not null, default: 'draft']
+  placement_state varchar(16) [not null, default: 'berjalan']
+  results_released_at "timestamp with time zone"
+  results_visible_to_applicants boolean [not null, default: false]
+  setup_completed_at "timestamp with time zone"
+  setup_answers jsonb
+  min_choices integer [not null, default: 1]
+  max_choices integer [not null, default: 3]
+  allow_redirect boolean [not null, default: false]
+  scoring_mode varchar(24) [not null, default: 'skor']
+  status_method varchar(32) [not null, default: 'peringkat_kuota_minimum']
+  status_min_score integer [not null, default: 60]
+  score_source varchar(16) [not null, default: 'gabungan']
+  weight_umum integer [not null, default: 50]
+  rating_min integer [not null, default: 1]
+  rating_max integer [not null, default: 5]
+  min_reviewers integer [not null, default: 1]
+  blind boolean [not null, default: false]
+  allow_early_assessment boolean [not null, default: false]
+  visibility_default boolean [not null, default: false]
+  eligibility_match varchar(8) [not null, default: 'all']
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    period_id [name: 'recruitment_period_idx']
+    form_id [name: 'recruitment_form_unique', unique]
+  }
+}
+
+table anmategra_recruitment_division {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  unit_id varchar(255) [not null]
+  position_id varchar(255) [not null]
+  code varchar(50)
+  sort_order integer [not null, default: 0]
+
+  indexes {
+    unit_id [name: 'recruitment_division_unit_idx']
+    position_id [name: 'recruitment_division_position_idx']
+    (recruitment_id, unit_id) [name: 'recruitment_division_recruitment_unit_unique', unique]
+  }
+}
+
+table anmategra_recruitment_eligibility_rule {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  attribute varchar(32) [not null]
+  op varchar(16) [not null]
+  value jsonb [not null]
+
+  indexes {
+    recruitment_id [name: 'recruitment_eligibility_rule_recruitment_idx']
+  }
+}
+
+table anmategra_recruitment_section_binding {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  form_section_id varchar(255) [not null]
+  division_id varchar(255) [not null]
+
+  indexes {
+    division_id [name: 'recruitment_section_binding_division_idx']
+    (recruitment_id, form_section_id, division_id) [name: 'recruitment_section_binding_unique', unique]
+  }
+}
+
+table anmategra_recruitment_wave {
+  id varchar(255) [pk, not null]
+  recruitment_id varchar(255) [not null]
+  label varchar(255) [not null]
+  starts_at "timestamp with time zone" [not null]
+  ends_at "timestamp with time zone" [not null]
+  sort_order integer [not null, default: 0]
+
+  indexes {
+    recruitment_id [name: 'recruitment_wave_recruitment_idx']
+  }
+}
+
 table anmategra_riwayat_kepanitiaan {
   id varchar(255) [pk, not null]
   user_id varchar(255) [not null]
@@ -745,6 +869,18 @@ ref: anmategra_access_grant.period_id - anmategra_lembaga_period.id
 
 ref: anmategra_account.user_id > anmategra_user.id
 
+ref: anmategra_application_choice.application_id > anmategra_application.id
+
+ref: anmategra_application_choice.division_id - anmategra_recruitment_division.id
+
+ref: anmategra_application.recruitment_id > anmategra_recruitment.id
+
+ref: anmategra_application.user_id - anmategra_user.id
+
+ref: anmategra_application.wave_id - anmategra_recruitment_wave.id
+
+ref: anmategra_application.form_submission_id - anmategra_form_submission.id
+
 ref: anmategra_association_request_lembaga.lembaga_id > anmategra_lembaga.id
 
 ref: anmategra_association_request_lembaga.user_id > anmategra_user.id
@@ -832,6 +968,24 @@ ref: anmategra_placement.user_id - anmategra_user.id
 ref: anmategra_profil_kegiatan.period_id > anmategra_lembaga_period.id
 
 ref: anmategra_profil_lembaga.lembaga_id > anmategra_lembaga.id
+
+ref: anmategra_recruitment_division.recruitment_id > anmategra_recruitment.id
+
+ref: anmategra_recruitment_division.unit_id - anmategra_organization_unit.id
+
+ref: anmategra_recruitment_division.position_id - anmategra_organization_position.id
+
+ref: anmategra_recruitment_eligibility_rule.recruitment_id > anmategra_recruitment.id
+
+ref: anmategra_recruitment.period_id - anmategra_lembaga_period.id
+
+ref: anmategra_recruitment.form_id - anmategra_form.id
+
+ref: anmategra_recruitment_section_binding.division_id > anmategra_recruitment_division.id
+
+ref: anmategra_recruitment_section_binding.form_section_id - anmategra_form_section.id
+
+ref: anmategra_recruitment_wave.recruitment_id > anmategra_recruitment.id
 
 ref: anmategra_riwayat_kepanitiaan.user_id > anmategra_user.id
 

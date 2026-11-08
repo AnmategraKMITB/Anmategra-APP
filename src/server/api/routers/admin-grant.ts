@@ -127,6 +127,7 @@ export const adminGrantRouter = createTRPCRouter({
           .update(accessGrant)
           .set({
             status: 'active',
+            features: input.features,
             grantedBy: ctx.session.user.id,
             revokedAt: null,
             revokedBy: null,
@@ -136,6 +137,7 @@ export const adminGrantRouter = createTRPCRouter({
         await ctx.db.insert(accessGrant).values({
           lembagaId: input.lembagaId,
           userId: target.id,
+          features: input.features,
           grantedBy: ctx.session.user.id,
         });
       }
@@ -187,6 +189,7 @@ export const adminGrantRouter = createTRPCRouter({
           name: userById.get(row.userId)?.name ?? null,
           email: userById.get(row.userId)?.email ?? '',
           grantedAt: row.created_at,
+          features: row.features,
         })),
       );
 
@@ -233,6 +236,7 @@ export const adminGrantRouter = createTRPCRouter({
           .update(accessGrant)
           .set({
             status: 'active',
+            features: input.features,
             grantedBy: ctx.session.user.id,
             revokedAt: null,
             revokedBy: null,
@@ -242,6 +246,7 @@ export const adminGrantRouter = createTRPCRouter({
         await ctx.db.insert(accessGrant).values({
           periodId: input.eventId,
           userId: target.id,
+          features: input.features,
           grantedBy: ctx.session.user.id,
         });
       }
@@ -310,6 +315,7 @@ export const adminGrantRouter = createTRPCRouter({
           name: userById.get(row.userId)?.name ?? null,
           email: userById.get(row.userId)?.email ?? '',
           grantedAt: row.created_at,
+          features: row.features,
         })),
       );
 

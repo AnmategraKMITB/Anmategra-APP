@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgEnum,
   pgTableCreator,
   primaryKey,
@@ -1801,3 +1802,437 @@ export const formAnswerRelations = relations(formAnswer, ({ one }) => ({
     references: [formField.id],
   }),
 }));
+
+// ---------------------------------------------------------------------------
+// Oprec (open recruitment): inti pendaftaran
+//
+// Kolom berstatus memakai varchar + CHECK tulisan tangan di migrasi, bukan
+// pgEnum (alasan yang sama dengan form_*): nilai baru akan datang di fase
+// penilaian dan penempatan. Kuota divisi tidak diduplikasi; ia dibaca dari
+// organization_position.quota.
+// ---------------------------------------------------------------------------
+
+export const RECRUITMENT_STATUSES = ['draft', 'open', 'closed'] as const;
+export type RecruitmentStatus = (typeof RECRUITMENT_STATUSES)[number];
+
+export const PLACEMENT_STATES = ['berjalan', 'masa_banding', 'final'] as const;
+export type PlacementState = (typeof PLACEMENT_STATES)[number];
+
+export const SCORING_MODES = ['skor', 'keputusan_langsung'] as const;
+export type ScoringMode = (typeof SCORING_MODES)[number];
+
+export const STATUS_METHODS = [
+  'ambang',
+  'peringkat_kuota',
+  'peringkat_kuota_minimum',
+] as const;
+export type StatusMethod = (typeof STATUS_METHODS)[number];
+
+export const SCORE_SOURCES = ['umum', 'divisi', 'gabungan'] as const;
+export type ScoreSource = (typeof SCORE_SOURCES)[number];
+
+export const ELIGIBILITY_MATCHES = ['all', 'any'] as const;
+export type EligibilityMatch = (typeof ELIGIBILITY_MATCHES)[number];
+
+export const ELIGIBILITY_ATTRIBUTES = [
+  'angkatan_kuliah',
+  'fakultas',
+  'prodi',
+  'status_mahasiswa',
+  'keanggotaan_lembaga',
+  'angkatan_lembaga',
+] as const;
+export type EligibilityAttribute = (typeof ELIGIBILITY_ATTRIBUTES)[number];
+
+export const ELIGIBILITY_OPERATORS = [
+  'eq',
+  'neq',
+  'in',
+  'not_in',
+  'gt',
+  'gte',
+  'lt',
+  'lte',
+  'between',
+  'contains',
+] as const;
+export type EligibilityOperator = (typeof ELIGIBILITY_OPERATORS)[number];
+
+export const APPLICATION_SOURCES = ['form', 'closerec'] as const;
+export type ApplicationSource = (typeof APPLICATION_SOURCES)[number];
+
+export const CHOICE_ORIGINS = ['dipilih', 'dialihkan', 'closerec'] as const;
+export type ChoiceOrigin = (typeof CHOICE_ORIGINS)[number];
+
+export const COMPUTED_STATUSES = [
+  'belum_lengkap',
+  'perlu_ditinjau',
+  'lolos',
+  'tidak_lolos',
+] as const;
+export type ComputedStatus = (typeof COMPUTED_STATUSES)[number];
+
+export const recruitment = createTable(
+  'recruitment',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    // Periode lembaga yang menjalankan; form dan organogram mengikutinya.
+    periodId: varchar('period_id', { length: 255 })
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    // Satu form hanya untuk satu oprec (unik); satu periode boleh banyak oprec.
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'restrict' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    status: varchar('status', { length: 16 })
+      .$type<RecruitmentStatus>()
+      .notNull()
+      .default('draft'),
+    placementState: varchar('placement_state', { length: 16 })
+      .$type<PlacementState>()
+      .notNull()
+      .default('berjalan'),
+    resultsReleasedAt: timestamp('results_released_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    resultsVisibleToApplicants: boolean('results_visible_to_applicants')
+      .notNull()
+      .default(false),
+    setupCompletedAt: timestamp('setup_completed_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    /** Jawaban mentah wizard setup, disimpan untuk riwayat. */
+    setupAnswers: jsonb('setup_answers').$type<Record<string, unknown>>(),
+    // CHECK: 1 <= min_choices <= max_choices.
+    minChoices: integer('min_choices').notNull().default(1),
+    maxChoices: integer('max_choices').notNull().default(3),
+    allowRedirect: boolean('allow_redirect').notNull().default(false),
+    scoringMode: varchar('scoring_mode', { length: 24 })
+      .$type<ScoringMode>()
+      .notNull()
+      .default('skor'),
+    statusMethod: varchar('status_method', { length: 32 })
+      .$type<StatusMethod>()
+      .notNull()
+      .default('peringkat_kuota_minimum'),
+    statusMinScore: integer('status_min_score').notNull().default(60),
+    scoreSource: varchar('score_source', { length: 16 })
+      .$type<ScoreSource>()
+      .notNull()
+      .default('gabungan'),
+    /** Bobot nilai umum (0-100) untuk sumber gabungan; sisanya nilai divisi. */
+    weightUmum: integer('weight_umum').notNull().default(50),
+    ratingMin: integer('rating_min').notNull().default(1),
+    ratingMax: integer('rating_max').notNull().default(5),
+    minReviewers: integer('min_reviewers').notNull().default(1),
+    blind: boolean('blind').notNull().default(false),
+    allowEarlyAssessment: boolean('allow_early_assessment')
+      .notNull()
+      .default(false),
+    visibilityDefault: boolean('visibility_default').notNull().default(false),
+    eligibilityMatch: varchar('eligibility_match', { length: 8 })
+      .$type<EligibilityMatch>()
+      .notNull()
+      .default('all'),
+    ...timestamps,
+  },
+  (table) => ({
+    periodIdx: index('recruitment_period_idx').on(table.periodId),
+    formUnique: uniqueIndex('recruitment_form_unique').on(table.formId),
+  }),
+);
+
+export const recruitmentWave = createTable(
+  'recruitment_wave',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    label: varchar('label', { length: 255 }).notNull(),
+    // CHECK: ends_at > starts_at.
+    startsAt: timestamp('starts_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    endsAt: timestamp('ends_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => ({
+    recruitmentIdx: index('recruitment_wave_recruitment_idx').on(
+      table.recruitmentId,
+    ),
+  }),
+);
+
+export const recruitmentEligibilityRule = createTable(
+  'recruitment_eligibility_rule',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    attribute: varchar('attribute', { length: 32 })
+      .$type<EligibilityAttribute>()
+      .notNull(),
+    op: varchar('op', { length: 16 }).$type<EligibilityOperator>().notNull(),
+    /** Bentuknya divalidasi Zod di oprec.type.ts menurut `op`. */
+    value: jsonb('value').$type<unknown>().notNull(),
+  },
+  (table) => ({
+    recruitmentIdx: index('recruitment_eligibility_rule_recruitment_idx').on(
+      table.recruitmentId,
+    ),
+  }),
+);
+
+export const recruitmentDivision = createTable(
+  'recruitment_division',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    // Restrict: menghapus bagian/posisi yang sedang dibuka harus ditolak
+    // sampai ia dikeluarkan dari oprec lebih dulu.
+    unitId: varchar('unit_id', { length: 255 })
+      .notNull()
+      .references(() => organizationUnit.id, { onDelete: 'restrict' }),
+    positionId: varchar('position_id', { length: 255 })
+      .notNull()
+      .references(() => organizationPosition.id, { onDelete: 'restrict' }),
+    code: varchar('code', { length: 50 }),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => ({
+    unitIdx: index('recruitment_division_unit_idx').on(table.unitId),
+    positionIdx: index('recruitment_division_position_idx').on(
+      table.positionId,
+    ),
+    recruitmentUnitUnique: uniqueIndex(
+      'recruitment_division_recruitment_unit_unique',
+    ).on(table.recruitmentId, table.unitId),
+  }),
+);
+
+export const recruitmentSectionBinding = createTable(
+  'recruitment_section_binding',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    formSectionId: varchar('form_section_id', { length: 255 })
+      .notNull()
+      .references(() => formSection.id, { onDelete: 'cascade' }),
+    divisionId: varchar('division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+  },
+  (table) => ({
+    divisionIdx: index('recruitment_section_binding_division_idx').on(
+      table.divisionId,
+    ),
+    bindingUnique: uniqueIndex('recruitment_section_binding_unique').on(
+      table.recruitmentId,
+      table.formSectionId,
+      table.divisionId,
+    ),
+  }),
+);
+
+export const application = createTable(
+  'application',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    recruitmentId: varchar('recruitment_id', { length: 255 })
+      .notNull()
+      .references(() => recruitment.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    waveId: varchar('wave_id', { length: 255 }).references(
+      () => recruitmentWave.id,
+      { onDelete: 'set null' },
+    ),
+    // Null untuk closerec. Respons yang dihapus tidak boleh menghapus pendaftar.
+    formSubmissionId: varchar('form_submission_id', {
+      length: 255,
+    }).references(() => formSubmission.id, { onDelete: 'set null' }),
+    source: varchar('source', { length: 16 })
+      .$type<ApplicationSource>()
+      .notNull(),
+    willingToMove: boolean('willing_to_move').notNull().default(false),
+    submittedAt: timestamp('submitted_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    ...timestamps,
+  },
+  (table) => ({
+    userIdx: index('application_user_idx').on(table.userId),
+    waveIdx: index('application_wave_idx').on(table.waveId),
+    recruitmentUserUnique: uniqueIndex('application_recruitment_user_unique').on(
+      table.recruitmentId,
+      table.userId,
+    ),
+    submissionUnique: uniqueIndex('application_form_submission_unique')
+      .on(table.formSubmissionId)
+      .where(sql`${table.formSubmissionId} IS NOT NULL`),
+  }),
+);
+
+export const applicationChoice = createTable(
+  'application_choice',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    applicationId: varchar('application_id', { length: 255 })
+      .notNull()
+      .references(() => application.id, { onDelete: 'cascade' }),
+    divisionId: varchar('division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'restrict' }),
+    // 1..N; null untuk closerec atau pilihan yang dialihkan. CHECK rank >= 1.
+    rank: integer('rank'),
+    origin: varchar('origin', { length: 16 }).$type<ChoiceOrigin>().notNull(),
+    // Cache; dihitung ulang dari penilaian pada fase berikutnya.
+    score: numeric('score'),
+    computedStatus: varchar('computed_status', {
+      length: 16,
+    }).$type<ComputedStatus>(),
+    scoredAt: timestamp('scored_at', { mode: 'date', withTimezone: true }),
+  },
+  (table) => ({
+    divisionIdx: index('application_choice_division_idx').on(table.divisionId),
+    applicationDivisionUnique: uniqueIndex(
+      'application_choice_application_division_unique',
+    ).on(table.applicationId, table.divisionId),
+    // Banyak baris dengan rank NULL boleh; yang berurutan harus unik.
+    applicationRankUnique: uniqueIndex('application_choice_application_rank_unique')
+      .on(table.applicationId, table.rank)
+      .where(sql`${table.rank} IS NOT NULL`),
+  }),
+);
+
+export const recruitmentRelations = relations(recruitment, ({ one, many }) => ({
+  period: one(events, {
+    fields: [recruitment.periodId],
+    references: [events.id],
+  }),
+  form: one(form, { fields: [recruitment.formId], references: [form.id] }),
+  waves: many(recruitmentWave),
+  eligibilityRules: many(recruitmentEligibilityRule),
+  divisions: many(recruitmentDivision),
+  applications: many(application),
+}));
+
+export const recruitmentWaveRelations = relations(
+  recruitmentWave,
+  ({ one }) => ({
+    recruitment: one(recruitment, {
+      fields: [recruitmentWave.recruitmentId],
+      references: [recruitment.id],
+    }),
+  }),
+);
+
+export const recruitmentEligibilityRuleRelations = relations(
+  recruitmentEligibilityRule,
+  ({ one }) => ({
+    recruitment: one(recruitment, {
+      fields: [recruitmentEligibilityRule.recruitmentId],
+      references: [recruitment.id],
+    }),
+  }),
+);
+
+export const recruitmentDivisionRelations = relations(
+  recruitmentDivision,
+  ({ one, many }) => ({
+    recruitment: one(recruitment, {
+      fields: [recruitmentDivision.recruitmentId],
+      references: [recruitment.id],
+    }),
+    unit: one(organizationUnit, {
+      fields: [recruitmentDivision.unitId],
+      references: [organizationUnit.id],
+    }),
+    position: one(organizationPosition, {
+      fields: [recruitmentDivision.positionId],
+      references: [organizationPosition.id],
+    }),
+    bindings: many(recruitmentSectionBinding),
+  }),
+);
+
+export const recruitmentSectionBindingRelations = relations(
+  recruitmentSectionBinding,
+  ({ one }) => ({
+    division: one(recruitmentDivision, {
+      fields: [recruitmentSectionBinding.divisionId],
+      references: [recruitmentDivision.id],
+    }),
+    section: one(formSection, {
+      fields: [recruitmentSectionBinding.formSectionId],
+      references: [formSection.id],
+    }),
+  }),
+);
+
+export const applicationRelations = relations(application, ({ one, many }) => ({
+  recruitment: one(recruitment, {
+    fields: [application.recruitmentId],
+    references: [recruitment.id],
+  }),
+  user: one(users, { fields: [application.userId], references: [users.id] }),
+  wave: one(recruitmentWave, {
+    fields: [application.waveId],
+    references: [recruitmentWave.id],
+  }),
+  submission: one(formSubmission, {
+    fields: [application.formSubmissionId],
+    references: [formSubmission.id],
+  }),
+  choices: many(applicationChoice),
+}));
+
+export const applicationChoiceRelations = relations(
+  applicationChoice,
+  ({ one }) => ({
+    application: one(application, {
+      fields: [applicationChoice.applicationId],
+      references: [application.id],
+    }),
+    division: one(recruitmentDivision, {
+      fields: [applicationChoice.divisionId],
+      references: [recruitmentDivision.id],
+    }),
+  }),
+);
