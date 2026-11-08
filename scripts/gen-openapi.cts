@@ -82,6 +82,11 @@ const ACCESS: Record<
     description:
       'Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.',
   },
+  'oprec-scoped': {
+    label: 'Pengelola Oprec',
+    description:
+      'Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.',
+  },
 };
 
 const TAG_DESCRIPTIONS: Record<string, string> = {
@@ -89,6 +94,7 @@ const TAG_DESCRIPTIONS: Record<string, string> = {
   adminGrant: 'Grant dan revoke Owner/Admin Lembaga & Kepanitiaan (RO-03).',
   event: 'CRUD kepanitiaan/kegiatan beserta anggotanya.',
   form: 'Dynamic Form Builder: kelola formulir lembaga/kegiatan, pertanyaannya, dan pengisian oleh mahasiswa (#210).',
+  oprec: 'Open recruitment: pengaturan, gelombang, syarat, divisi, dan pendaftar.',
   kegiatan: 'Query kegiatan dari sisi konsumen (listing, detail, pencarian).',
   landing: 'Data agregat untuk halaman publik/landing.',
   lembaga: 'CRUD lembaga (himpunan, UKM, BSO) beserta anggota dan strukturnya.',

@@ -14,8 +14,16 @@ import { accessGrant, events, lembaga } from '~/server/db/schema';
  */
 export type LembagaAccess = 'owner' | 'admin';
 
-/** Hibah yang memuat fitur 'admin' (semua kemampuan admin yang ada sekarang). */
-const hasAdminFeature = sql`'admin' = ANY(${accessGrant.features})`;
+/**
+ * Kunci fitur pada `access_grant.features`. 'admin' = semua kemampuan, sehingga
+ * lolos untuk fitur apa pun; fitur lain membatasi hibah pada satu kemampuan.
+ */
+export const GRANT_FEATURES = ['admin', 'oprec'] as const;
+export type GrantFeature = (typeof GRANT_FEATURES)[number];
+
+/** Hibah yang memuat fitur 'admin' atau fitur yang diminta. */
+const hasFeature = (feature: GrantFeature) =>
+  sql`('admin' = ANY(${accessGrant.features}) OR ${feature} = ANY(${accessGrant.features}))`;
 
 /** Batas penelusuran pohon lembaga untuk propagasi; juga pengaman terhadap siklus. */
 const MAX_LEMBAGA_TREE_DEPTH = 16;
@@ -26,6 +34,7 @@ export async function canManageLembaga(
   role: string,
   sessionLembagaId: string | null | undefined,
   lembagaId: string,
+  feature: GrantFeature = 'admin',
 ): Promise<LembagaAccess | null> {
   if (role === 'lembaga' && sessionLembagaId === lembagaId) {
     return 'owner';
@@ -36,7 +45,7 @@ export async function canManageLembaga(
       eq(accessGrant.userId, userId),
       eq(accessGrant.status, 'active'),
       isNotNull(accessGrant.lembagaId),
-      hasAdminFeature,
+      hasFeature(feature),
     ),
     columns: { lembagaId: true, propagate: true },
   });
@@ -75,6 +84,7 @@ export async function canManageEvent(
   role: string,
   sessionLembagaId: string | null | undefined,
   eventId: string,
+  feature: GrantFeature = 'admin',
 ): Promise<LembagaAccess | null> {
   const event = await database.query.events.findFirst({
     where: eq(events.id, eventId),
@@ -89,6 +99,7 @@ export async function canManageEvent(
       role,
       sessionLembagaId,
       event.org_id,
+      feature,
     );
     if (lembagaAccess) return lembagaAccess;
   }
@@ -98,7 +109,7 @@ export async function canManageEvent(
       eq(accessGrant.periodId, eventId),
       eq(accessGrant.userId, userId),
       eq(accessGrant.status, 'active'),
-      hasAdminFeature,
+      hasFeature(feature),
     ),
   });
   return grant ? 'admin' : null;

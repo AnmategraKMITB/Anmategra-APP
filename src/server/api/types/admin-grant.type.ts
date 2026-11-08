@@ -1,8 +1,17 @@
 import { z } from 'zod';
+import { GRANT_FEATURES } from '~/server/api/access';
+
+/** Kosong tidak sah; bawaan 'admin' (semua kemampuan). */
+export const GrantFeaturesSchema = z
+  .array(z.enum(GRANT_FEATURES))
+  .min(1)
+  .max(GRANT_FEATURES.length)
+  .default(['admin']);
 
 export const GrantLembagaAdminInputSchema = z.object({
   lembagaId: z.string().nonempty(),
   identifier: z.string().nonempty(), // email atau NIM
+  features: GrantFeaturesSchema,
 });
 
 export const GrantLembagaAdminOutputSchema = z.object({
@@ -28,6 +37,7 @@ export const AdminGrantEntrySchema = z.object({
   email: z.string(),
   nim: z.number().nullable(),
   grantedAt: z.date(),
+  features: z.array(z.string()),
 });
 
 export const ListLembagaAdminsOutputSchema = z.array(AdminGrantEntrySchema);
@@ -36,6 +46,7 @@ export const GrantEventAdminInputSchema = z.object({
   lembagaId: z.string().nonempty(),
   eventId: z.string().nonempty(),
   identifier: z.string().nonempty(),
+  features: GrantFeaturesSchema,
 });
 
 export const GrantEventAdminOutputSchema = z.object({
