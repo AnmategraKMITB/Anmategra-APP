@@ -504,6 +504,14 @@ export const criteriaProcedures = {
             .orderBy(asc(formSection.sortOrder)),
         ]);
 
+      const sectionBindings = await ctx.db
+        .select({
+          sectionId: recruitmentSectionBinding.formSectionId,
+          divisionId: recruitmentSectionBinding.divisionId,
+        })
+        .from(recruitmentSectionBinding)
+        .where(eq(recruitmentSectionBinding.recruitmentId, recruitmentId));
+
       const boundFieldIds = new Set(links.map((l) => l.fieldId));
       const visibleFields = allFields.filter(
         (f) => f.archivedAt === null || boundFieldIds.has(f.id),
@@ -600,7 +608,17 @@ export const criteriaProcedures = {
         };
       });
 
-      return { slots, fields };
+      return {
+        slots,
+        fields,
+        sections: sections.map((section) => ({
+          id: section.id,
+          title: section.title,
+          divisionIds: sectionBindings
+            .filter((binding) => binding.sectionId === section.id)
+            .map((binding) => binding.divisionId),
+        })),
+      };
     }),
 
   criterionSave: oprecScopedProcedure
