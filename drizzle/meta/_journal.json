@@ -337,6 +337,13 @@
       "when": 1794150190034,
       "tag": "0047_oprec_placement",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1794202636180,
+      "tag": "0048_last_iron_fist",
+      "breakpoints": true
     }
   ]
 }

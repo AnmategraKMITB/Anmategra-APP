@@ -27,6 +27,23 @@ export const env = createEnv({
     AZURE_AD_CLIENT_ID: z.string(),
     AZURE_AD_CLIENT_SECRET: z.string(),
     AZURE_AD_TENANT_ID: z.string(),
+    /** production | demo; demo mengaktifkan login kredensial dan data uji. */
+    APP_ENV: z.enum(['development', 'demo', 'production']).default('development'),
+    /** Email yang otomatis mendapat role admin setelah login SSO. */
+    SUPERADMIN_EMAILS: z
+      .string()
+      .default('')
+      .transform((value) =>
+        value
+          .split(',')
+          .map((email) => email.trim().toLowerCase())
+          .filter(Boolean),
+      ),
+    /** Hash scrypt untuk password akun demo; hanya dipakai saat APP_ENV=demo. */
+    DEMO_PASSWORD_HASH: z.string().optional(),
+    /** Host admin/demo untuk redirect dan penjagaan deployment. */
+    ADMIN_HOST: z.string().optional(),
+    DEMO_HOST: z.string().optional(),
   },
 
   /**
@@ -48,6 +65,9 @@ export const env = createEnv({
     /** Aplikasi Microsoft (SPA) untuk unggah berkas OneDrive di Forms; kosong = unggah dinonaktifkan. */
     NEXT_PUBLIC_AZURE_CLIENT_ID: z.string().optional(),
     NEXT_PUBLIC_AZURE_TENANT_ID: z.string().optional(),
+    NEXT_PUBLIC_APP_ENV: z
+      .enum(['development', 'demo', 'production'])
+      .default('development'),
   },
 
   /**
@@ -64,7 +84,13 @@ export const env = createEnv({
     AZURE_AD_CLIENT_ID: process.env.AZURE_AD_CLIENT_ID,
     AZURE_AD_CLIENT_SECRET: process.env.AZURE_AD_CLIENT_SECRET,
     AZURE_AD_TENANT_ID: process.env.AZURE_AD_TENANT_ID,
+    APP_ENV: process.env.APP_ENV,
+    SUPERADMIN_EMAILS: process.env.SUPERADMIN_EMAILS,
+    DEMO_PASSWORD_HASH: process.env.DEMO_PASSWORD_HASH,
+    ADMIN_HOST: process.env.ADMIN_HOST,
+    DEMO_HOST: process.env.DEMO_HOST,
     NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+    NEXT_PUBLIC_APP_ENV: process.env.NEXT_PUBLIC_APP_ENV,
     NEXT_PUBLIC_GA_ID: process.env.NEXT_PUBLIC_GA_ID,
     NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION:
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,

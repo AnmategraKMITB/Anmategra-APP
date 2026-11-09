@@ -23,6 +23,10 @@ ENV NEXT_PUBLIC_GA_ID=$NEXT_PUBLIC_GA_ID
 ARG NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 ENV NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=$NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 
+# Harus di-set saat build: halaman login memilih form demo/SSO dari nilai ini.
+ARG NEXT_PUBLIC_APP_ENV=production
+ENV NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV
+
 RUN npm run build
 
 # ---------- Production ----------
