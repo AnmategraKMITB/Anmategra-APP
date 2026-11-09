@@ -5,6 +5,7 @@ import {
   ilike,
   inArray,
   isNotNull,
+  isNull,
   lt,
   ne,
   or,
@@ -322,14 +323,17 @@ export const landingRouter = createTRPCRouter({
           .from(users)
           .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
           .where(
-            isNumeric
-              ? or(
-                  // Jika query numerik: cari di kolom nim (integer) dan name (string)
-                  ilike(sql`${mahasiswa.nim}::text`, `%${query}%`), // Cast integer ke text untuk ilike
+            and(
+              isNull(users.hiddenAt),
+              isNumeric
+                ? or(
+                    // Jika query numerik: cari di kolom nim (integer) dan name (string)
+                    ilike(sql`${mahasiswa.nim}::text`, `%${query}%`), // Cast integer ke text untuk ilike
+                    ilike(users.name, `%${query}%`),
+                  )
+                : // Jika bukan numerik: cari hanya di kolom name
                   ilike(users.name, `%${query}%`),
-                )
-              : // Jika bukan numerik: cari hanya di kolom name
-                ilike(users.name, `%${query}%`),
+            ),
           )
           .limit(limit),
 
@@ -365,7 +369,11 @@ export const landingRouter = createTRPCRouter({
         image: mahasiswa.image ?? undefined,
       }));
 
-      const formattedLembaga: Kepanitiaan[] = lembaga.map((item) => {
+      const visibleLembaga = lembaga.filter(
+        (item) =>
+          !(item.users as { hiddenAt: Date | null } | null)?.hiddenAt,
+      );
+      const formattedLembaga: Kepanitiaan[] = visibleLembaga.map((item) => {
         const itemUsers = item.users as { image: string | null } | null;
         return {
           lembaga: {
@@ -382,7 +390,15 @@ export const landingRouter = createTRPCRouter({
         };
       });
 
-      const formattedKepanitiaan: Kepanitiaan[] = event.map((item) => {
+      const visibleEvent = event.filter(
+        (item) =>
+          !(
+            item.lembaga as
+              | { users?: { hiddenAt: Date | null } | null }
+              | null
+          )?.users?.hiddenAt,
+      );
+      const formattedKepanitiaan: Kepanitiaan[] = visibleEvent.map((item) => {
         const lembagaItem = item.lembaga as {
           name: string | null;
           users: { image: string | null };

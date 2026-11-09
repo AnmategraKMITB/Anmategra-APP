@@ -12,6 +12,7 @@ import Google from 'public/icons/google-icon.webp'
 import Microsoft from 'public/icons/microsoft-icon.webp'
 
 import { signIn } from "next-auth/react";
+import { DemoLoginForm } from "~/app/_components/auth/demo-login-form";
 import { isSafeFormsCallback } from "~/lib/forms-path";
 
 // Tautan form yang dibuka sebelum login: kembali ke sana setelah masuk (hanya
@@ -22,6 +23,7 @@ const signInTo = (provider: "azure-ad" | "google") => {
 };
 
 const LogInPage = () => {
+  const isDemo = process.env.NEXT_PUBLIC_APP_ENV === 'demo';
   return (
     <div className='h-screen w-full flex items-center justify-center gap-x-4 bg-slate-100 px-4'>
       <Card className='max-w-[450px] w-full'>
@@ -37,11 +39,17 @@ const LogInPage = () => {
             <p className='text-lg sm:text-2xl leading-tight'>Selamat Datang di <span className='bg-clip-text text-transparent bg-gradient-to-br from-primary-400 to-secondary-400 font-bold'>Anmategra</span></p>
           </CardTitle>
           <CardDescription className='text-xs sm:text-sm'>
-            Silahkan masuk dengan akun <span className='font-semibold text-gray-500'>microsoft untuk mahasiswa</span> dan <span className='font-semibold text-gray-500'>akun google untuk lembaga</span>.
+            {isDemo
+              ? 'Masuk dengan akun demo yang diberikan panitia. Data demo terpisah dari produksi.'
+              : 'Silahkan masuk dengan akun microsoft untuk mahasiswa dan akun google untuk lembaga.'}
           </CardDescription>
         </CardHeader>
         <CardContent className='flex flex-col gap-y-2 sm:gap-y-3'>
-          <Button onClick={() => signInTo("azure-ad")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
+          {isDemo ? (
+            <DemoLoginForm />
+          ) : (
+            <>
+          <Button onClick={() => signIn("azure-ad")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
             <Image
               src={Microsoft}
               alt='Logo Microsoft'
@@ -53,7 +61,7 @@ const LogInPage = () => {
               Microsoft  |  @mahasiswa.itb.ac.id
             </span>
           </Button>
-          <Button onClick={() => signInTo("google")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
+          <Button onClick={() => signIn("google")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
             <Image 
               src={Google}
               alt='Logo Google'
@@ -65,6 +73,8 @@ const LogInPage = () => {
               Google  |  @km.itb.ac.id
             </span>
           </Button>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

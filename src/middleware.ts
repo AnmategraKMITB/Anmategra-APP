@@ -32,9 +32,22 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
-
   const { pathname } = req.nextUrl;
+  const host = (req.headers.get('host') ?? '').split(':')[0]?.toLowerCase();
+  const adminHost = process.env.ADMIN_HOST?.toLowerCase();
+  const demoHost = process.env.DEMO_HOST?.toLowerCase();
+
+  // admin.anmategra.com: root langsung ke backoffice.
+  if (adminHost && host === adminHost && pathname === '/') {
+    return NextResponse.redirect(new URL('/admin', req.url));
+  }
+
+  // Jangan biarkan host demo melayani build produksi.
+  if (demoHost && host === demoHost && process.env.APP_ENV !== 'demo') {
+    return NextResponse.rewrite(new URL('/404', req.url));
+  }
+
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
   // Form pages: the fill page is shared by every role (no role prefix) and the
   // public preview needs no login at all, even for someone who is logged in.

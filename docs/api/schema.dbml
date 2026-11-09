@@ -128,6 +128,23 @@ table anmategra_account {
   Note: "OAuth account linking (Auth.js adapter table)."
 }
 
+table anmategra_admin_audit {
+  id varchar(255) [pk, not null]
+  actor_id varchar(255) [not null]
+  action varchar(64) [not null]
+  entity_type varchar(64) [not null]
+  entity_id varchar(255)
+  summary text [not null]
+  metadata jsonb
+  ip varchar(64)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    actor_id [name: 'admin_audit_actor_idx']
+    created_at [name: 'admin_audit_created_idx']
+  }
+}
+
 table anmategra_alumni_pending {
   id varchar(255) [pk, not null]
   nim integer [not null]
@@ -1012,6 +1029,8 @@ table anmategra_user {
   email_verified "timestamp with time zone" [default: `CURRENT_TIMESTAMP`]
   image varchar(255)
   role role [not null, default: 'mahasiswa']
+  is_demo boolean [not null, default: false]
+  hidden_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   Note: "Akun pengguna inti. Satu baris per akun, terlepas dari peran (admin/lembaga/mahasiswa)."

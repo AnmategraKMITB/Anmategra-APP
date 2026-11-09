@@ -55,8 +55,42 @@ export const users = createTable('user', {
   }).default(sql`CURRENT_TIMESTAMP`),
   image: varchar('image', { length: 255 }),
   role: roleEnum('role').notNull().default('mahasiswa'),
+  /** Akun demo; hanya boleh login lewat kredensial saat APP_ENV=demo. */
+  isDemo: boolean('is_demo').notNull().default(false),
+  /** Disembunyikan dari daftar publik, tetapi tetap terlihat admin. */
+  hiddenAt: timestamp('hidden_at', { mode: 'date', withTimezone: true }),
   ...timestamps,
 });
+
+/** Jejak audit tindakan backoffice; append-only dari UI. */
+export const adminAudit = createTable(
+  'admin_audit',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    actorId: varchar('actor_id', { length: 255 })
+      .notNull()
+      .references(() => users.id),
+    action: varchar('action', { length: 64 }).notNull(),
+    entityType: varchar('entity_type', { length: 64 }).notNull(),
+    entityId: varchar('entity_id', { length: 255 }),
+    summary: text('summary').notNull(),
+    metadata: jsonb('metadata').$type<Record<string, unknown>>(),
+    ip: varchar('ip', { length: 64 }),
+    created_at: timestamp('created_at', {
+      mode: 'date',
+      withTimezone: true,
+    })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (table) => ({
+    actorIdx: index('admin_audit_actor_idx').on(table.actorId),
+    createdIdx: index('admin_audit_created_idx').on(table.created_at),
+  }),
+);
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),

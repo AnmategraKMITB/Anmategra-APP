@@ -9,6 +9,7 @@ import {
 import { type Adapter } from 'next-auth/adapters';
 import type { DefaultJWT } from 'next-auth/jwt';
 import AzureADProvider from 'next-auth/providers/azure-ad';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { env } from '~/env';
 import { db } from '~/server/db';
@@ -22,6 +23,13 @@ import {
   verificationTokens,
   verifiedUsers,
 } from '~/server/db/schema';
+
+import {
+  clearDemoLoginFailures,
+  isDemoLoginRateLimited,
+  recordDemoLoginFailure,
+  verifyDemoPassword,
+} from './demo-auth';
 
 import daftarProdi from './db/kode-program-studi.json';
 
@@ -52,6 +60,7 @@ declare module 'next-auth' {
     email: string;
     image?: string;
     role: 'admin' | 'lembaga' | 'mahasiswa';
+    lembagaId?: string;
   }
 }
 
@@ -84,6 +93,7 @@ interface AzureADProfile {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     jwt: async ({ token, user, account }) => {
+      const isDemo = env.APP_ENV === 'demo';
       // Initial token on first sign in
       if (user) {
         // jwt only returns user on sign in, otherwise it's undefined
@@ -149,8 +159,19 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
+        else if (account?.provider === 'credentials' && isDemo) {
+          token.role = user.role;
+          token.lembagaId = user.lembagaId;
+        }
+
         token.id = user.id;
         token.picture = user.image ?? '/images/placeholder/profile-pic.png';
+      }
+
+      // Allowlist superadmin berlaku untuk semua provider, termasuk demo.
+      const email = (user?.email ?? token.email)?.toLowerCase();
+      if (email && env.SUPERADMIN_EMAILS.includes(email)) {
+        token.role = 'admin';
       }
       return token;
     },
@@ -164,6 +185,18 @@ export const authOptions: NextAuthOptions = {
     },
 
     signIn: async ({ user, account, profile }) => {
+      if (account?.provider === 'credentials') {
+        return env.APP_ENV === 'demo';
+      }
+
+      // Akun demo tidak boleh masuk lewat SSO produksi.
+      if (env.APP_ENV !== 'demo' && user.email) {
+        const demoAccount = await db.query.users.findFirst({
+          where: and(eq(users.email, user.email), eq(users.isDemo, true)),
+        });
+        if (demoAccount) return false;
+      }
+
       // signin lembaga
       if (account?.provider === 'google') {
         const isValidLembaga = user.email?.endsWith('@km.itb.ac.id');
@@ -252,6 +285,52 @@ export const authOptions: NextAuthOptions = {
     error: '/auth-error',
   },
   providers: [
+    ...(env.APP_ENV === 'demo'
+      ? [
+          CredentialsProvider({
+            id: 'credentials',
+            name: 'Demo',
+            credentials: {
+              email: { label: 'Email', type: 'email' },
+              password: { label: 'Password', type: 'password' },
+            },
+            async authorize(credentials) {
+              const email = (credentials?.email ?? '').trim().toLowerCase();
+              const password = credentials?.password ?? '';
+              if (!email || !password || isDemoLoginRateLimited(email)) {
+                return null;
+              }
+              const row = await db.query.users.findFirst({
+                where: eq(users.email, email),
+              });
+              if (!row?.isDemo) {
+                recordDemoLoginFailure(email);
+                return null;
+              }
+              const valid = await verifyDemoPassword(
+                password,
+                env.DEMO_PASSWORD_HASH,
+              );
+              if (!valid) {
+                recordDemoLoginFailure(email);
+                return null;
+              }
+              clearDemoLoginFailures(email);
+              const lembagaRow = await db.query.lembaga.findFirst({
+                where: eq(lembaga.userId, row.id),
+              });
+              return {
+                id: row.id,
+                name: row.name ?? email,
+                email: row.email,
+                image: row.image ?? undefined,
+                role: row.role,
+                lembagaId: lembagaRow?.id,
+              };
+            },
+          }),
+        ]
+      : []),
     Google({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,

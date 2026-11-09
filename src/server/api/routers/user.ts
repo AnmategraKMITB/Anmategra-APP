@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
@@ -227,6 +227,7 @@ export const userRouter = createTRPCRouter({
                   sql`, `,
                 )})`
               : sql`1=1`,
+            isNull(users.hiddenAt),
           ),
         )
         .limit(input.limit ?? 10)
