@@ -121,6 +121,13 @@ function formatAnswer(field: RendererFieldFull, value: unknown): string {
             .map(option)
             .join(', ')
         : '—';
+    case 'unit_choice':
+      return Array.isArray(value)
+        ? value
+            .filter((v): v is string => typeof v === 'string')
+            .map((id, i) => `${i + 1}. ${option(id)}`)
+            .join('; ')
+        : '—';
     case 'checkbox':
       return value === true ? 'Ya' : 'Tidak';
     case 'matrix': {

@@ -29,6 +29,9 @@ export const OPERATOR_LABELS: Record<string, string> = {
   pada: 'pada',
   dicentang: 'dicentang',
   tidak_dicentang: 'tidak dicentang',
+  memilih: 'memilih',
+  tidak_memilih: 'tidak memilih',
+  pilihan_ke: 'memilih sebagai pilihan ke-',
 };
 
 /** Tipe yang boleh jadi sumber kondisi. */
@@ -67,6 +70,9 @@ export function describeCondition(
     if (!operatorNeedsValue(rule.op)) return `${name} ${op}`;
     if (Array.isArray(rule.nilai)) {
       return `${name} ${op} ${(rule.nilai as unknown[]).map(show).join(', ')}`;
+    }
+    if (rule.op === 'pilihan_ke') {
+      return `${name} pilihan ke-${show(rule.nilai2)}: ${show(rule.nilai)}`;
     }
     if (rule.op === 'antara') {
       return `${name} antara ${show(rule.nilai)} dan ${show(rule.nilai2)}`;

@@ -158,10 +158,14 @@ export function FieldCard({
           <div className="flex items-center gap-2">
             <Switch
               id={`required-${field.id}`}
-              checked={draft.required}
+              checked={draft.required || field.type === 'unit_choice'}
+              // Pilihan tujuan selalu wajib: pendaftar tanpa pilihan tidak sah.
+              disabled={field.type === 'unit_choice'}
               onCheckedChange={(value) => builder.setRequired(field, value)}
             />
-            <Label htmlFor={`required-${field.id}`}>Wajib diisi</Label>
+            <Label htmlFor={`required-${field.id}`}>
+              Wajib diisi{field.type === 'unit_choice' ? ' (selalu)' : ''}
+            </Label>
           </div>
         )}
         <div className="ml-auto flex flex-wrap items-center gap-1">

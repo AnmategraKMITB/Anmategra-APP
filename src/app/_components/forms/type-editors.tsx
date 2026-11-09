@@ -24,6 +24,9 @@ import {
 } from '~/server/api/types/form.constants';
 import type { UpdateFieldInput } from '~/server/api/types/form.type';
 
+import { useBuilder } from './builder-context';
+import { richTextToPlain } from './rich-text';
+
 type Draft = UpdateFieldInput;
 
 /** Config baru dari config lama + perubahan; kunci bernilai `undefined` dibuang. */
@@ -321,6 +324,60 @@ function ListEditor({
 // ---------------------------------------------------------------------------
 // Editor per jenis
 // ---------------------------------------------------------------------------
+
+function UnitChoiceEditor({
+  draft,
+  onChange,
+}: {
+  draft: Extract<Draft, { type: 'unit_choice' }>;
+  onChange: (next: Draft) => void;
+}) {
+  const builder = useBuilder();
+  const oprec = builder.detail?.oprec;
+  const checkboxes = (builder.detail?.fields ?? []).filter(
+    (f) => f.type === 'checkbox',
+  );
+  const key = draft.fieldId;
+  return (
+    <div className="grid gap-4">
+      <p className="rounded-xl bg-neutral-200 px-4 py-3 text-sm text-neutral-700">
+        {oprec
+          ? `Pendaftar memilih ${oprec.minChoices === oprec.maxChoices ? oprec.maxChoices : `${oprec.minChoices} sampai ${oprec.maxChoices}`} tujuan, berurutan, dari tujuan yang dibuka oprec. Daftar tujuan dan jumlah pilihan diatur di pengaturan oprec.`
+          : 'Pertanyaan ini hanya berlaku untuk formulir yang terikat oprec.'}
+      </p>
+      <div className="grid gap-1.5">
+        <Label htmlFor={`willing-${key}`}>
+          Kotak “bersedia dipindahkan” (opsional)
+        </Label>
+        <Select
+          value={draft.config.willingFieldId ?? '__none'}
+          onValueChange={(v) =>
+            onChange({
+              ...draft,
+              config: v === '__none' ? {} : { willingFieldId: v },
+            })
+          }
+        >
+          <SelectTrigger id={`willing-${key}`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__none">Tidak ada</SelectItem>
+            {checkboxes.map((f) => (
+              <SelectItem key={f.id} value={f.id}>
+                {richTextToPlain(f.label)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-neutral-700">
+          Bila dicentang, pendaftar bersedia ditempatkan di tujuan di luar
+          pilihannya.
+        </p>
+      </div>
+    </div>
+  );
+}
 
 export function TypeEditor({
   draft,
@@ -620,6 +677,8 @@ export function TypeEditor({
         </div>
       );
 
+    case 'unit_choice':
+      return <UnitChoiceEditor draft={draft} onChange={onChange} />;
     case 'scale': {
       const c = draft.config;
       return (

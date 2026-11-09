@@ -6,7 +6,9 @@ import { Input } from '~/components/ui/input';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from '~/components/ui/select';
@@ -182,9 +184,119 @@ export function AnswerInput({
           describedBy={describedBy}
         />
       );
+    case 'unit_choice':
+      return (
+        <UnitChoiceInput
+          field={field}
+          value={value}
+          onChange={onChange}
+          invalid={invalid}
+          describedBy={describedBy}
+        />
+      );
     case 'text_block':
       return null;
   }
+}
+
+const NONE = '__none';
+
+/**
+ * Pilihan tujuan oprec: satu daftar turun per urutan (Pilihan 1, 2, ...).
+ * Pilihan berikutnya baru terbuka setelah yang sebelumnya terisi, dan tujuan
+ * yang sudah dipilih tidak ditawarkan lagi di urutan lain.
+ */
+function UnitChoiceInput({
+  field,
+  value,
+  onChange,
+  invalid,
+  describedBy,
+}: Pick<
+  AnswerInputProps,
+  'field' | 'value' | 'onChange' | 'invalid' | 'describedBy'
+>) {
+  const chosen = Array.isArray(value)
+    ? (value as unknown[]).filter((v): v is string => typeof v === 'string')
+    : [];
+  const min = Math.max(1, field.config.minChoices ?? 1);
+  const max = Math.max(min, field.config.maxChoices ?? 1);
+  const groups = [...new Set(field.options.map((o) => o.group ?? ''))];
+  const set = (index: number, id: string) => {
+    const next =
+      id === NONE ? chosen.slice(0, index) : [...chosen.slice(0, index), id];
+    // Pilihan setelahnya tetap dipertahankan bila masih sah dan tidak ganda.
+    const rest = chosen.slice(index + 1).filter((x) => x !== id);
+    const merged = id === NONE ? next : [...next, ...rest];
+    onChange(merged.length > 0 ? merged : undefined);
+  };
+  return (
+    <div
+      role="group"
+      aria-labelledby={`label-${field.id}`}
+      aria-describedby={describedBy}
+      className="grid gap-3"
+    >
+      {Array.from({ length: max }, (_, i) => {
+        const current = chosen[i];
+        const locked = i > 0 && chosen[i - 1] === undefined;
+        const taken = new Set(chosen.filter((_, j) => j !== i));
+        return (
+          <div key={i} className="grid gap-1.5">
+            <label
+              htmlFor={i === 0 ? `fill-${field.id}` : `fill-${field.id}-${i}`}
+              className="text-sm font-medium text-neutral-1000"
+            >
+              Pilihan {i + 1}
+              {i >= min ? (
+                <span className="font-normal text-neutral-700">
+                  {' '}
+                  (opsional)
+                </span>
+              ) : null}
+            </label>
+            <Select
+              value={current ?? ''}
+              disabled={locked}
+              onValueChange={(v) => set(i, v)}
+            >
+              <SelectTrigger
+                id={i === 0 ? `fill-${field.id}` : `fill-${field.id}-${i}`}
+                aria-invalid={invalid && i < min && current === undefined}
+              >
+                <SelectValue
+                  placeholder={
+                    locked ? 'Isi pilihan sebelumnya dulu' : 'Pilih tujuan'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {current !== undefined && i >= min ? (
+                  <SelectItem value={NONE}>Kosongkan pilihan ini</SelectItem>
+                ) : null}
+                {groups.map((group) => {
+                  const items = field.options.filter(
+                    (o) => (o.group ?? '') === group && !taken.has(o.id),
+                  );
+                  if (items.length === 0) return null;
+                  return (
+                    <SelectGroup key={group || 'tanpa-kelompok'}>
+                      {group ? <SelectLabel>{group}</SelectLabel> : null}
+                      {items.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function SingleList({

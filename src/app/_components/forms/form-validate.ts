@@ -155,11 +155,19 @@ export function validateAnswer(
         : 'Tautan harus berupa URL http atau https yang valid.';
     }
 
-    case 'unit_choice':
-      // Jumlah dan keabsahan pilihan dicek server terhadap pengaturan oprec.
-      return Array.isArray(value) && value.every((v) => typeof v === 'string')
-        ? null
-        : `${label} harus berupa daftar pilihan.`;
+    case 'unit_choice': {
+      if (!Array.isArray(value) || value.some((v) => typeof v !== 'string')) {
+        return `${label} harus berupa daftar pilihan.`;
+      }
+      const min = c.minChoices ?? 1;
+      const max = c.maxChoices ?? min;
+      if (value.length < min) {
+        return min === 1
+          ? `${label} wajib diisi.`
+          : `${label} minimal ${min} pilihan.`;
+      }
+      return value.length > max ? `${label} maksimal ${max} pilihan.` : null;
+    }
 
     case 'file': {
       if (!isFileAnswerList(value)) return `Berkas pada ${label} tidak valid.`;

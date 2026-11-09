@@ -67,6 +67,18 @@ export async function FillPage({ formId }: { formId: string }) {
     );
   }
 
+  // Form oprec: yang belum memenuhi syarat atau di luar jadwal melihat
+  // penjelasan, bukan formulirnya.
+  if (form.oprec && !form.oprec.canApply) {
+    return (
+      <Notice
+        title={form.oprec.eligible ? form.title : 'Kamu belum bisa mendaftar'}
+      >
+        {form.oprec.reason ?? 'Pendaftaran belum bisa dikirim saat ini.'}
+      </Notice>
+    );
+  }
+
   if (!form.isAcceptingResponses) {
     const closed =
       form.settings.closedMessage.trim() === ''
@@ -82,6 +94,17 @@ export async function FillPage({ formId }: { formId: string }) {
       <p className="mb-3 text-sm text-neutral-700">
         <RichText value={form.owner.name} />
       </p>
+      {form.oprec?.wave ? (
+        <p className="mb-3 rounded-xl bg-neutral-200 px-4 py-2 text-sm text-neutral-700">
+          Gelombang {form.oprec.wave.label}, berakhir{' '}
+          {form.oprec.wave.endsAt.toLocaleString('id-ID', {
+            dateStyle: 'long',
+            timeStyle: 'short',
+            timeZone: 'Asia/Jakarta',
+          })}{' '}
+          WIB.
+        </p>
+      ) : null}
       <FillForm form={form} userId={userId} />
     </main>
   );
