@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
 import {
   type AssessmentInput,
   type ComputedStatus,
@@ -256,6 +256,11 @@ async function writeResults(
 ) {
   const before = new Map(existing.map((c) => [c.id, c]));
   const now = new Date();
+  const changed: {
+    id: string;
+    score: string | null;
+    status: ComputedStatus | null;
+  }[] = [];
   for (const r of results) {
     const prev = before.get(r.choiceId);
     const prevScore =
@@ -269,14 +274,30 @@ async function writeResults(
           r.score !== null &&
           Math.abs(prevScore - r.score) < 1e-9));
     if (same) continue;
-    await db
-      .update(applicationChoice)
-      .set({
-        score: r.score === null ? null : String(r.score),
-        computedStatus: r.status,
-        scoredAt: now,
-      })
-      .where(and(eq(applicationChoice.id, r.choiceId)));
+    changed.push({
+      id: r.choiceId,
+      score: r.score === null ? null : String(r.score),
+      status: r.status,
+    });
+  }
+
+  // Hitung ulang satu divisi bisa menyentuh ribuan pilihan; satu UPDATE per
+  // pilihan terlalu mahal. Kirim per 500 baris sebagai VALUES join.
+  for (let i = 0; i < changed.length; i += 500) {
+    const batch = changed.slice(i, i + 500);
+    const values = sql.join(
+      batch.map(
+        (row) =>
+          sql`(${row.id}::text, ${row.score}::numeric, ${row.status}::text, ${now.toISOString()}::timestamptz)`,
+      ),
+      sql`, `,
+    );
+    await db.execute(sql`
+      UPDATE ${applicationChoice} AS c
+      SET score = v.score, computed_status = v.status, scored_at = v.scored_at
+      FROM (VALUES ${values}) AS v(id, score, status, scored_at)
+      WHERE c.id = v.id
+    `);
   }
   return results;
 }
