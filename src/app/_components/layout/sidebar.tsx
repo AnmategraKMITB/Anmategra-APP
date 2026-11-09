@@ -100,13 +100,42 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
   },
 ];
 
+const SIDEBAR_ITEMS_ADMIN: SidebarItemType[] = [
+  { label: 'Laporan', href: '/admin', icon: <ExclamationTriangleIcon /> },
+  { label: 'Akun', href: '/admin/akun', icon: <PersonIcon /> },
+  {
+    label: 'Lembaga',
+    href: '/admin/lembaga',
+    icon: <Network className="w-5 h-5" />,
+  },
+  {
+    label: 'Akses',
+    href: '/admin/akses',
+    icon: <ClipboardList className="w-5 h-5" />,
+  },
+  { label: 'Audit', href: '/admin/audit', icon: <FileText className="w-5 h-5" /> },
+  {
+    label: 'Manual',
+    href: '/manual',
+    icon: <BookOpen className="w-5 h-5" />,
+  },
+];
+
 // Data profil di dasar sidebar; dipakai juga oleh editor organogram yang menaruh blok profil di panelnya sendiri.
 const useSidebarProfile = (session: Session | null): SidebarProfileData => {
   const user = session?.user;
   const role = user?.role ?? 'mahasiswa';
 
   let profileData: SidebarProfileData;
-  if (role === 'lembaga') {
+  if (role === 'admin') {
+    profileData = {
+      id: user?.id ?? '',
+      name: user?.name ?? 'Admin',
+      profilePicture: user?.image ?? '/images/placeholder/profile-pic.png',
+      label: 'Admin',
+      href: '/admin',
+    };
+  } else if (role === 'lembaga') {
     const lembaga = api.lembaga.getInfo.useQuery(
       {
         lembagaId: user?.lembagaId ?? '',
@@ -166,7 +195,11 @@ export const Sidebar = ({
   const role = user?.role ?? 'mahasiswa';
 
   const sidebarItems =
-    role === 'lembaga' ? SIDEBAR_ITEMS_LEMBAGA : SIDEBAR_ITEMS_MAHASISWA;
+    role === 'lembaga'
+      ? SIDEBAR_ITEMS_LEMBAGA
+      : role === 'admin'
+        ? SIDEBAR_ITEMS_ADMIN
+        : SIDEBAR_ITEMS_MAHASISWA;
 
   const profileData = useSidebarProfile(session);
 
@@ -174,7 +207,7 @@ export const Sidebar = ({
     <div className="fixed top-0 left-0 z-[60] flex h-screen w-64 flex-col border-r bg-neutral-50 p-6">
       <div className="mb-8 flex items-center justify-between">
         <Link
-          href={role === 'lembaga' ? '/lembaga' : '/mahasiswa'}
+          href={role === 'lembaga' ? '/lembaga' : role === 'admin' ? '/admin' : '/mahasiswa'}
           className="flex items-center"
           onClick={onClose}
         >
