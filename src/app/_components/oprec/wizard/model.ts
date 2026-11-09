@@ -22,7 +22,11 @@ export type CriterionDraft = {
   weight: number;
 };
 
+export type PresetId = 'besar' | 'ami' | 'himpunan' | 'custom';
+
 export type WizardState = {
+  /** Preset awal yang dipakai, atau "custom". */
+  preset: PresetId | null;
   /** S1 */
   name: string;
   /** S2: periode sumber organogram, termasuk periode sendiri. */
@@ -88,6 +92,7 @@ export function defaultState(
   ownPeriodId: string,
 ): WizardState {
   return {
+    preset: null,
     name: `Oprec ${eventName}`,
     sourcePeriodIds: [ownPeriodId],
     divisions: {},

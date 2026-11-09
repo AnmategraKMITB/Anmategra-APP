@@ -9,6 +9,7 @@ import { api } from '~/trpc/react';
 import { type OprecBase } from '../status';
 import {
   GROUP_OF,
+  type PresetId,
   type SetupTree,
   type StepId,
   type WizardCtx,
@@ -18,6 +19,8 @@ import {
   stepProblem,
   visibleSteps,
 } from './model';
+import { PresetScreen } from './preset-screen';
+import { PRESETS } from './presets';
 import { StepGelombang, StepNama, StepSumber, StepTujuan } from './steps-dasar';
 import {
   StepForm,
@@ -76,7 +79,7 @@ const STEP_COMPONENTS: Record<StepId, (p: StepProps) => React.ReactNode> = {
   S23: StepKriteria,
 };
 
-type Phase = 'steps' | 'summary' | 'done';
+type Phase = 'preset' | 'steps' | 'summary' | 'done';
 
 /** Wizard setup oprec: satu pertanyaan per layar, bawaan terpilih, ringkasan di akhir. */
 export function SetupWizard({
@@ -94,7 +97,7 @@ export function SetupWizard({
     defaultState(eventName, eventId),
   );
   const [current, setCurrent] = useState<StepId>('S1');
-  const [phase, setPhase] = useState<Phase>('steps');
+  const [phase, setPhase] = useState<Phase>('preset');
   const [created, setCreated] = useState<{
     recruitmentId: string;
     formId: string;
@@ -105,6 +108,17 @@ export function SetupWizard({
 
   const update = (patch: Partial<WizardState>) =>
     setS((prev) => ({ ...prev, ...patch }));
+
+  const applyPreset = (id: PresetId) => {
+    const preset = PRESETS.find((item) => item.id === id);
+    setS((prev) => ({
+      ...prev,
+      ...(preset?.patch ?? {}),
+      preset: id,
+    }));
+    setCurrent('S1');
+    setPhase('steps');
+  };
 
   const own = api.oprec.setupOptions.useQuery({ eventId });
   const extraIds = s.sourcePeriodIds.filter((id) => id !== eventId);
@@ -247,17 +261,26 @@ export function SetupWizard({
 
   return (
     <div>
-      {phase !== 'done' ? (
+      {phase !== 'done' && phase !== 'preset' ? (
         <header className="mb-8">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-700">
             <span className="font-semibold text-primary-400">
               {phase === 'summary' ? 'Ringkasan' : GROUP_OF[current]}
             </span>
-            <span>
-              {phase === 'summary'
-                ? `${total} langkah`
-                : `Langkah ${index + 1} dari ${total}`}
-            </span>
+            <div className="flex items-center gap-3">
+              <span>
+                {phase === 'summary'
+                  ? `${total} langkah`
+                  : `Langkah ${index + 1} dari ${total}`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPhase('preset')}
+                className="text-xs font-semibold text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              >
+                Ganti preset
+              </button>
+            </div>
           </div>
           <div
             role="progressbar"
@@ -276,7 +299,13 @@ export function SetupWizard({
       ) : null}
 
       <div ref={frame} tabIndex={-1} className="outline-none">
-        {phase === 'steps' ? (
+        {phase === 'preset' ? (
+          <PresetScreen
+            current={s.preset}
+            onPick={applyPreset}
+            cancelHref={`${basePath}/kegiatan/${eventId}/oprec`}
+          />
+        ) : phase === 'steps' ? (
           <>
             <Step {...props} />
             {problem ? (
@@ -305,7 +334,7 @@ export function SetupWizard({
         ) : null}
       </div>
 
-      {phase !== 'done' ? (
+      {phase !== 'done' && phase !== 'preset' ? (
         <footer className="mt-10 flex flex-wrap items-center justify-between gap-3 border-t border-neutral-400 pt-5">
           <div className="flex items-center gap-2">
             {phase === 'summary' || index > 0 ? (
@@ -313,11 +342,20 @@ export function SetupWizard({
                 <ArrowLeft /> Kembali
               </Button>
             ) : (
-              <Button asChild variant="ghost">
-                <Link href={`${basePath}/kegiatan/${eventId}/oprec`}>
-                  Batal
-                </Link>
-              </Button>
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => setPhase('preset')}
+                >
+                  Pilih preset
+                </Button>
+                <Button asChild variant="ghost">
+                  <Link href={`${basePath}/kegiatan/${eventId}/oprec`}>
+                    Batal
+                  </Link>
+                </Button>
+              </>
             )}
           </div>
           {phase === 'steps' ? (
