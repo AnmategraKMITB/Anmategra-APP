@@ -13,6 +13,7 @@ import {
   type WizardState,
   stepProblem,
 } from './model';
+import { presetLabel } from './presets';
 
 const YES = (v: boolean) => (v ? 'Ya' : 'Tidak');
 
@@ -190,6 +191,9 @@ export function Summary({
       <p className="mt-2 max-w-prose text-neutral-700">
         Oprec dibuat berstatus draf. Pendaftaran baru dibuka setelah formulir
         terbit dan kamu membukanya.
+      </p>
+      <p className="mt-1 text-sm text-neutral-700">
+        Preset: <strong>{presetLabel(s.preset)}</strong>.
       </p>
 
       {problems.length > 0 ? (
