@@ -18,6 +18,7 @@ import { type RouterOutputs, api } from '~/trpc/react';
 import { useBuilder } from '../builder-context';
 import { richTextToPlain } from '../rich-text';
 import { CriterionDialog } from './criterion-dialog';
+import { RopeCanvas } from './rope-canvas';
 import { SheetDialog } from './sheet-dialog';
 
 type CriteriaListOutput = RouterOutputs['oprec']['criteriaList'];
@@ -214,7 +215,10 @@ export function PenilaianPane() {
 
   const [slotScope, setSlotScope] = useState('umum');
   const [query, setQuery] = useState('');
+  const [view, setView] = useState<'daftar' | 'kanvas'>('daftar');
   const [editing, setEditing] = useState<Criterion | null>(null);
+  const [dialogScope, setDialogScope] = useState('umum');
+  const [dialogLabel, setDialogLabel] = useState('Umum');
   const [criterionOpen, setCriterionOpen] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
 
@@ -330,7 +334,74 @@ export function PenilaianPane() {
       </div>
 
       <section className="grid content-start gap-3">
-        {list.isLoading ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-sm text-neutral-700">
+            Atur kriteria per lingkup, lalu sambungkan ke pertanyaan form.
+          </p>
+          <div
+            role="group"
+            aria-label="Tampilan penilaian"
+            className="inline-flex rounded-full border border-neutral-400 bg-neutral-50 p-1"
+          >
+            {(['daftar', 'kanvas'] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                aria-pressed={view === mode}
+                onClick={() => setView(mode)}
+                className={cn(
+                  'rounded-full px-3 py-1 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
+                  view === mode
+                    ? 'bg-primary-200 text-primary-400'
+                    : 'text-neutral-700 hover:text-neutral-1000',
+                )}
+              >
+                {mode === 'daftar' ? 'Daftar' : 'Kanvas'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {view === 'kanvas' ? (
+          <>
+            <RopeCanvas
+              recruitmentId={recruitmentId}
+              slots={slots}
+              fields={fields}
+              sections={list.data?.sections ?? []}
+              onChanged={refresh}
+              onAddCriterion={(slot) => {
+                setDialogScope(slot.scope);
+                setDialogLabel(slot.label);
+                setEditing(null);
+                setCriterionOpen(true);
+              }}
+              onEditCriterion={(slot, criterion) => {
+                setDialogScope(slot.scope);
+                setDialogLabel(slot.label);
+                setEditing(criterion);
+                setCriterionOpen(true);
+              }}
+            />
+            <CriterionDialog
+              recruitmentId={recruitmentId}
+              scope={dialogScope}
+              scopeLabel={dialogLabel}
+              criterion={editing}
+              fields={fields}
+              open={criterionOpen}
+              onOpenChange={(open) => {
+                setCriterionOpen(open);
+                if (!open) setEditing(null);
+              }}
+              onSaved={() => {
+                setCriterionOpen(false);
+                setEditing(null);
+                refresh();
+              }}
+            />
+          </>
+        ) : list.isLoading ? (
           <p className="text-sm text-neutral-700">Memuat kriteria…</p>
         ) : activeSlot === null ? (
           <p className="rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 text-sm text-neutral-700">
