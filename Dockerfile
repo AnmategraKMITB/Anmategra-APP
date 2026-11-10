@@ -27,6 +27,14 @@ ENV NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION=$NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
 ARG NEXT_PUBLIC_APP_ENV=production
 ENV NEXT_PUBLIC_APP_ENV=$NEXT_PUBLIC_APP_ENV
 
+# OneDrive/MSAL di Forms. Ini client-side values, jadi wajib tersedia saat
+# build; mengisinya hanya sebagai runtime env tidak akan mengubah bundle.
+ARG NEXT_PUBLIC_AZURE_CLIENT_ID
+ENV NEXT_PUBLIC_AZURE_CLIENT_ID=$NEXT_PUBLIC_AZURE_CLIENT_ID
+
+ARG NEXT_PUBLIC_AZURE_TENANT_ID
+ENV NEXT_PUBLIC_AZURE_TENANT_ID=$NEXT_PUBLIC_AZURE_TENANT_ID
+
 RUN npm run build
 
 # ---------- Production ----------

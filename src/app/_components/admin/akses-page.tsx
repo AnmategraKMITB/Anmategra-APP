@@ -8,7 +8,7 @@ import { api } from '~/trpc/react';
 import { AdminEntitySearch } from './admin-entity-search';
 import { AdminPageHeader } from './admin-page-header';
 
-type Feature = 'admin' | 'oprec' | 'forms' | 'events' | 'organization' | 'membership' | 'lembaga_profile';
+type Feature = 'admin' | 'oprec' | 'forms' | 'events' | 'organization';
 
 const FEATURES = [
   ['admin', 'Semua kemampuan'],
@@ -16,8 +16,6 @@ const FEATURES = [
   ['forms', 'Formulir'],
   ['events', 'Kegiatan/kepengurusan'],
   ['organization', 'Organogram'],
-  ['membership', 'Anggota'],
-  ['lembaga_profile', 'Profil lembaga'],
 ] as const;
 
 type PermissionGroup = {

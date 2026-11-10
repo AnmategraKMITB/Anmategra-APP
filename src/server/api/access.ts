@@ -29,8 +29,6 @@ export const GRANT_FEATURES = [
   'forms',
   'events',
   'organization',
-  'membership',
-  'lembaga_profile',
 ] as const;
 export type GrantFeature = (typeof GRANT_FEATURES)[number];
 
@@ -44,7 +42,6 @@ const MAX_LEMBAGA_TREE_DEPTH = 16;
 const ADMIN_SCOPE_PERMISSION: Partial<Record<GrantFeature, string>> = {
   organization: 'lembaga.organization',
   events: 'lembaga.events',
-  membership: 'lembaga.members',
 };
 
 async function hasAdminOperatorScope(

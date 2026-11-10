@@ -1,3 +1,4 @@
+import { AdminGuard } from '~/app/_components/admin/admin-guard';
 import { LembagaDetail } from '~/app/_components/admin/lembaga-detail';
 
 export default async function AdminLembagaDetailPage({
@@ -6,5 +7,9 @@ export default async function AdminLembagaDetailPage({
   params: Promise<{ lembagaId: string }>;
 }) {
   const { lembagaId } = await params;
-  return <LembagaDetail lembagaId={lembagaId} />;
+  return (
+    <AdminGuard permission="lembaga.read">
+      <LembagaDetail lembagaId={lembagaId} />
+    </AdminGuard>
+  );
 }
