@@ -1480,6 +1480,60 @@ export const accessGrantRelations = relations(accessGrant, ({ one }) => ({
   }),
 }));
 
+/**
+ * Izin operator admin console. Terpisah dari `access_grant` karena izin ini
+ * bersifat global (tidak terikat lembaga/periode) dan mengatur menu/aksi di
+ * `/admin`, bukan akses ke data lembaga.
+ */
+export const adminPermission = createTable(
+  'admin_permission',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    permissions: text('permissions')
+      .array()
+      .notNull()
+      .default(sql`ARRAY[]::text[]`),
+    expiresAt: timestamp('expires_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    grantedBy: varchar('granted_by', { length: 255 }).references(
+      () => users.id,
+    ),
+    revokedAt: timestamp('revoked_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    revokedBy: varchar('revoked_by', { length: 255 }).references(
+      () => users.id,
+    ),
+    ...timestamps,
+  },
+  (table) => ({
+    userUnique: uniqueIndex('admin_permission_user_unique').on(table.userId),
+    activeIdx: index('admin_permission_active_idx').on(
+      table.revokedAt,
+      table.expiresAt,
+    ),
+  }),
+);
+
+export const adminPermissionRelations = relations(
+  adminPermission,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [adminPermission.userId],
+      references: [users.id],
+    }),
+  }),
+);
+
 // ---------------------------------------------------------------------------
 // Dynamic Form Builder (#210)
 //

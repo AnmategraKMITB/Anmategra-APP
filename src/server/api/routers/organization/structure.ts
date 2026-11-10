@@ -181,7 +181,7 @@ export const organizationStructureRouter = createTRPCRouter({
       if (!period) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Periode tidak ditemukan.' });
       }
-      const access = await canManageEvent(ctx.db, user.id, user.role, user.lembagaId, input.periodId);
+      const access = await canManageEvent(ctx.db, user.id, user.role, user.lembagaId, input.periodId, 'organization');
       if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
 
       const [existing] = await ctx.db

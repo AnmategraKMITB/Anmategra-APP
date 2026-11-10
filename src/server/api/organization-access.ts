@@ -48,6 +48,7 @@ export async function resolveOrganogramAccess(
       actor.role,
       actor.lembagaId,
       structure.periodId,
+      'organization',
     )) !== null;
 
   const rows = await database

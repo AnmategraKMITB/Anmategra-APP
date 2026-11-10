@@ -91,6 +91,13 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL(`/${token.role}`, req.url));
   }
 
+  // Backoffice punya guard sendiri di src/app/admin/layout.tsx: superadmin
+  // (role admin) atau operator dengan izin dari tabel admin_permission.
+  // Jangan paksa operator ber-role mahasiswa/lembaga kembali ke home role-nya.
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return NextResponse.next();
+  }
+
   // If authenticated and URL doesn't start with role, prepend role
   const role = token?.role;
   if (role) {

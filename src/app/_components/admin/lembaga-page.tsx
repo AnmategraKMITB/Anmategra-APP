@@ -1,10 +1,17 @@
 'use client';
 
-import { useState } from 'react';
-import { Button } from '~/components/ui/button';
+import { type ColumnDef, type SortingState } from '@tanstack/react-table';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
+import { AdminDataTable } from './admin-data-table';
+import { AdminEntitySearch } from './admin-entity-search';
+import { AdminPageHeader } from './admin-page-header';
+
+const PAGE_SIZE = 25;
 const TYPES = [
   'Himpunan',
   'UKM',
@@ -15,175 +22,196 @@ const TYPES = [
   'Organisasi',
 ] as const;
 
-type LembagaType = (typeof TYPES)[number];
+type Row = {
+  id: string;
+  name: string;
+  acronym: string | null;
+  type: string | null;
+  parentId: string | null;
+  image: string | null;
+  ownerName: string | null;
+  ownerEmail: string | null;
+  memberCount: number | null;
+};
+
+const SORT_MAP: Record<string, 'name' | 'acronym' | 'type' | 'created_at'> = {
+  name: 'name',
+  acronym: 'acronym',
+  type: 'type',
+  createdAt: 'created_at',
+};
 
 export function LembagaPage() {
-  const utils = api.useUtils();
-  const options = api.adminConsole.accessOptions.useQuery();
-  const update = api.adminConsole.lembagaUpdate.useMutation({
-    onSuccess: () => {
-      setEditing(null);
-      void utils.adminConsole.accessOptions.invalidate();
-    },
-  });
+  const router = useRouter();
+  const permissions = api.adminConsole.myAdminPermissions.useQuery();
+  const canRead =
+    permissions.data?.permissions.includes('*') ??
+    permissions.data?.permissions.includes('lembaga.read') ??
+    false;
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<{
-    id: string;
-    name: string;
-    acronym: string;
-    type: LembagaType;
-  } | null>(null);
+  const [type, setType] = useState('');
+  const [page, setPage] = useState(1);
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
+  const sort = SORT_MAP[sorting[0]?.id ?? 'name'] ?? 'name';
+  const dir = sorting[0]?.desc ? 'desc' : 'asc';
 
-  const rows = (options.data?.lembaga ?? []).filter((row) =>
-    row.name.toLowerCase().includes(search.trim().toLowerCase()),
+  const list = api.adminConsole.lembagaList.useQuery(
+    {
+      search: search.trim() || undefined,
+      type: (type || undefined) as (typeof TYPES)[number] | undefined,
+      page,
+      pageSize: PAGE_SIZE,
+      sort,
+      dir,
+    },
+    { enabled: canRead },
   );
+  const groups = api.adminConsole.lembagaGroups.useQuery(undefined, { enabled: canRead });
+
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      {
+        id: 'name',
+        accessorKey: 'name',
+        header: 'Lembaga',
+        cell: ({ row }) => (
+          <Link
+            href={`/admin/lembaga/${row.original.id}`}
+            className="font-semibold text-neutral-1000 underline-offset-2 hover:underline"
+          >
+            {row.original.name}
+          </Link>
+        ),
+      },
+      {
+        id: 'acronym',
+        accessorKey: 'acronym',
+        header: 'Singkatan',
+        cell: ({ row }) => row.original.acronym ?? '—',
+      },
+      {
+        id: 'type',
+        accessorKey: 'type',
+        header: 'Jenis',
+        cell: ({ row }) => row.original.type ?? '—',
+      },
+      {
+        id: 'owner',
+        header: 'Akun',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="text-xs text-neutral-700">
+            {row.original.ownerName ?? '—'}
+            <br />
+            {row.original.ownerEmail ?? ''}
+          </span>
+        ),
+      },
+      {
+        id: 'members',
+        header: 'Anggota',
+        enableSorting: false,
+        cell: ({ row }) => row.original.memberCount ?? '—',
+      },
+      {
+        id: 'actions',
+        header: 'Aksi',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Link
+            href={`/admin/lembaga/${row.original.id}`}
+            className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline"
+          >
+            Ubah
+          </Link>
+        ),
+      },
+    ],
+    [],
+  );
+
+  if (!canRead) return <p className="text-sm text-danger-dark">Tidak punya izin melihat lembaga.</p>;
 
   return (
     <div className="grid gap-4">
-      <div>
-        <h1 className="text-2xl font-semibold text-neutral-1000">Lembaga</h1>
-        <p className="mt-1 text-sm text-neutral-700">
-          Ubah nama, singkatan, dan jenis lembaga. Akun lembaga baru dibuat dari
-          menu Akun.
-        </p>
+      <AdminPageHeader
+        title="Lembaga"
+        description="Cari, urutkan, dan kelola profil lembaga, kegiatan, kepengurusan, dan organogram."
+      />
+
+      <div className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold text-neutral-700">Cari cepat lembaga</span>
+            <AdminEntitySearch
+              kind="lembaga"
+              value=""
+              placeholder="Ketik nama, singkatan, atau jenis…"
+              onSelect={(id) => router.push(`/admin/lembaga/${id}`)}
+            />
+          </div>
+          <label className="grid gap-1 text-sm font-semibold text-neutral-700">
+            Filter jenis
+            <select
+              className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
+              value={type}
+              onChange={(event) => {
+                setType(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Semua jenis</option>
+              {TYPES.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {(groups.data ?? []).map((group) => (
+            <button
+              key={group.type}
+              type="button"
+              onClick={() => {
+                setType(group.type);
+                setPage(1);
+              }}
+              className="rounded-full border border-neutral-400 px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-200"
+            >
+              {group.type} · {group.n}
+            </button>
+          ))}
+        </div>
+        <label className="grid gap-1 text-sm font-semibold text-neutral-700">
+          Cari di tabel
+          <Input
+            value={search}
+            onChange={(event) => {
+              setSearch(event.target.value);
+              setPage(1);
+            }}
+            placeholder="Nama, singkatan, atau jenis"
+          />
+        </label>
       </div>
 
-      <label className="grid max-w-md gap-1 text-sm font-semibold text-neutral-700">
-        Cari lembaga
-        <Input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Nama lembaga"
-        />
-      </label>
-
-      {options.isLoading ? (
-        <p className="text-sm text-neutral-700">Memuat lembaga…</p>
-      ) : options.isError ? (
-        <p role="alert" className="text-sm text-danger-dark">
-          {options.error.message}
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-[20px] border border-neutral-400 bg-neutral-50">
-          <table className="w-full min-w-[720px] text-left text-sm">
-            <thead className="border-b border-neutral-400 text-xs uppercase tracking-wide text-neutral-700">
-              <tr>
-                <th className="px-3 py-2">Nama</th>
-                <th className="px-3 py-2">Singkatan</th>
-                <th className="px-3 py-2">Jenis</th>
-                <th className="px-3 py-2">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-b border-neutral-200 align-top">
-                  <td className="px-3 py-2 font-semibold text-neutral-1000">
-                    {row.name}
-                  </td>
-                  <td className="px-3 py-2">{row.acronym ?? '—'}</td>
-                  <td className="px-3 py-2">{row.type ?? '—'}</td>
-                  <td className="px-3 py-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        setEditing({
-                          id: row.id,
-                          name: row.name,
-                          acronym: row.acronym ?? '',
-                          type: row.type ?? 'Organisasi',
-                        })
-                      }
-                    >
-                      Ubah
-                    </Button>
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={4} className="px-3 py-6 text-center text-neutral-700">
-                    Tidak ada lembaga yang cocok.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {editing ? (
-        <form
-          onSubmit={(event) => {
-            event.preventDefault();
-            update.mutate({
-              lembagaId: editing.id,
-              name: editing.name,
-              acronym: editing.acronym.trim() || null,
-              type: editing.type,
-            });
-          }}
-          className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4"
-        >
-          <h2 className="text-lg font-semibold text-neutral-1000">
-            Ubah lembaga
-          </h2>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-              Nama
-              <Input
-                value={editing.name}
-                onChange={(event) =>
-                  setEditing({ ...editing, name: event.target.value })
-                }
-                required
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-              Singkatan
-              <Input
-                value={editing.acronym}
-                onChange={(event) =>
-                  setEditing({ ...editing, acronym: event.target.value })
-                }
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-              Jenis
-              <select
-                className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
-                value={editing.type}
-                onChange={(event) =>
-                  setEditing({
-                    ...editing,
-                    type: event.target.value as LembagaType,
-                  })
-                }
-              >
-                {TYPES.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-          {update.isError ? (
-            <p role="alert" className="text-sm text-danger-dark">
-              {update.error.message}
-            </p>
-          ) : null}
-          <div className="flex gap-2">
-            <Button type="submit" variant="dark_blue" disabled={update.isPending}>
-              {update.isPending ? 'Menyimpan…' : 'Simpan'}
-            </Button>
-            <Button type="button" variant="ghost" onClick={() => setEditing(null)}>
-              Batal
-            </Button>
-          </div>
-        </form>
-      ) : null}
+      <AdminDataTable
+        columns={columns}
+        data={(list.data?.rows ?? []) as Row[]}
+        sorting={sorting}
+        onSortingChange={(next) => {
+          setSorting(next);
+          setPage(1);
+        }}
+        page={page}
+        total={list.data?.total ?? 0}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        loading={list.isLoading}
+        error={list.isError ? list.error.message : null}
+        empty="Tidak ada lembaga yang cocok."
+        rowKey={(row) => row.id}
+      />
     </div>
   );
 }

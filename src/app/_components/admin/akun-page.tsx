@@ -1,394 +1,283 @@
 'use client';
 
-import { useState } from 'react';
+import { type ColumnDef, type SortingState } from '@tanstack/react-table';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
+import { AdminDataTable } from './admin-data-table';
+import { AdminEditPanel } from './admin-edit-panel';
+import { AdminEntitySearch } from './admin-entity-search';
+import { AdminPageHeader } from './admin-page-header';
+
 const PAGE_SIZE = 25;
+const TYPES = [
+  'Himpunan',
+  'UKM',
+  'Kepanitiaan',
+  'BSO',
+  'Badan',
+  'Pusat',
+  'Organisasi',
+] as const;
+
+type Row = {
+  id: string;
+  name: string | null;
+  email: string;
+  role: 'admin' | 'lembaga' | 'mahasiswa';
+  isDemo: boolean;
+  hiddenAt: Date | null;
+  nim: number | null;
+  jurusan: string | null;
+  angkatan: number | null;
+  status: 'aktif' | 'alumni' | null;
+  lembagaName: string | null;
+  lembagaType: string | null;
+};
+
+type CreateValues = {
+  kind: 'mahasiswa' | 'lembaga';
+  email: string;
+  name: string;
+  nim?: string;
+  jurusan?: string;
+  angkatan?: number;
+  lembagaName?: string;
+  lembagaType?: (typeof TYPES)[number];
+  acronym?: string;
+  isDemo: boolean;
+  hidden: boolean;
+};
+
+const SORT_MAP: Record<string, 'name' | 'email' | 'role' | 'created_at'> = {
+  name: 'name',
+  email: 'email',
+  role: 'role',
+  createdAt: 'created_at',
+};
 
 export function AkunPage() {
+  const router = useRouter();
   const utils = api.useUtils();
-  const stats = api.adminConsole.stats.useQuery();
+  const permissions = api.adminConsole.myAdminPermissions.useQuery();
+  const perms = permissions.data?.permissions ?? [];
+  const canRead = perms.includes('*') || perms.includes('accounts.read');
+  const canWrite = perms.includes('*') || perms.includes('accounts.write');
+  const canRoles = perms.includes('*') || perms.includes('accounts.roles');
+
   const [search, setSearch] = useState('');
+  const [role, setRole] = useState('');
+  const [status, setStatus] = useState<'all' | 'demo' | 'hidden'>('all');
   const [page, setPage] = useState(1);
-  const [open, setOpen] = useState(false);
-  const list = api.adminConsole.usersList.useQuery({
-    search: search.trim() || undefined,
-    page,
-    pageSize: PAGE_SIZE,
-  });
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'createdAt', desc: true },
+  ]);
+  const [openCreate, setOpenCreate] = useState(false);
+
+  const sort = SORT_MAP[sorting[0]?.id ?? 'createdAt'] ?? 'created_at';
+  const dir = sorting[0]?.desc === false ? 'asc' : 'desc';
+  const list = api.adminConsole.usersList.useQuery(
+    {
+      search: search.trim() || undefined,
+      role: (role || undefined) as 'admin' | 'lembaga' | 'mahasiswa' | undefined,
+      status,
+      page,
+      pageSize: PAGE_SIZE,
+      sort,
+      dir,
+    },
+    { enabled: canRead },
+  );
+  const stats = api.adminConsole.stats.useQuery(undefined, { enabled: canRead });
   const create = api.adminConsole.userCreate.useMutation({
     onSuccess: () => {
-      setOpen(false);
-      void utils.adminConsole.usersList.invalidate();
-      void utils.adminConsole.stats.invalidate();
-    },
-  });
-  const update = api.adminConsole.userUpdate.useMutation({
-    onSuccess: () => {
+      setOpenCreate(false);
       void utils.adminConsole.usersList.invalidate();
       void utils.adminConsole.stats.invalidate();
     },
   });
 
-  const [kind, setKind] = useState<'mahasiswa' | 'lembaga'>('mahasiswa');
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
-  const [nim, setNim] = useState('');
-  const [jurusan, setJurusan] = useState('');
-  const [angkatan, setAngkatan] = useState('');
-  const [lembagaName, setLembagaName] = useState('');
-  const [lembagaType, setLembagaType] = useState<
-    'Himpunan' | 'UKM' | 'Kepanitiaan' | 'BSO' | 'Badan' | 'Pusat' | 'Organisasi'
-  >('Himpunan');
-  const [acronym, setAcronym] = useState('');
-  const [isDemo, setIsDemo] = useState(false);
-  const [hidden, setHidden] = useState(false);
-
-  const isDemoDeployment = stats.data?.appEnv === 'demo';
-  const rows = list.data?.rows ?? [];
-  const total = list.data?.total ?? 0;
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-
-  const submit = (event: React.FormEvent) => {
-    event.preventDefault();
-    create.mutate({
-      kind,
-      email,
-      name,
-      ...(kind === 'mahasiswa'
-        ? {
-            nim,
-            jurusan,
-            angkatan: Number(angkatan),
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      {
+        id: 'name',
+        accessorKey: 'name',
+        header: 'Akun',
+        cell: ({ row }) => (
+          <div className="min-w-[180px]">
+            <Link
+              href={`/admin/akun/${row.original.id}`}
+              className="font-semibold text-neutral-1000 underline-offset-2 hover:underline"
+            >
+              {row.original.name ?? 'Tanpa nama'}
+            </Link>
+            <span className="block text-xs text-neutral-700">{row.original.email}</span>
+          </div>
+        ),
+      },
+      {
+        id: 'role',
+        accessorKey: 'role',
+        header: 'Tipe',
+        cell: ({ row }) => <span className="capitalize">{row.original.role}</span>,
+      },
+      {
+        id: 'profile',
+        header: 'Profil',
+        enableSorting: false,
+        cell: ({ row }) => {
+          const r = row.original;
+          if (r.nim) {
+            return `${r.nim} · ${r.jurusan ?? '—'} · ${r.angkatan ?? '—'}`;
           }
-        : {
-            lembagaName,
-            lembagaType,
-            acronym: acronym.trim() || undefined,
-          }),
-      isDemo,
-      hidden,
-    });
-  };
+          if (r.lembagaName) {
+            return `${r.lembagaName}${r.lembagaType ? ` · ${r.lembagaType}` : ''}`;
+          }
+          return '—';
+        },
+      },
+      {
+        id: 'status',
+        header: 'Status',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <span className="flex flex-wrap gap-1">
+            {row.original.isDemo ? <Badge>demo</Badge> : null}
+            {row.original.hiddenAt ? <Badge>hidden</Badge> : null}
+            {row.original.status === 'alumni' ? <Badge>alumni</Badge> : null}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Aksi',
+        enableSorting: false,
+        cell: ({ row }) => (
+          <Link
+            href={`/admin/akun/${row.original.id}`}
+            className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline"
+          >
+            Ubah
+          </Link>
+        ),
+      },
+    ],
+    [],
+  );
+
+  if (!canRead) {
+    return <p className="text-sm text-danger-dark">Tidak punya izin melihat akun.</p>;
+  }
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold text-neutral-1000">Akun</h1>
-          <p className="mt-1 text-sm text-neutral-700">
-            Buat akun mahasiswa/lembaga, tandai akun demo, dan sembunyikan dari
-            daftar publik.
-          </p>
-        </div>
-        <Button type="button" onClick={() => setOpen((value) => !value)}>
-          {open ? 'Tutup form' : 'Tambah akun'}
-        </Button>
-      </div>
+      <AdminPageHeader
+        title="Akun"
+        description="Cari, urutkan, dan ubah akun mahasiswa/lembaga. Klik nama untuk membuka editor lengkap."
+        actions={
+          canWrite ? (
+            <Button type="button" onClick={() => setOpenCreate((value) => !value)}>
+              {openCreate ? 'Tutup form' : 'Tambah akun'}
+            </Button>
+          ) : null
+        }
+      />
 
       {stats.data ? (
         <p className="text-sm text-neutral-700">
-          {stats.data.users} akun · {stats.data.lembaga} lembaga ·{' '}
-          {stats.data.demoUsers} demo · {stats.data.hiddenUsers} disembunyikan
-          {stats.data.appEnv !== 'demo'
-            ? ' · mode produksi: login demo nonaktif'
-            : ''}
+          {stats.data.users} akun · {stats.data.lembaga} lembaga · {stats.data.demoUsers} demo ·{' '}
+          {stats.data.hiddenUsers} disembunyikan
         </p>
       ) : null}
 
-      {open ? (
-        <form
-          onSubmit={submit}
-          className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4"
-        >
-          <div className="flex flex-wrap gap-2">
-            {(['mahasiswa', 'lembaga'] as const).map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={kind === value}
-                onClick={() => setKind(value)}
-                className={
-                  kind === value
-                    ? 'rounded-full bg-primary-200 px-3 py-1 text-sm font-semibold text-primary-400'
-                    : 'rounded-full border border-neutral-400 px-3 py-1 text-sm text-neutral-700'
-                }
-              >
-                {value === 'mahasiswa' ? 'Mahasiswa' : 'Himpunan/UKM/Panitia'}
-              </button>
-            ))}
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-              Email
-              <Input
-                type="email"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-                required
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-              Nama
-              <Input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-              />
-            </label>
-            {kind === 'mahasiswa' ? (
-              <>
-                <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-                  NIM (8 digit)
-                  <Input
-                    value={nim}
-                    onChange={(event) => setNim(event.target.value)}
-                    inputMode="numeric"
-                    pattern="\d{8}"
-                    required
-                  />
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-                  Program studi
-                  <Input
-                    value={jurusan}
-                    onChange={(event) => setJurusan(event.target.value)}
-                    required
-                  />
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-                  Angkatan
-                  <Input
-                    value={angkatan}
-                    onChange={(event) => setAngkatan(event.target.value)}
-                    inputMode="numeric"
-                    required
-                  />
-                </label>
-              </>
-            ) : (
-              <>
-                <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-                  Nama lembaga
-                  <Input
-                    value={lembagaName}
-                    onChange={(event) => setLembagaName(event.target.value)}
-                    required
-                  />
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-                  Jenis
-                  <select
-                    className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
-                    value={lembagaType}
-                    onChange={(event) =>
-                      setLembagaType(
-                        event.target.value as typeof lembagaType,
-                      )
-                    }
-                  >
-                    {[
-                      'Himpunan',
-                      'UKM',
-                      'Kepanitiaan',
-                      'BSO',
-                      'Badan',
-                      'Pusat',
-                      'Organisasi',
-                    ].map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="grid gap-1 text-sm font-semibold text-neutral-700">
-                  Singkatan
-                  <Input
-                    value={acronym}
-                    onChange={(event) => setAcronym(event.target.value)}
-                  />
-                </label>
-              </>
-            )}
-          </div>
-          <div className="flex flex-wrap gap-4 text-sm text-neutral-1000">
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={hidden}
-                onChange={(event) => setHidden(event.target.checked)}
-              />
-              Sembunyikan dari daftar publik
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={isDemo}
-                disabled={!isDemoDeployment}
-                onChange={(event) => setIsDemo(event.target.checked)}
-              />
-              Akun demo
-            </label>
-          </div>
-          {create.isError ? (
-            <p role="alert" className="text-sm text-danger-dark">
-              {create.error.message}
-            </p>
-          ) : null}
-          <div>
-            <Button type="submit" variant="dark_blue" disabled={create.isPending}>
-              {create.isPending ? 'Menyimpan…' : 'Buat akun'}
-            </Button>
-          </div>
-        </form>
+      {openCreate ? (
+        <CreateAkunPanel
+          canEditDemo={stats.data?.appEnv === 'demo'}
+          pending={create.isPending}
+          error={create.error?.message ?? null}
+          onSubmit={(values) => create.mutate(values)}
+        />
       ) : null}
 
-      <div className="flex flex-wrap items-end gap-2">
-        <label className="grid flex-1 gap-1 text-sm font-semibold text-neutral-700">
-          Cari nama, email, atau NIM
-          <Input
-            value={search}
-            onChange={(event) => {
-              setSearch(event.target.value);
-              setPage(1);
-            }}
-            placeholder="Cari akun"
-          />
-        </label>
-      </div>
-
-      {list.isLoading ? (
-        <p className="text-sm text-neutral-700">Memuat akun…</p>
-      ) : list.isError ? (
-        <p role="alert" className="text-sm text-danger-dark">
-          {list.error.message}
-        </p>
-      ) : (
-        <div className="overflow-x-auto rounded-[20px] border border-neutral-400 bg-neutral-50">
-          <table className="w-full min-w-[820px] text-left text-sm">
-            <thead className="border-b border-neutral-400 text-xs uppercase tracking-wide text-neutral-700">
-              <tr>
-                <th className="px-3 py-2">Akun</th>
-                <th className="px-3 py-2">Tipe</th>
-                <th className="px-3 py-2">Profil</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.id} className="border-b border-neutral-200 align-top">
-                  <td className="px-3 py-2">
-                    <span className="font-semibold text-neutral-1000">
-                      {row.name ?? 'Tanpa nama'}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-neutral-700">
-                      {row.email}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">{row.role}</td>
-                  <td className="px-3 py-2">
-                    {row.nim
-                      ? `${row.nim} · ${row.jurusan ?? ''} · ${row.angkatan ?? ''}`
-                      : row.lembagaName
-                        ? `${row.lembagaName}${row.lembagaType ? ` · ${row.lembagaType}` : ''}`
-                        : '—'}
-                  </td>
-                  <td className="px-3 py-2">
-                    <span className="flex flex-wrap gap-1">
-                      {row.isDemo ? <Badge>demo</Badge> : null}
-                      {row.hiddenAt ? <Badge>hidden</Badge> : null}
-                    </span>
-                  </td>
-                  <td className="px-3 py-2">
-                    <div className="flex flex-wrap gap-1">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          const next = window.prompt(
-                            'Nama baru',
-                            row.name ?? '',
-                          );
-                          if (next?.trim()) {
-                            update.mutate({
-                              userId: row.id,
-                              name: next.trim(),
-                            });
-                          }
-                        }}
-                      >
-                        Ubah nama
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() =>
-                          update.mutate({
-                            userId: row.id,
-                            hidden: !row.hiddenAt,
-                          })
-                        }
-                      >
-                        {row.hiddenAt ? 'Tampilkan' : 'Sembunyikan'}
-                      </Button>
-                      {isDemoDeployment ? (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() =>
-                            update.mutate({
-                              userId: row.id,
-                              isDemo: !row.isDemo,
-                            })
-                          }
-                        >
-                          {row.isDemo ? 'Jadikan real' : 'Jadikan demo'}
-                        </Button>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {rows.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="px-3 py-6 text-center text-neutral-700">
-                    Tidak ada akun yang cocok.
-                  </td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
+      <div className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
+          <div className="grid gap-2">
+            <span className="text-sm font-semibold text-neutral-700">Cari cepat akun</span>
+            <AdminEntitySearch
+              kind="user"
+              value=""
+              placeholder="Ketik nama, email, atau NIM untuk membuka detail…"
+              onSelect={(id) => router.push(`/admin/akun/${id}`)}
+            />
+          </div>
+          <label className="grid gap-1 text-sm font-semibold text-neutral-700">
+            Filter status
+            <select
+              className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
+              value={status}
+              onChange={(event) => {
+                setStatus(event.target.value as typeof status);
+                setPage(1);
+              }}
+            >
+              <option value="all">Semua</option>
+              <option value="demo">Demo</option>
+              <option value="hidden">Disembunyikan</option>
+            </select>
+          </label>
         </div>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2 text-sm text-neutral-700">
-        <Button
-          size="sm"
-          variant="dark_blue_outline"
-          disabled={page <= 1}
-          onClick={() => setPage((value) => Math.max(1, value - 1))}
-        >
-          Sebelumnya
-        </Button>
-        <Button
-          size="sm"
-          variant="dark_blue_outline"
-          disabled={page >= pages}
-          onClick={() => setPage((value) => value + 1)}
-        >
-          Berikutnya
-        </Button>
-        <span>
-          {total} akun · halaman {page} dari {pages}
-        </span>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_200px]">
+          <label className="grid gap-1 text-sm font-semibold text-neutral-700">
+            Cari di tabel
+            <Input
+              value={search}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
+              placeholder="Nama, email, atau NIM"
+            />
+          </label>
+          <label className="grid gap-1 text-sm font-semibold text-neutral-700">
+            Role
+            <select
+              className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
+              value={role}
+              onChange={(event) => {
+                setRole(event.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">Semua role</option>
+              <option value="mahasiswa">Mahasiswa</option>
+              <option value="lembaga">Lembaga</option>
+              <option value="admin">Admin</option>
+            </select>
+          </label>
+        </div>
       </div>
+
+      <AdminDataTable
+        columns={columns}
+        data={(list.data?.rows ?? []) as Row[]}
+        sorting={sorting}
+        onSortingChange={(next) => {
+          setSorting(next);
+          setPage(1);
+        }}
+        page={page}
+        total={list.data?.total ?? 0}
+        pageSize={PAGE_SIZE}
+        onPageChange={setPage}
+        loading={list.isLoading}
+        error={list.isError ? list.error.message : null}
+        empty="Tidak ada akun yang cocok."
+        rowKey={(row) => row.id}
+      />
     </div>
   );
 }
@@ -398,5 +287,155 @@ function Badge({ children }: { children: React.ReactNode }) {
     <span className="rounded-full bg-neutral-200 px-2 py-0.5 text-[11px] text-neutral-700">
       {children}
     </span>
+  );
+}
+
+function CreateAkunPanel({
+  canEditDemo,
+  pending,
+  error,
+  onSubmit,
+}: {
+  canEditDemo: boolean;
+  pending: boolean;
+  error: string | null;
+  onSubmit: (values: CreateValues) => void;
+}) {
+  const [kind, setKind] = useState<'mahasiswa' | 'lembaga'>('mahasiswa');
+  const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
+  const [nim, setNim] = useState('');
+  const [jurusan, setJurusan] = useState('');
+  const [angkatan, setAngkatan] = useState('');
+  const [lembagaName, setLembagaName] = useState('');
+  const [lembagaType, setLembagaType] = useState<(typeof TYPES)[number]>('Himpunan');
+  const [acronym, setAcronym] = useState('');
+  const [hidden, setHidden] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
+
+  return (
+    <AdminEditPanel
+      title="Tambah akun"
+      description="Akun lembaga baru otomatis memiliki profil lembaga."
+      error={error}
+      footer={
+        <Button type="submit" form="create-akun" variant="dark_blue" disabled={pending}>
+          {pending ? 'Menyimpan…' : 'Buat akun'}
+        </Button>
+      }
+    >
+      <form
+        id="create-akun"
+        className="grid gap-3"
+        onSubmit={(event) => {
+          event.preventDefault();
+          onSubmit({
+            kind,
+            email,
+            name,
+            ...(kind === 'mahasiswa'
+              ? { nim, jurusan, angkatan: Number(angkatan) }
+              : { lembagaName, lembagaType, acronym: acronym.trim() || undefined }),
+            hidden,
+            isDemo: canEditDemo ? isDemo : false,
+          });
+        }}
+      >
+        <div className="flex flex-wrap gap-2">
+          {(['mahasiswa', 'lembaga'] as const).map((value) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={kind === value}
+              onClick={() => setKind(value)}
+              className={
+                kind === value
+                  ? 'rounded-full bg-primary-200 px-3 py-1 text-sm font-semibold text-primary-400'
+                  : 'rounded-full border border-neutral-400 px-3 py-1 text-sm text-neutral-700'
+              }
+            >
+              {value === 'mahasiswa' ? 'Mahasiswa' : 'Himpunan/UKM/Panitia'}
+            </button>
+          ))}
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Email">
+            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+          </Field>
+          <Field label="Nama">
+            <Input required value={name} onChange={(e) => setName(e.target.value)} />
+          </Field>
+          {kind === 'mahasiswa' ? (
+            <>
+              <Field label="NIM (8 digit)">
+                <Input
+                  required
+                  inputMode="numeric"
+                  pattern="\d{8}"
+                  value={nim}
+                  onChange={(e) => setNim(e.target.value)}
+                />
+              </Field>
+              <Field label="Program studi">
+                <Input required value={jurusan} onChange={(e) => setJurusan(e.target.value)} />
+              </Field>
+              <Field label="Angkatan">
+                <Input
+                  required
+                  inputMode="numeric"
+                  value={angkatan}
+                  onChange={(e) => setAngkatan(e.target.value)}
+                />
+              </Field>
+            </>
+          ) : (
+            <>
+              <Field label="Nama lembaga">
+                <Input required value={lembagaName} onChange={(e) => setLembagaName(e.target.value)} />
+              </Field>
+              <Field label="Jenis">
+                <select
+                  className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
+                  value={lembagaType}
+                  onChange={(e) => setLembagaType(e.target.value as (typeof TYPES)[number])}
+                >
+                  {TYPES.map((type) => (
+                    <option key={type} value={type}>{type}</option>
+                  ))}
+                </select>
+              </Field>
+              <Field label="Singkatan">
+                <Input value={acronym} onChange={(e) => setAcronym(e.target.value)} />
+              </Field>
+            </>
+          )}
+        </div>
+        <div className="flex flex-wrap gap-4 text-sm">
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
+            Sembunyikan dari publik
+          </label>
+          {canEditDemo ? (
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={isDemo}
+                onChange={(e) => setIsDemo(e.target.checked)}
+              />
+              Akun demo
+            </label>
+          ) : null}
+        </div>
+      </form>
+    </AdminEditPanel>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="grid gap-1 text-sm font-semibold text-neutral-700">
+      {label}
+      {children}
+    </label>
   );
 }

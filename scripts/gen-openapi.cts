@@ -57,6 +57,11 @@ const ACCESS: Record<
     label: 'Admin',
     description: 'Hanya untuk akun dengan `role = admin`.',
   },
+  'admin-permission': {
+    label: 'Operator admin',
+    description:
+      'Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.',
+  },
   lembaga: {
     label: 'Lembaga (owner)',
     description:
