@@ -344,6 +344,13 @@
       "when": 1794202636180,
       "tag": "0048_last_iron_fist",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1794302921931,
+      "tag": "0049_fat_argent",
+      "breakpoints": true
     }
   ]
 }

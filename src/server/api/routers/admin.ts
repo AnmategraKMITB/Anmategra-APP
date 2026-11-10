@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { eq, ilike, inArray } from 'drizzle-orm';
 import { and, desc, or } from 'drizzle-orm';
 import { z } from 'zod';
-import { adminProcedure, createTRPCRouter } from '~/server/api/trpc';
+import { adminPermissionProcedure, adminProcedure, createTRPCRouter } from '~/server/api/trpc';
 import {
   AddVerifiedEmailInputSchema,
   AddVerifiedEmailOutputSchema,
@@ -61,7 +61,7 @@ export const adminRouter = createTRPCRouter({
       return userVer;
     }),
 
-  getAllReportsAdmin: adminProcedure
+  getAllReportsAdmin: adminPermissionProcedure('reports.read')
     .input(GetAllReportsAdminInputSchema)
     .output(GetAllReportsAdminOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -102,7 +102,7 @@ export const adminRouter = createTRPCRouter({
       }
     }),
 
-  setReportStatus: adminProcedure
+  setReportStatus: adminPermissionProcedure('reports.write')
     .input(SetReportStatusInputSchema)
     .output(SetReportStatusOutputSchema)
     .mutation(async ({ ctx, input }) => {

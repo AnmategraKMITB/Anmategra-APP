@@ -5,21 +5,31 @@ import { usePathname } from 'next/navigation';
 import { cn } from '~/lib/utils';
 
 const LINKS = [
-  ['/admin', 'Laporan'],
-  ['/admin/akun', 'Akun'],
-  ['/admin/lembaga', 'Lembaga'],
-  ['/admin/akses', 'Akses'],
-  ['/admin/audit', 'Audit'],
+  ['/admin', 'Laporan', 'reports.read'],
+  ['/admin/akun', 'Akun', 'accounts.read'],
+  ['/admin/lembaga', 'Lembaga', 'lembaga.read'],
+  ['/admin/akses', 'Akses', 'access.read'],
+  ['/admin/audit', 'Audit', 'audit.read'],
 ] as const;
 
-export function AdminNav({ email }: { email: string }) {
+export function AdminNav({
+  email,
+  permissions,
+}: {
+  email: string;
+  permissions: string[];
+}) {
   const pathname = usePathname();
+  const can = (permission: string) =>
+    permissions.includes('*') || permissions.includes(permission);
+  const visible = LINKS.filter(([, , permission]) => can(permission));
+
   return (
     <nav
       aria-label="Navigasi admin"
       className="mb-6 flex flex-wrap items-center gap-1 border-b border-neutral-400 pb-3"
     >
-      {LINKS.map(([href, label]) => {
+      {visible.map(([href, label]) => {
         const active =
           href === '/admin' ? pathname === href : pathname.startsWith(href);
         return (

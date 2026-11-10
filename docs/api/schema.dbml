@@ -145,6 +145,23 @@ table anmategra_admin_audit {
   }
 }
 
+table anmategra_admin_permission {
+  id varchar(255) [pk, not null]
+  user_id varchar(255) [not null]
+  permissions text[] [not null, default: `ARRAY[]::text[]`]
+  expires_at "timestamp with time zone"
+  granted_by varchar(255)
+  revoked_at "timestamp with time zone"
+  revoked_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    user_id [name: 'admin_permission_user_unique', unique]
+    (revoked_at, expires_at) [name: 'admin_permission_active_idx']
+  }
+}
+
 table anmategra_alumni_pending {
   id varchar(255) [pk, not null]
   nim integer [not null]
@@ -1060,6 +1077,8 @@ ref: anmategra_access_grant.lembaga_id - anmategra_lembaga.id
 ref: anmategra_access_grant.period_id - anmategra_lembaga_period.id
 
 ref: anmategra_account.user_id > anmategra_user.id
+
+ref: anmategra_admin_permission.user_id - anmategra_user.id
 
 ref: anmategra_application_choice.application_id > anmategra_application.id
 

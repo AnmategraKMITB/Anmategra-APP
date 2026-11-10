@@ -1,6 +1,11 @@
-import { and, eq, isNotNull, sql } from 'drizzle-orm';
+import { and, eq, isNotNull, isNull, or, sql } from 'drizzle-orm';
 import { type db } from '~/server/db';
-import { accessGrant, events, lembaga } from '~/server/db/schema';
+import {
+  accessGrant,
+  adminPermission,
+  events,
+  lembaga,
+} from '~/server/db/schema';
 
 /**
  * RO-03: Owner/Admin Lembaga & Kepanitiaan.
@@ -18,7 +23,15 @@ export type LembagaAccess = 'owner' | 'admin';
  * Kunci fitur pada `access_grant.features`. 'admin' = semua kemampuan, sehingga
  * lolos untuk fitur apa pun; fitur lain membatasi hibah pada satu kemampuan.
  */
-export const GRANT_FEATURES = ['admin', 'oprec'] as const;
+export const GRANT_FEATURES = [
+  'admin',
+  'oprec',
+  'forms',
+  'events',
+  'organization',
+  'membership',
+  'lembaga_profile',
+] as const;
 export type GrantFeature = (typeof GRANT_FEATURES)[number];
 
 /** Hibah yang memuat fitur 'admin' atau fitur yang diminta. */
@@ -28,6 +41,30 @@ const hasFeature = (feature: GrantFeature) =>
 /** Batas penelusuran pohon lembaga untuk propagasi; juga pengaman terhadap siklus. */
 const MAX_LEMBAGA_TREE_DEPTH = 16;
 
+const ADMIN_SCOPE_PERMISSION: Partial<Record<GrantFeature, string>> = {
+  organization: 'lembaga.organization',
+  events: 'lembaga.events',
+  membership: 'lembaga.members',
+};
+
+async function hasAdminOperatorScope(
+  database: typeof db,
+  userId: string,
+  feature: GrantFeature,
+): Promise<boolean> {
+  const required = ADMIN_SCOPE_PERMISSION[feature];
+  if (!required) return false;
+  const row = await database.query.adminPermission.findFirst({
+    where: and(
+      eq(adminPermission.userId, userId),
+      isNull(adminPermission.revokedAt),
+      or(isNull(adminPermission.expiresAt), sql`${adminPermission.expiresAt} > now()`),
+    ),
+    columns: { permissions: true },
+  });
+  return row?.permissions.includes('*') === true || row?.permissions.includes(required) === true;
+}
+
 export async function canManageLembaga(
   database: typeof db,
   userId: string,
@@ -36,6 +73,13 @@ export async function canManageLembaga(
   lembagaId: string,
   feature: GrantFeature = 'admin',
 ): Promise<LembagaAccess | null> {
+  if (role === 'admin') return 'admin';
+  if (
+    role !== 'lembaga' &&
+    (await hasAdminOperatorScope(database, userId, feature))
+  ) {
+    return 'admin';
+  }
   if (role === 'lembaga' && sessionLembagaId === lembagaId) {
     return 'owner';
   }
@@ -86,11 +130,19 @@ export async function canManageEvent(
   eventId: string,
   feature: GrantFeature = 'admin',
 ): Promise<LembagaAccess | null> {
+  if (role === 'admin') return 'admin';
+
   const event = await database.query.events.findFirst({
     where: eq(events.id, eventId),
     columns: { id: true, org_id: true },
   });
   if (!event) return null;
+  if (
+    role !== 'lembaga' &&
+    (await hasAdminOperatorScope(database, userId, feature))
+  ) {
+    return 'admin';
+  }
 
   if (event.org_id) {
     const lembagaAccess = await canManageLembaga(

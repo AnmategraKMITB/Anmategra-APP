@@ -59,6 +59,7 @@ import CustomDropzone from './dropzone';
 const EventInputSchema = z
   .object({
     name: z.string().min(1, 'Nama kegiatan wajib diisi'),
+    label: z.string().max(255).optional(),
     description: z
       .string()
       .min(10, 'Deskripsi minimal 10 karakter')
@@ -86,11 +87,15 @@ type EventInputSchemaType = z.infer<typeof EventInputSchema>;
 const TambahEditKegiatanForm = ({
   setIsOpen,
   kegiatan,
+  admin,
+  onDone,
 }: {
-  session: Session | null;
+  session?: Session | null;
   setIsOpen: (param: boolean) => void;
-  setEventList: (param: Event[]) => void;
+  setEventList?: (param: Event[]) => void;
   kegiatan?: Event | null;
+  admin?: { lembagaId: string; kind: 'kegiatan' | 'kepengurusan' };
+  onDone?: () => void;
 }) => {
   const isEditMode = !!kegiatan;
 
@@ -101,6 +106,7 @@ const TambahEditKegiatanForm = ({
     defaultValues: isEditMode
       ? {
           name: kegiatan.name,
+          label: (kegiatan as Event & { label?: string | null }).label ?? '',
           description: kegiatan.description ?? '',
           image: kegiatan.thumbnail ?? '',
           start_date:
@@ -124,6 +130,7 @@ const TambahEditKegiatanForm = ({
         }
       : {
           name: '',
+          label: '',
           description: '',
           image: undefined,
           start_date: new Date().toISOString(),
@@ -139,10 +146,35 @@ const TambahEditKegiatanForm = ({
         },
   });
 
+  const finish = () => {
+    setIsOpen(false);
+    if (onDone) onDone();
+    else location.reload();
+  };
+
+  const adminCreate = api.adminConsole.eventCreate.useMutation({
+    onSuccess: () => {
+      finish();
+      toast({ title: 'Kegiatan berhasil dibuat' });
+    },
+    onError: (error) => {
+      toast({ title: 'Gagal membuat kegiatan', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const adminUpdate = api.adminConsole.eventUpdate.useMutation({
+    onSuccess: () => {
+      finish();
+      toast({ title: 'Kegiatan berhasil diubah' });
+    },
+    onError: (error) => {
+      toast({ title: 'Gagal mengubah kegiatan', description: error.message, variant: 'destructive' });
+    },
+  });
+
   const createMutation = api.event.create.useMutation({
     onSuccess: () => {
-      setIsOpen(false);
-      location.reload();
+      finish();
       toast({
         title: 'Kegiatan berhasil dibuat',
       })
@@ -159,8 +191,7 @@ const TambahEditKegiatanForm = ({
 
   const updateMutation = api.event.update.useMutation({
     onSuccess: () => {
-      setIsOpen(false);
-      location.reload();
+      finish();
       toast({
         title: 'Kegiatan berhasil diubah',
       })
@@ -182,6 +213,26 @@ const TambahEditKegiatanForm = ({
       is_organogram: values.is_organogram ?? false,
       is_highlighted: values.is_highlighted ?? false,
     };
+
+    if (admin) {
+      if (isEditMode) {
+        adminUpdate.mutate({
+          ...query,
+          id: kegiatan.id,
+          lembagaId: admin.lembagaId,
+          kind: admin.kind,
+          label: values.label ?? null,
+        });
+      } else {
+        adminCreate.mutate({
+          ...query,
+          lembagaId: admin.lembagaId,
+          kind: admin.kind,
+          label: values.label ?? null,
+        });
+      }
+      return;
+    }
 
     if (isEditMode) {
       updateMutation.mutate({ ...query, id: kegiatan.id });
@@ -217,6 +268,22 @@ const TambahEditKegiatanForm = ({
           onSubmit={form.handleSubmit(onSubmit)}
           className="space-y-4 w-full px-4 py-4"
         >
+          {admin?.kind === 'kepengurusan' ? (
+            <FormField
+              control={form.control}
+              name="label"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Label periode</FormLabel>
+                  <FormControl className="p-2">
+                    <Input className="rounded-lg" placeholder="Contoh: 2026/2027" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
+
           {/* Nama Kegiatan */}
           <FormField
             control={form.control}

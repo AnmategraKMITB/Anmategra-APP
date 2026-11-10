@@ -7,13 +7,17 @@
  * need to use are documented accordingly near the end.
  */
 import { TRPCError, initTRPC } from '@trpc/server';
-import { eq } from 'drizzle-orm';
+import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
 import { getServerAuthSession } from '~/server/auth';
+import {
+  type AdminPermission,
+  hasAdminPermission,
+} from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { db } from '~/server/db';
-import { form, recruitment } from '~/server/db/schema';
+import { adminPermission, form, recruitment } from '~/server/db/schema';
 
 /**
  * 1. CONTEXT
@@ -54,6 +58,7 @@ export type ApiMeta = {
     | 'public'
     | 'authenticated'
     | 'admin'
+    | 'admin-permission'
     | 'lembaga'
     | 'lembaga-scoped'
     | 'lembaga-owner'
@@ -230,6 +235,50 @@ export const adminProcedure = t.procedure
     });
   });
 
+/**
+ * Izin operator admin console. Superadmin (`role === 'admin'`) melewati semua
+ * pemeriksaan; operator biasa harus punya baris `admin_permission` aktif yang
+ * memuat izin yang diminta.
+ */
+export const adminPermissionProcedure = (required: AdminPermission) =>
+  t.procedure
+    .meta({ access: 'admin-permission' })
+    .use(timingMiddleware)
+    .use(async ({ ctx, next }) => {
+      if (!ctx.session?.user) {
+        throw new TRPCError({ code: 'UNAUTHORIZED' });
+      }
+      if (ctx.session.user.role === 'admin') {
+        return next({
+          ctx: {
+            session: { ...ctx.session, user: ctx.session.user },
+            adminPermissions: ['*'] as const,
+          },
+        });
+      }
+
+      const row = await ctx.db.query.adminPermission.findFirst({
+        where: and(
+          eq(adminPermission.userId, ctx.session.user.id),
+          isNull(adminPermission.revokedAt),
+          or(
+            isNull(adminPermission.expiresAt),
+            gt(adminPermission.expiresAt, new Date()),
+          ),
+        ),
+        columns: { permissions: true },
+      });
+      if (!row || !hasAdminPermission(row.permissions, required)) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+      return next({
+        ctx: {
+          session: { ...ctx.session, user: ctx.session.user },
+          adminPermissions: row.permissions,
+        },
+      });
+    });
+
 export const isLembaga = t.middleware(async ({ ctx, next }) => {
   if (ctx.session?.user.role !== 'lembaga') {
     throw new TRPCError({ code: 'UNAUTHORIZED' });
@@ -333,6 +382,7 @@ export const eventScopedProcedure = protectedProcedure
       ctx.session.user.role,
       ctx.session.user.lembagaId,
       eventId,
+      'events',
     );
     if (!access) {
       throw new TRPCError({ code: 'FORBIDDEN' });
@@ -380,6 +430,7 @@ export const formScopedProcedure = protectedProcedure
           role,
           sessionLembagaId,
           found.lembagaId,
+          'forms',
         )
       : found.eventId
         ? await canManageEvent(
@@ -388,6 +439,7 @@ export const formScopedProcedure = protectedProcedure
             role,
             sessionLembagaId,
             found.eventId,
+            'forms',
           )
         : null;
     if (!access) {

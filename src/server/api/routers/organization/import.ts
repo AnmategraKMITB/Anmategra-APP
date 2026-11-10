@@ -143,6 +143,7 @@ export const organizationImportRouter = createTRPCRouter({
         user.role,
         user.lembagaId,
         input.periodId,
+        'organization',
       );
       if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
 
@@ -174,6 +175,7 @@ export const organizationImportRouter = createTRPCRouter({
         user.role,
         user.lembagaId,
         input.periodId,
+        'organization',
       );
       if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
 
@@ -310,6 +312,7 @@ export const organizationImportRouter = createTRPCRouter({
         user.role,
         user.lembagaId,
         input.lembagaId,
+        'organization',
       );
       if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
 
