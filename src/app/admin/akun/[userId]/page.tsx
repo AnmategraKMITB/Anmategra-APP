@@ -1,3 +1,4 @@
+import { AdminGuard } from '~/app/_components/admin/admin-guard';
 import { AkunDetail } from '~/app/_components/admin/akun-detail';
 
 export default async function AdminAkunDetailPage({
@@ -6,5 +7,9 @@ export default async function AdminAkunDetailPage({
   params: Promise<{ userId: string }>;
 }) {
   const { userId } = await params;
-  return <AkunDetail userId={userId} />;
+  return (
+    <AdminGuard permission="accounts.read">
+      <AkunDetail userId={userId} />
+    </AdminGuard>
+  );
 }

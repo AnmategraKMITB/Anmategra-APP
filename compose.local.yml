@@ -54,6 +54,10 @@ services:
       AZURE_AD_CLIENT_ID: ${AZURE_AD_CLIENT_ID:-placeholder}
       AZURE_AD_CLIENT_SECRET: ${AZURE_AD_CLIENT_SECRET:-placeholder}
       AZURE_AD_TENANT_ID: ${AZURE_AD_TENANT_ID:-db6e1183-4c65-405c-82ce-7cd53fa6e9dc}
+      # Opsional: aktifkan upload berkas Forms/OneDrive dan UploadThing di lokal.
+      NEXT_PUBLIC_AZURE_CLIENT_ID: ${NEXT_PUBLIC_AZURE_CLIENT_ID:-}
+      NEXT_PUBLIC_AZURE_TENANT_ID: ${NEXT_PUBLIC_AZURE_TENANT_ID:-db6e1183-4c65-405c-82ce-7cd53fa6e9dc}
+      UPLOADTHING_TOKEN: ${UPLOADTHING_TOKEN:-}
       # Aktifkan jika hot reload tidak jalan (umumnya Docker Desktop di Windows/macOS).
       # WATCHPACK_POLLING: "true"
     volumes:

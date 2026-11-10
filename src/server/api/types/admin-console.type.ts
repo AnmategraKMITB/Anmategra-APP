@@ -141,6 +141,21 @@ export const AdminLembagaDetailInputSchema = z.object({
   lembagaId: z.string().min(1),
 });
 
+export const AdminLembagaProfileListInputSchema = z.object({
+  lembagaId: z.string().min(1),
+});
+
+export const AdminLembagaProfileUpsertInputSchema = z.object({
+  lembagaId: z.string().min(1),
+  profilId: z.string().min(1).optional(),
+  name: z.string().trim().min(1).max(255),
+  description: z.string().trim().min(1).max(20_000),
+});
+
+export const AdminLembagaProfileDeleteInputSchema = z.object({
+  profilId: z.string().min(1),
+});
+
 export const AdminGrantSetInputSchema = z.object({
   kind: z.enum(['lembaga', 'event']),
   targetId: z.string().min(1),

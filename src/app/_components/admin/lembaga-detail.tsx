@@ -65,6 +65,7 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
   const [form, setForm] = useState<FormState | null>(null);
   const [parentLabel, setParentLabel] = useState('');
   const [editingPeriod, setEditingPeriod] = useState<{ kind: 'kegiatan' | 'kepengurusan'; event: Event | null } | null>(null);
+  const [profileForm, setProfileForm] = useState<{ id?: string; name: string; description: string } | null>(null);
 
   useEffect(() => {
     if (!detail.data) return;
@@ -91,6 +92,15 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
     onSuccess: () => void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
   });
   const removeEvent = api.adminConsole.eventDelete.useMutation({
+    onSuccess: () => void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
+  });
+  const upsertProfile = api.adminConsole.lembagaProfileUpsert.useMutation({
+    onSuccess: () => {
+      setProfileForm(null);
+      void utils.adminConsole.lembagaDetail.invalidate({ lembagaId });
+    },
+  });
+  const deleteProfile = api.adminConsole.lembagaProfileDelete.useMutation({
     onSuccess: () => void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
   });
 
@@ -245,6 +255,89 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
           </label>
         </div>
       </AdminEditPanel>
+
+      <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="text-lg font-semibold text-neutral-1000">Blok profil lembaga</h2>
+            <p className="text-sm text-neutral-700">Visi, misi, dan blok profil lain yang tampil di halaman lembaga.</p>
+          </div>
+          {canWrite ? (
+            <Button
+              type="button"
+              variant="dark_blue"
+              onClick={() => setProfileForm({ name: '', description: '' })}
+            >
+              Tambah blok
+            </Button>
+          ) : null}
+        </div>
+        {profileForm ? (
+          <div className="grid gap-3 rounded-lg border border-neutral-300 bg-white p-3">
+            <Field label="Nama blok">
+              <Input
+                value={profileForm.name}
+                onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
+              />
+            </Field>
+            <Field label="Isi">
+              <textarea
+                className="min-h-28 rounded-md border border-neutral-400 bg-neutral-50 px-3 py-2 text-sm"
+                value={profileForm.description}
+                onChange={(event) => setProfileForm({ ...profileForm, description: event.target.value })}
+              />
+            </Field>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="dark_blue"
+                disabled={upsertProfile.isPending || !profileForm.name.trim() || !profileForm.description.trim()}
+                onClick={() =>
+                  upsertProfile.mutate({
+                    lembagaId,
+                    profilId: profileForm.id,
+                    name: profileForm.name.trim(),
+                    description: profileForm.description.trim(),
+                  })
+                }
+              >
+                {upsertProfile.isPending ? 'Menyimpan…' : 'Simpan blok'}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => setProfileForm(null)}>Batal</Button>
+            </div>
+          </div>
+        ) : null}
+        <ul className="grid gap-2">
+          {data.profiles.map((profile) => (
+            <li key={profile.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+              <span className="min-w-0">
+                <strong>{profile.name}</strong>
+                <span className="mt-1 block whitespace-pre-wrap text-neutral-700">{profile.description}</span>
+              </span>
+              {canWrite ? (
+                <span className="flex gap-1">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setProfileForm({ id: profile.id, name: profile.name, description: profile.description })}
+                  >
+                    Ubah
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={deleteProfile.isPending}
+                    onClick={() => deleteProfile.mutate({ profilId: profile.id })}
+                  >
+                    Hapus
+                  </Button>
+                </span>
+              ) : null}
+            </li>
+          ))}
+          {data.profiles.length === 0 ? <li className="text-sm text-neutral-700">Belum ada blok profil.</li> : null}
+        </ul>
+      </section>
 
       <div className="flex flex-wrap gap-2">
         {([

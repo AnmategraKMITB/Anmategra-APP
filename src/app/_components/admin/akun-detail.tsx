@@ -180,6 +180,9 @@ export function AkunDetail({ userId }: { userId: string }) {
             ) : null}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
+            <p className="sm:col-span-2 text-xs text-neutral-700">
+              Perubahan email atau role baru berlaku di sesi user setelah login ulang.
+            </p>
             <Field label="Nama">
               <Input
                 value={form.name}

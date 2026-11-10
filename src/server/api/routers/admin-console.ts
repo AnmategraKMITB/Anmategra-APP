@@ -29,6 +29,9 @@ import {
   AdminGrantSetInputSchema,
   AdminGrantsListInputSchema,
   AdminLembagaDetailInputSchema,
+  AdminLembagaProfileDeleteInputSchema,
+  AdminLembagaProfileListInputSchema,
+  AdminLembagaProfileUpsertInputSchema,
   AdminLembagaListInputSchema,
   AdminLembagaSearchInputSchema,
   AdminLembagaUpdateInputSchema,
@@ -60,6 +63,7 @@ import {
   organizationStructure,
   organizationUnit,
   placement,
+  profilLembaga,
   riwayatKepanitiaan,
   riwayatOrganisasi,
   users,
@@ -726,7 +730,7 @@ export const adminConsoleRouter = createTRPCRouter({
         .limit(1);
       if (!row) throw new TRPCError({ code: 'NOT_FOUND' });
 
-      const [periods, structures, memberCount] = await Promise.all([
+      const [periods, structures, memberCount, profiles] = await Promise.all([
         ctx.db
           .select({
             id: events.id,
@@ -766,12 +770,22 @@ export const adminConsoleRouter = createTRPCRouter({
           .select({ n: count() })
           .from(lembagaMembership)
           .where(and(eq(lembagaMembership.lembagaId, input.lembagaId), eq(lembagaMembership.status, 'aktif'))),
+        ctx.db
+          .select({
+            id: profilLembaga.id,
+            name: profilLembaga.name,
+            description: profilLembaga.description,
+          })
+          .from(profilLembaga)
+          .where(eq(profilLembaga.lembagaId, input.lembagaId))
+          .orderBy(asc(profilLembaga.name)),
       ]);
 
       return {
         lembaga: row,
         periods,
         structures,
+        profiles,
         memberCount: memberCount[0]?.n ?? 0,
       };
     }),
@@ -920,6 +934,73 @@ export const adminConsoleRouter = createTRPCRouter({
         'event',
         input.id,
         `Menghapus ${existing.name}`,
+      );
+      return { success: true };
+    }),
+
+  lembagaProfileList: adminPermissionProcedure('lembaga.read')
+    .input(AdminLembagaProfileListInputSchema)
+    .query(async ({ ctx, input }) => {
+      return ctx.db
+        .select({
+          id: profilLembaga.id,
+          name: profilLembaga.name,
+          description: profilLembaga.description,
+        })
+        .from(profilLembaga)
+        .where(eq(profilLembaga.lembagaId, input.lembagaId))
+        .orderBy(asc(profilLembaga.name));
+    }),
+
+  lembagaProfileUpsert: adminPermissionProcedure('lembaga.write')
+    .input(AdminLembagaProfileUpsertInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const [lembagaRow] = await ctx.db
+        .select({ id: lembaga.id })
+        .from(lembaga)
+        .where(eq(lembaga.id, input.lembagaId));
+      if (!lembagaRow) throw new TRPCError({ code: 'NOT_FOUND' });
+
+      if (input.profilId) {
+        const [existing] = await ctx.db
+          .select({ id: profilLembaga.id })
+          .from(profilLembaga)
+          .where(and(eq(profilLembaga.id, input.profilId), eq(profilLembaga.lembagaId, input.lembagaId)));
+        if (!existing) throw new TRPCError({ code: 'NOT_FOUND' });
+        await ctx.db
+          .update(profilLembaga)
+          .set({ name: input.name, description: input.description })
+          .where(eq(profilLembaga.id, input.profilId));
+      } else {
+        await ctx.db.insert(profilLembaga).values({
+          lembagaId: input.lembagaId,
+          name: input.name,
+          description: input.description,
+        });
+      }
+
+      await audit(
+        ctx.db as unknown as Db,
+        ctx.session.user.id,
+        'lembaga_profile_upsert',
+        'lembaga',
+        input.lembagaId,
+        `Memperbarui blok profil ${input.name}`,
+      );
+      return { success: true };
+    }),
+
+  lembagaProfileDelete: adminPermissionProcedure('lembaga.write')
+    .input(AdminLembagaProfileDeleteInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.delete(profilLembaga).where(eq(profilLembaga.id, input.profilId));
+      await audit(
+        ctx.db as unknown as Db,
+        ctx.session.user.id,
+        'lembaga_profile_delete',
+        'profil_lembaga',
+        input.profilId,
+        'Menghapus blok profil lembaga',
       );
       return { success: true };
     }),

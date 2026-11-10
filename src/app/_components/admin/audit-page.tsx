@@ -1,5 +1,6 @@
 'use client';
 
+import { type SortingState } from '@tanstack/react-table';
 import { useState } from 'react';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
@@ -23,10 +24,13 @@ const PAGE_SIZE = 50;
 export function AuditPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
   const list = api.adminConsole.auditList.useQuery({
     search: search.trim() || undefined,
     page,
     pageSize: PAGE_SIZE,
+    sort: sorting[0]?.id === 'action' ? 'action' : 'created_at',
+    dir: sorting[0]?.desc === false ? 'asc' : 'desc',
   });
   const columns: ColumnDef<Row>[] = [
     {
@@ -86,8 +90,11 @@ export function AuditPage() {
       <AdminDataTable
         columns={columns}
         data={(list.data?.rows ?? []) as Row[]}
-        sorting={[{ id: 'createdAt', desc: true }]}
-        onSortingChange={() => undefined}
+        sorting={sorting}
+        onSortingChange={(next) => {
+          setSorting(next);
+          setPage(1);
+        }}
         page={page}
         total={list.data?.total ?? 0}
         pageSize={PAGE_SIZE}
