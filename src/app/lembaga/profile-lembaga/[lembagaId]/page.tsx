@@ -17,6 +17,11 @@ const DetailLembagaPage = async ({
   try {
     const session = await getServerAuthSession();
     const lembagaId = (await params).lembagaId;
+    // Dijalankan paralel; best staff boleh gagal (belum ada data) tanpa
+    // menggagalkan halaman.
+    const bestStaffPromise = api.lembaga
+      .getLatestBestStaffLembaga({ lembaga_id: lembagaId })
+      .catch(() => null);
     const { lembagaData, newestEvent, highlightedEvent, anggota } =
       await api.profile.getLembaga({ lembagaId: lembagaId });
 
@@ -32,14 +37,7 @@ const DetailLembagaPage = async ({
         division: string;
       }[];
     } | null = null;
-    try {
-      latestBestStaff = await api.lembaga.getLatestBestStaffLembaga({
-        lembaga_id: lembagaId,
-      });
-    } catch (error) {
-      // No best staff data available yet
-      // console.log('No best staff data available for lembaga:', lembagaId, error);
-    }
+    latestBestStaff = await bestStaffPromise;
 
     return (
       <ProfileLembagaContent
