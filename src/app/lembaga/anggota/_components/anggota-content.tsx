@@ -36,10 +36,7 @@ interface AnggotaContentProps {
   anggotaBasePath?: string;
   /** Tombol Rapor Komunal. */
   showRapor?: boolean;
-  /**
-   * Tombol Best Staff mengarah ke halaman Owner. Di /manage disembunyikan
-   * sampai kelompok migrasinya selesai.
-   */
+  /** Tombol Best Staff. */
   showBestStaff?: boolean;
 }
 
@@ -274,7 +271,7 @@ export default function AnggotaContent({
                 <Link
                   href={
                     isAnggota
-                      ? '/anggota/histori'
+                      ? `${anggotaBasePath}/histori`
                       : `/lembaga/profile-kegiatan/${eventId}/histori`
                   }
                 >
