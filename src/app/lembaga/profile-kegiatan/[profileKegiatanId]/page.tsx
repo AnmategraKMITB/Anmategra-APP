@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
+import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
 // Components Import
 import { EventHeader } from '~/app/_components/placeholder/event-header';
@@ -171,6 +172,10 @@ const ProfileKegiatan = async ({
             kegiatanLembagaId={query ?? ''}
             raporVisible={kegiatan?.rapor_visible ?? false}
             isKegiatan={true}
+          />
+          <KelolaAdminButton
+            href={`/lembaga/profile-kegiatan/${query}/kelola-admin`}
+            eventId={query}
           />
         </div>
       </div>
