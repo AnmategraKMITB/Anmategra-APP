@@ -34,7 +34,12 @@ const students = await sql`
   order by random()
   limit ${users}`;
 const events = await sql`
-  select id from anmategra_event order by start_date desc nulls last limit ${eventCount}`;
+  select id from anmategra_lembaga_period order by start_date desc nulls last limit ${eventCount}`;
+// Form Published untuk forms-load.js. Boleh kosong kalau aplikasi belum punya fitur Formulir.
+const forms = await sql`
+  select id from anmategra_form where status = 'Published' order by random() limit 3`.catch(
+  () => [],
+);
 await sql.end();
 
 if (students.length < users)
@@ -62,8 +67,12 @@ const sessions = await Promise.all(
 mkdirSync(new URL('.data/', import.meta.url), { recursive: true });
 writeFileSync(
   new URL('.data/targets.json', import.meta.url),
-  JSON.stringify({ sessions, events: events.map((e) => e.id) }),
+  JSON.stringify({
+    sessions,
+    events: events.map((e) => e.id),
+    forms: forms.map((f) => f.id),
+  }),
 );
 console.log(
-  `${sessions.length} sesi dan ${events.length} kegiatan → loadtest/.data/targets.json`,
+  `${sessions.length} sesi, ${events.length} kegiatan, ${forms.length} form → loadtest/.data/targets.json`,
 );

@@ -98,3 +98,51 @@ Kesimpulan:
 - nginx di Docker: naikkan batas file descriptor (`worker_rlimit_nofile 65535;` dan
   `ulimits: nofile` 65535 di container). Batas bawaan 1024 habis di ±1000 koneksi dan nginx mulai
   membalas 500 / menolak koneksi.
+
+## Load test Formulir (`forms-load.js`)
+
+Mensimulasikan 300–900 mahasiswa yang membuka formulir, mengisinya, lalu mengirim
+(`form.getPublic` → `form.submit`, atau `form.updateSubmission` kalau sudah pernah mengirim),
+dicampur dengan penjelajahan halaman biasa (`/mahasiswa`, `/mahasiswa/kegiatan`,
+`/mahasiswa/profile-kegiatan/[id]`). Berbeda dengan `oprec-load.js`, jawaban dibangun otomatis
+dari pertanyaan form (semua tipe kecuali `file` dan `text_block`).
+
+Syarat: server staging harus memuat fitur Formulir (branch `feat/BE/forms-*`), dan ada form
+berstatus **Published** yang dibuat untuk uji ini:
+
+- `allow_multiple_submissions = true` (kalau tidak, tiap akun hanya bisa kirim sekali; selanjutnya
+  hanya `updateSubmission` bila `allow_edit_after_submit` menyala, atau dihitung `forms_already_submitted`);
+- tanpa `max_responses` dan tanpa tenggat dekat;
+- tanpa pertanyaan `file` yang wajib (pilihan divisi `unit_choice` hanya valid untuk form terikat oprec), dan tanpa pola teks yang ketat (email/NIM) kecuali jawaban
+  generator cocok.
+
+Langkah:
+
+1. Buat sesi (angka pertama = jumlah pengguna **terbesar** yang akan dipakai):
+
+   ```bash
+   node loadtest/make-sessions.mjs 900 5
+   ```
+
+2. Jalankan k6 dari mesin lain. Jumlah pengguna bisa diatur bebas:
+
+   ```bash
+   # satu level beban
+   docker run --rm --network host -v "$PWD/loadtest":/scripts -w /scripts \
+     -e BASE_URL=https://staging.example -e USERS=600 -e MODE=steady \
+     grafana/k6:2.3.0 run forms-load.js
+
+   # naik bertahap 300 -> 600 -> 900 untuk mencari titik jenuh
+   docker run --rm --network host -v "$PWD/loadtest":/scripts -w /scripts \
+     -e BASE_URL=https://staging.example -e STEPS=300,600,900 -e MODE=steady \
+     grafana/k6:2.3.0 run forms-load.js
+   ```
+
+   Opsi lain: `FORM_SHARE` (porsi iterasi yang mengisi form, default `0.6`), `FORM_IDS`,
+   `RAMP`/`HOLD`, `STEP_RAMP`/`STEP_HOLD`, `MODE=deadline` untuk stres.
+
+3. Metrik tambahan: `forms_submitted`, `forms_edited`, `forms_already_submitted`, dan
+   `forms_submit_invalid` (harus 0; kalau tidak, jawaban generator ditolak validasi form uji,
+   pesan ada di log k6).
+
+4. Bersihkan respons uji lewat halaman Respons form (atau hapus form uji) setelah selesai.
