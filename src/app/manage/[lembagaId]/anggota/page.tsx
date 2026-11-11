@@ -50,7 +50,8 @@ const ManageAnggotaPage = async ({
         pageAnggota={true}
         title={info?.nama ?? ''}
         lembagaId={lembagaId}
-        showRaporAndBestStaff={false}
+        anggotaBasePath={`/manage/${lembagaId}/anggota`}
+        showBestStaff={false}
       />
     </main>
   );
