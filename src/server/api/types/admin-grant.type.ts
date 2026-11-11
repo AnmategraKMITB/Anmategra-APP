@@ -12,6 +12,8 @@ export const GrantLembagaAdminInputSchema = z.object({
   lembagaId: z.string().nonempty(),
   identifier: z.string().nonempty(), // email atau NIM
   features: GrantFeaturesSchema,
+  /** Hanya dihormati bila pemberi adalah Owner lembaga ini; berlaku ke sub-lembaga. */
+  propagate: z.boolean().default(false),
 });
 
 export const GrantLembagaAdminOutputSchema = z.object({
@@ -38,6 +40,11 @@ export const AdminGrantEntrySchema = z.object({
   nim: z.number().nullable(),
   grantedAt: z.date(),
   features: z.array(z.string()),
+  /** 'diwarisi' = hibah propagate dari lembaga induk (read-only di sub-lembaga). */
+  origin: z.enum(['lembaga', 'diwarisi']).default('lembaga'),
+  sourceLembagaId: z.string().nullable().default(null),
+  sourceLembagaName: z.string().nullable().default(null),
+  propagate: z.boolean().default(false),
 });
 
 export const ListLembagaAdminsOutputSchema = z.array(AdminGrantEntrySchema);
@@ -87,3 +94,13 @@ export const ManagedEventEntrySchema = z.object({
 });
 
 export const GetMyManagedEventsOutputSchema = z.array(ManagedEventEntrySchema);
+
+export const KelolaAdminAccessInputSchema = z.object({
+  lembagaId: z.string().nonempty().optional(),
+  eventId: z.string().nonempty().optional(),
+});
+
+/** 'owner' | 'admin' = boleh melihat tombol Kelola Admin; null = tidak. */
+export const KelolaAdminAccessOutputSchema = z
+  .enum(['owner', 'admin'])
+  .nullable();

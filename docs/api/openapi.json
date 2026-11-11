@@ -4514,6 +4514,132 @@
         }
       }
     },
+    "/api/trpc/adminGrant.getKelolaAdminAccess": {
+      "get": {
+        "operationId": "adminGrant_getKelolaAdminAccess",
+        "tags": [
+          "adminGrant"
+        ],
+        "summary": "adminGrant.getKelolaAdminAccess",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/adminGrant_getKelolaAdminAccess_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/adminGrant_getKelolaAdminAccess_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
     "/api/trpc/adminGrant.getMyManagedEvents": {
       "get": {
         "operationId": "adminGrant_getMyManagedEvents",
@@ -5193,6 +5319,132 @@
                   "properties": {
                     "json": {
                       "$ref": "#/components/schemas/adminGrant_listLembagaAdmins_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    "/api/trpc/adminGrant.listLembagaEvents": {
+      "get": {
+        "operationId": "adminGrant_listLembagaEvents",
+        "tags": [
+          "adminGrant"
+        ],
+        "summary": "adminGrant.listLembagaEvents",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/adminGrant_listLembagaEvents_input"
                     },
                     "meta": {
                       "type": "object",
@@ -33255,6 +33507,27 @@
           "userId"
         ]
       },
+      "adminGrant_getKelolaAdminAccess_input": {
+        "type": "object",
+        "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "eventId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "adminGrant_getKelolaAdminAccess_output": {
+        "nullable": true,
+        "type": "string",
+        "enum": [
+          "owner",
+          "admin"
+        ]
+      },
       "adminGrant_getMyManagedEvents_output": {
         "type": "array",
         "items": {
@@ -33394,6 +33667,10 @@
                 "organization"
               ]
             }
+          },
+          "propagate": {
+            "default": false,
+            "type": "boolean"
           }
         },
         "required": [
@@ -33453,6 +33730,28 @@
               "items": {
                 "type": "string"
               }
+            },
+            "origin": {
+              "default": "lembaga",
+              "type": "string",
+              "enum": [
+                "lembaga",
+                "diwarisi"
+              ]
+            },
+            "sourceLembagaId": {
+              "default": null,
+              "nullable": true,
+              "type": "string"
+            },
+            "sourceLembagaName": {
+              "default": null,
+              "nullable": true,
+              "type": "string"
+            },
+            "propagate": {
+              "default": false,
+              "type": "boolean"
             }
           },
           "required": [
@@ -33461,7 +33760,11 @@
             "email",
             "nim",
             "grantedAt",
-            "features"
+            "features",
+            "origin",
+            "sourceLembagaId",
+            "sourceLembagaName",
+            "propagate"
           ],
           "additionalProperties": false
         }
@@ -33506,6 +33809,28 @@
               "items": {
                 "type": "string"
               }
+            },
+            "origin": {
+              "default": "lembaga",
+              "type": "string",
+              "enum": [
+                "lembaga",
+                "diwarisi"
+              ]
+            },
+            "sourceLembagaId": {
+              "default": null,
+              "nullable": true,
+              "type": "string"
+            },
+            "sourceLembagaName": {
+              "default": null,
+              "nullable": true,
+              "type": "string"
+            },
+            "propagate": {
+              "default": false,
+              "type": "boolean"
             }
           },
           "required": [
@@ -33514,10 +33839,26 @@
             "email",
             "nim",
             "grantedAt",
-            "features"
+            "features",
+            "origin",
+            "sourceLembagaId",
+            "sourceLembagaName",
+            "propagate"
           ],
           "additionalProperties": false
         }
+      },
+      "adminGrant_listLembagaEvents_input": {
+        "type": "object",
+        "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "lembagaId"
+        ]
       },
       "adminGrant_revokeEventAdmin_input": {
         "type": "object",

@@ -9,6 +9,7 @@ import { redirect } from 'next/navigation';
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import DummyFotoEvent from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import React, { cache } from 'react';
+import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
@@ -251,6 +252,10 @@ const DetailLembagaPage = async ({
               kegiatanLembagaId={lembagaId}
               raporVisible={lembagaData.raporVisible}
               isKegiatan={false}
+            />
+            <KelolaAdminButton
+              href={`/mahasiswa/profile-lembaga/${lembagaId}/kelola-admin`}
+              lembagaId={lembagaId}
             />
           </div>
         </div>

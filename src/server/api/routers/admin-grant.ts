@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq, inArray, isNotNull } from 'drizzle-orm';
+import { canManageLembaga } from '~/server/api/access';
 import {
   createTRPCRouter,
   eventScopedProcedure,
@@ -9,6 +10,7 @@ import {
 } from '~/server/api/trpc';
 import {
   accessGrant,
+  adminAudit,
   events,
   lembaga,
   mahasiswa,
@@ -17,6 +19,8 @@ import {
 
 import {
   GetMyManagedEventsOutputSchema,
+  KelolaAdminAccessInputSchema,
+  KelolaAdminAccessOutputSchema,
   GetMyManagedLembagaOutputSchema,
   GrantEventAdminInputSchema,
   GrantEventAdminOutputSchema,
@@ -90,6 +94,95 @@ async function fetchUsersById(
   return new Map(rows.map((row) => [row.id, { name: row.name, email: row.email }]));
 }
 
+type Db = typeof import('~/server/db').db;
+const MAX_TREE_DEPTH = 16;
+const NOT_REGISTERED_MESSAGE =
+  'Akun dengan email/NIM tersebut belum terdaftar di sistem.';
+const FORBIDDEN_FEATURE_MESSAGE =
+  'Anda tidak dapat memberi akses yang tidak Anda miliki.';
+
+async function writeAudit(
+  db: Db,
+  actorId: string,
+  action: 'grant_set' | 'grant_revoke',
+  entityType: 'lembaga' | 'event',
+  entityId: string,
+  summary: string,
+  metadata: Record<string, unknown>,
+) {
+  await db
+    .insert(adminAudit)
+    .values({ actorId, action, entityType, entityId, summary, metadata });
+}
+
+/**
+ * Admin Lembaga hanya boleh memberi fitur yang ia miliki. Owner dan akun
+ * `admin` sistem tanpa batas; fitur `admin` berarti semua fitur.
+ */
+async function assertGrantableFeatures(
+  db: Db,
+  user: { id: string; role: string },
+  access: 'owner' | 'admin',
+  lembagaId: string,
+  features: readonly string[],
+) {
+  if (access === 'owner' || user.role === 'admin') return;
+  const grants = await db.query.accessGrant.findMany({
+    where: and(
+      eq(accessGrant.userId, user.id),
+      eq(accessGrant.lembagaId, lembagaId),
+      eq(accessGrant.status, 'active'),
+    ),
+    columns: { features: true },
+  });
+  // Tanpa hibah langsung, akses datang dari propagasi/operator (penuh).
+  if (grants.length === 0) return;
+  const owned = new Set(grants.flatMap((g) => g.features));
+  if (owned.has('admin')) return;
+  if (features.some((f) => !owned.has(f))) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: FORBIDDEN_FEATURE_MESSAGE,
+    });
+  }
+}
+
+/** Hibah `propagate` dari induk lembaga ini, naik sampai akar. */
+async function listInheritedGrants(db: Db, lembagaId: string) {
+  const ancestors: { id: string; name: string }[] = [];
+  const visited = new Set<string>([lembagaId]);
+  let current = lembagaId;
+  for (let depth = 0; depth < MAX_TREE_DEPTH; depth++) {
+    const row = await db.query.lembaga.findFirst({
+      where: eq(lembaga.id, current),
+      columns: { parentId: true },
+    });
+    const parentId = row?.parentId;
+    if (!parentId || visited.has(parentId)) break;
+    const parent = await db.query.lembaga.findFirst({
+      where: eq(lembaga.id, parentId),
+      columns: { id: true, name: true },
+    });
+    if (!parent) break;
+    ancestors.push({ id: parent.id, name: parent.name });
+    visited.add(parentId);
+    current = parentId;
+  }
+  if (ancestors.length === 0) return [];
+  const rows = await db.query.accessGrant.findMany({
+    where: and(
+      inArray(accessGrant.lembagaId, ancestors.map((a) => a.id)),
+      eq(accessGrant.status, 'active'),
+      eq(accessGrant.propagate, true),
+    ),
+  });
+  const nameById = new Map(ancestors.map((a) => [a.id, a.name]));
+  return rows.map((row) => ({
+    ...row,
+    sourceName: nameById.get(row.lembagaId ?? '') ?? null,
+  }));
+}
+
 export const adminGrantRouter = createTRPCRouter({
   grantLembagaAdmin: lembagaOwnerProcedure
     .input(GrantLembagaAdminInputSchema)
@@ -99,8 +192,7 @@ export const adminGrantRouter = createTRPCRouter({
       if (!target) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message:
-            'Akun dengan email/NIM tersebut belum terdaftar di sistem.',
+          message: NOT_REGISTERED_MESSAGE,
         });
       }
 
@@ -122,25 +214,53 @@ export const adminGrantRouter = createTRPCRouter({
         ),
       });
 
+      // `lembagaOwnerProcedure` menjamin pemberi adalah Owner lembaga ini,
+      // jadi hanya dia yang dapat menyetel propagasi.
+      const values = {
+        status: 'active' as const,
+        features: input.features,
+        propagate: input.propagate,
+        grantedBy: ctx.session.user.id,
+        revokedAt: null,
+        revokedBy: null,
+      };
+      let grantId: string;
       if (existing) {
         await ctx.db
           .update(accessGrant)
-          .set({
-            status: 'active',
-            features: input.features,
-            grantedBy: ctx.session.user.id,
-            revokedAt: null,
-            revokedBy: null,
-          })
+          .set(values)
           .where(eq(accessGrant.id, existing.id));
+        grantId = existing.id;
       } else {
-        await ctx.db.insert(accessGrant).values({
-          lembagaId: input.lembagaId,
-          userId: target.id,
-          features: input.features,
-          grantedBy: ctx.session.user.id,
-        });
+        const [created] = await ctx.db
+          .insert(accessGrant)
+          .values({
+            lembagaId: input.lembagaId,
+            userId: target.id,
+            ...values,
+          })
+          .returning({ id: accessGrant.id });
+        grantId = created!.id;
       }
+
+      await writeAudit(
+        ctx.db,
+        ctx.session.user.id,
+        'grant_set',
+        'lembaga',
+        input.lembagaId,
+        `Beri akses Admin Lembaga ke ${target.email}`,
+        {
+          grantId,
+          targetUserId: target.id,
+          lembagaId: input.lembagaId,
+          features: input.features,
+          previousFeatures:
+            existing?.status === 'active' ? existing.features : null,
+          propagate: input.propagate,
+          via: 'owner-ui',
+        },
+      );
 
       return { success: true };
     }),
@@ -149,7 +269,9 @@ export const adminGrantRouter = createTRPCRouter({
     .input(RevokeLembagaAdminInputSchema)
     .output(RevokeLembagaAdminOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
+      // Idempotent: hanya baris aktif yang disentuh, sehingga `revoked_*`
+      // dari pencabutan sebelumnya tidak tertimpa.
+      const revoked = await ctx.db
         .update(accessGrant)
         .set({
           status: 'revoked',
@@ -160,8 +282,33 @@ export const adminGrantRouter = createTRPCRouter({
           and(
             eq(accessGrant.lembagaId, input.lembagaId),
             eq(accessGrant.userId, input.userId),
+            eq(accessGrant.status, 'active'),
           ),
+        )
+        .returning({
+          id: accessGrant.id,
+          features: accessGrant.features,
+          propagate: accessGrant.propagate,
+        });
+
+      for (const row of revoked) {
+        await writeAudit(
+          ctx.db,
+          ctx.session.user.id,
+          'grant_revoke',
+          'lembaga',
+          input.lembagaId,
+          'Cabut akses Admin Lembaga',
+          {
+            grantId: row.id,
+            targetUserId: input.userId,
+            lembagaId: input.lembagaId,
+            features: row.features,
+            propagate: row.propagate,
+            via: 'owner-ui',
+          },
         );
+      }
 
       return { success: true };
     }),
@@ -170,27 +317,47 @@ export const adminGrantRouter = createTRPCRouter({
     .input(ListLembagaAdminsInputSchema)
     .output(ListLembagaAdminsOutputSchema)
     .query(async ({ ctx, input }) => {
-      const rows = await ctx.db.query.accessGrant.findMany({
-        where: and(
-          eq(accessGrant.lembagaId, input.lembagaId),
-          eq(accessGrant.status, 'active'),
-        ),
-      });
+      const [own, inherited] = await Promise.all([
+        ctx.db.query.accessGrant.findMany({
+          where: and(
+            eq(accessGrant.lembagaId, input.lembagaId),
+            eq(accessGrant.status, 'active'),
+          ),
+        }),
+        listInheritedGrants(ctx.db, input.lembagaId),
+      ]);
 
       const userById = await fetchUsersById(
         ctx.db,
-        rows.map((row) => row.userId),
+        [...own, ...inherited].map((row) => row.userId),
       );
 
       const withNim = await attachNim(
         ctx.db,
-        rows.map((row) => ({
-          userId: row.userId,
-          name: userById.get(row.userId)?.name ?? null,
-          email: userById.get(row.userId)?.email ?? '',
-          grantedAt: row.created_at,
-          features: row.features,
-        })),
+        [
+          ...own.map((row) => ({
+            userId: row.userId,
+            name: userById.get(row.userId)?.name ?? null,
+            email: userById.get(row.userId)?.email ?? '',
+            grantedAt: row.created_at,
+            features: row.features,
+            origin: 'lembaga' as const,
+            sourceLembagaId: null,
+            sourceLembagaName: null,
+            propagate: row.propagate,
+          })),
+          ...inherited.map((row) => ({
+            userId: row.userId,
+            name: userById.get(row.userId)?.name ?? null,
+            email: userById.get(row.userId)?.email ?? '',
+            grantedAt: row.created_at,
+            features: row.features,
+            origin: 'diwarisi' as const,
+            sourceLembagaId: row.lembagaId,
+            sourceLembagaName: row.sourceName,
+            propagate: true,
+          })),
+        ],
       );
 
       return withNim;
@@ -215,12 +382,30 @@ export const adminGrantRouter = createTRPCRouter({
         });
       }
 
+      await assertGrantableFeatures(
+        ctx.db,
+        ctx.session.user,
+        ctx.lembagaAccess,
+        ctx.lembagaId,
+        input.features,
+      );
+
       const target = await findUserByIdentifier(ctx.db, input.identifier);
       if (!target) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message:
-            'Akun dengan email/NIM tersebut belum terdaftar di sistem.',
+          message: NOT_REGISTERED_MESSAGE,
+        });
+      }
+
+      const owner = await ctx.db.query.lembaga.findFirst({
+        where: eq(lembaga.id, ctx.lembagaId),
+        columns: { userId: true },
+      });
+      if (target.id === owner?.userId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Akun tersebut sudah menjadi Owner lembaga ini.',
         });
       }
 
@@ -231,25 +416,46 @@ export const adminGrantRouter = createTRPCRouter({
         ),
       });
 
+      const values = {
+        status: 'active' as const,
+        features: input.features,
+        grantedBy: ctx.session.user.id,
+        revokedAt: null,
+        revokedBy: null,
+      };
+      let grantId: string;
       if (existing) {
         await ctx.db
           .update(accessGrant)
-          .set({
-            status: 'active',
-            features: input.features,
-            grantedBy: ctx.session.user.id,
-            revokedAt: null,
-            revokedBy: null,
-          })
+          .set(values)
           .where(eq(accessGrant.id, existing.id));
+        grantId = existing.id;
       } else {
-        await ctx.db.insert(accessGrant).values({
-          periodId: input.eventId,
-          userId: target.id,
-          features: input.features,
-          grantedBy: ctx.session.user.id,
-        });
+        const [created] = await ctx.db
+          .insert(accessGrant)
+          .values({ periodId: input.eventId, userId: target.id, ...values })
+          .returning({ id: accessGrant.id });
+        grantId = created!.id;
       }
+
+      await writeAudit(
+        ctx.db,
+        ctx.session.user.id,
+        'grant_set',
+        'event',
+        input.eventId,
+        `Beri akses Admin Kepanitiaan ke ${target.email}`,
+        {
+          grantId,
+          targetUserId: target.id,
+          lembagaId: ctx.lembagaId,
+          periodId: input.eventId,
+          features: input.features,
+          previousFeatures:
+            existing?.status === 'active' ? existing.features : null,
+          via: 'owner-ui',
+        },
+      );
 
       return { success: true };
     }),
@@ -275,7 +481,7 @@ export const adminGrantRouter = createTRPCRouter({
         });
       }
 
-      await ctx.db
+      const revoked = await ctx.db
         .update(accessGrant)
         .set({
           status: 'revoked',
@@ -286,8 +492,29 @@ export const adminGrantRouter = createTRPCRouter({
           and(
             eq(accessGrant.periodId, input.eventId),
             eq(accessGrant.userId, input.userId),
+            eq(accessGrant.status, 'active'),
           ),
+        )
+        .returning({ id: accessGrant.id, features: accessGrant.features });
+
+      for (const row of revoked) {
+        await writeAudit(
+          ctx.db,
+          ctx.session.user.id,
+          'grant_revoke',
+          'event',
+          input.eventId,
+          'Cabut akses Admin Kepanitiaan',
+          {
+            grantId: row.id,
+            targetUserId: input.userId,
+            lembagaId: ctx.lembagaId,
+            periodId: input.eventId,
+            features: row.features,
+            via: 'owner-ui',
+          },
         );
+      }
 
       return { success: true };
     }),
@@ -316,10 +543,54 @@ export const adminGrantRouter = createTRPCRouter({
           email: userById.get(row.userId)?.email ?? '',
           grantedAt: row.created_at,
           features: row.features,
+          origin: 'lembaga' as const,
+          sourceLembagaId: null,
+          sourceLembagaName: null,
+          propagate: false,
         })),
       );
 
       return withNim;
+    }),
+
+  /**
+   * Menentukan apakah tombol Kelola Admin tampil: Owner dan Admin Lembaga
+   * (pemilik kegiatan untuk `eventId`). Admin Kepanitiaan dan anggota biasa
+   * selalu null.
+   */
+  getKelolaAdminAccess: protectedProcedure
+    .input(KelolaAdminAccessInputSchema)
+    .output(KelolaAdminAccessOutputSchema)
+    .query(async ({ ctx, input }) => {
+      let lembagaId = input.lembagaId ?? null;
+      if (!lembagaId && input.eventId) {
+        const ev = await ctx.db.query.events.findFirst({
+          where: eq(events.id, input.eventId),
+          columns: { org_id: true },
+        });
+        lembagaId = ev?.org_id ?? null;
+      }
+      if (!lembagaId) return null;
+      const access = await canManageLembaga(
+        ctx.db,
+        ctx.session.user.id,
+        ctx.session.user.role,
+        ctx.session.user.lembagaId,
+        lembagaId,
+      );
+      return access;
+    }),
+
+  /** Daftar kegiatan lembaga untuk pemilih di tab Admin Kepanitiaan. */
+  listLembagaEvents: lembagaScopedProcedure
+    .input(ListLembagaAdminsInputSchema)
+    .query(async ({ ctx }) => {
+      const rows = await ctx.db.query.events.findMany({
+        where: eq(events.org_id, ctx.lembagaId),
+        columns: { id: true, name: true },
+        orderBy: (e, { desc }) => desc(e.start_date),
+      });
+      return rows.map((r) => ({ id: r.id, name: r.name ?? '(tanpa nama)' }));
     }),
 
   getMyManagedLembaga: protectedProcedure
