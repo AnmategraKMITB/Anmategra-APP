@@ -24,8 +24,9 @@ type PermintaanAsosiasiUser = {
 type InboxDetailContentProps = {
   id: string;
   data: PermintaanAsosiasiUser[];
-  lembagaId: string | undefined;
+  lembagaId: string;
   isLembagaRequest: boolean;
+  basePath?: string;
 };
 
 export default function InboxDetailContent({
@@ -33,17 +34,18 @@ export default function InboxDetailContent({
   data: initialData,
   lembagaId,
   isLembagaRequest,
+  basePath = '/lembaga/inbox',
 }: InboxDetailContentProps) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
   const { data: lembagaFilteredData } = api.lembaga.getAllRequestAssociationLembaga.useQuery(
-    {division: selectedFilters.length > 0 ? selectedFilters : undefined,},
+    {lembagaId, division: selectedFilters.length > 0 ? selectedFilters : undefined,},
     {enabled: isLembagaRequest && selectedFilters.length > 0,}
   );
 
   const { data: eventFilteredData } = api.lembaga.getAllRequestAssociation.useQuery(
-    {event_id: id,division: selectedFilters.length > 0 ? selectedFilters : undefined,},
+    {lembagaId, event_id: id,division: selectedFilters.length > 0 ? selectedFilters : undefined,},
     {enabled: !isLembagaRequest && selectedFilters.length > 0,}
   );
 
@@ -98,8 +100,8 @@ export default function InboxDetailContent({
         </h1>
         <RaporBreadcrumb
           items={[
-            {label:'Permintaan Asosiasi', href:'/inbox'},
-            {label:'Detail', href:`/inbox/${id}`}
+            {label:'Permintaan Asosiasi', href: basePath},
+            {label:'Detail', href: `${basePath}/${id}`}
           ]}
         />
 
@@ -132,7 +134,7 @@ export default function InboxDetailContent({
         </div>
 
         <div>
-          <RequestTableAssociationsEntries id={id} data={filteredData} lembagaId={lembagaId} />
+          <RequestTableAssociationsEntries id={id} data={filteredData} lembagaId={lembagaId} basePath={basePath} />
         </div>
       </div>
     </div>

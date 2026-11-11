@@ -18,8 +18,11 @@ type PermintaanAsosiasiUser = {
 const RequestTableAssociationsEntries: React.FC<{
   id: string;
   data: PermintaanAsosiasiUser[];
-  lembagaId: string | undefined;
-}> = ({ id, data, lembagaId }) => {
+  /** Lembaga yang dikelola. */
+  lembagaId: string;
+  /** Rute inbox tempat komponen dipasang. */
+  basePath?: string;
+}> = ({ id, data, lembagaId, basePath = '/lembaga/inbox' }) => {
   const router = useRouter();
   const utils = api.useUtils();
 
@@ -31,11 +34,11 @@ const RequestTableAssociationsEntries: React.FC<{
         void utils.lembaga.getAllRequestAssociation.invalidate();
         void utils.lembaga.getAllRequestAssociationLembaga.invalidate();
         void utils.lembaga.getAllRequestAssociationSummary.invalidate();
-        router.push('/lembaga/inbox');
+        router.push(basePath);
         router.refresh();
       },
       onError: () => {
-        router.push('/lembaga/inbox');
+        router.push(basePath);
         router.refresh();
       },
     });
@@ -45,6 +48,7 @@ const RequestTableAssociationsEntries: React.FC<{
     posisi: string,
   ) => {
     const query = {
+      lembagaId,
       user_id: user_id,
       division: divisi,
       position: posisi,
@@ -58,11 +62,11 @@ const RequestTableAssociationsEntries: React.FC<{
         void utils.lembaga.getAllRequestAssociation.invalidate();
         void utils.lembaga.getAllRequestAssociationLembaga.invalidate();
         void utils.lembaga.getAllRequestAssociationSummary.invalidate();
-        router.push('/lembaga/inbox');
+        router.push(basePath);
         router.refresh();
       },
       onError: () => {
-        router.push('/lembaga/inbox');
+        router.push(basePath);
         router.refresh();
       },
     });
@@ -72,6 +76,7 @@ const RequestTableAssociationsEntries: React.FC<{
     posisi: string,
   ) => {
     const query = {
+      lembagaId,
       user_id: user_id,
       division: divisi,
       position: posisi,
@@ -83,11 +88,11 @@ const RequestTableAssociationsEntries: React.FC<{
     onSuccess: () => {
       void utils.lembaga.getAllRequestAssociation.invalidate();
       void utils.lembaga.getAllRequestAssociationSummary.invalidate();
-      router.push('/lembaga/inbox');
+      router.push(basePath);
       router.refresh();
     },
     onError: () => {
-      router.push('/lembaga/inbox');
+      router.push(basePath);
       router.refresh();
     },
   });
@@ -98,6 +103,7 @@ const RequestTableAssociationsEntries: React.FC<{
     posisi: string,
   ) => {
     const query = {
+      lembagaId,
       user_id: user_id,
       event_id: event_id,
       division: divisi,
@@ -111,11 +117,11 @@ const RequestTableAssociationsEntries: React.FC<{
       onSuccess: () => {
         void utils.lembaga.getAllRequestAssociation.invalidate();
         void utils.lembaga.getAllRequestAssociationSummary.invalidate();
-        router.push('/lembaga/inbox');
+        router.push(basePath);
         router.refresh();
       },
       onError: () => {
-        router.push('/lembaga/inbox');
+        router.push(basePath);
         router.refresh();
       },
     });
@@ -126,6 +132,7 @@ const RequestTableAssociationsEntries: React.FC<{
     posisi: string,
   ) => {
     const query = {
+      lembagaId,
       user_id: user_id,
       event_id: event_id,
       division: divisi,
