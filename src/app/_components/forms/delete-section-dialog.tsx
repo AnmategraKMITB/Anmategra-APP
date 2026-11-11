@@ -22,8 +22,6 @@ import {
 import { useBuilder } from './builder-context';
 import type { SectionOut } from './model';
 
-const NO_SECTION = '__none__';
-
 /** Hapus bagian yang masih berisi pertanyaan: dipindahkan atau dihapus bersama. */
 export function DeleteSectionDialog({
   section,
@@ -34,7 +32,7 @@ export function DeleteSectionDialog({
 }) {
   const builder = useBuilder();
   const [mode, setMode] = useState<'move' | 'delete'>('move');
-  const [target, setTarget] = useState(NO_SECTION);
+  const [target, setTarget] = useState('');
   const [busy, setBusy] = useState(false);
 
   const count =
@@ -50,7 +48,7 @@ export function DeleteSectionDialog({
     await builder.removeSection(
       section,
       mode === 'move'
-        ? { type: 'move', toSectionId: target === NO_SECTION ? null : target }
+        ? { type: 'move', toSectionId: target === '' ? (others[0]?.id ?? '') : target }
         : { type: 'delete' },
     );
     setBusy(false);
@@ -85,15 +83,14 @@ export function DeleteSectionDialog({
                 Bagian tujuan
               </Label>
               <Select
-                value={target}
+                value={target === '' ? (others[0]?.id ?? '') : target}
                 onValueChange={setTarget}
-                disabled={mode !== 'move'}
+                disabled={mode !== 'move' || others.length === 0}
               >
                 <SelectTrigger id="section-target" aria-label="Bagian tujuan">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={NO_SECTION}>Tanpa bagian</SelectItem>
                   {others.map((s) => (
                     <SelectItem key={s.id} value={s.id}>
                       {s.title}
@@ -122,7 +119,7 @@ export function DeleteSectionDialog({
           </Button>
           <Button
             variant="warning"
-            disabled={busy}
+            disabled={busy || (mode === 'move' && others.length === 0)}
             onClick={() => void confirm()}
           >
             {busy ? 'Menghapus…' : 'Hapus bagian'}

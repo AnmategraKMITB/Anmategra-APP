@@ -146,6 +146,17 @@ export const formSectionRouter = createTRPCRouter({
             input.sectionId,
           );
 
+          const [sections] = await tx
+            .select({ n: count() })
+            .from(formSection)
+            .where(eq(formSection.formId, ctx.form.id));
+          if ((sections?.n ?? 0) <= 1) {
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Formulir harus punya minimal satu bagian.',
+            });
+          }
+
           // Active questions block the delete; archived ones do not (their
           // `section_id` is cleared by the FK, they are never shown anyway).
           const active = await countActiveFieldsInSection(

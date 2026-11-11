@@ -34,7 +34,7 @@ export async function FillPage({ formId }: { formId: string }) {
   const [rec] = await db
     .select({ id: recruitment.id })
     .from(recruitment)
-    .where(eq(recruitment.formId, formId));
+    .where(eq(recruitment.formId, form.id));
   const recruitmentId = rec?.id ?? null;
   const [student] =
     session.user.role === 'mahasiswa'
@@ -53,7 +53,7 @@ export async function FillPage({ formId }: { formId: string }) {
   }
 
   if (form.hasSubmitted && !form.allowMultipleSubmissions) {
-    const mine = await api.form.getMySubmission({ formId });
+    const mine = await api.form.getMySubmission({ formId: form.id });
     // Kuota hanya membatasi kiriman baru; menyunting jawaban sendiri tetap
     // boleh selama form masih terbuka dan saklar edit menyala.
     if (form.isOpen && form.allowEditAfterSubmit && mine) {

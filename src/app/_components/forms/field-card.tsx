@@ -30,8 +30,6 @@ import { FIELD_KINDS, type FieldOut, conditionSources, kindOf } from './model';
 import { RichTextEditor } from './rich-text-editor';
 import { TypeEditor } from './type-editors';
 
-const NO_SECTION = '__none__';
-
 /** Satu kartu pertanyaan. Perubahan teks disimpan otomatis; operasi struktur seketika. */
 export function FieldCard({
   field,
@@ -40,7 +38,7 @@ export function FieldCard({
   size,
 }: {
   field: FieldOut;
-  sectionId: string | null;
+  sectionId: string;
   /** Posisi dalam kelompoknya, dari 0. */
   index: number;
   size: number;
@@ -91,10 +89,30 @@ export function FieldCard({
         >
           {number ?? <KindIcon kind="text_block" className="size-4" />}
         </span>
-        <span className="flex items-center gap-1.5 text-sm text-neutral-700">
-          <KindIcon kind={kind} className="size-4" />
-          {kindLabel}
-        </span>
+        <Select
+          value={kind}
+          onValueChange={(value) =>
+            void builder.changeFieldType(field, value as typeof kind)
+          }
+        >
+          <SelectTrigger
+            className="h-8 w-auto min-w-0 gap-1.5 border-transparent bg-transparent px-2 text-sm text-neutral-700"
+            aria-label="Jenis pertanyaan"
+          >
+            <KindIcon kind={kind} className="size-4" />
+            <SelectValue>{kindLabel}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {FIELD_KINDS.map((k) => (
+              <SelectItem key={k.kind} value={k.kind}>
+                <span className="flex items-center gap-2">
+                  <KindIcon kind={k.kind} className="size-4" />
+                  {k.label}
+                </span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="mt-4 grid gap-3">
@@ -170,13 +188,13 @@ export function FieldCard({
         )}
         <div className="ml-auto flex flex-wrap items-center gap-1">
           <Select
-            value={sectionId ?? NO_SECTION}
+            value={sectionId}
             onValueChange={(value) => {
-              const target = value === NO_SECTION ? null : value;
+              if (value === sectionId) return;
               const group = builder.groups.find(
-                (g) => (g.section?.id ?? null) === target,
+                (g) => g.section.id === value,
               );
-              void builder.move(field.id, target, group?.fields.length ?? 0);
+              void builder.move(field.id, value, group?.fields.length ?? 0);
             }}
           >
             <SelectTrigger
@@ -186,7 +204,6 @@ export function FieldCard({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NO_SECTION}>Tanpa bagian</SelectItem>
               {sections.map((s) => (
                 <SelectItem key={s.id} value={s.id}>
                   {s.title}

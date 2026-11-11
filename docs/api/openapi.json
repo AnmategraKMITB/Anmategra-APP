@@ -34335,6 +34335,10 @@
           "title": {
             "type": "string"
           },
+          "slug": {
+            "nullable": true,
+            "type": "string"
+          },
           "description": {
             "nullable": true,
             "type": "string"
@@ -34496,6 +34500,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",
@@ -34574,6 +34579,10 @@
           "title": {
             "type": "string"
           },
+          "slug": {
+            "nullable": true,
+            "type": "string"
+          },
           "description": {
             "nullable": true,
             "type": "string"
@@ -34735,6 +34744,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",
@@ -35507,7 +35517,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -35517,7 +35526,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -35691,7 +35701,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -35701,7 +35710,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -35863,7 +35873,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -35873,7 +35882,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -36028,7 +36038,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -36038,7 +36047,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -36229,7 +36239,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -36240,7 +36249,8 @@
               "type",
               "options",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -36431,7 +36441,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -36442,7 +36451,8 @@
               "type",
               "options",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -36597,7 +36607,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -36607,7 +36616,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -36762,7 +36772,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -36772,7 +36781,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -36934,7 +36944,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -36944,7 +36953,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -37134,7 +37144,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -37144,7 +37153,8 @@
             "required": [
               "type",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -37357,7 +37367,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -37368,7 +37377,8 @@
               "type",
               "config",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -37557,7 +37567,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -37568,7 +37577,8 @@
               "type",
               "config",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           },
           {
@@ -37729,7 +37739,6 @@
                 "pattern": "^[^\\u0000]*$"
               },
               "sectionId": {
-                "nullable": true,
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 255,
@@ -37740,7 +37749,8 @@
               "type",
               "config",
               "label",
-              "formId"
+              "formId",
+              "sectionId"
             ]
           }
         ]
@@ -37917,7 +37927,6 @@
             "additionalProperties": false
           },
           "sectionId": {
-            "nullable": true,
             "type": "string"
           },
           "sortOrder": {
@@ -38148,7 +38157,6 @@
             "pattern": "^[^\\u0000]*$"
           },
           "toSectionId": {
-            "nullable": true,
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
@@ -38199,8 +38207,6 @@
             "pattern": "^[^\\u0000]*$"
           },
           "sectionId": {
-            "default": null,
-            "nullable": true,
             "type": "string",
             "minLength": 1,
             "maxLength": 255,
@@ -38223,6 +38229,7 @@
         },
         "required": [
           "formId",
+          "sectionId",
           "fieldIds"
         ]
       },
@@ -40828,7 +40835,6 @@
             "additionalProperties": false
           },
           "sectionId": {
-            "nullable": true,
             "type": "string"
           },
           "sortOrder": {
@@ -41021,6 +41027,10 @@
             "type": "string"
           },
           "title": {
+            "type": "string"
+          },
+          "slug": {
+            "nullable": true,
             "type": "string"
           },
           "description": {
@@ -41357,7 +41367,6 @@
                   "additionalProperties": false
                 },
                 "sectionId": {
-                  "nullable": true,
                   "type": "string"
                 },
                 "sortOrder": {
@@ -41807,6 +41816,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",
@@ -42576,7 +42586,6 @@
                   "additionalProperties": false
                 },
                 "sectionId": {
-                  "nullable": true,
                   "type": "string"
                 },
                 "options": {
@@ -43350,7 +43359,6 @@
                   "additionalProperties": false
                 },
                 "sectionId": {
-                  "nullable": true,
                   "type": "string"
                 },
                 "options": {
@@ -43566,6 +43574,10 @@
             "title": {
               "type": "string"
             },
+            "slug": {
+              "nullable": true,
+              "type": "string"
+            },
             "description": {
               "nullable": true,
               "type": "string"
@@ -43732,6 +43744,7 @@
             "lembagaId",
             "eventId",
             "title",
+            "slug",
             "description",
             "status",
             "closesAt",
@@ -43784,6 +43797,10 @@
             "title": {
               "type": "string"
             },
+            "slug": {
+              "nullable": true,
+              "type": "string"
+            },
             "description": {
               "nullable": true,
               "type": "string"
@@ -43950,6 +43967,7 @@
             "lembagaId",
             "eventId",
             "title",
+            "slug",
             "description",
             "status",
             "closesAt",
@@ -44630,6 +44648,10 @@
           "title": {
             "type": "string"
           },
+          "slug": {
+            "nullable": true,
+            "type": "string"
+          },
           "description": {
             "nullable": true,
             "type": "string"
@@ -44791,6 +44813,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",
@@ -45333,6 +45356,10 @@
           "title": {
             "type": "string"
           },
+          "slug": {
+            "nullable": true,
+            "type": "string"
+          },
           "description": {
             "nullable": true,
             "type": "string"
@@ -45494,6 +45521,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",
@@ -45551,6 +45579,10 @@
           "title": {
             "type": "string"
           },
+          "slug": {
+            "nullable": true,
+            "type": "string"
+          },
           "description": {
             "nullable": true,
             "type": "string"
@@ -45712,6 +45744,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",
@@ -45938,6 +45971,12 @@
             "maxLength": 255,
             "pattern": "^[^\\u0000]*$"
           },
+          "slug": {
+            "nullable": true,
+            "type": "string",
+            "maxLength": 80,
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
           "description": {
             "nullable": true,
             "type": "string",
@@ -46077,6 +46116,10 @@
             "type": "string"
           },
           "title": {
+            "type": "string"
+          },
+          "slug": {
+            "nullable": true,
             "type": "string"
           },
           "description": {
@@ -46240,6 +46283,7 @@
           "lembagaId",
           "eventId",
           "title",
+          "slug",
           "description",
           "status",
           "closesAt",

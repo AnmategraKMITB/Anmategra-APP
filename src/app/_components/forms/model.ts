@@ -92,30 +92,17 @@ export function previewUrl(origin: string, token: string): string {
 // Grouping and numbering
 // ---------------------------------------------------------------------------
 
-/** `section: null` is the group of fields outside every section. */
-export type ContentGroup = { section: SectionOut | null; fields: FieldOut[] };
+/** Satu bagian beserta pertanyaannya; tidak ada pertanyaan di luar bagian. */
+export type ContentGroup = { section: SectionOut; fields: FieldOut[] };
 
-/**
- * Fields grouped for display: the no-section group first (only when it has
- * fields), then every section in order, empty ones included so they can be
- * filled. A field whose section is unknown joins the no-section group.
- */
+/** Setiap bagian ditampilkan berurutan, termasuk yang masih kosong. */
 export function groupContent(
   detail: Pick<FormDetailOut, 'sections' | 'fields'>,
 ): ContentGroup[] {
-  const known = new Set(detail.sections.map((s) => s.id));
-  const loose = detail.fields.filter(
-    (f) => f.sectionId === null || !known.has(f.sectionId),
-  );
-  const groups: ContentGroup[] = [];
-  if (loose.length > 0) groups.push({ section: null, fields: loose });
-  for (const section of detail.sections) {
-    groups.push({
-      section,
-      fields: detail.fields.filter((f) => f.sectionId === section.id),
-    });
-  }
-  return groups;
+  return detail.sections.map((section) => ({
+    section,
+    fields: detail.fields.filter((f) => f.sectionId === section.id),
+  }));
 }
 
 /** Question numbers across the whole form; text blocks are not numbered. */
@@ -139,7 +126,7 @@ const NEW_LABEL = 'Pertanyaan baru';
 export function defaultFieldInput(
   kind: FieldKind,
   formId: string,
-  sectionId: string | null,
+  sectionId: string,
 ): CreateFieldInput {
   const base = { formId, label: NEW_LABEL, required: false, sectionId };
   const options = [{ label: 'Pilihan 1' }, { label: 'Pilihan 2' }];
@@ -327,7 +314,7 @@ const COPY_SUFFIX = ' (salinan)';
 function copyInput(
   field: FieldOut,
   formId: string,
-  sectionId: string | null,
+  sectionId: string,
   label: string,
   keepImage = false,
 ): CreateFieldInput {
@@ -361,7 +348,7 @@ function copyInput(
 export function duplicateInput(
   field: FieldOut,
   formId: string,
-  sectionId: string | null,
+  sectionId: string,
 ): CreateFieldInput {
   const label = `${field.label.slice(0, 500 - COPY_SUFFIX.length)}${COPY_SUFFIX}`;
   return copyInput(field, formId, sectionId, label);
@@ -371,7 +358,7 @@ export function duplicateInput(
 export function recreateInput(
   field: FieldOut,
   formId: string,
-  sectionId: string | null,
+  sectionId: string,
 ): CreateFieldInput {
   return copyInput(field, formId, sectionId, field.label, true);
 }
@@ -409,7 +396,7 @@ export function planDrop(
   groups: ContentGroup[],
   activeId: string,
   overId: string,
-): { toSectionId: string | null; toIndex: number } | null {
+): { toSectionId: string; toIndex: number } | null {
   if (activeId === overId) return null;
   const locate = (id: string) => {
     for (const group of groups) {
@@ -423,15 +410,15 @@ export function planDrop(
 
   if (overId.startsWith('container:')) {
     const key = overId.slice('container:'.length);
-    const group = groups.find((g) => (g.section?.id ?? 'none') === key);
+    const group = groups.find((g) => g.section.id === key);
     if (!group) return null;
     const without = group.fields.filter((f) => f.id !== activeId).length;
-    return { toSectionId: group.section?.id ?? null, toIndex: without };
+    return { toSectionId: group.section.id, toIndex: without };
   }
 
   const over = locate(overId);
   if (!over) return null;
-  return { toSectionId: over.group.section?.id ?? null, toIndex: over.index };
+  return { toSectionId: over.group.section.id, toIndex: over.index };
 }
 
 // ---------------------------------------------------------------------------
@@ -544,7 +531,7 @@ export function conditionSources(
     if (
       before &&
       'sectionId' in before &&
-      group.section?.id === before.sectionId
+      group.section.id === before.sectionId
     ) {
       break;
     }

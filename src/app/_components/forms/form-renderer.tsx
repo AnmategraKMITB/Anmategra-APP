@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
@@ -411,7 +412,17 @@ export function FormRenderer({
             Ini hanya pratinjau, jadi jawaban tidak dikirim.
           </p>
         ) : null}
-        {filling ? null : (
+        {filling || editing ? (
+          <Link
+            href="/"
+            className={cn(
+              'mt-6 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold',
+              primary,
+            )}
+          >
+            Kembali ke beranda
+          </Link>
+        ) : (
           <Button className={cn('mt-6', primary)} onClick={restart}>
             Ulangi pratinjau
           </Button>

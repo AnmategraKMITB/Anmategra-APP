@@ -41,7 +41,7 @@ function without<T>(record: Record<string, T>, key: string): Record<string, T> {
 }
 
 export type SectionResolution =
-  | { type: 'move'; toSectionId: string | null }
+  | { type: 'move'; toSectionId: string }
   | { type: 'delete' };
 
 /**
@@ -258,12 +258,14 @@ export function useFormBuilder(formId: string) {
   const locate = (fieldId: string) => {
     for (const group of groups) {
       const index = group.fields.findIndex((f) => f.id === fieldId);
-      if (index >= 0) return { sectionId: group.section?.id ?? null, index };
+      if (index >= 0) return { sectionId: group.section.id, index };
     }
-    return { sectionId: null, index: 0 };
+    const fallback = detail?.sections[0]?.id;
+    if (!fallback) throw new Error('Formulir belum punya bagian.');
+    return { sectionId: fallback, index: 0 };
   };
 
-  async function addField(kind: FieldKind, sectionId: string | null) {
+  async function addField(kind: FieldKind, sectionId: string) {
     const base = defaultFieldInput(kind, formId, sectionId);
     // "Pertanyaan baru wajib diisi" di pengaturan berlaku untuk jenis yang bisa dijawab.
     const input =
@@ -292,6 +294,26 @@ export function useFormBuilder(formId: string) {
       },
     });
     return created.id;
+  }
+
+
+  /** Ganti jenis pertanyaan dari kartunya; isi teks dan pengaturan dasar dipertahankan. */
+  async function changeFieldType(field: FieldOut, kind: FieldKind) {
+    await flushAll();
+    const base = defaultFieldInput(kind, formId, field.sectionId);
+    const { sectionId: _sectionId, ...rest } = base;
+    void _sectionId;
+    await run(() =>
+      updateField.mutateAsync({
+        ...rest,
+        fieldId: field.id,
+        label: field.label,
+        description: field.description ?? undefined,
+        required: field.required,
+        ...(field.condition ? { condition: field.condition } : {}),
+        ...(field.image ? { image: field.image } : {}),
+      }),
+    );
   }
 
   async function duplicateField(field: FieldOut) {
@@ -384,11 +406,7 @@ export function useFormBuilder(formId: string) {
     });
   }
 
-  async function move(
-    fieldId: string,
-    toSectionId: string | null,
-    toIndex: number,
-  ) {
+  async function move(fieldId: string, toSectionId: string, toIndex: number) {
     await flushAll();
     const from = locate(fieldId);
     const done = await run(
@@ -519,7 +537,7 @@ export function useFormBuilder(formId: string) {
   ) {
     await flushAll();
     const members =
-      groups.find((g) => g.section?.id === section.id)?.fields ?? [];
+      groups.find((g) => g.section.id === section.id)?.fields ?? [];
     const result = await run(async () => {
       if (members.length > 0) {
         if (!resolution)
@@ -528,7 +546,7 @@ export function useFormBuilder(formId: string) {
           );
         if (resolution.type === 'move') {
           const target = groups.find(
-            (g) => (g.section?.id ?? null) === resolution.toSectionId,
+            (g) => g.section.id === resolution.toSectionId,
           );
           let index = target?.fields.length ?? 0;
           for (const field of members) {
@@ -695,6 +713,7 @@ export function useFormBuilder(formId: string) {
     edit,
     flushAll,
     addField,
+    changeFieldType,
     duplicateField,
     removeField,
     move,

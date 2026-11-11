@@ -110,6 +110,7 @@ export function toFormOutput(row: FormRow): FormOutput {
     lembagaId: row.lembagaId,
     eventId: row.eventId,
     title: row.title,
+    slug: row.slug,
     description: row.description,
     status: row.status,
     closesAt: row.closesAt,

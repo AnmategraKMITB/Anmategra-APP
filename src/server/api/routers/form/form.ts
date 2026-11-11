@@ -10,9 +10,11 @@ import {
   type FormStatus,
   form,
   formField,
+  formSection,
   formSubmission,
 } from '~/server/db/schema';
 import { deleteUploadedFiles, keyFromUploadUrl } from '~/server/uploads';
+import { isReservedFormSlug } from '~/lib/forms/slug';
 
 import {
   CreateFormForEventInputSchema,
@@ -108,20 +110,28 @@ export const formFormRouter = createTRPCRouter({
         const allowMultiple = input.allowMultipleSubmissions ?? false;
         const allowEdit = input.allowEditAfterSubmit ?? false;
         assertResponseMode(allowMultiple, allowEdit);
-        const [row] = await ctx.db
-          .insert(form)
-          .values({
-            lembagaId: ctx.lembagaId,
-            title: input.title,
-            description: input.description ?? null,
-            closesAt: input.closesAt ?? null,
-            allowMultipleSubmissions: allowMultiple,
-            allowEditAfterSubmit: allowEdit,
-            maxResponses: input.maxResponses ?? null,
-            createdBy: ctx.session.user.id,
-          })
-          .returning();
-        return toFormOutput(row!);
+        const row = await ctx.db.transaction(async (tx) => {
+          const [created] = await tx
+            .insert(form)
+            .values({
+              lembagaId: ctx.lembagaId,
+              title: input.title,
+              description: input.description ?? null,
+              closesAt: input.closesAt ?? null,
+              allowMultipleSubmissions: allowMultiple,
+              allowEditAfterSubmit: allowEdit,
+              maxResponses: input.maxResponses ?? null,
+              createdBy: ctx.session.user.id,
+            })
+            .returning();
+          await tx.insert(formSection).values({
+            formId: created!.id,
+            title: 'Bagian 1',
+            sortOrder: 0,
+          });
+          return created!;
+        });
+        return toFormOutput(row);
       } catch (error) {
         rethrow(error, 'Gagal membuat formulir.');
       }
@@ -135,20 +145,28 @@ export const formFormRouter = createTRPCRouter({
         const allowMultiple = input.allowMultipleSubmissions ?? false;
         const allowEdit = input.allowEditAfterSubmit ?? false;
         assertResponseMode(allowMultiple, allowEdit);
-        const [row] = await ctx.db
-          .insert(form)
-          .values({
-            eventId: ctx.eventId,
-            title: input.title,
-            description: input.description ?? null,
-            closesAt: input.closesAt ?? null,
-            allowMultipleSubmissions: allowMultiple,
-            allowEditAfterSubmit: allowEdit,
-            maxResponses: input.maxResponses ?? null,
-            createdBy: ctx.session.user.id,
-          })
-          .returning();
-        return toFormOutput(row!);
+        const row = await ctx.db.transaction(async (tx) => {
+          const [created] = await tx
+            .insert(form)
+            .values({
+              eventId: ctx.eventId,
+              title: input.title,
+              description: input.description ?? null,
+              closesAt: input.closesAt ?? null,
+              allowMultipleSubmissions: allowMultiple,
+              allowEditAfterSubmit: allowEdit,
+              maxResponses: input.maxResponses ?? null,
+              createdBy: ctx.session.user.id,
+            })
+            .returning();
+          await tx.insert(formSection).values({
+            formId: created!.id,
+            title: 'Bagian 1',
+            sortOrder: 0,
+          });
+          return created!;
+        });
+        return toFormOutput(row);
       } catch (error) {
         rethrow(error, 'Gagal membuat formulir.');
       }
@@ -268,6 +286,26 @@ export const formFormRouter = createTRPCRouter({
             }
           }
 
+          if (input.slug) {
+            if (isReservedFormSlug(input.slug)) {
+              throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: 'Slug tersebut dipakai oleh jalur lain. Pilih slug lain.',
+              });
+            }
+            const [clash] = await tx
+              .select({ id: form.id })
+              .from(form)
+              .where(eq(form.slug, input.slug))
+              .limit(1);
+            if (clash && clash.id !== current.id) {
+              throw new TRPCError({
+                code: 'CONFLICT',
+                message: 'Slug sudah dipakai formulir lain.',
+              });
+            }
+          }
+
           const [updated] = await tx
             .update(form)
             .set({
@@ -285,6 +323,7 @@ export const formFormRouter = createTRPCRouter({
               ...(input.maxResponses !== undefined && {
                 maxResponses: input.maxResponses,
               }),
+              ...(input.slug !== undefined && { slug: input.slug }),
               // Each JSON block is replaced as a whole, not merged.
               ...(input.settings !== undefined && { settings: input.settings }),
               ...(input.theme !== undefined && { theme: input.theme }),

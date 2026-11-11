@@ -351,6 +351,13 @@
       "when": 1794302921931,
       "tag": "0049_fat_argent",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1794370187945,
+      "tag": "0050_tough_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

@@ -43,7 +43,7 @@ function FieldItem({
   onNavigate,
 }: {
   field: FieldOut;
-  sectionId: string | null;
+  sectionId: string;
   index: number;
   size: number;
   onNavigate?: () => void;
