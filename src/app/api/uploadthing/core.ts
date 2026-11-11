@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { type FileRouter, createUploadthing } from 'uploadthing/next';
-import { UTFiles, UploadThingError } from 'uploadthing/server';
+import { UploadThingError } from 'uploadthing/server';
 import { z } from 'zod';
 import { loadManagedForm } from '~/app/_components/forms/access';
 import { getServerAuthSession } from '~/server/auth';
@@ -53,34 +53,24 @@ export const ourFileRouter = {
     'image/webp': { maxFileSize: '4MB', maxFileCount: 1 },
   })
     .input(z.object({ formId: z.string().min(1).max(255) }))
-    .middleware(async ({ input, files }) => {
+    .middleware(async ({ input }) => {
       const managed = await loadManagedForm(input.formId);
       if (!managed) {
         throw new UploadThingError(
           'Kamu tidak boleh mengunggah gambar untuk form ini.',
         ) as Error;
       }
-      // `customId` ikut tersimpan di UploadThing, jadi berkas ini juga ditandai
-      // dengan form pemiliknya di sisi penyimpanan, bukan hanya di database.
-      return {
-        formId: input.formId,
-        [UTFiles]: files.map((file) => ({
-          ...file,
-          customId: input.formId,
-        })),
-      };
+      // Jangan set `customId` ke formId: UploadThing mewajibkan customId unik
+      // per file, sehingga gambar kedua untuk form yang sama ditolak 409.
+      // Kepemilikan tetap dicatat di tabel `formImage` lewat onUploadComplete.
+      return { formId: input.formId };
     })
     .onUploadComplete(async ({ file, metadata }) => {
       // Catat kepemilikan sebelum klien menyimpan URL-nya. Hanya kunci yang
       // tercatat di sini yang boleh dipakai atau dihapus lewat endpoint form.
       // Jangan telan galat: tanpa baris ini gambar tidak akan bisa disimpan,
       // jadi lebih baik unggahan dilaporkan gagal sekarang.
-      const formId = file.customId ?? metadata.formId;
-      if (formId !== metadata.formId) {
-        throw new UploadThingError(
-          'Berkas tidak cocok dengan formulir tujuan.',
-        ) as Error;
-      }
+      const formId = metadata.formId;
       await db
         .insert(formImage)
         .values({
@@ -119,7 +109,7 @@ export const ourFileRouter = {
     },
   )
     .input(z.object({ formId: z.string().min(1).max(255) }))
-    .middleware(async ({ input, files }) => {
+    .middleware(async ({ input }) => {
       const session = await getServerAuthSession();
       if (!session) {
         throw new UploadThingError('Harus login untuk mengunggah berkas.') as Error;
@@ -131,10 +121,11 @@ export const ourFileRouter = {
       if (!isAcceptingResponses(row)) {
         throw new UploadThingError('Formulir sudah tidak menerima jawaban.') as Error;
       }
+      // Sama seperti formImage: customId harus unik per file. Memakai formId
+      // membuat unggahan kedua untuk form yang sama ditolak 409.
       return {
         formId: input.formId,
         userId: session.user.id,
-        [UTFiles]: files.map((file) => ({ ...file, customId: input.formId })),
       };
     })
     .onUploadComplete(async ({ file }) => {
