@@ -146,3 +146,33 @@ Langkah:
    pesan ada di log k6).
 
 4. Bersihkan respons uji lewat halaman Respons form (atau hapus form uji) setelah selesai.
+
+## Mendeteksi leher botol satu proses Node
+
+Aplikasi mencatat `[PERF] event-loop p99=…ms max=…ms cpu=…% -> …` ke log container saat event loop
+lambat (p99 > 100 ms) atau CPU proses > 85% (`src/instrumentation.ts`). Selama load test, buka log
+app di Dokploy atau jalankan:
+
+```bash
+docker service logs -f --since 1m <nama-service-app> 2>&1 | grep PERF
+```
+
+Cara membaca:
+
+| Baris log | Artinya |
+|---|---|
+| `thread utama jenuh` (p99 tinggi, cpu ≥ 85%) | Satu proses Node jenuh: tambah replika. |
+| `beban di thread lain` (cpu > 100%, p99 rendah) | Kerja berat ada di thread lain, mis. resize gambar (sharp). |
+| `event loop terblokir` (p99 tinggi, cpu rendah) | Ada tugas sinkron/GC panjang, bukan CPU murni. |
+| tidak ada baris PERF, tetapi latensi tinggi | Leher botol di luar Node (database, jaringan, proxy). |
+
+`PERF_MONITOR=1` mencatat tiap interval (default 10 dtk, `PERF_MONITOR_INTERVAL_MS`) walau belum
+melewati ambang.
+
+Pemeriksaan manual per thread, di server saat test berjalan (satu thread ~100% sementara yang lain
+rendah = terikat satu thread):
+
+```bash
+docker top <container-app> -eo pid,comm | grep -i next
+top -H -b -n 1 -p <pid-dari-atas> | head -15
+```

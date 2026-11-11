@@ -263,7 +263,7 @@ function openAndFillForm(session) {
   let mine = null;
 
   group('buka form', () => {
-    loadPage(session, `/mahasiswa/forms/${formId}`, 'page /mahasiswa/forms/[id]');
+    loadPage(session, `/forms/${formId}`, 'page /forms/[id]');
     const res = trpcQuery(session, [
       me,
       ['form.getPublic', { formId }],
