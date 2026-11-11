@@ -1,16 +1,9 @@
 import { create } from 'domain';
-import { type InferSelectModel, desc } from 'drizzle-orm';
+import { desc } from 'drizzle-orm';
 import { stat } from 'fs';
 import { z } from 'zod';
-import {
-  type mahasiswa,
-  supportStatusEnum,
-  supportUrgentEnum,
-  type users,
-} from '~/server/db/schema';
-
-type User = InferSelectModel<typeof users>;
-type Mahasiswa = InferSelectModel<typeof mahasiswa>;
+import { supportStatusEnum, supportUrgentEnum } from '~/server/db/schema';
+import { MahasiswaProfileSchema } from './mahasiswa-profile.type';
 
 export const GetTambahAnggotaLembagaOptionsInputSchema = z.object({
   lembagaId: z.string(),
@@ -138,10 +131,7 @@ export const GetMahasiswaByNimInputSchema = z.object({
 });
 
 export const GetMahasiswaOutputSchema = z.object({
-  mahasiswaData: z.object({
-    mahasiswa: z.custom<Mahasiswa>(),
-    user: z.custom<User>(),
-  }),
+  mahasiswaData: MahasiswaProfileSchema,
 });
 
 export const SearchMahasiswaInputSchema = z.object({
