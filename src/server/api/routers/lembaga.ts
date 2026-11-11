@@ -16,6 +16,7 @@ import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-keg
 import {
   createTRPCRouter,
   lembagaProcedure,
+  lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
 import { type Prodi } from '~/server/auth';
@@ -83,6 +84,7 @@ import {
   GetLembagaEventsOutputSchema,
   GetLembagaHighlightedEventInputSchema,
   GetLembagaHighlightedEventOutputSchema,
+  GetPosisiBidangOptionsInputSchema,
   GetPosisiBidangOptionsOutputSchema,
   RemoveAnggotaLembagaInputSchema,
   RemoveAnggotaLembagaOutputSchema,
@@ -430,14 +432,14 @@ export const lembagaRouter = createTRPCRouter({
     }),
 
   // Add new anggota to lembaga
-  addAnggota: lembagaProcedure
+  addAnggota: lembagaScopedProcedure
     .input(AddAnggotaLembagaInputSchema)
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         const added = await ctx.db.transaction((tx) =>
           addLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: input.user_id,
             division: input.division ?? '',
             position: input.position ?? '',
@@ -471,7 +473,7 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  addAnggotaManual: lembagaProcedure
+  addAnggotaManual: lembagaScopedProcedure
     .input(AddAnggotaManualLembagaInputSchema)
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -494,7 +496,7 @@ export const lembagaRouter = createTRPCRouter({
           // User exists, just add them to the lembaga
           const added = await ctx.db.transaction((tx) =>
             addLembagaMember(tx, {
-              lembagaId: ctx.session.user.lembagaId!,
+              lembagaId: ctx.lembagaId,
               userId: existingUser.id,
               division: input.division ?? '',
               position: input.position ?? '',
@@ -538,7 +540,7 @@ export const lembagaRouter = createTRPCRouter({
           });
 
           await addLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: user[0]!.id,
             division: input.division ?? '',
             position: input.position ?? '',
@@ -568,13 +570,13 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  removeAnggota: lembagaProcedure
+  removeAnggota: lembagaScopedProcedure
     .input(RemoveAnggotaLembagaInputSchema)
     .output(RemoveAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const existingKehimpunan = await lembagaMemberOf(
         ctx.db,
-        ctx.session.user.lembagaId!,
+        ctx.lembagaId,
         input.user_id,
       );
 
@@ -586,14 +588,14 @@ export const lembagaRouter = createTRPCRouter({
       }
 
       const lembagaRow = await ctx.db.query.lembaga.findFirst({
-        where: eq(lembaga.id, ctx.session.user.lembagaId!),
+        where: eq(lembaga.id, ctx.lembagaId),
         columns: { id: true, name: true, type: true },
       });
 
       await ctx.db.transaction(async (tx) => {
         await tx.insert(riwayatOrganisasi).values({
           userId: existingKehimpunan.userId,
-          lembagaId: ctx.session.user.lembagaId!,
+          lembagaId: ctx.lembagaId,
           lembagaNama: lembagaRow?.name ?? 'Lembaga',
           lembagaTipe: lembagaRow?.type ?? null,
           division: existingKehimpunan.division,
@@ -603,7 +605,7 @@ export const lembagaRouter = createTRPCRouter({
           endReason: 'removed',
         });
 
-        await removeLembagaMember(tx, ctx.session.user.lembagaId!, input.user_id);
+        await removeLembagaMember(tx, ctx.lembagaId, input.user_id);
       });
 
       return {
@@ -611,14 +613,14 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  editAnggota: lembagaProcedure
+  editAnggota: lembagaScopedProcedure
     .input(editAnggotaLembagaInputSchema)
     .output(editAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         const updated = await ctx.db.transaction((tx) =>
           editLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: input.user_id,
             division: input.division ?? '',
             position: input.position ?? '',
@@ -1558,12 +1560,13 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  getPosisiBidangOptions: lembagaProcedure
+  getPosisiBidangOptions: lembagaScopedProcedure
+    .input(GetPosisiBidangOptionsInputSchema)
     .output(GetPosisiBidangOptionsOutputSchema)
     .query(async ({ ctx }) => {
       const options = await periodTextOptions(
         ctx.db,
-        await currentLembagaPeriodId(ctx.db, ctx.session.user.lembagaId!),
+        await currentLembagaPeriodId(ctx.db, ctx.lembagaId),
       );
       const posisi_list = options.positions.map((position) => ({
         value: position,
@@ -1604,20 +1607,12 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  reorderAnggotaLembaga: lembagaProcedure
+  reorderAnggotaLembaga: lembagaScopedProcedure
     .input(ReorderAnggotaLembagaInputSchema)
     .output(ReorderAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        if (ctx.session.user.lembagaId !== input.lembaga_id) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message:
-              'Anda tidak memiliki izin untuk mengubah urutan anggota lembaga ini',
-          });
-        }
-
-        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+        const members = await lembagaMembersSq(ctx.db, input.lembagaId);
         const [totalAnggotaResult] = await ctx.db
           .select({ count: count() })
           .from(members);
@@ -1633,7 +1628,7 @@ export const lembagaRouter = createTRPCRouter({
 
         const periodId = await currentLembagaPeriodId(
           ctx.db,
-          input.lembaga_id,
+          input.lembagaId,
         );
         if (periodId) {
           await ctx.db.transaction((tx) =>
