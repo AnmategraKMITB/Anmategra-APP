@@ -1,9 +1,10 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
   createTRPCRouter,
-  lembagaProcedure,
+  lembagaScopedProcedure,
   publicProcedure,
 } from '~/server/api/trpc';
 
@@ -63,19 +64,19 @@ export const kegiatanRouter = createTRPCRouter({
 
   // lembaga procedure
   // Tanpa `kind`: semua periode lembaga (dipakai pemilih periode organogram).
-  getAllByLembaga: lembagaProcedure
+  getAllByLembaga: lembagaScopedProcedure
     .input(
-      z
-        .object({ kind: z.enum(['kegiatan', 'kepengurusan']).optional() })
-        .optional(),
+      LembagaScopeInput.extend({
+        kind: z.enum(['kegiatan', 'kepengurusan']).optional(),
+      }),
     )
     .output(GetAllKegiatanByLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findMany({
         where: (events, { and, eq }) =>
           and(
-            eq(events.org_id, ctx.session.user.lembagaId!),
-            input?.kind ? eq(events.kind, input.kind) : undefined,
+            eq(events.org_id, ctx.lembagaId),
+            input.kind ? eq(events.kind, input.kind) : undefined,
           ),
         orderBy: (events, { desc }) => [
           desc(events.is_highlighted),
@@ -88,8 +89,8 @@ export const kegiatanRouter = createTRPCRouter({
       return kegiatan;
     }),
 
-  getPosisiBidangOptions: lembagaProcedure
-    .input(EventIdSchema)
+  getPosisiBidangOptions: lembagaScopedProcedure
+    .input(EventIdSchema.and(LembagaScopeInput))
     .output(GetPosisiBidangOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findFirst({
@@ -104,7 +105,7 @@ export const kegiatanRouter = createTRPCRouter({
         });
       }
 
-      if (kegiatan.org_id !== ctx.session.user.lembagaId) {
+      if (kegiatan.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 

@@ -1,8 +1,8 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { and, eq, inArray } from 'drizzle-orm';
 import {
-  createTRPCRouter,
-  lembagaProcedure,
+  createTRPCRouter,
   lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
@@ -36,8 +36,8 @@ import {
 } from '../types/rapor.type';
 
 export const raporRouter = createTRPCRouter({
-  getAllNilaiProfilKegiatan: lembagaProcedure
-    .input(GetAllNilaiProfilKegiatanInputSchema)
+  getAllNilaiProfilKegiatan: lembagaScopedProcedure
+    .input(GetAllNilaiProfilKegiatanInputSchema.and(LembagaScopeInput))
     .output(GetAllNilaiProfilKegiatanOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
@@ -46,7 +46,7 @@ export const raporRouter = createTRPCRouter({
           columns: { org_id: true },
         });
 
-        if (!event || event.org_id !== ctx.session.user.lembagaId) {
+        if (!event || event.org_id !== ctx.lembagaId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Access denied to this event.',
@@ -124,8 +124,8 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  getNilaiKegiatanIndividu: lembagaProcedure
-    .input(GetNilaiKegiatanIndividuInputSchema)
+  getNilaiKegiatanIndividu: lembagaScopedProcedure
+    .input(GetNilaiKegiatanIndividuInputSchema.and(LembagaScopeInput))
     .output(GetNilaiKegiatanIndividuOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
@@ -143,7 +143,7 @@ export const raporRouter = createTRPCRouter({
 
         if (
           !event.rapor_visible &&
-          event.org_id !== ctx.session.user.lembagaId
+          event.org_id !== ctx.lembagaId
         ) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -223,13 +223,13 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  upsertNilaiMahasiswaKegiatan: lembagaProcedure
-    .input(UpsertNilaiMahasiswaKegiatanInputSchema)
+  upsertNilaiMahasiswaKegiatan: lembagaScopedProcedure
+    .input(UpsertNilaiMahasiswaKegiatanInputSchema.and(LembagaScopeInput))
     .output(UpsertNilaiMahasiswaKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.db.transaction(async (tx) => {
-          const lembagaId: string = ctx.session.user.lembagaId!;
+          const lembagaId: string = ctx.lembagaId;
           const { event_id } = input;
 
           const eventValid = await tx.query.events.findFirst({

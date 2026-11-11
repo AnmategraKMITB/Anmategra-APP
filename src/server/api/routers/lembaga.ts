@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import {
   type SQL,
   and,
@@ -15,7 +16,6 @@ import { type z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
   createTRPCRouter,
-  lembagaProcedure,
   lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
@@ -1634,8 +1634,8 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  reorderAnggotaKegiatan: lembagaProcedure
-    .input(ReorderAnggotaKegiatanInputSchema)
+  reorderAnggotaKegiatan: lembagaScopedProcedure
+    .input(ReorderAnggotaKegiatanInputSchema.and(LembagaScopeInput))
     .output(ReorderAnggotaKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const event = await ctx.db.query.events.findFirst({
@@ -1649,7 +1649,7 @@ export const lembagaRouter = createTRPCRouter({
           message: 'Kegiatan tidak ditemukan',
         });
       }
-      if (event.org_id !== ctx.session.user.lembagaId) {
+      if (event.org_id !== ctx.lembagaId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message:
