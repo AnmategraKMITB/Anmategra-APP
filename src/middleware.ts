@@ -24,7 +24,9 @@ const PUBLIC_ROUTES = [
 ];
 // Authenticated-only routes shared by all roles. These stay unprefixed so the
 // same documentation URL works for lembaga, mahasiswa, and admin users.
-const AUTHENTICATED_SHARED_ROUTES = ['/manual'];
+// `/manage` memuat alat pengelola (kegiatan, oprec, forms); aksesnya ditentukan
+// per halaman lewat canManageLembaga/canManageEvent, bukan oleh role akun.
+const AUTHENTICATED_SHARED_ROUTES = ['/manual', '/manage'];
 
 export default async function middleware(req: NextRequest) {
   // Skip static files and API routes
