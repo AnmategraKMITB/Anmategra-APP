@@ -333,6 +333,8 @@ export const events = createTable(
     ...timestamps,
   },
   (table) => ({
+    // Query "kegiatan milik lembaga" dipakai di hampir semua halaman lembaga.
+    orgIdIdx: index('event_org_id_idx').on(table.org_id),
     uniqueHighlightedPerOrg: uniqueIndex('lembaga_period_highlighted_unique')
       .on(table.org_id)
       .where(sql`${table.is_highlighted} = true`),

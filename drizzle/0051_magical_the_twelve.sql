@@ -1,0 +1,1 @@
+CREATE INDEX "event_org_id_idx" ON "anmategra_lembaga_period" USING btree ("lembaga_id");
