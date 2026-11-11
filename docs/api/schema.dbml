@@ -181,6 +181,7 @@ table anmategra_event {
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
+    org_id [name: 'event_org_id_idx']
     org_id [name: 'event_org_highlighted_unique', unique]
   }
   Note: "Kegiatan/acara yang diselenggarakan oleh sebuah lembaga."

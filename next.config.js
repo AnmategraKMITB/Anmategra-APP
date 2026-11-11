@@ -15,6 +15,13 @@ const config = {
     optimizeCss: true,
   },
   images: {
+    // Default-nya 60 dtk: tiap menit varian gambar kedaluwarsa dan di-resize
+    // ulang oleh proses Node (CPU). Gambar upload punya URL unik per file,
+    // jadi aman di-cache lama.
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    // Kurangi jumlah varian lebar yang mungkin diminta browser.
+    deviceSizes: [640, 828, 1080, 1280, 1920],
+    imageSizes: [32, 64, 128, 256],
     domains: ['lh3.googleusercontent.com', 'utfs.uploadthing.com'],
     remotePatterns: [
       {
