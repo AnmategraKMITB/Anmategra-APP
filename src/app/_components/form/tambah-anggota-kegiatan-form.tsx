@@ -55,8 +55,11 @@ const TambahAnggotaKegiatanForm = ({
   data,
   setIsOpen,
   pathname,
+  lembagaId,
 }: {
   session: Session | null;
+  /** Lembaga yang dikelola. */
+  lembagaId: string;
   data: {
     mahasiswa: comboboxDataType[];
     posisi: comboboxDataType[];
@@ -99,6 +102,7 @@ const TambahAnggotaKegiatanForm = ({
   const onSubmit = (values: AnggotaSchemaType) => {
     const query = {
       ...values,
+      lembagaId,
       event_id: kegiatanId ?? '',
     };
     setIsOpen(false);

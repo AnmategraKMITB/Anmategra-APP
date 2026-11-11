@@ -226,6 +226,7 @@ const TambahEditAnggotaForm = ({
       if (isKegiatan && eventId) {
         editEventMutation.mutate(
           {
+            lembagaId: activeLembagaId ?? '',
             user_id: values.user_id,
             event_id: eventId,
             position: values.position,
@@ -256,6 +257,7 @@ const TambahEditAnggotaForm = ({
       if (isKegiatan) {
         if (manualMode) {
           const addManualQuery = {
+            lembagaId: activeLembagaId ?? '',
             event_id: eventQuery.event_id,
             name: eventQuery.user_id, // In manual mode, user_id field contains the name :)
             nim: eventQuery.nim,
@@ -264,7 +266,10 @@ const TambahEditAnggotaForm = ({
           };
           addManualEventMutation.mutate(addManualQuery);
         } else {
-          eventMutation.mutate(eventQuery);
+          eventMutation.mutate({
+            ...eventQuery,
+            lembagaId: activeLembagaId ?? '',
+          });
         }
       } else {
         if (manualMode) {

@@ -55,7 +55,7 @@ export default function RaporTable({
   session,
   event_id,
   lembaga_id,
-  profilHref = '/profil',
+  profilHref,
   selectOptions,
   type,
 }: TableProps) {
@@ -63,8 +63,8 @@ export default function RaporTable({
 
   // API Queries
   const eventQuery = api.rapor.getAllNilaiProfilKegiatan.useQuery(
-    { event_id: event_id! },
-    { enabled: type === 'event' && !!event_id },
+    { lembagaId: lembaga_id!, event_id: event_id! },
+    { enabled: type === 'event' && !!event_id && !!lembaga_id },
   );
 
   const lembagaQuery = api.rapor.getAllNilaiProfilLembaga.useQuery(
@@ -390,6 +390,7 @@ export default function RaporTable({
     } else {
       createKegiatanProfilMutation.mutate(
         {
+          lembagaId: lembaga_id!,
           event_id: event_id!,
           name: profil,
           description: deskripsi,
@@ -563,7 +564,11 @@ export default function RaporTable({
 
     if (type === 'event') {
       eventUpsertMutation.mutate(
-        { event_id: event_id!, mahasiswa: changedMahasiswa },
+        {
+          lembagaId: lembaga_id!,
+          event_id: event_id!,
+          mahasiswa: changedMahasiswa,
+        },
         {
           onSuccess: () => {
             toast({
@@ -653,7 +658,9 @@ export default function RaporTable({
   };
 
   const linkHref =
-    type === 'event' ? `/kegiatan/${event_id}/profil` : profilHref;
+    type === 'event'
+      ? (profilHref ?? `/kegiatan/${event_id}/profil`)
+      : (profilHref ?? '/profil');
 
   return (
     <>

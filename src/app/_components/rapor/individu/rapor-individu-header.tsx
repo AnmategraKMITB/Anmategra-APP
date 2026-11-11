@@ -23,6 +23,8 @@ export type HeaderDataProps = {
   dataNilaiProfil: NilaiKegiatanOutput | null;
   id: string;
   isLembaga?: boolean;
+  /** Lembaga yang dikelola; wajib untuk rapor kegiatan. */
+  lembagaId?: string;
   canEdit?: boolean;
 };
 
@@ -30,6 +32,7 @@ export default function RaporIndividuHeader({
   dataNilaiProfil,
   id,
   isLembaga,
+  lembagaId,
   canEdit = true,
 }: HeaderDataProps) {
   const [nilaiProfilData, setNilaiProfilData] = useState<Profile[]>(
@@ -62,6 +65,7 @@ export default function RaporIndividuHeader({
       upsertMutationLembaga.mutate(upsertData);
     } else {
       const upsertData = {
+        lembagaId: lembagaId ?? '',
         event_id: id ?? '',
         mahasiswa: [
           {
@@ -72,7 +76,9 @@ export default function RaporIndividuHeader({
             })),
           },
         ],
-      } satisfies z.infer<typeof UpsertNilaiMahasiswaKegiatanInputSchema>;
+      } satisfies z.infer<typeof UpsertNilaiMahasiswaKegiatanInputSchema> & {
+        lembagaId: string;
+      };
       upsertMutationKegiatan.mutate(upsertData);
     }
   };
