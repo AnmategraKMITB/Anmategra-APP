@@ -29,6 +29,8 @@
     "lint:fix": "eslint . --fix",
     "lint:prune": "eslint . --prune-suppressions",
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "start": "next start",
     "prepare": "husky"
   },
@@ -117,7 +119,8 @@
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.5",
     "typescript": "^5.5.3",
-    "typescript-eslint": "^8.52.0"
+    "typescript-eslint": "^8.52.0",
+    "vitest": "^3.2.7"
   },
   "ct3aMetadata": {
     "initVersion": "7.37.0"

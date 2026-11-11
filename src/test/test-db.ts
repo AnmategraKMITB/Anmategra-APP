@@ -1,0 +1,132 @@
+import { sql } from 'drizzle-orm';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
+
+import * as schema from '~/server/db/schema';
+
+export const TEST_DATABASE_URL =
+  process.env.TEST_DATABASE_URL ??
+  'postgresql://postgres:password@localhost:5432/anmategra_test';
+
+/**
+ * Tes mengosongkan tabel sebelum tiap kasus. Karena itu nama database wajib
+ * memuat "test", supaya `TEST_DATABASE_URL` yang salah diisi dengan database
+ * pengembangan atau produksi ditolak sebelum ada data yang terhapus.
+ */
+export function assertTestDatabaseName(url: string): string {
+  const name = decodeURIComponent(new URL(url).pathname.slice(1));
+  if (!/^[a-z0-9_]*test[a-z0-9_]*$/i.test(name)) {
+    throw new Error(
+      `TEST_DATABASE_URL harus menunjuk database yang namanya memuat "test" (ditemukan "${name}").`,
+    );
+  }
+  return name;
+}
+
+export type TestDb = ReturnType<typeof createTestDb>['db'];
+
+/** Membisukan NOTICE PostgreSQL (mis. nama constraint dipotong) agar keluaran tes tetap bersih. */
+export const silentNotice = () => undefined;
+
+export function createTestDb() {
+  assertTestDatabaseName(TEST_DATABASE_URL);
+  const client = postgres(TEST_DATABASE_URL, {
+    max: 1,
+    onnotice: silentNotice,
+  });
+  const db = drizzle(client, { schema });
+  return { db, close: () => client.end() };
+}
+
+/** Mengosongkan semua tabel yang bergantung pada `users` (termasuk lembaga dan kegiatan). */
+export async function resetDb(db: TestDb) {
+  await db.execute(sql`TRUNCATE TABLE ${schema.users} CASCADE`);
+}
+
+// ---------------------------------------------------------------------------
+// Pabrik data. Semua bernilai bawaan yang valid; timpa seperlunya.
+// ---------------------------------------------------------------------------
+
+export async function createUser(
+  db: TestDb,
+  over: Partial<typeof schema.users.$inferInsert> = {},
+) {
+  const [row] = await db
+    .insert(schema.users)
+    .values({
+      email: `${crypto.randomUUID()}@test.local`,
+      role: 'mahasiswa',
+      ...over,
+    })
+    .returning();
+  return row!;
+}
+
+export async function createLembaga(
+  db: TestDb,
+  ownerId: string,
+  over: Partial<typeof schema.lembaga.$inferInsert> = {},
+) {
+  const [row] = await db
+    .insert(schema.lembaga)
+    .values({ userId: ownerId, name: 'Lembaga Uji', ...over })
+    .returning();
+  return row!;
+}
+
+export async function createEvent(
+  db: TestDb,
+  orgId: string | null,
+  over: Partial<typeof schema.events.$inferInsert> = {},
+) {
+  const [row] = await db
+    .insert(schema.events)
+    .values({
+      id: crypto.randomUUID(),
+      org_id: orgId,
+      name: 'Kegiatan Uji',
+      start_date: new Date('2026-01-01T00:00:00Z'),
+      status: 'On going',
+      ...over,
+    })
+    .returning();
+  return row!;
+}
+
+export async function grantAccess(
+  db: TestDb,
+  grant: {
+    userId: string;
+    lembagaId?: string;
+    periodId?: string;
+    features?: string[];
+    propagate?: boolean;
+    status?: 'active' | 'revoked';
+  },
+) {
+  const [row] = await db
+    .insert(schema.accessGrant)
+    .values({
+      userId: grant.userId,
+      lembagaId: grant.lembagaId ?? null,
+      periodId: grant.periodId ?? null,
+      features: grant.features ?? ['admin'],
+      propagate: grant.propagate ?? false,
+      status: grant.status ?? 'active',
+    })
+    .returning();
+  return row!;
+}
+
+export async function createOperator(
+  db: TestDb,
+  userId: string,
+  permissions: string[],
+  over: Partial<typeof schema.adminPermission.$inferInsert> = {},
+) {
+  const [row] = await db
+    .insert(schema.adminPermission)
+    .values({ userId, permissions, ...over })
+    .returning();
+  return row!;
+}
