@@ -41928,6 +41928,14 @@
                           "anyone",
                           "organization"
                         ]
+                      },
+                      "provider": {
+                        "type": "string",
+                        "enum": [
+                          "uploadthing",
+                          "google-drive",
+                          "onedrive"
+                        ]
                       }
                     },
                     "required": [
@@ -45810,6 +45818,14 @@
                               "anyone",
                               "organization"
                             ]
+                          },
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "uploadthing",
+                              "google-drive",
+                              "onedrive"
+                            ]
                           }
                         },
                         "required": [
@@ -46329,6 +46345,14 @@
                             "enum": [
                               "anyone",
                               "organization"
+                            ]
+                          },
+                          "provider": {
+                            "type": "string",
+                            "enum": [
+                              "uploadthing",
+                              "google-drive",
+                              "onedrive"
                             ]
                           }
                         },

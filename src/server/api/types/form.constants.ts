@@ -66,7 +66,7 @@ export const FILE_PRESET_KEYS = ['pdf', 'office', 'zip'] as const;
 export const FILE_MAX_FILES = 5;
 export const FILE_MAX_SIZE_MB = 16;
 
-/** Tautan berkas hanya boleh mengarah ke OneDrive/SharePoint ITB atau Microsoft. */
+/** Tautan berkas boleh dari OneDrive/SharePoint (data lama) atau UploadThing. */
 export function isAllowedFileHost(value: string): boolean {
   try {
     const url = new URL(value);
@@ -75,7 +75,11 @@ export function isAllowedFileHost(value: string): boolean {
     return (
       host.endsWith('.sharepoint.com') ||
       host === '1drv.ms' ||
-      host === 'onedrive.live.com'
+      host === 'onedrive.live.com' ||
+      host === 'utfs.io' ||
+      host.endsWith('.ufs.sh') ||
+      host === 'drive.google.com' ||
+      host === 'docs.google.com'
     );
   } catch {
     return false;

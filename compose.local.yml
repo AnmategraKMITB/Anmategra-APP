@@ -57,6 +57,8 @@ services:
       # Opsional: aktifkan upload berkas Forms/OneDrive dan UploadThing di lokal.
       NEXT_PUBLIC_AZURE_CLIENT_ID: ${NEXT_PUBLIC_AZURE_CLIENT_ID:-}
       NEXT_PUBLIC_AZURE_TENANT_ID: ${NEXT_PUBLIC_AZURE_TENANT_ID:-db6e1183-4c65-405c-82ce-7cd53fa6e9dc}
+      NEXT_PUBLIC_FORM_FILE_PROVIDER: ${NEXT_PUBLIC_FORM_FILE_PROVIDER:-uploadthing}
+      NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID:-}
       UPLOADTHING_TOKEN: ${UPLOADTHING_TOKEN:-}
       # Aktifkan jika hot reload tidak jalan (umumnya Docker Desktop di Windows/macOS).
       # WATCHPACK_POLLING: "true"

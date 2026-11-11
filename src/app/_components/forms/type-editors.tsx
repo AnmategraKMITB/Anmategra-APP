@@ -588,33 +588,10 @@ export function TypeEditor({
               }
             />
           </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor={`facc-${key}`}>
-              Siapa yang bisa membuka tautan
-            </Label>
-            <Select
-              value={c.linkAccess}
-              onValueChange={(v) =>
-                set({ linkAccess: v as typeof c.linkAccess })
-              }
-            >
-              <SelectTrigger id={`facc-${key}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="anyone">
-                  Siapa saja yang punya tautan
-                </SelectItem>
-                <SelectItem value="organization">
-                  Hanya akun Institut Teknologi Bandung
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
           <p className="text-sm text-neutral-700 sm:col-span-2">
-            Berkas disimpan di OneDrive pengisi, bukan di Anmategra. Pilih
-            &ldquo;Hanya akun Institut Teknologi Bandung&rdquo; untuk berkas
-            berisi data pribadi seperti KTM.
+            Berkas disimpan di UploadThing. Tautan berkas bersifat publik:
+            siapa pun yang memiliki tautan dapat membukanya, jadi jangan minta
+            dokumen pribadi yang tidak boleh tersebar.
           </p>
         </div>
       );
