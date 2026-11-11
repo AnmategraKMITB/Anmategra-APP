@@ -6,28 +6,18 @@ import { events, profilKegiatan, profilLembaga } from '~/server/db/schema';
 
 type TRPCContext = inferAsyncReturnType<typeof createTRPCContext>;
 
-export async function validateLembagaOwnership(
-  ctx: TRPCContext,
-  lembagaId: string,
-) {
-  if (ctx.session?.user?.lembagaId !== lembagaId) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'You are not authorized to perform this action',
-    });
-  }
-}
-
+/** Profil harus milik `lembagaId` (Scope yang sudah diotorisasi). */
 export async function validateLembagaProfileOwnership(
   ctx: TRPCContext,
   profileId: string,
+  lembagaId: string,
 ) {
   const lembaga = await ctx.db.query.profilLembaga.findFirst({
     where: eq(profilLembaga.id, profileId),
     columns: { lembagaId: true },
   });
 
-  if (ctx.session?.user?.lembagaId !== lembaga?.lembagaId) {
+  if (lembaga?.lembagaId !== lembagaId) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'You are not authorized to perform this action',

@@ -3,6 +3,7 @@ import { and, eq, inArray } from 'drizzle-orm';
 import {
   createTRPCRouter,
   lembagaProcedure,
+  lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
 import {
@@ -26,6 +27,7 @@ import {
   GetNilaiKegiatanIndividuInputSchema,
   GetNilaiKegiatanIndividuOutputSchema,
   GetNilaiLembagaIndividuInputSchema,
+  GetNilaiLembagaIndividuManageInputSchema,
   GetNilaiLembagaIndividuOutputSchema,
   UpsertNilaiMahasiswaKegiatanInputSchema,
   UpsertNilaiMahasiswaKegiatanOutputSchema,
@@ -291,19 +293,12 @@ export const raporRouter = createTRPCRouter({
         });
       }
     }),
-  getAllNilaiProfilLembaga: lembagaProcedure
+  getAllNilaiProfilLembaga: lembagaScopedProcedure
     .input(GetAllNilaiProfilLembagaInputSchema)
     .output(GetAllNilaiProfilLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        if (ctx.session.user.lembagaId !== input.lembaga_id) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Access denied to this lembaga.',
-          });
-        }
-
-        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+        const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
         const anggotaList = await ctx.db
           .select({
             user_id: users.id,
@@ -330,7 +325,7 @@ export const raporRouter = createTRPCRouter({
           )
           .where(
             and(
-              eq(profilLembaga.lembagaId, input.lembaga_id),
+              eq(profilLembaga.lembagaId, ctx.lembagaId),
               inArray(nilaiProfilLembaga.mahasiswaId, anggotaIds),
             ),
           );
@@ -367,35 +362,12 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  getNilaiLembagaIndividu: lembagaProcedure
-    .input(GetNilaiLembagaIndividuInputSchema)
+  getNilaiLembagaIndividu: lembagaScopedProcedure
+    .input(GetNilaiLembagaIndividuManageInputSchema)
     .output(GetNilaiLembagaIndividuOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        const [lembagaUser] = await ctx.db
-          .select()
-          .from(lembaga)
-          .where(eq(lembaga.id, input.lembaga_id))
-          .limit(1);
-
-        if (!lembagaUser) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Lembaga tidak ditemukan.',
-          });
-        }
-
-        if (
-          !lembagaUser.raporVisible &&
-          ctx.session.user.lembagaId !== input.lembaga_id
-        ) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Access denied to this lembaga.',
-          });
-        }
-
-        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+        const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
         const mhs = await ctx.db
           .select({
             user_id: members.userId,
@@ -435,7 +407,7 @@ export const raporRouter = createTRPCRouter({
               eq(nilaiProfilLembaga.mahasiswaId, input.mahasiswa_id),
             ),
           )
-          .where(and(eq(profilLembaga.lembagaId, input.lembaga_id)));
+          .where(and(eq(profilLembaga.lembagaId, ctx.lembagaId)));
 
         const formattedNilaiList = nilaiList.map(
           ({ profil_id, profil_name, nilai }) => ({
@@ -467,13 +439,13 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  upsertNilaiMahasiswaLembaga: lembagaProcedure
+  upsertNilaiMahasiswaLembaga: lembagaScopedProcedure
     .input(UpsertNilaiMahasiswaLembagaInputSchema)
     .output(UpsertNilaiMahasiswaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.db.transaction(async (tx) => {
-          const lembagaId: string = ctx.session.user.lembagaId!;
+          const lembagaId: string = ctx.lembagaId;
 
           for (const mahasiswa of input.mahasiswa) {
             for (const n of mahasiswa.nilai) {

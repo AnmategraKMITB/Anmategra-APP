@@ -151,6 +151,7 @@ export const editAnggotaLembagaOutputSchema = z.object({
 // The previous 30/100 caps rejected 62 of 135 names and 134 of 135
 // descriptions, so a seeded lembaga could not save its own profile at all.
 export const EditProfilLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   nama: z
     .string()
     .trim()
@@ -471,6 +472,7 @@ export const GetPosisiBidangOptionsOutputSchema = z.object({
 });
 
 export const ToggleRaporVisibilityLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   rapor_visible: z.boolean(),
 });
 

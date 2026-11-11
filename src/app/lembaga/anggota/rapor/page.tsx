@@ -39,6 +39,7 @@ export default async function RaporPage() {
         </h1>
         <RaporVisibilitySwitch
           type="lembaga"
+          id={lembaga_id}
           initialValue={lembaga?.raporVisible ?? false}
         />
       </div>

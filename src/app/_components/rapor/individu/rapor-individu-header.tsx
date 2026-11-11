@@ -48,6 +48,7 @@ export default function RaporIndividuHeader({
     setNilaiProfilData(updatedProfiles);
     if (isLembaga) {
       const upsertData = {
+        lembagaId: id ?? '',
         mahasiswa: [
           {
             user_id: dataNilaiProfil?.user_id ?? '',

@@ -8,7 +8,7 @@ import { api } from '~/trpc/react';
 
 type RaporVisibilitySwitchProps = {
   type: 'event' | 'lembaga' | 'mahasiswa';
-  id?: string; // Required for event, optional for lembaga
+  id?: string; // Required for event and lembaga (lembagaId)
   initialValue: boolean;
 };
 
@@ -65,7 +65,13 @@ export default function RaporVisibilitySwitch({
         rapor_visible: checked,
       });
     } else if (type === 'lembaga') {
+      if (!id) {
+        console.error('Lembaga ID is required for lembaga type');
+        setIsVisible(!checked); // Revert
+        return;
+      }
       lembagaMutation.mutate({
+        lembagaId: id,
         rapor_visible: checked,
       });
     } else {
