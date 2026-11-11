@@ -7,13 +7,18 @@ import {
 } from '~/server/api/trpc';
 import {
   events,
-  keanggotaan,
-  kehimpunan,
   lembaga,
   mahasiswa,
   users,
 } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
+
+import {
+  lembagaMembersSq,
+  periodMembersSq,
+  userKegiatanMemberships,
+  userLembagaMemberships,
+} from './organization/membership';
 
 import {
   GetKegiatanInputSchema,
@@ -39,21 +44,8 @@ export const profileRouter = createTRPCRouter({
             .innerJoin(users, eq(mahasiswa.userId, users.id))
             .where(eq(users.id, input.mahasiswaId))
             .limit(1),
-          ctx.db
-            .select()
-            .from(events)
-            .innerJoin(keanggotaan, eq(events.id, keanggotaan.event_id))
-            .innerJoin(lembaga, eq(events.org_id, lembaga.id))
-            .innerJoin(users, eq(lembaga.userId, users.id))
-            .where(eq(keanggotaan.user_id, input.mahasiswaId))
-            .orderBy(desc(events.start_date)),
-          ctx.db
-            .select()
-            .from(kehimpunan)
-            .innerJoin(lembaga, eq(kehimpunan.lembagaId, lembaga.id))
-            .innerJoin(users, eq(lembaga.userId, users.id))
-            .where(eq(kehimpunan.userId, input.mahasiswaId))
-            .orderBy(lembaga.name),
+          userKegiatanMemberships(ctx.db, input.mahasiswaId),
+          userLembagaMemberships(ctx.db, input.mahasiswaId),
         ]);
 
       if (mahasiswaResult.length === 0 || !mahasiswaResult[0]) {
@@ -76,8 +68,8 @@ export const profileRouter = createTRPCRouter({
         image: item.event.background_image,
         startDate: new Date(item.event.start_date),
         endDate: item.event.end_date ? new Date(item.event.end_date) : null,
-        position: item.keanggotaan.position,
-        division: item.keanggotaan.division,
+        position: item.position,
+        division: item.division,
         raporVisible:
           item.event.rapor_visible &&
           (mahasiswaResult[0]?.mahasiswa.raporVisible ||
@@ -91,8 +83,8 @@ export const profileRouter = createTRPCRouter({
         image: item.user.image,
         memberCount: item.lembaga.memberCount,
         type: item.lembaga.type,
-        position: item.kehimpunan.position,
-        division: item.kehimpunan.division,
+        position: item.position,
+        division: item.division,
       }));
 
       return {
@@ -119,6 +111,7 @@ export const profileRouter = createTRPCRouter({
         columns: {
           id: true,
           name: true,
+          acronym: true,
           description: true,
           memberCount: true,
           foundingDate: true,
@@ -136,15 +129,17 @@ export const profileRouter = createTRPCRouter({
       }
 
       const newestEvent = await ctx.db.query.events.findMany({
-        where: (events, { eq }) => and(eq(events.org_id, input.lembagaId)),
+        where: (events, { eq }) =>
+          and(eq(events.org_id, input.lembagaId), eq(events.kind, 'kegiatan')),
         orderBy: desc(events.start_date),
       });
 
+      const lembagaUsers = lembaga.users as { id: string; image: string | null };
       const formattedEvents: Kepanitiaan[] = newestEvent.map((item) => ({
         lembaga: {
           id: lembaga.id,
           name: lembaga.name,
-          profilePicture: lembaga.users.image,
+          profilePicture: lembagaUsers.image,
         },
         id: item.id,
         name: item.name,
@@ -164,6 +159,7 @@ export const profileRouter = createTRPCRouter({
         orderBy: desc(events.start_date),
       });
 
+      const members = await lembagaMembersSq(ctx.db, input.lembagaId);
       const anggota = await ctx.db
         .select({
           id: users.id,
@@ -171,17 +167,16 @@ export const profileRouter = createTRPCRouter({
           nim: mahasiswa.nim,
           image: users.image,
           jurusan: mahasiswa.jurusan,
-          divisi: kehimpunan.division,
-          posisi: kehimpunan.position,
+          divisi: members.division,
+          posisi: members.position,
         })
-        .from(kehimpunan)
-        .innerJoin(users, eq(kehimpunan.userId, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
-        .where(eq(kehimpunan.lembagaId, input.lembagaId))
         .orderBy(
-          kehimpunan.index,
-          kehimpunan.division,
-          kehimpunan.position,
+          members.index,
+          members.division,
+          members.position,
           mahasiswa.nim,
           users.name,
         );
@@ -194,11 +189,10 @@ export const profileRouter = createTRPCRouter({
         image: anggota.image,
         divisi: anggota.divisi,
         posisi: anggota.posisi,
-        posisiColor: 'blue',
       }));
 
       return {
-        lembagaData: lembaga,
+        lembagaData: { ...lembaga, users: lembagaUsers },
         newestEvent: formattedEvents,
         highlightedEvent: highlightedEvent ? highlightedEvent : null,
         anggota: formattedAnggota,
@@ -250,6 +244,7 @@ export const profileRouter = createTRPCRouter({
         });
       }
 
+      const members = periodMembersSq(ctx.db, input.kegiatanId);
       const participants = await ctx.db
         .select({
           userId: mahasiswa.userId,
@@ -257,17 +252,16 @@ export const profileRouter = createTRPCRouter({
           nim: mahasiswa.nim,
           jurusan: mahasiswa.jurusan,
           image: users.image,
-          position: keanggotaan.position,
-          divisi: keanggotaan.division,
+          position: members.position,
+          divisi: members.division,
         })
-        .from(keanggotaan)
-        .innerJoin(mahasiswa, eq(keanggotaan.user_id, mahasiswa.userId))
+        .from(members)
+        .innerJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
         .innerJoin(users, eq(mahasiswa.userId, users.id))
-        .where(eq(keanggotaan.event_id, input.kegiatanId))
         .orderBy(
-          keanggotaan.index,
-          keanggotaan.division,
-          keanggotaan.position,
+          members.index,
+          members.division,
+          members.position,
           mahasiswa.nim,
           users.name,
         );
@@ -280,7 +274,6 @@ export const profileRouter = createTRPCRouter({
         image: participant.image,
         posisi: participant.position,
         divisi: participant.divisi,
-        posisiColor: 'blue',
       }));
 
       return {
@@ -307,6 +300,7 @@ export const profileRouter = createTRPCRouter({
         columns: {
           id: true,
           name: true,
+          acronym: true,
           description: true,
           memberCount: true,
           foundingDate: true,
@@ -324,15 +318,17 @@ export const profileRouter = createTRPCRouter({
       }
 
       const newestEvent = await ctx.db.query.events.findMany({
-        where: (events, { eq }) => and(eq(events.org_id, input.lembagaId)),
+        where: (events, { eq }) =>
+          and(eq(events.org_id, input.lembagaId), eq(events.kind, 'kegiatan')),
         orderBy: desc(events.start_date),
       });
 
+      const lembagaUsers = lembaga.users as { id: string; image: string | null };
       const formattedEvents: Kepanitiaan[] = newestEvent.map((item) => ({
         lembaga: {
           id: lembaga.id,
           name: lembaga.name,
-          profilePicture: lembaga.users.image,
+          profilePicture: lembagaUsers.image,
         },
         id: item.id,
         name: item.name,
@@ -353,7 +349,7 @@ export const profileRouter = createTRPCRouter({
       });
 
       return {
-        lembagaData: lembaga,
+        lembagaData: { ...lembaga, users: lembagaUsers },
         newestEvent: formattedEvents,
         highlightedEvent: highlightedEvent ? highlightedEvent : null,
       };

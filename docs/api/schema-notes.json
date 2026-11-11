@@ -1,0 +1,164 @@
+{
+  "anmategra_user": {
+    "note": "Akun pengguna inti. Satu baris per akun, terlepas dari peran (admin/lembaga/mahasiswa)."
+  },
+  "anmategra_account": {
+    "note": "OAuth account linking (Auth.js adapter table)."
+  },
+  "anmategra_session": {
+    "note": "Session aktif Auth.js."
+  },
+  "anmategra_verification_token": {
+    "note": "Token verifikasi email/login Auth.js."
+  },
+  "anmategra_mahasiswa": {
+    "note": "Profil mahasiswa, 1:1 terhadap `anmategra_user` (untuk akun ber-role `mahasiswa`)."
+  },
+  "anmategra_alumni_pending": {
+    "note": "Fallback upload CSV alumni: NIM lulus yang belum punya akun. Diterapkan otomatis lalu dihapus saat mahasiswa dengan NIM ini sign-in pertama kali."
+  },
+  "anmategra_lembaga": {
+    "note": "Organisasi/institusi (Himpunan, UKM, Kepanitiaan, BSO, Badan, Pusat, atau Organisasi umum). Berbentuk pohon lewat `parent_id`."
+  },
+  "anmategra_lembaga_period": {
+    "note": "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."
+  },
+  "anmategra_lembaga_membership": {
+    "note": "Keanggotaan jangka panjang seseorang di sebuah lembaga (terpisah dari jabatan per periode). Sementara dijaga sinkron dari `kehimpunan` lewat trigger basis data."
+  },
+  "anmategra_keanggotaan": {
+    "note": "Membership mahasiswa dalam sebuah event/kepanitiaan (posisi struktural)."
+  },
+  "anmategra_kehimpunan": {
+    "note": "Membership mahasiswa dalam sebuah lembaga (posisi struktural, analog `keanggotaan` tapi level lembaga, bukan event)."
+  },
+  "anmategra_association_request": {
+    "note": "Permintaan mahasiswa untuk bergabung ke sebuah event/kepanitiaan (alur oprec)."
+  },
+  "anmategra_association_request_lembaga": {
+    "note": "Permintaan mahasiswa untuk bergabung langsung ke sebuah lembaga (di luar konteks event tertentu — mis. Himpunan/UKM)."
+  },
+  "anmategra_access_grant": {
+    "note": "RO-03. Hibah akses ke akun personal (biasanya role 'mahasiswa') tanpa mengubah role top-level mereka; menggantikan lembaga_admin dan event_admin. Scope tepat satu lembaga ATAU satu periode (CHECK access_grant_scope_xor). Owner tetap lembaga.user_id; Owner/Admin lembaga induk otomatis punya akses ke periodenya tanpa baris periode.",
+    "columns": {
+      "propagate": "Hanya bermakna untuk scope lembaga: true = hibah juga menjangkau semua lembaga turunan (lembaga.parent_id) beserta periodenya.",
+      "features": "Kunci fitur yang diberikan. 'admin' = semua kemampuan admin yang ada sekarang.",
+      "can_grant": "Disiapkan untuk pendelegasian ulang; belum dipakai kode.",
+      "parent_grant_id": "Disiapkan untuk pencabutan berantai; belum dipakai kode.",
+      "cascade_revoke": "Disiapkan untuk pencabutan berantai; belum dipakai kode.",
+      "status": "'active' = hibah berlaku; 'revoked' = dicabut, baris tetap disimpan sebagai audit trail."
+    }
+  },
+  "anmategra_riwayat_organisasi": {
+    "note": "H-03. Snapshot permanen keanggotaan lembaga, di-insert oleh aplikasi (bukan DB trigger) saat user keluar, supaya histori tetap ada walau row kehimpunan dihapus."
+  },
+  "anmategra_riwayat_kepanitiaan": {
+    "note": "H-03. Snapshot permanen keanggotaan kepanitiaan, di-insert oleh aplikasi saat user keluar, supaya histori tetap ada walau row keanggotaan dihapus."
+  },
+  "anmategra_profil_km": {
+    "note": "Master daftar profil/kompetensi Kampus Merdeka — akar taksonomi penilaian."
+  },
+  "anmategra_profil_kegiatan": {
+    "note": "Profil/kriteria penilaian spesifik milik satu event."
+  },
+  "anmategra_profil_lembaga": {
+    "note": "Profil/kriteria penilaian spesifik milik satu lembaga."
+  },
+  "anmategra_pemetaan_profil_kegiatan": {
+    "note": "Tabel junction: memetakan `profil_kegiatan` ke `profil_km` (many-to-many antara profil event dan taksonomi kompetensi)."
+  },
+  "anmategra_pemetaan_profil_lembaga": {
+    "note": "Tabel junction: memetakan `profil_lembaga` ke `profil_km`."
+  },
+  "anmategra_nilai_profil_kegiatan": {
+    "note": "Nilai mahasiswa terhadap suatu profil kegiatan."
+  },
+  "anmategra_nilai_profil_lembaga": {
+    "note": "Nilai mahasiswa terhadap suatu profil lembaga."
+  },
+  "anmategra_best_staff_kegiatan": {
+    "note": "Penghargaan \"best staff\" untuk mahasiswa pada suatu event."
+  },
+  "anmategra_best_staff_lembaga": {
+    "note": "Penghargaan \"best staff\" untuk mahasiswa pada suatu lembaga."
+  },
+  "anmategra_organization_structure": {
+    "note": "Struktur organisasi sebuah lembaga/kepanitiaan (akar dari unit dan role).",
+    "columns": {
+      "level_labels": "Nama level per kedalaman, mis. [\"Kemenkoan\", \"Kementerian\"]. UI memakai nama ini, bukan kata 'unit'. Null = pakai bawaan.",
+      "rank_labels": "Label rank yang bisa diganti per struktur, mis. {\"head\": \"Ketua\"}.",
+      "edit_locked": "Kunci edit: ketua dapat mematikan edit agar organogram tidak berubah tanpa izin. Pemilik/admin tidak terpengaruh kunci.",
+      "version": "Naik satu setiap penyimpanan pohon; klien mengirim kembali versi yang dibukanya untuk mendeteksi dua orang yang mengedit bersamaan."
+    }
+  },
+  "anmategra_organization_unit": {
+    "note": "Divisi/bidang di dalam sebuah struktur organisasi.",
+    "columns": {
+      "kind": "Peninggalan model lama (Bidang/Divisi/Subdivisi); null untuk unit yang dibuat editor baru. Dibuang di Fase 2D.",
+      "level": "Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; dihitung ulang server saat pohon disimpan.",
+      "type_label": "Label bebas pengganti `kind`.",
+      "layout": "Pengaturan tampilan editor (tata letak, tier, sisi)."
+    }
+  },
+  "anmategra_organization_role": {
+    "note": "Posisi/jabatan di dalam sebuah organization unit. Akan digantikan oleh organization_position."
+  },
+  "anmategra_organization_position": {
+    "note": "Posisi milik satu unit pada satu periode (tidak dipakai ulang antar periode); menggantikan organization_role. Menghapus unit menghapus posisinya, tetapi dibatalkan selama masih ada placement.",
+    "columns": {
+      "rank": "head | vice | coordinator | staff; label-nya dapat diubah per struktur lewat rank_labels.",
+      "quota": "0 = tanpa batas. Ditegakkan di aplikasi dalam transaksi, bukan trigger; placement closerec tidak dihitung."
+    }
+  },
+  "anmategra_placement": {
+    "note": "Orang sungguhan di sebuah posisi. Periode diturunkan: posisi > unit > struktur > periode. Satu orang boleh memegang beberapa posisi. Akan menggantikan keanggotaan dan kehimpunan.",
+    "columns": {
+      "position_id": "ON DELETE RESTRICT: posisi (dan unitnya) tidak bisa dihapus selama masih ada orang di dalamnya.",
+      "application_choice_id": "Kelak merujuk ke pilihan oprec yang menghasilkan penempatan ini; belum ada FK."
+    }
+  },
+  "anmategra_support": {
+    "note": "Tiket dukungan/pengaduan dari pengguna."
+  },
+  "anmategra_support_reply": {
+    "note": "Balasan/thread pada tiket support."
+  },
+  "anmategra_notification": {
+    "note": "Notifikasi in-app per pengguna."
+  },
+  "anmategra_verified_user": {
+    "note": "Whitelist email yang diizinkan mendaftar."
+  },
+  "anmategra_form": {
+    "note": "Formulir dinamis (#210), mis. open recruitment. Dimiliki tepat satu lembaga ATAU satu event (CHECK `form_owner_xor`, ditulis tangan di migrasi 0027).",
+    "columns": {
+      "status": "Draft | Published | Closed (CHECK `form_status_check`).",
+      "closes_at": "Tenggat opsional. Formulir menerima jawaban jika Published dan belum lewat tenggat.",
+      "published_at": "Waktu pertama kali dirilis; tidak berubah saat dibuka ulang."
+    }
+  },
+  "anmategra_form_field": {
+    "note": "Pertanyaan pada formulir.",
+    "columns": {
+      "type": "short_text | long_text | number | date | single_choice | multiple_choice | checkbox (CHECK `form_field_type_check`). varchar, bukan pgEnum, supaya tipe baru mudah ditambah.",
+      "config": "Aturan validasi per tipe (minLength, maxLength, pattern, min, max, minSelections, maxSelections). Bentuknya divalidasi Zod di `form.type.ts`. `pattern` menyimpan nama preset (`email`, `nomor_hp`, `nim`), bukan regex: pola pembuat formulir dieksekusi di server saat orang lain mengisi, dan regex bebas membuka celah ReDoS.",
+      "archived_at": "Diisi saat pertanyaan yang sudah dijawab dihapus, supaya jawaban lama tetap merujuk ke baris nyata."
+    }
+  },
+  "anmategra_form_field_option": {
+    "note": "Opsi untuk pertanyaan single_choice / multiple_choice.",
+    "columns": {
+      "archived_at": "Diisi saat opsi yang sudah pernah dipilih dihapus."
+    }
+  },
+  "anmategra_form_submission": {
+    "note": "Satu kali pengiriman formulir oleh satu mahasiswa. Default satu per mahasiswa per formulir, kecuali `allow_multiple_submissions`."
+  },
+  "anmategra_form_answer": {
+    "note": "Satu baris per pertanyaan yang dijawab. `field_label`, `field_type`, dan label opsi di `value` adalah salinan saat submit, sehingga jawaban tetap terbaca setelah pertanyaannya diubah atau dihapus.",
+    "columns": {
+      "field_id": "ON DELETE SET NULL: jawaban tidak ikut terhapus.",
+      "value": "Teks/tanggal = string, number = angka, checkbox = boolean, single_choice = {optionId, label}, multiple_choice = [{optionId, label}]."
+    }
+  }
+}

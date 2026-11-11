@@ -34,8 +34,12 @@ EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
 --> statement-breakpoint
+-- 'Draft' dan 'Backlog' aslinya ditambahkan di 0005, tetapi 0006 langsung memakai
+-- 'Draft'. Pada database kosong semua migrasi jalan dalam satu transaksi, dan
+-- Postgres menolak nilai enum hasil ADD VALUE yang belum di-commit. Urutan nilai
+-- tetap sama dengan database yang sudah ada.
 DO $$ BEGIN
- CREATE TYPE "public"."support_status" AS ENUM('Open', 'In Progress', 'Resolved', 'Closed');
+ CREATE TYPE "public"."support_status" AS ENUM('Open', 'In Progress', 'Resolved', 'Closed', 'Draft', 'Backlog');
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;

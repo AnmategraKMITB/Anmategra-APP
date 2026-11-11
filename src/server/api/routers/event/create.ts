@@ -3,10 +3,10 @@ import {events} from "~/server/db/schema";
 import {TRPCError} from "@trpc/server";
 import { CreateEventInputSchema, CreateEventOutputSchema } from "../../types/event.type";
 
-function generateShortId(length = 10) {
-    const array = new Uint8Array(length);
+function generateShortId(byteLength = 8) {
+    const array = new Uint8Array(byteLength);
     crypto.getRandomValues(array);
-    return Array.from(array, byte => byte.toString(16).padStart(2, "0")).join("").slice(0, length);
+    return Array.from(array, byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
 export const createEvent = lembagaProcedure 

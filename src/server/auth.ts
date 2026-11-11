@@ -1,5 +1,6 @@
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { cache } from 'react';
 import {
   type DefaultSession,
   type NextAuthOptions,
@@ -8,11 +9,13 @@ import {
 import { type Adapter } from 'next-auth/adapters';
 import type { DefaultJWT } from 'next-auth/jwt';
 import AzureADProvider from 'next-auth/providers/azure-ad';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
 import { env } from '~/env';
 import { db } from '~/server/db';
 import {
   accounts,
+  alumniPending,
   lembaga,
   mahasiswa,
   sessions,
@@ -20,6 +23,13 @@ import {
   verificationTokens,
   verifiedUsers,
 } from '~/server/db/schema';
+
+import {
+  clearDemoLoginFailures,
+  isDemoLoginRateLimited,
+  recordDemoLoginFailure,
+  verifyDemoPassword,
+} from './demo-auth';
 
 import daftarProdi from './db/kode-program-studi.json';
 
@@ -50,6 +60,7 @@ declare module 'next-auth' {
     email: string;
     image?: string;
     role: 'admin' | 'lembaga' | 'mahasiswa';
+    lembagaId?: string;
   }
 }
 
@@ -63,6 +74,8 @@ declare module 'next-auth/jwt' {
 }
 
 interface AzureADProfile {
+  /** Directory (tenant) penerbit token; akun ITB = AZURE_AD_TENANT_ID. */
+  tid: string;
   oid: string;
   name: string;
   email: string;
@@ -80,6 +93,7 @@ interface AzureADProfile {
 export const authOptions: NextAuthOptions = {
   callbacks: {
     jwt: async ({ token, user, account }) => {
+      const isDemo = env.APP_ENV === 'demo';
       // Initial token on first sign in
       if (user) {
         // jwt only returns user on sign in, otherwise it's undefined
@@ -145,8 +159,19 @@ export const authOptions: NextAuthOptions = {
           }
         }
 
+        else if (account?.provider === 'credentials' && isDemo) {
+          token.role = user.role;
+          token.lembagaId = user.lembagaId;
+        }
+
         token.id = user.id;
         token.picture = user.image ?? '/images/placeholder/profile-pic.png';
+      }
+
+      // Allowlist superadmin berlaku untuk semua provider, termasuk demo.
+      const email = (user?.email ?? token.email)?.toLowerCase();
+      if (email && env.SUPERADMIN_EMAILS.includes(email)) {
+        token.role = 'admin';
       }
       return token;
     },
@@ -159,7 +184,19 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
 
-    signIn: async ({ user, account }) => {
+    signIn: async ({ user, account, profile }) => {
+      if (account?.provider === 'credentials') {
+        return env.APP_ENV === 'demo';
+      }
+
+      // Akun demo tidak boleh masuk lewat SSO produksi.
+      if (env.APP_ENV !== 'demo' && user.email) {
+        const demoAccount = await db.query.users.findFirst({
+          where: and(eq(users.email, user.email), eq(users.isDemo, true)),
+        });
+        if (demoAccount) return false;
+      }
+
       // signin lembaga
       if (account?.provider === 'google') {
         const isValidLembaga = user.email?.endsWith('@km.itb.ac.id');
@@ -171,6 +208,12 @@ export const authOptions: NextAuthOptions = {
       }
       // signin mahasiswa
       else if (account?.provider === 'azure-ad') {
+        // Token harus diterbitkan directory ITB. Tanpa cek ini, akun dari tenant
+        // Microsoft mana pun bisa lolos asal klaim email-nya berakhiran
+        // @mahasiswa.itb.ac.id, padahal klaim itu bisa diisi bebas oleh admin
+        // tenant lain.
+        const tid = (profile as AzureADProfile | undefined)?.tid;
+        if (tid !== env.AZURE_AD_TENANT_ID) return false;
         // cek email mahasiswa
         if (!user.email?.endsWith('@mahasiswa.itb.ac.id')) return false;
         // cek nim valid
@@ -188,8 +231,10 @@ export const authOptions: NextAuthOptions = {
         // Check if account row already exists
         const existingAccount = await db.query.accounts.findFirst({
           where: (a) =>
-            eq(a.provider, account.provider) &&
-            eq(a.providerAccountId, account.providerAccountId),
+            and(
+              eq(a.provider, account.provider),
+              eq(a.providerAccountId, account.providerAccountId),
+            ),
         });
 
         if (!existingAccount) {
@@ -240,6 +285,52 @@ export const authOptions: NextAuthOptions = {
     error: '/auth-error',
   },
   providers: [
+    ...(env.APP_ENV === 'demo'
+      ? [
+          CredentialsProvider({
+            id: 'credentials',
+            name: 'Demo',
+            credentials: {
+              email: { label: 'Email', type: 'email' },
+              password: { label: 'Password', type: 'password' },
+            },
+            async authorize(credentials) {
+              const email = (credentials?.email ?? '').trim().toLowerCase();
+              const password = credentials?.password ?? '';
+              if (!email || !password || isDemoLoginRateLimited(email)) {
+                return null;
+              }
+              const row = await db.query.users.findFirst({
+                where: eq(users.email, email),
+              });
+              if (!row?.isDemo) {
+                recordDemoLoginFailure(email);
+                return null;
+              }
+              const valid = await verifyDemoPassword(
+                password,
+                env.DEMO_PASSWORD_HASH,
+              );
+              if (!valid) {
+                recordDemoLoginFailure(email);
+                return null;
+              }
+              clearDemoLoginFailures(email);
+              const lembagaRow = await db.query.lembaga.findFirst({
+                where: eq(lembaga.userId, row.id),
+              });
+              return {
+                id: row.id,
+                name: row.name ?? email,
+                email: row.email,
+                image: row.image ?? undefined,
+                role: row.role,
+                lembagaId: lembagaRow?.id,
+              };
+            },
+          }),
+        ]
+      : []),
     Google({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
@@ -248,7 +339,9 @@ export const authOptions: NextAuthOptions = {
       clientId: env.AZURE_AD_CLIENT_ID,
       clientSecret: env.AZURE_AD_CLIENT_SECRET,
       allowDangerousEmailAccountLinking: true,
-      // tenantId: env.AZURE_AD_TENANT_ID,
+      // Pakai endpoint directory ITB, bukan /common, supaya hanya token dari
+      // tenant ITB yang lolos validasi issuer.
+      tenantId: env.AZURE_AD_TENANT_ID,
 
       profile: (profile: AzureADProfile) => {
         return {
@@ -292,6 +385,13 @@ const insertMahasiswa = async (
   });
   if (mahasiswaExists) return mahasiswaExists;
 
+  // H-03 fallback: NIM ini sudah pernah di-upload di CSV wisuda sebelum
+  // akunnya pernah login sama sekali — langsung tandai alumni & bersihkan
+  // pending-nya.
+  const pending = await db.query.alumniPending.findFirst({
+    where: eq(alumniPending.nim, nim),
+  });
+
   const newMahasiswa = await db
     .insert(mahasiswa)
     .values({
@@ -299,8 +399,14 @@ const insertMahasiswa = async (
       nim: nim,
       jurusan: jurusan,
       angkatan: angkatan,
+      status: pending ? 'alumni' : 'aktif',
     })
     .returning();
+
+  if (pending) {
+    await db.delete(alumniPending).where(eq(alumniPending.id, pending.id));
+  }
+
   return newMahasiswa;
 };
 
@@ -308,5 +414,9 @@ const insertMahasiswa = async (
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
  *
  * @see https://next-auth.js.org/configuration/nextjs
+ *
+ * Dibungkus `cache` supaya cookie sesi cukup didekripsi sekali per request walaupun dipanggil
+ * dari banyak tempat (halaman, `generateMetadata`, konteks tRPC). Di luar render React
+ * (misalnya route handler), `cache` tidak menyimpan apa-apa dan fungsi tetap dipanggil biasa.
  */
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = cache(() => getServerSession(authOptions));

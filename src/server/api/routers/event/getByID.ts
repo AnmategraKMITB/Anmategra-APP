@@ -1,20 +1,20 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, ilike } from 'drizzle-orm';
+import { type SQL, and, eq, ilike } from 'drizzle-orm';
 import { z } from 'zod';
-import { keanggotaan, mahasiswa, users } from '~/server/db/schema';
+import { periodMembersSq } from '~/server/api/routers/organization/membership';
+import { mahasiswa, users } from '~/server/db/schema';
 
 import { protectedProcedure } from '../../trpc';
 import {
   GetAllAnggotaKegiatanInputSchema,
   GetAllAnggotaKegiatanOutputSchema,
+  GetEventByIdInputSchema,
+  GetEventByIdOutputSchema,
 } from '../../types/event.type';
 
 export const getEvent = protectedProcedure
-  .input(
-    z.object({
-      id: z.string(),
-    }),
-  )
+  .input(GetEventByIdInputSchema)
+  .output(GetEventByIdOutputSchema)
   .query(async ({ ctx, input }) => {
     const event = await ctx.db.query.events.findFirst({
       where: (event, { eq }) => eq(event.id, input.id),
@@ -22,7 +22,9 @@ export const getEvent = protectedProcedure
         lembaga: true,
       },
     });
-    return event;
+    // Drizzle melebarkan tipe relasi `with` jadi `Record<string, any>`, jadi tipenya
+    // tidak bisa dibuktikan tsc. Bentuk aslinya tetap dijaga `.output()` saat runtime.
+    return event as z.infer<typeof GetEventByIdOutputSchema>;
   });
 
 export const getAllAnggota = protectedProcedure
@@ -30,7 +32,8 @@ export const getAllAnggota = protectedProcedure
   .output(GetAllAnggotaKegiatanOutputSchema)
   .query(async ({ ctx, input }) => {
     try {
-      const conditions = [eq(keanggotaan.event_id, input.event_id)];
+      const members = periodMembersSq(ctx.db, input.event_id);
+      const conditions: SQL[] = [];
 
       if (input.namaOrNim) {
         if (isNaN(Number(input.namaOrNim))) {
@@ -41,24 +44,24 @@ export const getAllAnggota = protectedProcedure
       }
 
       if (input.divisi) {
-        conditions.push(eq(keanggotaan.division, input.divisi));
+        conditions.push(eq(members.division, input.divisi));
       }
       const anggota = await ctx.db
         .select({
           id: users.id,
           nama: users.name,
           nim: mahasiswa.nim,
-          division: keanggotaan.division,
-          position: keanggotaan.position,
+          division: members.division,
+          position: members.position,
         })
-        .from(keanggotaan)
-        .innerJoin(users, eq(keanggotaan.user_id, users.id))
+        .from(members)
+        .innerJoin(users, eq(members.userId, users.id))
         .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
         .where(and(...conditions))
         .orderBy(
-          keanggotaan.index,
-          keanggotaan.division,
-          keanggotaan.position,
+          members.index,
+          members.division,
+          members.position,
           mahasiswa.nim,
           users.name,
         );
@@ -70,7 +73,6 @@ export const getAllAnggota = protectedProcedure
           nim: anggota.nim.toString() ?? '',
           divisi: anggota.division ?? '',
           posisi: anggota.position ?? '',
-          posisiColor: 'blue',
         };
       });
 

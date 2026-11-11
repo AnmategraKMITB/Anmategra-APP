@@ -39,7 +39,7 @@ const laporanSchema = z.object({
     .max(400, { message: 'Deskripsi maksimal 400 karakter' }),
   file: fileSchema.optional(), 
   prioritas: z.enum(['Low', 'Medium', 'High'], {
-    required_error: 'Prioritas urgensi wajib dipilih',
+    error: 'Prioritas urgensi wajib dipilih',
   }),
 });
 

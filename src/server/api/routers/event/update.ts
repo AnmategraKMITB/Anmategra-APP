@@ -1,7 +1,13 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq } from 'drizzle-orm';
 import { type Prodi } from '~/server/auth';
-import { events, keanggotaan, mahasiswa, users } from '~/server/db/schema';
+import {
+  events,
+  lembaga,
+  mahasiswa,
+  riwayatKepanitiaan,
+  users,
+} from '~/server/db/schema';
 
 import daftarProdi from '../../../db/kode-program-studi.json';
 import { lembagaProcedure } from '../../trpc';
@@ -20,6 +26,13 @@ import {
   UpdateEventInputSchema,
   UpdateEventOutputSchema,
 } from '../../types/event.type';
+import {
+  isPeriodMember,
+  periodMemberOf,
+  removeFromPeriod,
+  upsertPlacementByText,
+} from '../organization/membership';
+import { isUniqueViolation } from '../organization/services';
 
 export const updateEvent = lembagaProcedure
   .input(UpdateEventInputSchema)
@@ -98,12 +111,19 @@ export const addNewPanitia = lembagaProcedure
         });
       }
 
-      await ctx.db.insert(keanggotaan).values({
-        id: input.event_id + '_' + input.user_id,
-        event_id: input.event_id,
-        user_id: input.user_id,
-        position: input.position,
+      if (await isPeriodMember(ctx.db, input.event_id, input.user_id)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+        });
+      }
+
+      await upsertPlacementByText(ctx.db, {
+        periodId: input.event_id,
+        userId: input.user_id,
         division: input.division,
+        position: input.position,
+        createdBy: ctx.session.user.id,
       });
 
       return {
@@ -113,6 +133,12 @@ export const addNewPanitia = lembagaProcedure
     } catch (error) {
       if (error instanceof TRPCError) {
         throw error;
+      }
+      if (isUniqueViolation(error)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+        });
       }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -133,6 +159,8 @@ export const removePanitia = lembagaProcedure
         ),
         columns: {
           id: true,
+          name: true,
+          org_id: true,
           participant_count: true,
         },
       });
@@ -145,14 +173,42 @@ export const removePanitia = lembagaProcedure
         });
       }
 
-      await ctx.db
-        .delete(keanggotaan)
-        .where(
-          and(
-            eq(keanggotaan.user_id, input.id),
-            eq(keanggotaan.event_id, input.event_id),
-          ),
-        );
+      const lembagaRow = eventToUpdate.org_id
+        ? await ctx.db.query.lembaga.findFirst({
+            where: eq(lembaga.id, eventToUpdate.org_id),
+            columns: { name: true },
+          })
+        : null;
+
+      const existingKeanggotaan = await periodMemberOf(
+        ctx.db,
+        input.event_id,
+        input.id,
+      );
+
+      if (!existingKeanggotaan) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Panitia tidak ditemukan.',
+        });
+      }
+
+      await ctx.db.transaction(async (tx) => {
+        await tx.insert(riwayatKepanitiaan).values({
+          userId: existingKeanggotaan.userId,
+          eventId: eventToUpdate.id,
+          eventNama: eventToUpdate.name,
+          lembagaId: eventToUpdate.org_id,
+          lembagaNama: lembagaRow?.name,
+          division: existingKeanggotaan.division,
+          position: existingKeanggotaan.position,
+          startedAt: existingKeanggotaan.createdAt,
+          endedAt: new Date(),
+          endReason: 'removed',
+        });
+
+        await removeFromPeriod(tx, input.event_id, input.id);
+      });
 
       return {
         success: true,
@@ -193,26 +249,27 @@ export const editPanitia = lembagaProcedure
         });
       }
 
-      const result = await ctx.db
-        .update(keanggotaan)
-        .set({
-          position: input.position,
-          division: input.division,
-        })
-        .where(
-          and(
-            eq(keanggotaan.user_id, input.user_id),
-            eq(keanggotaan.event_id, input.event_id),
-          ),
-        )
-        .returning();
-
-      if (!result[0]) {
+      const current = await periodMemberOf(
+        ctx.db,
+        input.event_id,
+        input.user_id,
+      );
+      if (!current) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Gagal mengubah data panitia.',
         });
       }
+
+      // Urutan lama dipertahankan; hanya bagian dan jabatannya yang berubah.
+      await upsertPlacementByText(ctx.db, {
+        periodId: input.event_id,
+        userId: input.user_id,
+        division: input.division,
+        position: input.position,
+        createdBy: ctx.session.user.id,
+        sortOrder: current.index,
+      });
 
       return {
         success: true,
@@ -266,13 +323,19 @@ export const addNewPanitiaManual = lembagaProcedure
             message: `Sudah ada mahasiswa dengan NIM ${input.nim} bernama ${existingUser.name}`,
           });
         }
-        // User exists, just add them to keanggotaan
-        await ctx.db.insert(keanggotaan).values({
-          id: input.event_id + '_' + existingUser.id,
-          event_id: input.event_id,
-          user_id: existingUser.id,
-          position: input.position,
+        // User exists, just place them in the period
+        if (await isPeriodMember(ctx.db, input.event_id, existingUser.id)) {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+          });
+        }
+        await upsertPlacementByText(ctx.db, {
+          periodId: input.event_id,
+          userId: existingUser.id,
           division: input.division,
+          position: input.position,
+          createdBy: ctx.session.user.id,
         });
 
         return {
@@ -307,12 +370,12 @@ export const addNewPanitiaManual = lembagaProcedure
           angkatan: angkatan,
         });
 
-        await tx.insert(keanggotaan).values({
-          id: input.event_id + '_' + user[0]!.id,
-          event_id: input.event_id,
-          user_id: user[0]!.id,
-          position: input.position,
+        await upsertPlacementByText(tx, {
+          periodId: input.event_id,
+          userId: user[0]!.id,
           division: input.division,
+          position: input.position,
+          createdBy: ctx.session.user.id,
         });
       });
 
@@ -323,6 +386,12 @@ export const addNewPanitiaManual = lembagaProcedure
     } catch (error) {
       if (error instanceof TRPCError) {
         throw error;
+      }
+      if (isUniqueViolation(error)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Anggota tersebut sudah terdaftar sebagai panitia.',
+        });
       }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',

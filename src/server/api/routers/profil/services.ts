@@ -65,7 +65,8 @@ export async function validateKegiatanProfileOwnership(
     },
   });
 
-  if (ctx.session?.user?.lembagaId !== eventOwner?.event?.org_id) {
+  const event = eventOwner?.event as { org_id: string } | null | undefined;
+  if (ctx.session?.user?.lembagaId !== event?.org_id) {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'You are not authorized to perform this action',

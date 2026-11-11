@@ -1,4 +1,26 @@
 import { z } from 'zod';
+import { lembagaTypeEnum } from '~/server/db/schema';
+
+/**
+ * Bentuk satu baris tabel `lembaga` apa adanya. Dipakai endpoint yang memang
+ * mengembalikan row mentah, supaya schema-nya bisa dirender di dokumentasi
+ * (`z.custom` menghasilkan schema kosong di OpenAPI).
+ */
+export const LembagaRowSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  description: z.string().nullable(),
+  foundingDate: z.date().nullable(),
+  endingDate: z.date().nullable(),
+  type: z.enum(lembagaTypeEnum.enumValues).nullable(),
+  major: z.string().nullable(),
+  field: z.string().nullable(),
+  memberCount: z.number().nullable(),
+  raporVisible: z.boolean(),
+  created_at: z.date(),
+  updated_at: z.date(),
+});
 
 export const GetInfoLembagaInputSchema = z.object({
   lembagaId: z.string().nonempty(),
@@ -25,7 +47,6 @@ const AnggotaLembagaSchema = z.object({
   nim: z.string(),
   divisi: z.string(),
   posisi: z.string(),
-  posisiColor: z.string(),
 });
 
 export const GetAllAnggotaLembagaInputSchema = z.object({
@@ -83,13 +104,17 @@ export const AddAnggotaLembagaInputSchema = z.object({
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const AddAnggotaManualLembagaInputSchema = z.object({
   name: z.string().nonempty(),
-  nim: z.string().nonempty(),
+  nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const AddAnggotaLembagaOutputSchema = z.object({
@@ -106,26 +131,38 @@ export const RemoveAnggotaLembagaOutputSchema = z.object({
 });
 
 export const editAnggotaLembagaInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
+  org_unit_id: z.string().nonempty().optional(),
+  org_role_id: z.string().nonempty().optional(),
 });
 
 export const editAnggotaLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
+// Limits track the real data: `lembaga.name` is varchar(255) (longest seeded
+// name is 73 chars), `lembaga.description` is text (longest seeded is 227).
+// The previous 30/100 caps rejected 62 of 135 names and 134 of 135
+// descriptions, so a seeded lembaga could not save its own profile at all.
 export const EditProfilLembagaInputSchema = z.object({
   nama: z
     .string()
+    .trim()
     .min(1, 'Nama wajib diisi')
-    .max(30, 'Nama maksimal 30 karakter'),
-  tipe: z.enum(['Himpunan', 'UKM', 'Kepanitiaan']).optional(),
+    .max(255, 'Nama maksimal 255 karakter'),
+  singkatan: z
+    .string()
+    .trim()
+    .max(50, 'Singkatan maksimal 50 karakter')
+    .optional(),
+  tipe: z.enum(['Himpunan', 'UKM', 'Kepanitiaan', 'BSO']).optional(),
   deskripsi: z
     .string()
+    .trim()
     .min(10, 'Deskripsi minimal 10 karakter')
-    .max(100, 'Deskripsi maksimal 100 karakter')
+    .max(500, 'Deskripsi maksimal 500 karakter')
     .optional(),
   gambar: z.string().url().optional(),
 });
@@ -148,8 +185,6 @@ export const AcceptRequestAssociationOutputSchema = z.object({
 export const DeclineRequestAssociationInputSchema = z.object({
   event_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
-  division: z.string().nonempty(),
-  position: z.string().nonempty(),
 });
 
 export const DeclineRequestAssociationOutputSchema = z.object({
@@ -285,12 +320,19 @@ export const ChooseBestStaffLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
-export const DeleteBestStaffPeriodeInputSchema = z.object({
-  lembaga_id: z.string().nonempty().optional(),
-  event_id: z.string().nonempty().optional(),
-  start_date: z.string().datetime(),
-  end_date: z.string().datetime(),
-});
+export const DeleteBestStaffPeriodeInputSchema = z
+  .object({
+    lembaga_id: z.string().nonempty().optional(),
+    event_id: z.string().nonempty().optional(),
+    start_date: z.string().datetime(),
+    end_date: z.string().datetime(),
+  })
+  .refine((data) => !(data.lembaga_id && data.event_id), {
+    message: 'lembaga_id dan event_id tidak boleh dikirim bersamaan',
+  })
+  .refine((data) => data.lembaga_id ?? data.event_id, {
+    message: 'lembaga_id atau event_id wajib diisi',
+  });
 
 export const DeleteBestStaffPeriodeOutputSchema = z.object({
   success: z.boolean(),
@@ -397,7 +439,7 @@ export const GetAllHistoryBestStaffMahasiswaOutputSchema = z.object({
   best_staff_lembaga: z.array(
     z.object({
       lembaga_id: z.string(),
-      event_name: z.string(),
+      lembaga_name: z.string(),
       start_date: z.string().datetime(),
       end_date: z.string().datetime(),
       division: z.string(),

@@ -2,30 +2,29 @@ import { eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
+import { lembagaMembersSq } from '~/server/api/routers/organization/membership';
 import {
-  kehimpunan,
   mahasiswa,
   nilaiProfilLembaga,
   profilLembaga,
   users,
 } from '~/server/db/schema';
+import { apiError } from '~/utils/api-error';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { lembaga_id: string } },
-) {
+export async function GET(request: Request, props: { params: Promise<{ lembaga_id: string }> }) {
+  const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
   if (session.user.role !== 'lembaga') {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
-    return Response.json({ error: 'Missing lembaga_id' }, { status: 400 });
+    return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
   // --- Validate lembaga ownership ---
@@ -33,12 +32,12 @@ export async function GET(
     where: (l, { eq }) => eq(l.userId, session.user.id),
   });
   if (!userLembaga) {
-    return Response.json({ error: 'Lembaga not found' }, { status: 404 });
+    return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
   // --- Validate lembaga_id matches user's lembaga ---
   if (userLembaga.id !== lembaga_id) {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   // --- Fetch profil lembaga data ---
@@ -47,23 +46,20 @@ export async function GET(
   });
 
   if (profilLembagaList.length === 0) {
-    return Response.json(
-      { error: 'No profile criteria found for this organization' },
-      { status: 404 },
-    );
+    return apiError(404, 'No profile criteria found for this organization', 'NOT_FOUND');
   }
 
   // --- Fetch anggota lembaga data ---
+  const members = await lembagaMembersSq(db, lembaga_id);
   const anggotaLembaga = await db
-    .select()
-    .from(kehimpunan)
-    .leftJoin(users, eq(kehimpunan.userId, users.id))
-    .leftJoin(mahasiswa, eq(kehimpunan.userId, mahasiswa.userId))
-    .where(eq(kehimpunan.lembagaId, lembaga_id))
+    .select({ user: users, mahasiswa })
+    .from(members)
+    .leftJoin(users, eq(members.userId, users.id))
+    .leftJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
     .orderBy(
-      kehimpunan.index,
-      kehimpunan.division,
-      kehimpunan.position,
+      members.index,
+      members.division,
+      members.position,
       mahasiswa.nim,
       users.name,
     );
@@ -132,11 +128,11 @@ export async function GET(
 
     // --- Add nilai for each profil ---
     profilLembagaList.forEach((profil) => {
-      const nilai = nilaiProfilData.find(
-        (n) =>
-          n.mahasiswa.userId === member.user?.id &&
-          n.profilLembaga.id === profil.id,
-      );
+      const nilai = nilaiProfilData.find((n) => {
+        const m = n.mahasiswa as { userId: string };
+        const p = n.profilLembaga as { id: string };
+        return m.userId === member.user?.id && p.id === profil.id;
+      });
       rowData.push(nilai?.nilai ?? 0);
     });
 
@@ -183,22 +179,20 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { lembaga_id: string } },
-) {
+export async function POST(request: Request, props: { params: Promise<{ lembaga_id: string }> }) {
+  const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
   if (session.user.role !== 'lembaga') {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
-    return Response.json({ error: 'Missing lembaga_id' }, { status: 400 });
+    return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
   // --- Validate lembaga ownership ---
@@ -206,12 +200,12 @@ export async function POST(
     where: (l, { eq }) => eq(l.userId, session.user.id),
   });
   if (!userLembaga) {
-    return Response.json({ error: 'Lembaga not found' }, { status: 404 });
+    return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
   // --- Validate lembaga_id matches user's lembaga ---
   if (userLembaga.id !== lembaga_id) {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   try {
@@ -220,16 +214,14 @@ export async function POST(
     const file = formData.get('file') as File;
 
     if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+      return apiError(400, 'No file provided', 'BAD_REQUEST');
     }
 
     if (!/\.(xlsx|xls)$/.exec(file.name)) {
-      return Response.json(
-        {
-          error:
-            'Invalid file format. Please upload Excel file (.xlsx or .xls)',
-        },
-        { status: 400 },
+      return apiError(
+        400,
+        'Invalid file format. Please upload Excel file (.xlsx or .xls)',
+        'BAD_REQUEST',
       );
     }
 
@@ -242,7 +234,7 @@ export async function POST(
     const sheet = workbook.getWorksheet();
 
     if (!sheet) {
-      return Response.json({ error: 'Worksheet not found' }, { status: 400 });
+      return apiError(400, 'Worksheet not found', 'BAD_REQUEST');
     }
 
     // --- Get profil lembaga for this organization ---
@@ -251,10 +243,7 @@ export async function POST(
     });
 
     if (profilLembagaList.length === 0) {
-      return Response.json(
-        { error: 'No profile criteria found for this organization' },
-        { status: 404 },
-      );
+      return apiError(404, 'No profile criteria found for this organization', 'NOT_FOUND');
     }
 
     // --- Get header row to map profil columns ---
@@ -275,11 +264,11 @@ export async function POST(
     });
 
     // --- Get list of kehimpunan for this lembaga to validate NIMs ---
+    const memberRows = await lembagaMembersSq(db, lembaga_id);
     const kehimpunanList = await db
-      .select()
-      .from(kehimpunan)
-      .leftJoin(mahasiswa, eq(kehimpunan.userId, mahasiswa.userId))
-      .where(eq(kehimpunan.lembagaId, lembaga_id));
+      .select({ memberId: memberRows.userId, mahasiswa })
+      .from(memberRows)
+      .leftJoin(mahasiswa, eq(memberRows.userId, mahasiswa.userId));
 
     // --- Process data rows ---
     const mahasiswaIds: string[] = [];
@@ -294,9 +283,10 @@ export async function POST(
       if (!nama && !nim) continue;
 
       if (!nim || !nama) {
-        return Response.json(
-          { error: `Row ${rowNumber}: Missing NIM or Nama` },
-          { status: 400 },
+        return apiError(
+          400,
+          `Row ${rowNumber}: Missing NIM or Nama`,
+          'VALIDATION_ERROR',
         );
       }
 
@@ -309,29 +299,29 @@ export async function POST(
       });
 
       if (!mahasiswaRecord) {
-        return Response.json(
-          {
-            error: `Student with NIM ${nim} not found in database. Please contact admin if this is an error.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Student with NIM ${nim} not found in database. Please contact admin if this is an error.`,
+          'VALIDATION_ERROR',
         );
       }
 
-      if (mahasiswaRecord.users.name !== nama) {
-        return Response.json(
-          {
-            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaRecord.users.name}, got ${nama}.\n Please contact admin if this is an error.`,
-          },
-          { status: 400 },
+      const mahasiswaUser = mahasiswaRecord.users as { name: string | null };
+      const expectedName = mahasiswaUser.name?.toLocaleLowerCase();
+      const actualName = nama.toLocaleLowerCase();
+      if (expectedName !== actualName) {
+        return apiError(
+          400,
+          `Name mismatch for NIM ${nim}: expected ${mahasiswaUser.name}, got ${nama}.\n Please contact admin if this is an error.`,
+          'VALIDATION_ERROR',
         );
       }
 
       if (mahasiswaIds.some((a) => a === mahasiswaRecord.userId)) {
-        return Response.json(
-          {
-            error: `Duplicate entry for NIM ${nim} in Excel file.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Duplicate entry for NIM ${nim} in Excel file.`,
+          'VALIDATION_ERROR',
         );
       }
 
@@ -339,12 +329,11 @@ export async function POST(
       const member = kehimpunanList.find(
         (k) => k.mahasiswa?.nim?.toString() === nim,
       );
-      if (!member?.kehimpunan) {
-        return Response.json(
-          {
-            error: `Member with NIM ${nim} is not registered in this organization.`,
-          },
-          { status: 400 },
+      if (!member?.memberId) {
+        return apiError(
+          400,
+          `Member with NIM ${nim} is not registered in this organization.`,
+          'VALIDATION_ERROR',
         );
       }
       mahasiswaIds.push(mahasiswaRecord.userId);
@@ -400,12 +389,11 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error importing Excel data:', error);
-    return Response.json(
-      {
-        error: 'Failed to import Excel data',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
+    return apiError(
+      500,
+      'Failed to import Excel data',
+      'INTERNAL_ERROR',
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 }

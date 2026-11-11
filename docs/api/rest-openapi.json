@@ -1,0 +1,829 @@
+{
+  "paths": {
+    "/api/lembaga/{lembaga_id}/anggota": {
+      "get": {
+        "operationId": "excel_export_anggota_lembaga",
+        "tags": ["excel"],
+        "summary": "Unduh template/ekspor anggota lembaga",
+        "description": "Mengunduh daftar anggota lembaga sebagai workbook Excel. Dipakai sebagai template untuk POST.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lembaga_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID lembaga. Pemanggil harus Owner atau Admin Lembaga ini."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File .xlsx sebagai attachment.",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=...xlsx",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` — parameter path kosong.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "excel_import_anggota_lembaga",
+        "tags": ["excel"],
+        "summary": "Impor anggota lembaga dari file Excel",
+        "description": "Mengganti/menambah anggota lembaga dari workbook Excel. Diproses dalam satu transaksi; snapshot riwayat organisasi ikut ditulis untuk anggota yang keluar.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lembaga_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID lembaga. Pemanggil harus Owner atau Admin Lembaga ini."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Berkas .xlsx atau .xls hasil edit dari template GET."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Impor sukses.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` / `VALIDATION_ERROR` — file tidak ada, format salah, worksheet tidak ditemukan, atau isi baris invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR` — gagal memproses berkas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lembaga/{lembaga_id}/nilai": {
+      "get": {
+        "operationId": "excel_export_nilai_profil_lembaga",
+        "tags": ["excel"],
+        "summary": "Unduh template/ekspor nilai profil lembaga",
+        "description": "Mengunduh matriks nilai profil anggota lembaga sebagai workbook Excel, dengan kolom mengikuti profil yang dipetakan lembaga tersebut.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lembaga_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID lembaga. Pemanggil harus Owner atau Admin Lembaga ini."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File .xlsx sebagai attachment.",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=...xlsx",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` — parameter path kosong.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "excel_import_nilai_profil_lembaga",
+        "tags": ["excel"],
+        "summary": "Impor nilai profil lembaga dari file Excel",
+        "description": "Mengunggah nilai profil anggota lembaga dari workbook Excel hasil ekspor GET.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lembaga_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID lembaga. Pemanggil harus Owner atau Admin Lembaga ini."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Berkas .xlsx atau .xls hasil edit dari template GET."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Impor sukses.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` / `VALIDATION_ERROR` — file tidak ada, format salah, worksheet tidak ditemukan, atau isi baris invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR` — gagal memproses berkas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lembaga/kegiatan/{event_id}/anggota": {
+      "get": {
+        "operationId": "excel_export_anggota_kepanitiaan",
+        "tags": ["excel"],
+        "summary": "Unduh template/ekspor anggota kepanitiaan",
+        "description": "Mengunduh daftar anggota kepanitiaan sebagai workbook Excel. Dipakai sebagai template untuk POST.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID kepanitiaan. Pemanggil harus Owner/Admin lembaga induk atau Admin Kepanitiaan ini."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File .xlsx sebagai attachment.",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=...xlsx",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` — parameter path kosong.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "excel_import_anggota_kepanitiaan",
+        "tags": ["excel"],
+        "summary": "Impor anggota kepanitiaan dari file Excel",
+        "description": "Mengganti/menambah anggota kepanitiaan dari workbook Excel.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID kepanitiaan. Pemanggil harus Owner/Admin lembaga induk atau Admin Kepanitiaan ini."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Berkas .xlsx atau .xls hasil edit dari template GET."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Impor sukses.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` / `VALIDATION_ERROR` — file tidak ada, format salah, worksheet tidak ditemukan, atau isi baris invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR` — gagal memproses berkas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/lembaga/kegiatan/{event_id}/nilai": {
+      "get": {
+        "operationId": "excel_export_nilai_profil_kepanitiaan",
+        "tags": ["excel"],
+        "summary": "Unduh template/ekspor nilai profil kepanitiaan",
+        "description": "Mengunduh matriks nilai profil anggota kepanitiaan sebagai workbook Excel.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID kepanitiaan. Pemanggil harus Owner/Admin lembaga induk atau Admin Kepanitiaan ini."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "File .xlsx sebagai attachment.",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=...xlsx",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` — parameter path kosong.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "excel_import_nilai_profil_kepanitiaan",
+        "tags": ["excel"],
+        "summary": "Impor nilai profil kepanitiaan dari file Excel",
+        "description": "Mengunggah nilai profil anggota kepanitiaan dari workbook Excel hasil ekspor GET.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "event_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID kepanitiaan. Pemanggil harus Owner/Admin lembaga induk atau Admin Kepanitiaan ini."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["file"],
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Berkas .xlsx atau .xls hasil edit dari template GET."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Impor sukses.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestImportResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "`BAD_REQUEST` / `VALIDATION_ERROR` — file tidak ada, format salah, worksheet tidak ditemukan, atau isi baris invalid.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — bukan Owner/Admin dari resource ini.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "`INTERNAL_ERROR` — gagal memproses berkas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/manual": {
+      "get": {
+        "operationId": "manual_download",
+        "tags": ["excel"],
+        "summary": "Unduh manual penggunaan (PDF)",
+        "description": "Berkas statis, tanpa autentikasi.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "PDF manual.",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Manual belum tersedia di server.",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RestError": {
+        "type": "object",
+        "description": "Bentuk error seragam untuk endpoint REST di `src/app/api/lembaga/**` (lihat `src/utils/api-error.ts`).",
+        "required": ["error", "code"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Pesan yang bisa ditampilkan ke pengguna."
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "UNAUTHORIZED",
+              "FORBIDDEN",
+              "BAD_REQUEST",
+              "NOT_FOUND",
+              "VALIDATION_ERROR",
+              "INTERNAL_ERROR"
+            ]
+          },
+          "details": {
+            "description": "Detail tambahan, misal baris Excel yang gagal divalidasi."
+          }
+        }
+      },
+      "RestImportResult": {
+        "type": "object",
+        "required": ["success", "message"],
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "description": "Ringkasan hasil impor, misal jumlah baris yang masuk."
+          }
+        }
+      }
+    }
+  }
+}

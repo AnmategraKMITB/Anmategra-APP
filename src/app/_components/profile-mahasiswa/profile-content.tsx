@@ -175,7 +175,7 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                     {bestStaffData.best_staff_lembaga.map((item, index) => (
                       <BestStaffCard
                         key={index}
-                        nama={item.event_name}
+                        nama={item.lembaga_name}
                         subtitle={`${new Date(
                           item.start_date,
                         ).toLocaleDateString('id-ID', {

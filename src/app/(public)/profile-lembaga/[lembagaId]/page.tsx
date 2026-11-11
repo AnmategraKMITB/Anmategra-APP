@@ -8,34 +8,63 @@ import { redirect } from 'next/navigation';
 // Asset Import
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import DummyFotoEvent from 'public/images/placeholder/profile-lembaga-kegiatan.png';
-import React from 'react';
+import React, { cache } from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
+import { JsonLd } from '~/app/_components/json-ld';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
 import { Badge } from '~/components/ui/badge';
 // Components Import
 import { Card } from '~/components/ui/card';
+import {
+  ITB_ADDRESS,
+  ITB_ORGANIZATION,
+  absoluteUrl,
+  breadcrumbJsonLd,
+  lembagaAlternateNames,
+} from '~/lib/seo';
 // TRPC Import
 import { api } from '~/trpc/server';
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { lembagaId: string };
-}): Promise<Metadata> {
-  const { lembagaData } = await api.profile.getLembagaPublic({
-    lembagaId: params.lembagaId,
-  });
+// Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
+const getLembagaPublic = cache((lembagaId: string) =>
+  api.profile.getLembagaPublic({ lembagaId }),
+);
 
-  return {
-    title: `${lembagaData?.name} | Anmategra`,
-    description: lembagaData?.description ?? 'Profil lembaga kemahasiswaan.',
-    openGraph: {
-      title: lembagaData?.name,
-      description: lembagaData?.description ?? lembagaData?.name,
-      images: [lembagaData?.users.image || '/images/logo/anmategra-logo.png'],
-    },
-  };
+export async function generateMetadata(props: {
+  params: Promise<{ lembagaId: string }>;
+}): Promise<Metadata> {
+  const params = await props.params;
+  const path = `/profile-lembaga/${params.lembagaId}`;
+
+  try {
+    const { lembagaData } = await getLembagaPublic(params.lembagaId);
+
+    const title = lembagaData.name;
+    const description =
+      lembagaData.description?.trim() ??
+      `Profil ${lembagaData.name} di Anmategra: anggota, kepanitiaan, dan kegiatan lembaga kemahasiswaan KM ITB.`;
+    const image =
+      lembagaData.users.image || '/images/logo/anmategra-logo-full.png';
+
+    return {
+      title,
+      description,
+      alternates: { canonical: path },
+      openGraph: {
+        type: 'profile',
+        url: path,
+        title,
+        description,
+        images: [image],
+      },
+      twitter: { card: 'summary', title, description, images: [image] },
+    };
+  } catch {
+    // Halaman ini redirect ke /404 kalau lembaga tidak ada. Tanpa catch,
+    // generateMetadata melempar duluan dan yang muncul error page, bukan 404.
+    return { title: 'Lembaga tidak ditemukan', robots: { index: false } };
+  }
 }
 
 const DetailLembagaPage = async ({
@@ -46,22 +75,36 @@ const DetailLembagaPage = async ({
   try {
     const lembagaId = (await params).lembagaId;
     const { lembagaData, newestEvent, highlightedEvent } =
-      await api.profile.getLembagaPublic({ lembagaId: lembagaId });
+      await getLembagaPublic(lembagaId);
+
+    const path = `/profile-lembaga/${lembagaId}`;
+
+    const alternateNames = lembagaAlternateNames(lembagaData.name);
 
     const jsonLd = {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: lembagaData?.name,
-      description: lembagaData?.description,
-      logo: lembagaData?.users.image,
+      '@id': `${absoluteUrl(path)}#organization`,
+      name: lembagaData.name,
+      alternateName: alternateNames.length ? alternateNames : undefined,
+      description: lembagaData.description ?? undefined,
+      url: absoluteUrl(path),
+      logo: lembagaData.users.image ?? undefined,
+      image: lembagaData.users.image ?? undefined,
+      foundingDate: lembagaData.foundingDate?.toISOString().slice(0, 10),
+      parentOrganization: ITB_ORGANIZATION,
+      address: ITB_ADDRESS,
     };
+
+    const breadcrumbJson = breadcrumbJsonLd([
+      { name: 'Beranda', path: '/' },
+      { name: lembagaData.name, path },
+    ]);
 
     return (
       <>
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-        />
+        <JsonLd data={jsonLd} />
+        <JsonLd data={breadcrumbJson} />
         <div className="w-full flex min-h-screen flex-col items-center px-[14px] pt-24 sm:pt-10">
           <div className="flex max-w-7xl w-full flex-col gap-4 py-6">
             <div className="flex flex-col">

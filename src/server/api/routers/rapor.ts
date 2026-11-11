@@ -7,8 +7,6 @@ import {
 } from '~/server/api/trpc';
 import {
   events,
-  keanggotaan,
-  kehimpunan,
   lembaga,
   mahasiswa,
   nilaiProfilKegiatan,
@@ -17,6 +15,8 @@ import {
   profilLembaga,
   users,
 } from '~/server/db/schema';
+
+import { lembagaMembersSq, periodMembersSq } from './organization/membership';
 
 import {
   GetAllNilaiProfilKegiatanInputSchema,
@@ -51,17 +51,17 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
+        const members = periodMembersSq(ctx.db, input.event_id);
         const mahasiswaList = await ctx.db
           .select({
-            user_id: keanggotaan.user_id,
+            user_id: members.userId,
             name: users.name,
             nim: mahasiswa.nim,
           })
-          .from(keanggotaan)
-          .innerJoin(mahasiswa, eq(mahasiswa.userId, keanggotaan.user_id))
-          .innerJoin(users, eq(users.id, keanggotaan.user_id))
-          .where(eq(keanggotaan.event_id, input.event_id))
-          .orderBy(keanggotaan.index, mahasiswa.nim);
+          .from(members)
+          .innerJoin(mahasiswa, eq(mahasiswa.userId, members.userId))
+          .innerJoin(users, eq(users.id, members.userId))
+          .orderBy(members.index, mahasiswa.nim);
 
         const mahasiswaIds = mahasiswaList.map((m) => m.user_id);
 
@@ -149,26 +149,22 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
+        const members = periodMembersSq(ctx.db, input.event_id);
         const mhs = await ctx.db
           .select({
-            user_id: keanggotaan.user_id,
+            user_id: members.userId,
             name: users.name,
             nim: mahasiswa.nim,
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
-            division: keanggotaan.division,
-            position: keanggotaan.position,
+            division: members.division,
+            position: members.position,
           })
-          .from(keanggotaan)
-          .innerJoin(mahasiswa, eq(mahasiswa.userId, keanggotaan.user_id))
-          .innerJoin(users, eq(users.id, keanggotaan.user_id))
-          .where(
-            and(
-              eq(keanggotaan.event_id, input.event_id),
-              eq(keanggotaan.user_id, input.mahasiswa_id),
-            ),
-          )
+          .from(members)
+          .innerJoin(mahasiswa, eq(mahasiswa.userId, members.userId))
+          .innerJoin(users, eq(users.id, members.userId))
+          .where(eq(members.userId, input.mahasiswa_id))
           .limit(1);
 
         if (!mhs.length)
@@ -307,17 +303,17 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
+        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
         const anggotaList = await ctx.db
           .select({
             user_id: users.id,
             name: users.name,
             nim: mahasiswa.nim,
           })
-          .from(kehimpunan)
-          .innerJoin(users, eq(kehimpunan.userId, users.id))
+          .from(members)
+          .innerJoin(users, eq(members.userId, users.id))
           .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
-          .where(eq(kehimpunan.lembagaId, input.lembaga_id))
-          .orderBy(kehimpunan.index, mahasiswa.nim);
+          .orderBy(members.index, mahasiswa.nim);
 
         const anggotaIds = anggotaList.map((a) => a.user_id);
 
@@ -390,7 +386,7 @@ export const raporRouter = createTRPCRouter({
         }
 
         if (
-          !lembaga.raporVisible &&
+          !lembagaUser.raporVisible &&
           ctx.session.user.lembagaId !== input.lembaga_id
         ) {
           throw new TRPCError({
@@ -399,26 +395,22 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
+        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
         const mhs = await ctx.db
           .select({
-            user_id: kehimpunan.userId,
+            user_id: members.userId,
             name: users.name,
             nim: mahasiswa.nim,
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
-            division: kehimpunan.division,
-            position: kehimpunan.position,
+            division: members.division,
+            position: members.position,
           })
-          .from(kehimpunan)
-          .innerJoin(mahasiswa, eq(mahasiswa.userId, kehimpunan.userId))
-          .innerJoin(users, eq(users.id, kehimpunan.userId))
-          .where(
-            and(
-              eq(kehimpunan.lembagaId, input.lembaga_id),
-              eq(kehimpunan.userId, input.mahasiswa_id),
-            ),
-          )
+          .from(members)
+          .innerJoin(mahasiswa, eq(mahasiswa.userId, members.userId))
+          .innerJoin(users, eq(users.id, members.userId))
+          .where(eq(members.userId, input.mahasiswa_id))
           .limit(1);
 
         if (!mhs.length)
@@ -564,27 +556,23 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
+        const members = periodMembersSq(ctx.db, input.event_id);
         const mhs = await ctx.db
           .select({
-            user_id: keanggotaan.user_id,
+            user_id: members.userId,
             name: users.name,
             nim: mahasiswa.nim,
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
-            division: keanggotaan.division,
-            position: keanggotaan.position,
+            division: members.division,
+            position: members.position,
             raporVisible: mahasiswa.raporVisible,
           })
-          .from(keanggotaan)
-          .innerJoin(mahasiswa, eq(mahasiswa.userId, keanggotaan.user_id))
-          .innerJoin(users, eq(users.id, keanggotaan.user_id))
-          .where(
-            and(
-              eq(keanggotaan.event_id, input.event_id),
-              eq(keanggotaan.user_id, input.mahasiswa_id),
-            ),
-          )
+          .from(members)
+          .innerJoin(mahasiswa, eq(mahasiswa.userId, members.userId))
+          .innerJoin(users, eq(users.id, members.userId))
+          .where(eq(members.userId, input.mahasiswa_id))
           .limit(1);
 
         if (!mhs.length)
@@ -672,27 +660,23 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
+        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
         const mhs = await ctx.db
           .select({
-            user_id: kehimpunan.userId,
+            user_id: members.userId,
             name: users.name,
             nim: mahasiswa.nim,
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
-            division: kehimpunan.division,
-            position: kehimpunan.position,
+            division: members.division,
+            position: members.position,
             raporVisible: mahasiswa.raporVisible,
           })
-          .from(kehimpunan)
-          .innerJoin(mahasiswa, eq(mahasiswa.userId, kehimpunan.userId))
-          .innerJoin(users, eq(users.id, kehimpunan.userId))
-          .where(
-            and(
-              eq(kehimpunan.lembagaId, input.lembaga_id),
-              eq(kehimpunan.userId, input.mahasiswa_id),
-            ),
-          )
+          .from(members)
+          .innerJoin(mahasiswa, eq(mahasiswa.userId, members.userId))
+          .innerJoin(users, eq(users.id, members.userId))
+          .where(eq(members.userId, input.mahasiswa_id))
           .limit(1);
 
         if (!mhs.length)

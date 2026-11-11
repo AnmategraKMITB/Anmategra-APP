@@ -5,6 +5,7 @@ import {
   ilike,
   inArray,
   isNotNull,
+  isNull,
   lt,
   ne,
   or,
@@ -21,8 +22,12 @@ import { events, lembaga, mahasiswa, users } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
 
 import {
+  GetAllEventIdsInputSchema,
+  GetAllEventIdsOutputSchema,
   GetAllEventsInputSchema,
   GetAllEventsOutputSchema,
+  GetAllLembagaIdsInputSchema,
+  GetAllLembagaIdsOutputSchema,
   GetRecentEventsOutputSchema,
   GetTopEventsOutputSchema,
   SearchAllOutputSchema,
@@ -41,7 +46,11 @@ export const landingRouter = createTRPCRouter({
 
       const events = await ctx.db.query.events.findMany({
         orderBy: (events, { desc }) => desc(events.start_date),
-        where: (events, { gte }) => gte(events.start_date, sixMonthsAgo),
+        where: (events, { and, eq, gte }) =>
+          and(
+            eq(events.kind, 'kegiatan'),
+            gte(events.start_date, sixMonthsAgo),
+          ),
         with: {
           lembaga: {
             with: {
@@ -62,19 +71,25 @@ export const landingRouter = createTRPCRouter({
         },
       });
 
-      const formattedEvents: Kepanitiaan[] = events.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        image: item.background_image,
-        anggotaCount: item.participant_count ?? 0,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+      const formattedEvents: Kepanitiaan[] = events.map((item) => {
+        const lembaga = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
+        return {
+          lembaga: {
+            name: lembaga?.name ?? '',
+            profilePicture: lembaga?.users.image ?? '',
+          },
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          image: item.background_image,
+          anggotaCount: item.participant_count ?? 0,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       return formattedEvents;
     }),
@@ -101,7 +116,7 @@ export const landingRouter = createTRPCRouter({
         }
       }
 
-      const conditions: SQL<unknown>[] = [];
+      const conditions: SQL<unknown>[] = [eq(events.kind, 'kegiatan')];
       if (sort === 'newest' && cursorDate && cursorId) {
         const date = cursorDate;
         const id = cursorId;
@@ -192,19 +207,25 @@ export const landingRouter = createTRPCRouter({
       const hasMore = list.length > limit;
       const sliced = hasMore ? list.slice(0, limit) : list;
 
-      const formattedEvents: Kepanitiaan[] = sliced.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        image: item.background_image,
-        anggotaCount: item.participant_count ?? 0,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+      const formattedEvents: Kepanitiaan[] = sliced.map((item) => {
+        const lembaga = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
+        return {
+          lembaga: {
+            name: lembaga?.name ?? '',
+            profilePicture: lembaga?.users.image ?? '',
+          },
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          image: item.background_image,
+          anggotaCount: item.participant_count ?? 0,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       const lastItem = sliced[sliced.length - 1];
       const nextCursor =
@@ -226,7 +247,11 @@ export const landingRouter = createTRPCRouter({
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       const events = await ctx.db.query.events.findMany({
-        where: (events, { gte }) => gte(events.start_date, sixMonthsAgo),
+        where: (events, { and, eq, gte }) =>
+          and(
+            eq(events.kind, 'kegiatan'),
+            gte(events.start_date, sixMonthsAgo),
+          ),
         orderBy: (events, { desc }) => desc(events.participant_count),
         with: {
           lembaga: {
@@ -251,19 +276,25 @@ export const landingRouter = createTRPCRouter({
         },
       });
 
-      const formattedEvents: Kepanitiaan[] = events.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        anggotaCount: item.participant_count ?? 0,
-        image: item.background_image,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+      const formattedEvents: Kepanitiaan[] = events.map((item) => {
+        const lembaga = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
+        return {
+          lembaga: {
+            name: lembaga?.name ?? '',
+            profilePicture: lembaga?.users.image ?? '',
+          },
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          anggotaCount: item.participant_count ?? 0,
+          image: item.background_image,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       return formattedEvents;
     }),
@@ -292,15 +323,17 @@ export const landingRouter = createTRPCRouter({
           .from(users)
           .innerJoin(mahasiswa, eq(users.id, mahasiswa.userId))
           .where(
-            isNumeric
-              ? or(
-                  // Jika query numerik: cari di kolom nim (integer) dan name (string)
-                  // @ts-expect-error Mahasiswa.nim adalah integer
-                  ilike(sql`${mahasiswa.nim}::text`, `%${query}%`), // Cast integer ke text untuk ilike
+            and(
+              isNull(users.hiddenAt),
+              isNumeric
+                ? or(
+                    // Jika query numerik: cari di kolom nim (integer) dan name (string)
+                    ilike(sql`${mahasiswa.nim}::text`, `%${query}%`), // Cast integer ke text untuk ilike
+                    ilike(users.name, `%${query}%`),
+                  )
+                : // Jika bukan numerik: cari hanya di kolom name
                   ilike(users.name, `%${query}%`),
-                )
-              : // Jika bukan numerik: cari hanya di kolom name
-                ilike(users.name, `%${query}%`),
+            ),
           )
           .limit(limit),
 
@@ -315,7 +348,8 @@ export const landingRouter = createTRPCRouter({
 
         // Events query
         ctx.db.query.events.findMany({
-          where: (event, { ilike }) => ilike(event.name, `%${query}%`),
+          where: (event, { and, eq, ilike }) =>
+            and(eq(event.kind, 'kegiatan'), ilike(event.name, `%${query}%`)),
           with: {
             lembaga: {
               with: {
@@ -335,33 +369,54 @@ export const landingRouter = createTRPCRouter({
         image: mahasiswa.image ?? undefined,
       }));
 
-      const formattedLembaga: Kepanitiaan[] = lembaga.map((item) => ({
-        lembaga: {
+      const visibleLembaga = lembaga.filter(
+        (item) =>
+          !(item.users as { hiddenAt: Date | null } | null)?.hiddenAt,
+      );
+      const formattedLembaga: Kepanitiaan[] = visibleLembaga.map((item) => {
+        const itemUsers = item.users as { image: string | null } | null;
+        return {
+          lembaga: {
+            id: item.id,
+            name: item.name,
+            profilePicture: itemUsers?.image ?? '',
+          },
+          name: item.name,
+          description: item.description,
+          anggotaCount: item.memberCount ?? 0,
+          startDate: item.foundingDate ? new Date(item.foundingDate) : null,
+          image: itemUsers?.image ?? null,
+          endDate: item.endingDate ? new Date(item.endingDate) : null,
+        };
+      });
+
+      const visibleEvent = event.filter(
+        (item) =>
+          !(
+            item.lembaga as
+              | { users?: { hiddenAt: Date | null } | null }
+              | null
+          )?.users?.hiddenAt,
+      );
+      const formattedKepanitiaan: Kepanitiaan[] = visibleEvent.map((item) => {
+        const lembagaItem = item.lembaga as {
+          name: string | null;
+          users: { image: string | null };
+        } | null;
+        return {
+          lembaga: {
+            name: lembagaItem?.name ?? '',
+            profilePicture: lembagaItem?.users.image ?? '',
+          },
           id: item.id,
           name: item.name,
-          profilePicture: item.users?.image ?? '',
-        },
-        name: item.name,
-        description: item.description,
-        anggotaCount: item.memberCount ?? 0,
-        startDate: new Date(item.foundingDate),
-        image: item.users?.image,
-        endDate: item.endingDate ? new Date(item.endingDate) : null,
-      }));
-
-      const formattedKepanitiaan: Kepanitiaan[] = event.map((item) => ({
-        lembaga: {
-          name: item.lembaga?.name ?? '',
-          profilePicture: item.lembaga?.users.image ?? '',
-        },
-        id: item.id,
-        name: item.name,
-        description: item.description,
-        image: item.background_image,
-        anggotaCount: item.participant_count ?? 0,
-        startDate: new Date(item.start_date),
-        endDate: item.end_date ? new Date(item.end_date) : null,
-      }));
+          description: item.description,
+          image: item.background_image,
+          anggotaCount: item.participant_count ?? 0,
+          startDate: new Date(item.start_date),
+          endDate: item.end_date ? new Date(item.end_date) : null,
+        };
+      });
 
       return {
         mahasiswa: formattedMahasiswa,
@@ -456,7 +511,12 @@ export const landingRouter = createTRPCRouter({
             name: events.name,
           })
           .from(events)
-          .where(sql`${events.name} ILIKE ${'%' + q + '%'}`)
+          .where(
+            and(
+              eq(events.kind, 'kegiatan'),
+              sql`${events.name} ILIKE ${'%' + q + '%'}`,
+            ),
+          )
           .limit(2),
       ]);
 
@@ -472,26 +532,45 @@ export const landingRouter = createTRPCRouter({
     }),
 
   getAllEventIds: publicProcedure
-    .input(z.object({ limit: z.number().min(1).max(100).default(100) }))
+    .input(GetAllEventIdsInputSchema)
+    .output(GetAllEventIdsOutputSchema)
     .query(async ({ ctx, input }) => {
-      const events = await ctx.db.query.events.findMany({
+      const items = await ctx.db.query.events.findMany({
         columns: {
           id: true,
         },
+        where: input.cursor
+          ? (e, { and, eq, gt }) =>
+              and(eq(e.kind, 'kegiatan'), gt(e.id, input.cursor!))
+          : (e, { eq }) => eq(e.kind, 'kegiatan'),
+        orderBy: (e, { asc }) => [asc(e.id)],
         limit: input.limit,
       });
-      return events;
+
+      const nextCursor =
+        items.length === input.limit ? items[items.length - 1]?.id : undefined;
+
+      return { items, nextCursor };
     }),
 
   getAllLembagaIds: publicProcedure
-    .input(z.object({ limit: z.number().min(1).max(100).default(100) }))
+    .input(GetAllLembagaIdsInputSchema)
+    .output(GetAllLembagaIdsOutputSchema)
     .query(async ({ ctx, input }) => {
-      const lembagaList = await ctx.db.query.lembaga.findMany({
+      const items = await ctx.db.query.lembaga.findMany({
         columns: {
           id: true,
         },
+        where: input.cursor
+          ? (l, { gt }) => gt(l.id, input.cursor!)
+          : undefined,
+        orderBy: (l, { asc }) => [asc(l.id)],
         limit: input.limit,
       });
-      return lembagaList;
+
+      const nextCursor =
+        items.length === input.limit ? items[items.length - 1]?.id : undefined;
+
+      return { items, nextCursor };
     }),
 });

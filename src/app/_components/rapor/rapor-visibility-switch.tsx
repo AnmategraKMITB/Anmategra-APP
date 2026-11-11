@@ -69,13 +69,7 @@ export default function RaporVisibilitySwitch({
         rapor_visible: checked,
       });
     } else {
-      if (!id) {
-        console.error('Mahasiswa ID is required for mahasiswa type');
-        setIsVisible(!checked); // Revert
-        return;
-      }
       mahasiswaMutation.mutate({
-        id,
         rapor_visible: checked,
       });
     }

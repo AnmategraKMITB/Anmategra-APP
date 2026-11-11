@@ -26,7 +26,7 @@ type SidebarProps = {
   onClose?: () => void;
 };
 
-const Sidebar = Sidebars as (props: SidebarProps) => JSX.Element;
+const Sidebar = Sidebars as (props: SidebarProps) => React.JSX.Element;
 
 const Navbar = ({ session }: { session: Session | null }) => {
   const [isSideBarOpen, setIsSideBarOpen] = useState(false);
@@ -46,7 +46,10 @@ const Navbar = ({ session }: { session: Session | null }) => {
   useEffect(() => {
     if (
       session?.user.role === 'lembaga' &&
-      !window.location.pathname.startsWith('/lembaga')
+      !window.location.pathname.startsWith('/lembaga') &&
+      // /manual is available to authenticated users at a shared URL;
+      // don't bounce lembaga users away from it.
+      !window.location.pathname.startsWith('/manual')
     ) {
       router.push('/lembaga');
     }
@@ -76,6 +79,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   variant="ghost"
                   size="icon"
                   className="w-8 h-8"
+                  aria-label="Cari"
                 >
                   <Search className="w-5 h-5" />
                 </Button>
@@ -85,6 +89,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   variant="ghost"
                   size="icon"
                   className="w-8 h-8"
+                  aria-label="Buka menu"
                 >
                   <Menu className="w-6 h-6" />
                 </Button>
@@ -100,6 +105,7 @@ const Navbar = ({ session }: { session: Session | null }) => {
                   variant="ghost"
                   size="icon"
                   className="w-9 h-9"
+                  aria-label="Buka menu"
                 >
                   <Menu className="w-5 h-5" />
                 </Button>

@@ -2,7 +2,7 @@ import {
   LaporanCard,
   type LaporanDetailProps,
 } from "~/app/_components/laporan/detail/laporan-card";
-import { SearchBar } from "~/app/_components/placeholder/search-bar";
+import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { api } from "~/trpc/server";
 
 const formatDate = (dateString: string) =>
@@ -14,11 +14,12 @@ const formatDate = (dateString: string) =>
     minute: '2-digit',
   });
 
-export default async function ReportDetail({
-  params,
-}: {
-  params: { laporanId: string };
-}) {
+export default async function ReportDetail(
+  props: {
+    params: Promise<{ laporanId: string }>;
+  }
+) {
+  const params = await props.params;
   const laporanId = params.laporanId;
   const { reports } = await api.admin.getAllReportsAdmin({});
   const report = reports.find((r) => r.id === laporanId);
@@ -44,16 +45,14 @@ export default async function ReportDetail({
 
   return (
     <div className="flex flex-col gap-3 p-8">
-      <h1>Laporan</h1>
-      <span>
-        <a className="underline">Beranda</a>
-        {" /"}
-        <a className="underline">Laporan</a>
-        {" / "}
-        <a className="underline">Detail</a>
-      </span>
-      <SearchBar placeholder={"Cari laporan"} />
-
+      <h1 className="text-2xl font-semibold text-neutral-1000">Laporan</h1>
+      <RaporBreadcrumb
+        items={[
+          { label: 'Beranda', href: '/admin' },
+          { label: 'Laporan', href: '/admin' },
+          { label: 'Detail' },
+        ]}
+      />
       <LaporanCard {...detail} />
     </div>
   );

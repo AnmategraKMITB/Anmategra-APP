@@ -4,12 +4,13 @@ import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import ProfilTable from '../../../../_components/table/event-profil-table';
 
 interface ProfilEventProps {
-  params: {
+  params: Promise<{
     kegiatanId: string;
-  };
+  }>;
 }
 
-const ProfilEvent = async ({ params }: ProfilEventProps) => {
+const ProfilEvent = async (props: ProfilEventProps) => {
+  const params = await props.params;
   try {
     const [profilKMData, profilKegiatanData] = await Promise.all([
       api.profil.getAllProfilKM(),

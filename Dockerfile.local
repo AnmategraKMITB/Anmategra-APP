@@ -1,0 +1,16 @@
+# Image untuk pengembangan lokal: `next dev` dengan hot reload.
+# Image production tetap di `Dockerfile`. Dipakai lewat `compose.local.yml`.
+FROM node:20-alpine
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+# Kode sumber di-bind-mount oleh compose; COPY ini hanya supaya image tetap bisa
+# jalan sendiri tanpa mount.
+COPY . .
+
+EXPOSE 3000
+CMD ["sh", "./docker/local/app-start.sh"]

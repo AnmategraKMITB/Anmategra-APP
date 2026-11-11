@@ -1,0 +1,2 @@
+CREATE UNIQUE INDEX IF NOT EXISTS "pemetaan_profil_kegiatan_profil_km_unique" ON "anmategra_pemetaan_profil_kegiatan" USING btree ("profil_kegiatan_id","profil_km_id");--> statement-breakpoint
+CREATE UNIQUE INDEX IF NOT EXISTS "pemetaan_profil_lembaga_profil_km_unique" ON "anmategra_pemetaan_profil_lembaga" USING btree ("profil_lembaga_id","profil_km_id");

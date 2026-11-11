@@ -1,13 +1,14 @@
-import { createTRPCRouter, publicProcedure } from '~/server/api/trpc';
+import {
+  createTRPCRouter,
+  mergeTRPCRouters,
+  publicProcedure,
+} from '~/server/api/trpc';
 
 import { GetAllProfilKMOutputSchema } from '../types/profil.type';
 import { profilKegiatanRouter } from './profil/kegiatan';
 import { profileLembagaRouter } from './profil/lembaga';
 
-export const profilRouter = createTRPCRouter({
-  ...profilKegiatanRouter._def.procedures,
-  ...profileLembagaRouter._def.procedures,
-
+const profilKmRouter = createTRPCRouter({
   getAllProfilKM: publicProcedure
     .output(GetAllProfilKMOutputSchema)
     .query(async ({ ctx }) => {
@@ -24,3 +25,9 @@ export const profilRouter = createTRPCRouter({
       };
     }),
 });
+
+export const profilRouter = mergeTRPCRouters(
+  profilKegiatanRouter,
+  profileLembagaRouter,
+  profilKmRouter,
+);

@@ -11,9 +11,23 @@ export const GetAllProfilKegiatanInputSchema = z.object({
   event_id: z.string(),
 });
 
-export const GetAllProfilOutputSchema = z
-  .object({ profil_lembaga: z.array(ProfilSchema) })
-  .or(z.object({ profil_kegiatan: z.array(ProfilSchema) }));
+export const GetAllProfilLembagaOutputSchema = z.object({
+  profil_lembaga: z.array(ProfilSchema),
+});
+
+export const GetAllProfilKegiatanOutputSchema = z.object({
+  profil_kegiatan: z.array(ProfilSchema),
+});
+
+/**
+ * FE-only union for components that render profil data from either source
+ * (e.g. shared rapor individu views gated by an `isLembaga` prop). Not used
+ * as a tRPC `.output()` contract — each endpoint returns its own exact
+ * schema above.
+ */
+export const GetAllProfilOutputSchema = GetAllProfilLembagaOutputSchema.or(
+  GetAllProfilKegiatanOutputSchema,
+);
 
 export const GetAllProfilLembagaInputSchema = z.object({
   lembaga_id: z.string(),
@@ -23,7 +37,9 @@ export const CreateProfilKegiatanInputSchema = z.object({
   event_id: z.string().min(1),
   name: z.string().min(1, 'Nama profil harus diisi'),
   description: z.string().min(1, 'Deskripsi profil harus diisi'),
-  profil_km_id: z.array(z.string().min(1)).min(1, 'Pilih minimal satu profil KM'),
+  profil_km_id: z
+    .array(z.string().min(1))
+    .min(1, 'Pilih minimal satu profil KM'),
 });
 
 export const CreateProfilKegiatanOutputSchema = z.object({
@@ -38,7 +54,9 @@ export const CreateProfilLembagaInputSchema = z.object({
   lembaga_id: z.string().min(1),
   name: z.string().min(1, 'Nama profil harus diisi'),
   description: z.string().min(1, 'Deskripsi profil harus diisi'),
-  profil_km_id: z.array(z.string().min(1)).min(1, 'Pilih minimal satu profil KM'),
+  profil_km_id: z
+    .array(z.string().min(1))
+    .min(1, 'Pilih minimal satu profil KM'),
 });
 
 export const CreateProfilLembagaOutputSchema = z.object({

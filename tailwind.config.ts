@@ -57,6 +57,16 @@ export default withUt({
 				'neutral-800': "#474E50",
 				'neutral-900': '#262B2D',
 				'neutral-1000': '#141718',
+				// Status (DESIGN.md): hanya untuk keadaan (sukses, menunggu, bahaya), bukan dekorasi.
+				tomato: '#F16350',
+				'danger-light': '#FEEFEE',
+				'danger-dark': '#B54A3C',
+				saffron: '#F5CB69',
+				'warning-light': '#FEFAF0',
+				'warning-dark': '#B8984F',
+				'dark-pastel-green': '#29BC5B',
+				'success-light': '#EAF8EF',
+				'success-dark': '#1F8D44',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

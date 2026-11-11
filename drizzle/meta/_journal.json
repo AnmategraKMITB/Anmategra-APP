@@ -120,6 +120,244 @@
       "when": 1769866994864,
       "tag": "0016_illegal_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1785490832100,
+      "tag": "0017_fair_mulholland_black",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1786367528646,
+      "tag": "0018_majestic_sersi",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1786393024657,
+      "tag": "0019_drop_kontak_type_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1786393134387,
+      "tag": "0020_sync_mahasiswa_nama_on_user_update",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1786393275234,
+      "tag": "0021_true_magma",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1786395592821,
+      "tag": "0022_modern_stingray",
+      "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1786396556997,
+      "tag": "0023_marvelous_robin_chapel",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1787709720971,
+      "tag": "0024_cute_dragon_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793461287353,
+      "tag": "0025_lembaga_acronym",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793462120132,
+      "tag": "0026_organization_constraints",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793593952837,
+      "tag": "0027_sync_jurusan_names",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793626321856,
+      "tag": "0028_form_builder",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793946122002,
+      "tag": "0029_org_base_1a",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793946913067,
+      "tag": "0030_lembaga_membership",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1793991272022,
+      "tag": "0031_access_grant",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793992258067,
+      "tag": "0032_organogram_positions_placements",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793993363048,
+      "tag": "0033_organogram_unlimited_depth",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794013396545,
+      "tag": "0034_organogram_period_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794015209131,
+      "tag": "0035_placement_sort_order_and_count_trigger",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794017780198,
+      "tag": "0036_rank_list_per_structure",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794017781442,
+      "tag": "0037_rank_list_drop_labels",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794021826275,
+      "tag": "0038_unit_description",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794043794265,
+      "tag": "0039_forms_foundation",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794059516530,
+      "tag": "0040_forms_conditions",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794063070146,
+      "tag": "0041_forms_images_files",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1794065440136,
+      "tag": "0042_forms_image_ownership",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1794069918506,
+      "tag": "0043_forms_edit_and_quota",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1794103630070,
+      "tag": "0044_oprec_core",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1794104826395,
+      "tag": "0045_oprec_unit_choice",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1794114630483,
+      "tag": "0046_oprec_assessment",
+      "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1794150190034,
+      "tag": "0047_oprec_placement",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1794202636180,
+      "tag": "0048_last_iron_fist",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1794302921931,
+      "tag": "0049_fat_argent",
+      "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1794370187945,
+      "tag": "0050_tough_sleepwalker",
+      "breakpoints": true
     }
   ]
 }

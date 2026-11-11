@@ -9,7 +9,14 @@ import {
   HomeIcon,
   PersonIcon,
 } from '@radix-ui/react-icons';
-import { BookOpen, LogOut, X } from 'lucide-react';
+import {
+  BookOpen,
+  ClipboardList,
+  FileText,
+  LogOut,
+  Network,
+  X,
+} from 'lucide-react';
 // Auth Import
 import { type Session } from 'next-auth';
 import { signOut } from 'next-auth/react';
@@ -53,6 +60,17 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
   { label: 'Beranda', href: '/', icon: <HomeIcon /> },
   { label: 'Kegiatan', href: '/kegiatan', icon: <CalendarIcon /> },
   { label: 'Anggota', href: '/anggota', icon: <PersonIcon /> },
+  {
+    label: 'Organogram',
+    href: '/organogram',
+    icon: <Network className="w-5 h-5" />,
+  },
+  { label: 'Forms', href: '/forms', icon: <FileText className="w-5 h-5" /> },
+  {
+    label: 'Oprec',
+    href: '/oprec',
+    icon: <ClipboardList className="w-5 h-5" />,
+  },
   { label: 'Inbox', href: '/inbox', icon: <EnvelopeOpenIcon /> },
   {
     label: 'Laporan',
@@ -61,7 +79,7 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
   },
   {
     label: 'Manual',
-    href: '/api/manual',
+    href: '/manual',
     icon: <BookOpen className="w-5 h-5" />,
   },
 ];
@@ -77,26 +95,47 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
   { label: 'Inbox', href: '/mahasiswa/inbox', icon: <EnvelopeOpenIcon /> },
   {
     label: 'Manual',
-    href: '/api/manual',
+    href: '/manual',
     icon: <BookOpen className="w-5 h-5" />,
   },
 ];
 
-export const Sidebar = ({
-  session,
-  onClose,
-}: {
-  session: Session | null;
-  onClose?: () => void;
-}) => {
+const SIDEBAR_ITEMS_ADMIN: SidebarItemType[] = [
+  { label: 'Laporan', href: '/admin', icon: <ExclamationTriangleIcon /> },
+  { label: 'Akun', href: '/admin/akun', icon: <PersonIcon /> },
+  {
+    label: 'Lembaga',
+    href: '/admin/lembaga',
+    icon: <Network className="w-5 h-5" />,
+  },
+  {
+    label: 'Akses',
+    href: '/admin/akses',
+    icon: <ClipboardList className="w-5 h-5" />,
+  },
+  { label: 'Audit', href: '/admin/audit', icon: <FileText className="w-5 h-5" /> },
+  {
+    label: 'Manual',
+    href: '/manual',
+    icon: <BookOpen className="w-5 h-5" />,
+  },
+];
+
+// Data profil di dasar sidebar; dipakai juga oleh editor organogram yang menaruh blok profil di panelnya sendiri.
+const useSidebarProfile = (session: Session | null): SidebarProfileData => {
   const user = session?.user;
   const role = user?.role ?? 'mahasiswa';
 
-  const sidebarItems =
-    role === 'lembaga' ? SIDEBAR_ITEMS_LEMBAGA : SIDEBAR_ITEMS_MAHASISWA;
-
   let profileData: SidebarProfileData;
-  if (role === 'lembaga') {
+  if (role === 'admin') {
+    profileData = {
+      id: user?.id ?? '',
+      name: user?.name ?? 'Admin',
+      profilePicture: user?.image ?? '/images/placeholder/profile-pic.png',
+      label: 'Admin',
+      href: '/admin',
+    };
+  } else if (role === 'lembaga') {
     const lembaga = api.lembaga.getInfo.useQuery(
       {
         lembagaId: user?.lembagaId ?? '',
@@ -125,11 +164,50 @@ export const Sidebar = ({
     };
   }
 
+  return profileData;
+};
+
+export const SidebarAccount = ({
+  session,
+  onNavigate,
+}: {
+  session: Session | null;
+  onNavigate?: () => void;
+}) => {
+  const profile = useSidebarProfile(session);
+  return (
+    <SidebarProfile
+      profile={profile}
+      role={session?.user?.role ?? 'mahasiswa'}
+      onProfileClick={onNavigate}
+    />
+  );
+};
+
+export const Sidebar = ({
+  session,
+  onClose,
+}: {
+  session: Session | null;
+  onClose?: () => void;
+}) => {
+  const user = session?.user;
+  const role = user?.role ?? 'mahasiswa';
+
+  const sidebarItems =
+    role === 'lembaga'
+      ? SIDEBAR_ITEMS_LEMBAGA
+      : role === 'admin'
+        ? SIDEBAR_ITEMS_ADMIN
+        : SIDEBAR_ITEMS_MAHASISWA;
+
+  const profileData = useSidebarProfile(session);
+
   return (
     <div className="fixed top-0 left-0 z-[60] flex h-screen w-64 flex-col border-r bg-neutral-50 p-6">
       <div className="mb-8 flex items-center justify-between">
         <Link
-          href={role === 'lembaga' ? '/lembaga' : '/mahasiswa'}
+          href={role === 'lembaga' ? '/lembaga' : role === 'admin' ? '/admin' : '/mahasiswa'}
           className="flex items-center"
           onClick={onClose}
         >

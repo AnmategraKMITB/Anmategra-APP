@@ -15,16 +15,18 @@ export const GetMahasiswaOutputSchema = z.object({
     user: z.custom<User>(),
   }),
   newestEvent: z.array(z.custom<Kepanitiaan>()),
-  memberLembaga: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    description: z.string().nullable(),
-    image: z.string().url().nullable(),
-    memberCount: z.number().nullable(),
-    type: z.string().nullable(),
-    position: z.string(),
-    division: z.string(),
-  })),
+  memberLembaga: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      description: z.string().nullable(),
+      image: z.string().url().nullable(),
+      memberCount: z.number().nullable(),
+      type: z.string().nullable(),
+      position: z.string(),
+      division: z.string(),
+    }),
+  ),
 });
 
 const PanitiaKegiatanSchema = z.object({
@@ -35,7 +37,6 @@ const PanitiaKegiatanSchema = z.object({
   image: z.string().url().nullable(),
   divisi: z.string().nullable(),
   posisi: z.string().nullable(),
-  posisiColor: z.string(),
 });
 
 export const GetLembagaInputSchema = z.object({ lembagaId: z.string() });
@@ -44,6 +45,7 @@ export const GetLembagaOutputSchema = z.object({
   lembagaData: z.object({
     id: z.string(),
     name: z.string(),
+    acronym: z.string().nullable(),
     description: z.string().nullable(),
     memberCount: z.number().nullable(),
     foundingDate: z.date().nullable(),
@@ -61,8 +63,8 @@ export const GetLembagaOutputSchema = z.object({
 });
 
 export const GetLembagaPublicOutputSchema = GetLembagaOutputSchema.omit({
-  anggota: true,  
-})
+  anggota: true,
+});
 
 export const GetKegiatanInputSchema = z.object({ kegiatanId: z.string() });
 
@@ -83,4 +85,4 @@ export const GetKegiatanOutputSchema = z.object({
 
 export const GetKegiatanPublicOutputSchema = GetKegiatanOutputSchema.omit({
   participant: true,
-})
+});

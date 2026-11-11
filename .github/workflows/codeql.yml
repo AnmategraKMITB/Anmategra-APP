@@ -1,0 +1,81 @@
+name: CodeQL
+
+on:
+  push:
+    branches: ['main', 'develop']
+  pull_request:
+    branches: ['main', 'develop']
+  schedule:
+    - cron: '17 2 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  actions: read
+  security-events: write
+
+env:
+  # Samakan dengan versi CodeQL CLI yang dipakai default setup sebelumnya.
+  # Naikkan manual kalau mau versi baru; key cache ikut berubah.
+  CODEQL_VERSION: 2.27.4
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: actions
+            bundle: actions
+          - language: javascript-typescript
+            bundle: javascript
+          - language: python
+            bundle: python
+    steps:
+      - uses: actions/checkout@v7
+
+      # Bundle disimpan per bahasa supaya unduhannya kecil dan tidak diulang
+      # tiap run.
+      - uses: actions/cache@v6
+        with:
+          path: ${{ runner.temp }}/codeql-bundle-${{ matrix.bundle }}-linux64.tar.zst
+          key: codeql-bundle-${{ matrix.bundle }}-${{ env.CODEQL_VERSION }}
+
+      # Endpoint /releases/download/ bisa 504, sedangkan endpoint asset di
+      # api.github.com tetap jalan. Ambil bundle lewat sana lalu serahkan
+      # path lokalnya ke codeql-action lewat input `tools`.
+      - name: Ambil CodeQL bundle
+        id: bundle
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          name="codeql-bundle-${{ matrix.bundle }}-linux64.tar.zst"
+          path="$RUNNER_TEMP/$name"
+          if [ ! -f "$path" ]; then
+            asset_id=$(curl -fsSL \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H 'Accept: application/vnd.github+json' \
+              "https://api.github.com/repos/github/codeql-action/releases/tags/codeql-bundle-v$CODEQL_VERSION" \
+              | jq -r --arg name "$name" '.assets[] | select(.name == $name) | .id')
+            curl -fsSL \
+              -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H 'Accept: application/octet-stream' \
+              "https://api.github.com/repos/github/codeql-action/releases/assets/$asset_id" \
+              -o "$path"
+          fi
+          echo "path=$path" >> "$GITHUB_OUTPUT"
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: ${{ matrix.language }}
+          tools: ${{ steps.bundle.outputs.path }}
+
+      - uses: github/codeql-action/analyze@v4

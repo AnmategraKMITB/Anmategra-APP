@@ -8,12 +8,13 @@ import { Button } from '~/components/ui/button';
 import { Plus } from 'lucide-react';
 
 interface Props {
-  params: {
+  params: Promise<{
     profileKegiatanId: string;
-  };
+  }>;
 }
 
-const HistoriBestStaffKegiatanPage = async ({ params }: Props) => {
+const HistoriBestStaffKegiatanPage = async (props: Props) => {
+  const params = await props.params;
   const session = await getServerAuthSession();
   const { profileKegiatanId: kegiatanId } = params;
 

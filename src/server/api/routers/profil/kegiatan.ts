@@ -9,7 +9,7 @@ import {
   EditProfilInputSchema,
   EditProfilOutputSchema,
   GetAllProfilKegiatanInputSchema,
-  GetAllProfilOutputSchema,
+  GetAllProfilKegiatanOutputSchema,
 } from '~/server/api/types/profil.type';
 import {
   events,
@@ -25,7 +25,7 @@ import {
 export const profilKegiatanRouter = createTRPCRouter({
   getAllProfilKegiatan: protectedProcedure
     .input(GetAllProfilKegiatanInputSchema)
-    .output(GetAllProfilOutputSchema)
+    .output(GetAllProfilKegiatanOutputSchema)
     .query(async ({ ctx, input }) => {
       const profil = await ctx.db.query.profilKegiatan.findMany({
         where: eq(profilKegiatan.eventId, input.event_id),
@@ -193,14 +193,13 @@ export const profilKegiatanRouter = createTRPCRouter({
           })
           .where(eq(profilKegiatan.id, input.profil_id));
 
-        // Update the mappings
-        if (input.profil_km_id && input.profil_km_id.length > 0) {
-          await tx
-            .delete(pemetaanProfilKegiatan)
-            .where(
-              eq(pemetaanProfilKegiatan.profilKegiatanId, input.profil_id),
-            );
+        // Update the mappings — always resync to input.profil_km_id,
+        // including clearing all mappings when it's sent empty.
+        await tx
+          .delete(pemetaanProfilKegiatan)
+          .where(eq(pemetaanProfilKegiatan.profilKegiatanId, input.profil_id));
 
+        if (input.profil_km_id.length > 0) {
           const mappings = input.profil_km_id.map((kmId) => ({
             profilKegiatanId: input.profil_id,
             profilKMId: kmId,

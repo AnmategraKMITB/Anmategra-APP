@@ -7,7 +7,7 @@ export interface Kepanitiaan {
   image: string | null;
   description: string | null;
   anggotaCount: number;
-  startDate: Date;
+  startDate: Date | null;
   endDate: Date | null;
   position?: string;
   division?: string;

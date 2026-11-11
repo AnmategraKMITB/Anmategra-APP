@@ -2,24 +2,29 @@ import { eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { keanggotaan, mahasiswa, users } from '~/server/db/schema';
+import {
+  periodMemberIds,
+  periodMembersSq,
+  removeFromPeriod,
+  upsertPlacementByText,
+} from '~/server/api/routers/organization/membership';
+import { mahasiswa, users } from '~/server/db/schema';
+import { apiError } from '~/utils/api-error';
 
-export async function GET(
-  request: Request,
-  { params }: { params: { event_id: string } },
-) {
+export async function GET(request: Request, props: { params: Promise<{ event_id: string }> }) {
+  const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
   if (session.user.role !== 'lembaga') {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   const { event_id } = params;
   if (!event_id) {
-    return Response.json({ error: 'Missing event_id' }, { status: 400 });
+    return apiError(400, 'Missing event_id', 'BAD_REQUEST');
   }
 
   // --- Validate lembaga ownership ---
@@ -27,7 +32,7 @@ export async function GET(
     where: (l, { eq }) => eq(l.userId, session.user.id),
   });
   if (!userLembaga) {
-    return Response.json({ error: 'Lembaga not found' }, { status: 404 });
+    return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
   // --- Validate event ---
@@ -35,23 +40,28 @@ export async function GET(
     where: (e, { eq }) => eq(e.id, event_id),
   });
   if (!kegiatan) {
-    return Response.json({ error: 'Event not found' }, { status: 404 });
+    return apiError(404, 'Event not found', 'NOT_FOUND');
   }
   if (kegiatan.org_id !== userLembaga.id) {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   // --- Fetch panitia data ---
+  const members = periodMembersSq(db, event_id);
   const panitiaKegiatan = await db
-    .select()
-    .from(keanggotaan)
-    .leftJoin(users, eq(keanggotaan.user_id, users.id))
-    .leftJoin(mahasiswa, eq(keanggotaan.user_id, mahasiswa.userId))
-    .where(eq(keanggotaan.event_id, event_id))
+    .select({
+      name: users.name,
+      nim: mahasiswa.nim,
+      division: members.division,
+      position: members.position,
+    })
+    .from(members)
+    .leftJoin(users, eq(members.userId, users.id))
+    .leftJoin(mahasiswa, eq(members.userId, mahasiswa.userId))
     .orderBy(
-      keanggotaan.index,
-      keanggotaan.division,
-      keanggotaan.position,
+      members.index,
+      members.division,
+      members.position,
       mahasiswa.nim,
       users.name,
     );
@@ -83,10 +93,10 @@ export async function GET(
   // --- Add data rows ---
   panitiaKegiatan.forEach((panitia) => {
     const row = sheet.addRow([
-      panitia.user?.name ?? '',
-      panitia.mahasiswa?.nim ?? '',
-      panitia.keanggotaan.division ?? '',
-      panitia.keanggotaan.position ?? 'Anggota',
+      panitia.name ?? '',
+      panitia.nim ?? '',
+      panitia.division,
+      panitia.position,
     ]);
 
     // --- Add borders to data rows ---
@@ -130,22 +140,20 @@ export async function GET(
   });
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { event_id: string } },
-) {
+export async function POST(request: Request, props: { params: Promise<{ event_id: string }> }) {
+  const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
   if (!session) {
-    return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
   if (session.user.role !== 'lembaga') {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   const { event_id } = params;
   if (!event_id) {
-    return Response.json({ error: 'Missing event_id' }, { status: 400 });
+    return apiError(400, 'Missing event_id', 'BAD_REQUEST');
   }
 
   // --- Validate lembaga ownership ---
@@ -153,7 +161,7 @@ export async function POST(
     where: (l, { eq }) => eq(l.userId, session.user.id),
   });
   if (!userLembaga) {
-    return Response.json({ error: 'Lembaga not found' }, { status: 404 });
+    return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
   // --- Validate event ---
@@ -161,10 +169,10 @@ export async function POST(
     where: (e, { eq }) => eq(e.id, event_id),
   });
   if (!kegiatan) {
-    return Response.json({ error: 'Event not found' }, { status: 404 });
+    return apiError(404, 'Event not found', 'NOT_FOUND');
   }
   if (kegiatan.org_id !== userLembaga.id) {
-    return Response.json({ error: 'Forbidden Resource' }, { status: 403 });
+    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
   try {
@@ -173,16 +181,14 @@ export async function POST(
     const file = formData.get('file') as File;
 
     if (!file) {
-      return Response.json({ error: 'No file provided' }, { status: 400 });
+      return apiError(400, 'No file provided', 'BAD_REQUEST');
     }
 
     if (!/\.(xlsx|xls)$/.exec(file.name)) {
-      return Response.json(
-        {
-          error:
-            'Invalid file format. Please upload Excel file (.xlsx or .xls)',
-        },
-        { status: 400 },
+      return apiError(
+        400,
+        'Invalid file format. Please upload Excel file (.xlsx or .xls)',
+        'BAD_REQUEST',
       );
     }
 
@@ -195,10 +201,7 @@ export async function POST(
     const sheet = workbook.getWorksheet();
 
     if (!sheet) {
-      return Response.json(
-        { error: 'Worksheet not found' },
-        { status: 400 },
-      );
+      return apiError(400, 'Worksheet not found', 'BAD_REQUEST');
     }
 
     // --- Process sheet data ---
@@ -221,11 +224,10 @@ export async function POST(
       if (!nama && !nim && !divisi && !posisi) continue;
 
       if (!nama || !nim || !divisi || !posisi) {
-        return Response.json(
-          {
-            error: `Row ${rowNumber}: Missing required data (Nama, NIM, Divisi, Posisi)`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Row ${rowNumber}: Missing required data (Nama, NIM, Divisi, Posisi)`,
+          'VALIDATION_ERROR',
         );
       }
       // Find mahasiswa by NIM
@@ -237,30 +239,28 @@ export async function POST(
       });
 
       if (!mahasiswaRecord) {
-        return Response.json(
-          {
-            error: `Student with NIM ${nim} not found in database. Please contact admin if this is an error.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Student with NIM ${nim} not found in database. Please contact admin if this is an error.`,
+          'VALIDATION_ERROR',
         );
       }
-      const expectedName = mahasiswaRecord.users.name?.toLocaleLowerCase();
+      const mahasiswaUser = mahasiswaRecord.users as { name: string | null };
+      const expectedName = mahasiswaUser.name?.toLocaleLowerCase();
       const actualName = nama.toLocaleLowerCase();
       if (expectedName !== actualName) {
-        return Response.json(
-          {
-            error: `Name mismatch for NIM ${nim}: expected ${mahasiswaRecord.users.name}, got ${nama}.\n Please contact admin if this is an error.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Name mismatch for NIM ${nim}: expected ${mahasiswaUser.name}, got ${nama}.\n Please contact admin if this is an error.`,
+          'VALIDATION_ERROR',
         );
       }
 
       if (anggotaData.some((a) => a.userId === mahasiswaRecord.userId)) {
-        return Response.json(
-          {
-            error: `Duplicate entry for NIM ${nim} in Excel file.`,
-          },
-          { status: 400 },
+        return apiError(
+          400,
+          `Duplicate entry for NIM ${nim} in Excel file.`,
+          'VALIDATION_ERROR',
         );
       }
 
@@ -268,29 +268,26 @@ export async function POST(
     }
 
     if (anggotaData.length === 0) {
-      return Response.json(
-        { error: 'No member data found in Excel file' },
-        { status: 400 },
-      );
+      return apiError(400, 'No member data found in Excel file', 'VALIDATION_ERROR');
     }
 
     // --- Find users and insert keanggotaan ---
     let insertedCount = 0;
 
     await db.transaction(async (tx) => {
-      // --- Delete existing data for this event ---
-      await tx.delete(keanggotaan).where(eq(keanggotaan.event_id, event_id));
+      // --- Delete existing placements for this event ---
+      for (const userId of await periodMemberIds(tx, event_id)) {
+        await removeFromPeriod(tx, event_id, userId);
+      }
       for (const anggota of anggotaData) {
-        // Insert keanggotaan
-        const keanggotaanId = crypto.randomUUID();
-        await tx.insert(keanggotaan).values({
-          id: keanggotaanId,
-          event_id: event_id,
-          user_id: anggota.userId,
-          position: anggota.posisi,
+        await upsertPlacementByText(tx, {
+          periodId: event_id,
+          userId: anggota.userId,
           division: anggota.divisi,
-          description: null,
-          index: anggota.index,
+          position: anggota.posisi,
+          createdBy: session.user.id,
+          source: 'import',
+          sortOrder: anggota.index,
         });
 
         insertedCount++;
@@ -309,12 +306,11 @@ export async function POST(
     );
   } catch (error) {
     console.error('Error importing Excel data:', error);
-    return Response.json(
-      {
-        error: 'Failed to import Excel data',
-        details: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 },
+    return apiError(
+      500,
+      'Failed to import Excel data',
+      'INTERNAL_ERROR',
+      error instanceof Error ? error.message : 'Unknown error',
     );
   }
 }

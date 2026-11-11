@@ -1,39 +1,35 @@
 id,user_id,name,description,founding_date,ending_date,type,major,field,member_count,created_at,updated_at
-lembaga-1,user-3,UKM Web Dev,"Him single bar. Yard material suffer radio suddenly about. Mind return write break who morning civil.
-Certain nation year no police themselves per.",2021-12-25,2026-01-08,Himpunan,Teknik Elektro,,81,2024-10-13T19:05:09.452377,2025-06-07T07:55:07.026806
-lembaga-2,user-4,Himpunan TechFest,"Opportunity drug kitchen drug. Off machine four become lay. Small drug authority whose.
-Water defense deal. Rock when always radio.",2022-08-18,,Himpunan,Teknik Elektro,,144,2024-04-09T07:07:27.202879,2025-05-09T03:07:33.679404
-lembaga-3,user-5,Himpunan Coding Club,Various front a Democrat under provide accept.,2021-11-15,2026-04-30,Himpunan,Teknik Informatika,,80,2025-05-15T14:48:15.052852,2024-11-15T09:42:59.246969
-lembaga-4,user-6,UKM Data Science,Mollitia qui beatae beatae hic incidunt ullam. Praesentium doloribus modi repudiandae qui ab.,2023-07-12,,Kepanitiaan,,,122,2025-06-18T05:46:45.763459,2024-11-12T00:23:30.774068
-lembaga-5,user-7,Himpunan AI Society,"Inventore nostrum eaque qui quasi ut. Quia velit quod harum ad.
-Velit optio repellendus animi ratione. Quaerat cumque mollitia quibusdam expedita.
-Ipsa nulla ipsum harum tempore.",2020-08-24,2027-07-17,Kepanitiaan,,,27,2025-04-07T20:42:14.220741,2025-06-28T18:45:10.388222
-lembaga-6,user-8,UKM Data Science,"Eius incidunt neque quibusdam laboriosam perferendis. Quis ipsum assumenda.
-Ducimus architecto beatae quaerat perspiciatis dicta error laudantium. Deserunt voluptatum quo est.",2023-01-24,,UKM,,Sosial,78,2025-06-22T16:18:28.796726,2025-03-24T03:34:06.073323
-lembaga-7,user-9,Organisasi TechFest,"About more cultural cost. Statement expert food radio ten consumer.
-Food leg eight thing should by. Course now old put. Again treat event though argue total difficult.",2020-05-16,,Kepanitiaan,,,101,2024-10-04T23:51:26.848598,2025-06-24T00:11:23.168623
-lembaga-8,user-10,Organisasi Mobile Dev,Hour serious north skin. Continue bank spring need. Pressure must process indicate put already health career.,2020-05-29,2026-02-19,UKM,,Sosial,143,2024-07-19T13:43:06.254630,2025-01-11T21:12:23.444093
-lembaga-9,user-11,Organisasi Web Dev,Atque sequi ut voluptates amet. Esse deserunt laudantium esse ut corrupti. Nihil reprehenderit laborum dignissimos maiores totam.,2021-05-19,,Kepanitiaan,,,154,2024-08-16T12:16:14.497226,2025-07-04T21:12:57.372516
-lembaga-10,user-12,UKM Cyber Security,"Corrupti enim deleniti quisquam vel molestias. Incidunt facilis ipsam perferendis fuga recusandae doloremque. Cum asperiores reprehenderit ipsam cupiditate aliquam.
-Inventore nemo totam quis illo.",2024-03-17,,UKM,,Seni,38,2024-01-20T15:27:09.009481,2025-09-07T14:52:51.190965
-lembaga-11,user-13,Organisasi Coding Club,"Animal live trip you. Dog forget street clear fine fly over.
+lembaga-1,user-3,Himpunan Mobile Dev,"Him single bar. Yard material suffer radio suddenly about. Mind return write break who morning civil.
+Certain nation year no police themselves per.",2022-11-13,2026-11-27,UKM,,Seni,64,2025-09-01T04:25:51.452377,2026-04-25T17:15:49.026806
+lembaga-2,user-4,UKM Cyber Security,"Opportunity drug kitchen drug. Off machine four become lay. Small drug authority whose.
+Water defense deal. Rock when always radio.",2023-07-07,,Himpunan,Teknik Komputer,,77,2025-02-25T16:28:09.202879,2026-03-27T12:28:15.679404
+lembaga-3,user-5,Organisasi Cyber Security,Various front a Democrat under provide accept.,2022-10-04,,Himpunan,Sistem Informasi,,151,2025-03-19T16:28:36.202271,2026-06-06T14:25:40.526426
+lembaga-4,user-6,UKM AI Society,"Error mollitia qui beatae beatae. Illo architecto placeat praesentium doloribus modi.
+Et dolore sit praesentium.",2021-03-04,,Kepanitiaan,,,74,2025-12-07T06:53:58.447945,2026-07-06T08:30:04.767922
+lembaga-5,user-7,UKM Web Dev,"Totam repudiandae cum. Eum deleniti eligendi inventore nostrum eaque qui. Vel quia velit quod harum ad.
+Velit optio repellendus animi ratione. Quaerat cumque mollitia quibusdam expedita.",2019-09-02,,Himpunan,Teknik Elektro,,23,2025-07-14T20:35:40.837345,2025-08-23T02:52:28.075784
+lembaga-6,user-8,Himpunan AI Society,"Win ready material. Pass those thousand.
+List site kitchen task treat. Sign ability term claim degree every. Return top husband different rise several.",2020-11-09,,Kepanitiaan,,,94,2025-04-26T21:08:45.451421,2026-05-16T12:17:17.284307
+lembaga-7,user-9,Organisasi AI Society,Ut tempore velit fugiat ipsum soluta. Magnam placeat eaque delectus. Minus deserunt deleniti fugit illo quia possimus rem.,2019-07-27,,Himpunan,Teknik Komputer,,94,2025-02-25T15:27:47.735049,2025-08-30T12:21:03.552256
+lembaga-8,user-10,UKM Coding Club,Earum esse libero illum. Omnis quidem tenetur voluptas autem exercitationem.,2022-05-23,,Himpunan,Teknik Elektro,,175,2026-03-04T12:01:13.912704,2026-06-29T00:13:14.504712
+lembaga-9,user-11,Himpunan Coding Club,Tenetur voluptas nihil neque rerum rem. Iusto sit ipsam ipsam laudantium.,2019-09-01,,UKM,,Olahraga,200,2025-10-15T06:11:32.450950,2026-02-06T00:48:38.450086
+lembaga-10,user-12,UKM TechFest,"Within hand book lawyer recognize impact be pull. Once theory senior whatever eight team coach. Mission simple late.
+Meeting them gun change. White itself especially worry any.",2025-01-09,,Himpunan,Sistem Informasi,,146,2025-05-31T09:08:02.426760,2025-08-17T09:23:34.721062
+lembaga-11,user-13,Himpunan AI Society,Error neque nesciunt id est exercitationem. Eligendi accusantium hic nesciunt necessitatibus.,2025-02-03,,Kepanitiaan,,,153,2024-12-08T00:47:51.009481,2026-07-27T00:13:33.190965
+lembaga-12,user-14,Organisasi Robotics,"Animal live trip you. Dog forget street clear fine fly over.
 Itself team price. Military effect drug wide property bad amount.
-Approach hotel speak indicate perform. She forward movement thus.",2024-06-14,2027-09-20,Himpunan,Teknik Komputer,,37,2025-01-01T13:51:15.727652,2024-10-14T02:22:46.327442
-lembaga-12,user-14,UKM TechFest,"Odio non et magnam. Illum praesentium praesentium id aut eum error. Culpa nostrum qui porro.
-Ratione deleniti esse dolor. Eaque perspiciatis tenetur nesciunt provident accusamus.",2021-04-17,,Kepanitiaan,,,50,2025-02-27T04:02:43.091331,2025-01-23T22:31:04.264708
-lembaga-13,user-15,UKM AI Society,"Est quis natus reiciendis. Est inventore numquam dolorum laudantium.
-Ex quo animi molestiae. Architecto ullam optio provident.
-Fugit nisi ducimus quidem necessitatibus distinctio sint.",2020-01-28,2026-07-29,UKM,,Teknologi,105,2025-04-19T01:01:32.353237,2025-02-25T04:27:22.489573
-lembaga-14,user-16,Organisasi AI Society,"Quisquam dolores totam atque voluptatibus eius ducimus. Laboriosam cupiditate itaque dolores eligendi autem.
-Sed quisquam ullam facilis. Unde laudantium eaque nostrum.",2019-10-17,,UKM,,Seni,155,2025-04-15T00:44:01.787643,2025-03-10T20:11:12.754217
-lembaga-15,user-17,Himpunan Cyber Security,"Modi animi cumque. Id cupiditate excepturi eum. Veritatis odit esse odio error laudantium quae. Non sunt temporibus eaque.
-Facilis reiciendis dolores saepe. Vero quae debitis tenetur.",2021-06-10,,UKM,,Olahraga,194,2024-07-25T07:02:17.689511,2024-12-27T21:41:02.799133
-lembaga-16,user-18,Organisasi Coding Club,"Mollitia eius voluptas. Architecto laborum iure. Dicta nihil dolorum.
-Dolorem fugit similique nobis in. Autem sapiente pariatur quibusdam. Adipisci illum rerum praesentium quidem nulla fugit.",2022-04-02,,Himpunan,Teknik Komputer,,126,2024-09-06T03:17:16.322555,2025-03-14T07:57:02.380408
-lembaga-17,user-19,Organisasi AI Society,Iusto nobis incidunt quod. Voluptates repellat asperiores dignissimos accusantium totam.,2021-06-18,,Himpunan,Teknik Elektro,,17,2025-07-13T05:31:24.904378,2024-09-27T12:31:50.975395
-lembaga-18,user-20,Himpunan Data Science,"Remain girl later writer. Process find protect summer environment very even.
-Way half theory story true who animal finally. Water affect front admit general future above certain.",2023-08-07,,Kepanitiaan,,,10,2024-06-07T19:27:03.616073,2025-01-16T08:08:39.301667
-lembaga-19,user-21,Organisasi Web Dev,"Certain house dark clearly team. Well newspaper amount although drive. Forward water here among six.
-Feel laugh late tough surface story able record.",2024-02-22,,Kepanitiaan,,,118,2024-05-04T07:37:59.214850,2024-11-24T08:54:31.393765
-lembaga-20,user-22,Organisasi Web Dev,"Among history ball. Blood include article conference. Sister because range student how I. Also serious book arrive.
-Win simple from probably kind system himself actually. Them smile while win Mr.",2021-03-29,,Kepanitiaan,,,185,2024-11-26T09:23:13.545586,2025-07-31T04:58:22.974929
+Approach hotel speak indicate perform. She forward movement thus.",2025-05-03,,Kepanitiaan,,,28,2026-08-10T03:58:14.423816,2026-03-31T13:57:10.863826
+lembaga-13,user-15,Himpunan AI Society,"Aliquid quis odio non et. Illum illum praesentium praesentium id aut eum.
+Culpa nostrum qui porro. Consequuntur vel voluptate fugiat iste.",2024-03-25,2027-04-04,Himpunan,Teknik Komputer,,114,2026-02-07T02:24:00.182295,2025-12-02T14:52:43.763330
+lembaga-14,user-16,Himpunan TechFest,"Atque velit ab distinctio accusantium iste possimus. Rem est quis natus reiciendis.
+Repellendus eaque nam aliquam sit. Ex quo animi molestiae.",2023-07-29,,Kepanitiaan,,,107,2025-12-10T19:04:09.978705,2026-04-25T16:46:04.566497
+lembaga-15,user-17,UKM TechFest,"Veniam laboriosam blanditiis ullam voluptas. Excepturi magni incidunt corporis repellat consequatur eligendi.
+Natus cum deleniti voluptas. Voluptatibus eius ducimus rerum.",2024-02-01,,UKM,,Lingkungan,146,2025-07-05T10:54:52.440016,2026-07-04T23:11:59.279338
+lembaga-16,user-18,UKM AI Society,Nisi corporis eveniet perferendis vel quos. Iure minima at adipisci dolor corporis. Consequatur dolore possimus molestias laboriosam.,2025-04-26,,UKM,,Teknologi,18,2025-08-08T04:21:36.335539,2025-11-05T11:07:26.248134
+lembaga-17,user-19,UKM AI Society,"Cupiditate aliquam possimus unde commodi voluptatibus. Veritatis nulla deleniti architecto eos.
+Sit repellendus ullam quis maiores facere. Pariatur in sed hic. Maiores mollitia eius voluptas.",2022-09-23,,UKM,,Olahraga,99,2025-07-26T06:05:51.180146,2025-11-01T02:14:09.721769
+lembaga-18,user-20,Organisasi Robotics,"Owner instead case. Prove section scene all in strong. Few drive understand like add prove join measure.
+Radio politics gas. Home from common go four positive.",2023-04-29,,Kepanitiaan,,,192,2024-09-10T12:55:07.364025,2026-06-14T10:05:34.174685
+lembaga-19,user-21,UKM Data Science,Interest song its culture per. Activity wonder loss it. Forget significant foot election remain girl.,2018-10-01,,Himpunan,Teknik Komputer,,21,2026-05-12T10:50:16.127012,2025-10-16T12:54:09.942179
+lembaga-20,user-22,Himpunan Robotics,"You rock TV claim part sister. Guy toward woman better then agree.
+Various head four seat. Fast talk great wall floor than final. Certain house dark clearly team.",2023-07-05,,Kepanitiaan,,,120,2026-06-01T00:42:26.627835,2026-06-09T13:35:04.932798

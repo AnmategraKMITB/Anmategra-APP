@@ -179,7 +179,8 @@ async function importLembaga() {
       description: record.description ?? null,
       foundingDate: parseDate(record.founding_date) ?? new Date(),
       endingDate: parseDate(record.ending_date),
-      type: record.type as 'Himpunan' | 'UKM' | 'Kepanitiaan' | null,
+      type: ((record.type === '' ? undefined : record.type) ??
+        'Organisasi') as NonNullable<typeof lembaga.$inferInsert.type>,
       major: record.major ?? null,
       field: record.field ?? null,
       memberCount: parseInteger(record.member_count),
@@ -758,6 +759,13 @@ export async function seedFromCsv() {
     console.log('🎉 CSV import completed successfully!');
 
     // @TODO: Ini short-term solution, tidak untuk digunakan di production.
+    // Dev-only: rewrites a random user's email so a personal Google account
+    // can impersonate lembaga/mahasiswa locally. Never runs in production —
+    // use `npm run db:seed-lembaga` for real institution accounts instead.
+    if (process.env.NODE_ENV === 'production') {
+      console.log('Skipping TEST_EMAIL seeding (production).');
+      return;
+    }
     const randomLembaga = await db.query.users.findFirst({
       where: eq(users.role, 'lembaga'),
     });
