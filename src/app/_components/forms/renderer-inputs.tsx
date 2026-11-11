@@ -20,6 +20,9 @@ import type { AnswerValue, RendererField } from './form-validate';
 
 type Option = RendererField['options'][number];
 
+/** Nilai sentinel Select; id opsi asli berupa uuid. */
+const CLEAR_SELECT = '__kosongkan__';
+
 function shuffled<T>(items: T[]): T[] {
   const copy = [...items];
   for (let i = copy.length - 1; i > 0; i--) {
@@ -128,18 +131,25 @@ export function AnswerInput({
       );
     case 'checkbox':
       return (
-        <label className={choiceRow}>
-          <input
-            id={id}
-            type="checkbox"
-            className="size-4 accent-[var(--form-accent)]"
-            checked={value === true}
-            aria-invalid={invalid}
-            aria-describedby={describedBy}
-            onChange={(e) => onChange(e.target.checked)}
-          />
-          Ya
-        </label>
+        <div className="grid gap-2">
+          <label className={choiceRow}>
+            <input
+              id={id}
+              type="checkbox"
+              className="size-4 accent-[var(--form-accent)]"
+              checked={value === true}
+              aria-invalid={invalid}
+              aria-describedby={describedBy}
+              onChange={(e) =>
+                onChange(e.target.checked ? true : undefined)
+              }
+            />
+            Ya
+          </label>
+          {value === true ? (
+            <ClearChoice onClick={() => onChange(undefined)} />
+          ) : null}
+        </div>
       );
     case 'single_choice':
       return c.tampilan === 'dropdown' ? (
@@ -329,7 +339,22 @@ function SingleList({
           {o.label}
         </label>
       ))}
+      {typeof value === 'string' && value !== '' ? (
+        <ClearChoice onClick={() => onChange(undefined)} />
+      ) : null}
     </div>
+  );
+}
+
+function ClearChoice({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-fit text-sm font-medium text-neutral-700 underline-offset-4 hover:text-danger-dark hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+    >
+      Kosongkan pilihan
+    </button>
   );
 }
 
@@ -347,12 +372,13 @@ function SingleDropdown({
   return (
     <Select
       value={typeof value === 'string' ? value : ''}
-      onValueChange={(v) => onChange(v)}
+      onValueChange={(v) => onChange(v === CLEAR_SELECT ? undefined : v)}
     >
       <SelectTrigger id={`fill-${field.id}`} aria-invalid={invalid}>
         <SelectValue placeholder="Pilih salah satu" />
       </SelectTrigger>
       <SelectContent>
+        <SelectItem value={CLEAR_SELECT}>Kosongkan pilihan</SelectItem>
         {options.map((o) => (
           <SelectItem key={o.id} value={o.id}>
             {o.label}
@@ -398,6 +424,9 @@ function MultipleList({
           {o.label}
         </label>
       ))}
+      {selected.length > 0 ? (
+        <ClearChoice onClick={() => onChange(undefined)} />
+      ) : null}
     </div>
   );
 }
