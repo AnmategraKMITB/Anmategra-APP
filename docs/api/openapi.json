@@ -52983,12 +52983,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           },
@@ -53982,6 +54065,15 @@
           },
           "noWhatsapp": {
             "type": "string"
+          },
+          "showWhatsapp": {
+            "type": "boolean"
+          },
+          "showLine": {
+            "type": "boolean"
+          },
+          "showEmail": {
+            "type": "boolean"
           }
         }
       },
@@ -54242,12 +54334,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           }
@@ -54275,12 +54450,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           }

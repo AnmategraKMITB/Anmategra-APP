@@ -64,6 +64,7 @@ import {
   SubmitReportInputSchema,
   SubmitReportOutputSchema,
 } from '../types/user.type';
+import { byNim, byUserId, loadMahasiswaProfile } from '../mahasiswa-profile';
 import { toggleRaporVisibility } from './event/update';
 
 export const userRouter = createTRPCRouter({
@@ -263,6 +264,9 @@ export const userRouter = createTRPCRouter({
         .set({
           lineId: input.idLine,
           whatsapp: input.noWhatsapp,
+          showWhatsapp: input.showWhatsapp,
+          showLine: input.showLine,
+          showEmail: input.showEmail,
         })
         .where(eq(mahasiswa.userId, ctx.session.user.id));
     }),
@@ -561,46 +565,36 @@ export const userRouter = createTRPCRouter({
     .input(GetMahasiswaByIdInputSchema)
     .output(GetMahasiswaOutputSchema)
     .query(async ({ ctx, input }) => {
-      const mahasiswaResult = await ctx.db
-        .select()
-        .from(mahasiswa)
-        .innerJoin(users, eq(mahasiswa.userId, users.id))
-        .where(eq(users.id, input.userId))
-        .limit(1);
-
-      if (mahasiswaResult.length === 0 || !mahasiswaResult[0]) {
+      const profile = await loadMahasiswaProfile(
+        ctx.db,
+        ctx.session.user,
+        byUserId(input.userId),
+      );
+      if (!profile) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Mahasiswa tidak ditemukan',
         });
       }
-
-      return {
-        mahasiswaData: mahasiswaResult[0],
-      };
+      return { mahasiswaData: profile };
     }),
 
   getMahasiswaByNim: protectedProcedure
     .input(GetMahasiswaByNimInputSchema)
     .output(GetMahasiswaOutputSchema)
     .query(async ({ ctx, input }) => {
-      const mahasiswaResult = await ctx.db
-        .select()
-        .from(mahasiswa)
-        .innerJoin(users, eq(mahasiswa.userId, users.id))
-        .where(eq(mahasiswa.nim, Number(input.nim)))
-        .limit(1);
-
-      if (mahasiswaResult.length === 0 || !mahasiswaResult[0]) {
+      const profile = await loadMahasiswaProfile(
+        ctx.db,
+        ctx.session.user,
+        byNim(Number(input.nim)),
+      );
+      if (!profile) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Mahasiswa tidak ditemukan',
         });
       }
-
-      return {
-        mahasiswaData: mahasiswaResult[0],
-      };
+      return { mahasiswaData: profile };
     }),
 
   getAnggotaById: protectedProcedure
