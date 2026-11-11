@@ -121,14 +121,19 @@ export function numberQuestions(groups: ContentGroup[]): Map<string, number> {
 // Field <-> input
 // ---------------------------------------------------------------------------
 
-const NEW_LABEL = 'Pertanyaan baru';
+export const DEFAULT_FIELD_LABEL = 'Pertanyaan baru';
 
 export function defaultFieldInput(
   kind: FieldKind,
   formId: string,
   sectionId: string,
 ): CreateFieldInput {
-  const base = { formId, label: NEW_LABEL, required: false, sectionId };
+  const base = {
+    formId,
+    label: DEFAULT_FIELD_LABEL,
+    required: false,
+    sectionId,
+  };
   const options = [{ label: 'Pilihan 1' }, { label: 'Pilihan 2' }];
   switch (kind) {
     case 'short_text':

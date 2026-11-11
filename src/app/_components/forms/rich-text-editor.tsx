@@ -33,11 +33,13 @@ export function RichTextEditor({
   onChange,
   rows,
   maxLength,
+  placeholder,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (next: string) => void;
+  placeholder?: string;
   /** Tanpa `rows` kolomnya satu baris. */
   rows?: number;
   maxLength: number;
@@ -105,6 +107,7 @@ export function RichTextEditor({
     id,
     value,
     maxLength,
+    placeholder,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
       onChange(e.target.value),
     onKeyDown,

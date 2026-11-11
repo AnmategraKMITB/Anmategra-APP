@@ -26,7 +26,13 @@ import { KindIcon } from './add-menu';
 import { useBuilder } from './builder-context';
 import { ConditionEditor } from './condition-editor';
 import { ImageUpload } from './image-upload';
-import { FIELD_KINDS, type FieldOut, conditionSources, kindOf } from './model';
+import {
+  DEFAULT_FIELD_LABEL,
+  FIELD_KINDS,
+  type FieldOut,
+  conditionSources,
+  kindOf,
+} from './model';
 import { RichTextEditor } from './rich-text-editor';
 import { TypeEditor } from './type-editors';
 
@@ -91,12 +97,13 @@ export function FieldCard({
         </span>
         <Select
           value={kind}
-          onValueChange={(value) =>
-            void builder.changeFieldType(field, value as typeof kind)
-          }
+          onValueChange={(value) => {
+            if (value === kind) return;
+            void builder.changeFieldType(field, value as typeof kind);
+          }}
         >
           <SelectTrigger
-            className="h-8 w-auto min-w-0 gap-1.5 border-transparent bg-transparent px-2 text-sm text-neutral-700"
+            className="h-8 w-auto min-w-0 gap-1.5 border-neutral-400 bg-neutral-50 px-2 text-sm text-neutral-700 hover:border-primary-400"
             aria-label="Jenis pertanyaan"
           >
             <KindIcon kind={kind} className="size-4" />
@@ -119,9 +126,15 @@ export function FieldCard({
         <RichTextEditor
           id={`label-${field.id}`}
           label={isBlock ? 'Judul' : 'Pertanyaan'}
-          value={draft.label}
+          value={draft.label === DEFAULT_FIELD_LABEL ? '' : draft.label}
+          placeholder={DEFAULT_FIELD_LABEL}
           maxLength={500}
-          onChange={(label) => builder.edit({ ...draft, label })}
+          onChange={(label) =>
+            builder.edit({
+              ...draft,
+              label: label.trim() === '' ? DEFAULT_FIELD_LABEL : label,
+            })
+          }
         />
         <RichTextEditor
           id={`desc-${field.id}`}
