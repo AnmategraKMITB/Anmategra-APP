@@ -366,6 +366,7 @@ table anmategra_lembaga_period {
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
   indexes {
+    lembaga_id [name: 'event_org_id_idx']
     lembaga_id [name: 'lembaga_period_highlighted_unique', unique]
   }
   Note: "Periode/edisi sebuah lembaga (sebelumnya tabel event): kegiatan, kepengurusan, atau kepanitiaan tahun tertentu."

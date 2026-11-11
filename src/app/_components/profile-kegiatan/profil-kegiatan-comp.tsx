@@ -11,7 +11,10 @@ import Link from 'next/link';
 import NoAnggota from 'public/images/miscellaneous/not-found-anggota.png';
 import React from 'react';
 // Components Import
+import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+
+const PAGE_SIZE = 20;
 
 const ProfileAnggotaComp = ({
   anggota,
@@ -35,20 +38,10 @@ const ProfileAnggotaComp = ({
   raporVisible?: boolean;
 }) => {
   const [search, setSearch] = React.useState<string>('');
-  const [filteredAnggota, setFilteredAnggota] = React.useState<
-    {
-      id: string;
-      nama: string | null;
-      nim: string;
-      jurusan: string;
-      image: string | null;
-      posisi: string | null;
-      divisi: string | null;
-    }[]
-  >([]);
+  const [visibleCount, setVisibleCount] = React.useState(PAGE_SIZE);
 
-  React.useEffect(() => {
-    setFilteredAnggota(
+  const filteredAnggota = React.useMemo(
+    () =>
       anggota.filter((item) => {
         const nameMatch = item.nama
           ?.toLowerCase()
@@ -61,8 +54,12 @@ const ProfileAnggotaComp = ({
           .includes(search.toLowerCase());
         return nameMatch ?? posisiMatch ?? divisiMatch;
       }),
-    );
-  }, [anggota, search]);
+    [anggota, search],
+  );
+
+  // Hanya sebagian anggota yang dirender (dan avatarnya diminta ke image
+  // optimizer); sisanya muncul lewat tombol "Tampilkan lebih banyak".
+  const visibleAnggota = filteredAnggota.slice(0, visibleCount);
 
   const isLembaga = session?.user.role === 'lembaga';
 
@@ -81,12 +78,15 @@ const ProfileAnggotaComp = ({
             <MagnifyingGlassIcon className="size-4 text-gray-500" />
           }
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setVisibleCount(PAGE_SIZE);
+          }}
         />
       </div>
       <div className="space-y-2">
         {filteredAnggota.length > 0 ? (
-          filteredAnggota.map((item) => (
+          visibleAnggota.map((item) => (
             <div
               key={item.id}
               className="flex items-center justify-between py-3 border-b border-neutral-200"
@@ -146,6 +146,16 @@ const ProfileAnggotaComp = ({
                   : 'Silakan login untuk melihat anggota'}
               </p>
             </div>
+          </div>
+        )}
+        {filteredAnggota.length > visibleCount && (
+          <div className="flex justify-center pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setVisibleCount((n) => n + PAGE_SIZE)}
+            >
+              Tampilkan lebih banyak ({filteredAnggota.length - visibleCount})
+            </Button>
           </div>
         )}
       </div>
