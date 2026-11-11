@@ -42,7 +42,7 @@ import {
 
 type OptionInput = { id?: string; label: string };
 
-function optionsOf(input: CreateFieldInput): OptionInput[] {
+function optionsOf(input: CreateFieldInput | UpdateFieldInput): OptionInput[] {
   return 'options' in input ? input.options : [];
 }
 
@@ -220,10 +220,8 @@ export const formFieldRouter = createTRPCRouter({
             });
           }
 
-          const sectionId = input.sectionId ?? null;
-          if (sectionId !== null) {
-            await getSectionForForm(tx, ctx.form.id, sectionId);
-          }
+          const sectionId = input.sectionId;
+          await getSectionForForm(tx, ctx.form.id, sectionId);
           if (input.image) {
             await assertOwnedImage(tx, ctx.form.id, input.image);
           }

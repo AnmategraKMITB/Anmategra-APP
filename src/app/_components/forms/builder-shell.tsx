@@ -135,7 +135,7 @@ export function FormBuilder({
   }
 
   const sections = detail.sections;
-  const noContent = builder.groups.length === 0;
+  const noContent = sections.length === 0;
 
   return (
     <BuilderProvider value={builder}>
@@ -299,7 +299,10 @@ export function FormBuilder({
                     <AddMenu
                       variant="light_blue"
                       label="Tambah pertanyaan"
-                      onSelect={(kind) => void builder.addField(kind, null)}
+                      onSelect={(kind) => {
+                        const first = sections[0]?.id;
+                        if (first) void builder.addField(kind, first);
+                      }}
                     />
                     <Button
                       variant="dark_blue_outline"
@@ -313,17 +316,12 @@ export function FormBuilder({
                 <>
                   {builder.groups.map((group) => (
                     <SectionCard
-                      key={group.section?.id ?? 'none'}
+                      key={group.section.id}
                       group={group}
-                      position={
-                        group.section
-                          ? sections.findIndex(
-                              (s) => s.id === group.section!.id,
-                            )
-                          : -1
-                      }
+                      position={sections.findIndex(
+                        (s) => s.id === group.section.id,
+                      )}
                       sectionCount={sections.length}
-                      hideTitle={sections.length === 0}
                       onDelete={() => {
                         const section = group.section;
                         if (!section) return;

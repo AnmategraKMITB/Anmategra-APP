@@ -389,6 +389,7 @@ table anmategra_form {
   lembaga_id varchar(255)
   period_id varchar(255)
   title varchar(255) [not null]
+  slug varchar(80)
   description text
   status varchar(16) [not null, default: 'Draft', note: "Draft | Published | Closed (CHECK `form_status_check`)."]
   closes_at "timestamp with time zone" [note: "Tenggat opsional. Formulir menerima jawaban jika Published dan belum lewat tenggat."]
@@ -409,6 +410,7 @@ table anmategra_form {
     lembaga_id [name: 'form_lembaga_id_idx']
     period_id [name: 'form_period_id_idx']
     preview_token [name: 'form_preview_token_unique', unique]
+    slug [name: 'form_slug_unique', unique]
   }
   Note: "Formulir dinamis (#210), mis. open recruitment. Dimiliki tepat satu lembaga ATAU satu event (CHECK `form_owner_xor`, ditulis tangan di migrasi 0027)."
 }
@@ -446,7 +448,7 @@ table anmategra_form_ending {
 table anmategra_form_field {
   id varchar(255) [pk, not null]
   form_id varchar(255) [not null]
-  section_id varchar(255)
+  section_id varchar(255) [not null]
   type varchar(32) [not null, note: "short_text | long_text | number | date | single_choice | multiple_choice | checkbox (CHECK `form_field_type_check`). varchar, bukan pgEnum, supaya tipe baru mudah ditambah."]
   label varchar(500) [not null]
   description text

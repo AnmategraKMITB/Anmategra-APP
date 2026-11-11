@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { FORM_SLUG_RE } from '~/lib/forms/slug';
 import { MAX_RULES } from '~/lib/forms/conditions';
 import { FORM_FIELD_TYPES, FORM_STATUSES } from '~/server/db/schema';
 
@@ -541,7 +542,7 @@ function refineFieldDefinition(
 const baseShape = { ...fieldBase, formId: IdSchema };
 // A new field may be placed in a section (null = outside any section). Moving
 // an existing field is `field.move`, so update does not take `sectionId`.
-const createShape = { ...baseShape, sectionId: IdSchema.nullish() };
+const createShape = { ...baseShape, sectionId: IdSchema };
 const updateShape = { ...baseShape, fieldId: IdSchema };
 
 const createFieldVariants = [
@@ -633,8 +634,8 @@ const FieldOutputSchema = z.object({
   description: z.string().nullable(),
   required: z.boolean(),
   config: FieldConfigSchema,
-  /** `null` = outside any section. */
-  sectionId: z.string().nullable(),
+  /** Setiap pertanyaan berada di satu bagian. */
+  sectionId: z.string(),
   sortOrder: z.number().int(),
   /** Empty for non-choice types. Archived options are never included. */
   options: z.array(FieldOptionOutputSchema),
@@ -667,6 +668,8 @@ const FormOutputSchema = z.object({
   lembagaId: z.string().nullable(),
   eventId: z.string().nullable(),
   title: z.string(),
+  /** Stub publik `/forms/<slug>`; null = pakai id. */
+  slug: z.string().nullable(),
   description: z.string().nullable(),
   status: FormStatusSchema,
   closesAt: z.date().nullable(),
@@ -755,6 +758,18 @@ export const GetFormByIdOutputSchema = FormDetailSchema;
 export const UpdateFormInputSchema = z.object({
   formId: IdSchema,
   title: formMeta.title.optional(),
+  /** Stub publik; `null` mengosongkan dan kembali memakai id. */
+  slug: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .max(80, 'Slug maksimal 80 karakter')
+    .regex(
+      FORM_SLUG_RE,
+      'Slug hanya boleh huruf kecil, angka, dan tanda hubung.',
+    )
+    .nullable()
+    .optional(),
   description: formMeta.description,
   closesAt: formMeta.closesAt,
   allowMultipleSubmissions: formMeta.allowMultipleSubmissions,
@@ -859,8 +874,8 @@ export const DeleteFieldOutputSchema = z.object({
 
 export const ReorderFieldsInputSchema = z.object({
   formId: IdSchema,
-  /** Section whose fields are reordered; `null` = fields outside any section. */
-  sectionId: IdSchema.nullable().default(null),
+  /** Section whose fields are reordered. */
+  sectionId: IdSchema,
   /** Every active field id of that section, in the new order. */
   fieldIds: z.array(IdSchema).min(1).max(MAX_FIELDS_PER_FORM),
   clearDependents: z.boolean().optional(),
@@ -870,8 +885,7 @@ export const ReorderFieldsOutputSchema = SuccessSchema;
 export const MoveFieldInputSchema = z.object({
   formId: IdSchema,
   fieldId: IdSchema,
-  /** `null` = move out of every section. */
-  toSectionId: IdSchema.nullable(),
+  toSectionId: IdSchema,
   /** Position inside the target group, counted from 0. */
   toIndex: z.number().int().min(0).max(MAX_FIELDS_PER_FORM),
   clearDependents: z.boolean().optional(),

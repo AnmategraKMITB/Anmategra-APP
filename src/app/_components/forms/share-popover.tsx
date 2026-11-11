@@ -38,10 +38,12 @@ export function SharePopover() {
   const builder = useBuilder();
   const { detail } = builder;
   const [confirmRotate, setConfirmRotate] = useState(false);
+  const [slug, setSlug] = useState(detail?.slug ?? '');
+  const [savingSlug, setSavingSlug] = useState(false);
   if (!detail) return null;
 
   const origin = typeof window === 'undefined' ? '' : window.location.origin;
-  const fillUrl = `${origin}/forms/${detail.id}`;
+  const fillUrl = `${origin}/forms/${detail.slug ?? detail.id}`;
   const preview = detail.previewToken
     ? previewUrl(origin, detail.previewToken)
     : null;
@@ -124,6 +126,42 @@ export function SharePopover() {
               >
                 Tautan untuk mengisi
               </h3>
+              <div className="grid gap-2 rounded-xl border border-neutral-400 p-3">
+                <Label htmlFor="share-slug">Slug kustom (opsional)</Label>
+                <div className="flex items-center gap-1">
+                  <span className="shrink-0 text-sm text-neutral-700">/forms/</span>
+                  <Input
+                    id="share-slug"
+                    value={slug}
+                    placeholder={detail.id.slice(0, 8)}
+                    maxLength={80}
+                    onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') e.currentTarget.blur();
+                    }}
+                  />
+                  <Button
+                    type="button"
+                    variant="dark_blue"
+                    size="sm"
+                    disabled={savingSlug || slug === (detail.slug ?? '')}
+                    onClick={async () => {
+                      setSavingSlug(true);
+                      const done = await builder.saveForm({
+                        slug: slug.trim() || null,
+                      });
+                      setSavingSlug(false);
+                      if (done) toast.success('Slug disimpan.');
+                    }}
+                  >
+                    Simpan
+                  </Button>
+                </div>
+                <p className="text-sm text-neutral-700">
+                  Huruf kecil, angka, dan tanda hubung. Kosongkan untuk memakai
+                  id formulir.
+                </p>
+              </div>
               {detail.status === 'Published' ? (
                 <div className="flex gap-2">
                   <Input

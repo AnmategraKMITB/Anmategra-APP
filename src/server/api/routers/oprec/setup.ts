@@ -165,7 +165,7 @@ async function loadTree(db: Queryable, periodId: string) {
 }
 
 type FieldSeed = {
-  sectionId: string | null;
+  sectionId: string;
   type: 'long_text' | 'link' | 'text_block' | 'unit_choice' | 'checkbox';
   label: string;
   required: boolean;
@@ -446,6 +446,11 @@ async function seedTemplate(
     });
   }
 
+  const [defaultSection] = await tx
+    .insert(formSection)
+    .values({ formId, title: 'Pendaftaran', sortOrder: 0 })
+    .returning({ id: formSection.id });
+
   const insertField = async (seed: FieldSeed, sortOrder: number) => {
     const [row] = await tx
       .insert(formField)
@@ -465,7 +470,7 @@ async function seedTemplate(
   let order = 0;
   await insertField(
     {
-      sectionId: null,
+      sectionId: defaultSection!.id,
       type: 'text_block',
       label: 'Pilih tujuan penempatan sesuai minatmu. Urutan pilihan dihitung.',
       required: false,
@@ -475,7 +480,7 @@ async function seedTemplate(
   for (const label of input.attachments) {
     await insertField(
       {
-        sectionId: null,
+        sectionId: defaultSection!.id,
         type: 'link',
         label: `Tautan ${label}`,
         required: true,
@@ -485,7 +490,7 @@ async function seedTemplate(
   }
   const choiceId = await insertField(
     {
-      sectionId: null,
+      sectionId: defaultSection!.id,
       type: 'unit_choice',
       label: 'Pilihan tujuan',
       required: true,
@@ -495,7 +500,7 @@ async function seedTemplate(
   if (input.allowRedirect) {
     const willingId = await insertField(
       {
-        sectionId: null,
+        sectionId: defaultSection!.id,
         type: 'checkbox',
         label: 'Saya bersedia ditempatkan di tujuan lain bila diperlukan',
         required: false,
@@ -513,7 +518,7 @@ async function seedTemplate(
     const name = args.unitNames.get(d.unitId) ?? 'Tujuan';
     const [section] = await tx
       .insert(formSection)
-      .values({ formId, title: name, sortOrder: index })
+      .values({ formId, title: name, sortOrder: index + 1 })
       .returning({ id: formSection.id });
     await insertField(
       {

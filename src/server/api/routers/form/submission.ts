@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, inArray } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, or } from 'drizzle-orm';
 import { type ZodIssue, ZodIssueCode } from 'zod';
 import { storedAnswerToInput } from '~/lib/forms/answer-value';
 import { computeVisibility, pickEnding } from '~/lib/forms/conditions';
@@ -538,7 +538,7 @@ export const formSubmissionRouter = createTRPCRouter({
       const [row] = await ctx.db
         .select()
         .from(form)
-        .where(eq(form.id, input.formId));
+        .where(or(eq(form.id, input.formId), eq(form.slug, input.formId)));
       // Drafts are invisible to respondents: same answer as a missing form.
       if (!row || row.status === 'Draft') {
         throw new TRPCError({

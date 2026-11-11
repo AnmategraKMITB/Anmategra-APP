@@ -1580,6 +1580,8 @@ export const form = createTable(
       onDelete: 'cascade',
     }),
     title: varchar('title', { length: 255 }).notNull(),
+    /** Stub publik opsional: `/forms/<slug>`. NULL = pakai id. */
+    slug: varchar('slug', { length: 80 }),
     description: text('description'),
     status: varchar('status', { length: 16 })
       .$type<FormStatus>()
@@ -1627,6 +1629,7 @@ export const form = createTable(
     previewTokenUnique: uniqueIndex('form_preview_token_unique').on(
       table.previewToken,
     ),
+    slugUnique: uniqueIndex('form_slug_unique').on(table.slug),
   }),
 );
 
@@ -1667,11 +1670,11 @@ export const formField = createTable(
     formId: varchar('form_id', { length: 255 })
       .notNull()
       .references(() => form.id, { onDelete: 'cascade' }),
-    // NULL = field outside any section (the group shown first).
-    sectionId: varchar('section_id', { length: 255 }).references(
-      () => formSection.id,
-      { onDelete: 'set null' },
-    ),
+    // Setiap pertanyaan wajib berada di satu bagian; section tidak bisa
+    // dihapus selama masih berisi pertanyaan (ON DELETE restrict).
+    sectionId: varchar('section_id', { length: 255 })
+      .notNull()
+      .references(() => formSection.id, { onDelete: 'restrict' }),
     type: varchar('type', { length: 32 }).$type<FormFieldType>().notNull(),
     label: varchar('label', { length: 500 }).notNull(),
     description: text('description'),

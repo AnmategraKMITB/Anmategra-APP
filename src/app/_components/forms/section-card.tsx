@@ -19,22 +19,17 @@ export function SectionCard({
   group,
   position,
   sectionCount,
-  hideTitle = false,
   onDelete,
 }: {
   group: ContentGroup;
   /** Urutan bagian ini di antara bagian lain (dari 0); -1 untuk grup tanpa bagian. */
   position: number;
   sectionCount: number;
-  /** Grup tanpa bagian saat form belum punya bagian sama sekali: tanpa judul. */
-  hideTitle?: boolean;
   onDelete: () => void;
 }) {
   const builder = useBuilder();
   const { section, fields } = group;
   const sections = builder.detail?.sections ?? [];
-  // Form tanpa bagian: pertanyaan tampil langsung, tanpa kartu bagian di sekelilingnya.
-  const bare = !section && hideTitle;
 
   const moveSection = (delta: number) => {
     const ids = sections.map((s) => s.id);
@@ -47,17 +42,11 @@ export function SectionCard({
 
   return (
     <section
-      aria-label={section ? section.title : 'Pertanyaan tanpa bagian'}
-      className={
-        bare
-          ? undefined
-          : 'rounded-[24px] border border-neutral-400 bg-neutral-100 p-3 sm:p-5'
-      }
+      aria-label={section.title}
+      className="rounded-[24px] border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
     >
-      {bare ? null : (
-        <div className="mb-4 flex flex-wrap items-start gap-3">
-          {section ? (
-            <div className="grid min-w-0 flex-1 gap-2">
+      <div className="mb-4 flex flex-wrap items-start gap-3">
+          <div className="grid min-w-0 flex-1 gap-2">
               <Input
                 key={`${section.id}:${section.title}`}
                 defaultValue={section.title}
@@ -110,13 +99,7 @@ export function SectionCard({
                 )}
               </div>
             </div>
-          ) : hideTitle ? null : (
-            <h3 className="flex-1 text-lg font-semibold text-neutral-1000">
-              Tanpa bagian
-            </h3>
-          )}
-          {section ? (
-            <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1">
               <Button
                 variant="ghost"
                 size="icon"
@@ -140,14 +123,13 @@ export function SectionCard({
                 size="icon"
                 aria-label="Hapus bagian"
                 className="text-danger-dark hover:text-danger-dark"
+                disabled={sectionCount <= 1}
                 onClick={onDelete}
               >
                 <Trash2 />
               </Button>
-            </div>
-          ) : null}
-        </div>
-      )}
+          </div>
+      </div>
 
       <div className="grid gap-4">
         {fields.length === 0 ? (
@@ -169,7 +151,7 @@ export function SectionCard({
 
       <div className="mt-4">
         <AddMenu
-          onSelect={(kind) => void builder.addField(kind, section?.id ?? null)}
+          onSelect={(kind) => void builder.addField(kind, section.id)}
         />
       </div>
     </section>
