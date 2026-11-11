@@ -6,6 +6,7 @@ import Link from 'next/link';
 // Asset Import
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import { useState } from 'react';
+import PrototypeAkses from '~/app/_components/prototype-akses/prototype-akses'; // PROTOTYPE #318
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
@@ -51,6 +52,7 @@ export default function ProfileLembagaContent({
         </div>
       )}
 
+      {!isEditMode && <PrototypeAkses />}
       <div className="flex max-w-7xl w-full flex-col gap-4">
         {!isEditMode && (
           <div className="flex max-w-7xl w-full flex-col gap-4 py-6">
