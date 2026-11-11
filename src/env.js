@@ -65,6 +65,12 @@ export const env = createEnv({
     /** Aplikasi Microsoft (SPA) untuk unggah berkas OneDrive di Forms; kosong = unggah dinonaktifkan. */
     NEXT_PUBLIC_AZURE_CLIENT_ID: z.string().optional(),
     NEXT_PUBLIC_AZURE_TENANT_ID: z.string().optional(),
+    /** Provider jawaban berkas Forms: uploadthing (default) atau google-drive. */
+    NEXT_PUBLIC_FORM_FILE_PROVIDER: z
+      .enum(['uploadthing', 'google-drive'])
+      .default('uploadthing'),
+    /** OAuth Client ID Google untuk upload Drive; wajib bila provider google-drive. */
+    NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID: z.string().optional(),
     NEXT_PUBLIC_APP_ENV: z
       .enum(['development', 'demo', 'production'])
       .default('development'),
@@ -96,6 +102,9 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
     NEXT_PUBLIC_AZURE_CLIENT_ID: process.env.NEXT_PUBLIC_AZURE_CLIENT_ID,
     NEXT_PUBLIC_AZURE_TENANT_ID: process.env.NEXT_PUBLIC_AZURE_TENANT_ID,
+    NEXT_PUBLIC_FORM_FILE_PROVIDER: process.env.NEXT_PUBLIC_FORM_FILE_PROVIDER,
+    NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID:
+      process.env.NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

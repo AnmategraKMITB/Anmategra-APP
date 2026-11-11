@@ -559,6 +559,7 @@ export function FormRenderer({
                   shuffleOptions={form.settings.shuffleOptions}
                   upload={{
                     enabled: filling,
+                    formId: form.id,
                     folder: form.title,
                     closesAt: form.closesAt ?? null,
                   }}

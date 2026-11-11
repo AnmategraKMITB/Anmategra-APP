@@ -4,6 +4,13 @@ import {
   isAllowedFileHost,
 } from '~/server/api/types/form.constants';
 
+export const FILE_PROVIDER_IDS = [
+  'uploadthing',
+  'google-drive',
+  'onedrive',
+] as const;
+export type FileProviderId = (typeof FILE_PROVIDER_IDS)[number];
+
 export type FileAnswerItem = {
   itemId: string;
   driveId: string;
@@ -13,6 +20,8 @@ export type FileAnswerItem = {
   url: string;
   eTag?: string;
   scope: 'anyone' | 'organization';
+  /** Provider asal; opsional untuk jawaban lama yang belum punya penanda. */
+  provider?: FileProviderId;
 };
 
 /**
@@ -57,7 +66,7 @@ export function fileRuleProblem(
   const maxSizeMb = config.maxSizeMb ?? 10;
   if (files.length > maxFiles) return `Maksimal ${maxFiles} berkas.`;
   if (files.some((f) => !isAllowedFileHost(f.url))) {
-    return 'Tautan berkas harus berasal dari OneDrive atau SharePoint.';
+    return 'Tautan berkas tidak valid.';
   }
   if (files.some((f) => f.size > maxSizeMb * 1024 * 1024)) {
     return `Ukuran berkas maksimal ${maxSizeMb} MB.`;
@@ -66,12 +75,6 @@ export function fileRuleProblem(
     files.some((f) => !(preset.mimes as readonly string[]).includes(f.mime))
   ) {
     return `Jenis berkas harus ${preset.label}.`;
-  }
-  if (
-    (config.linkAccess ?? 'anyone') === 'organization' &&
-    files.some((f) => f.scope === 'anyone')
-  ) {
-    return 'Tautan berkas harus dibatasi untuk organisasi.';
   }
   return null;
 }

@@ -142,6 +142,7 @@ export const FileAnswerSchema = z
     url: z.string().max(2048),
     eTag: z.string().max(255).optional(),
     scope: z.enum(['anyone', 'organization']),
+    provider: z.enum(['uploadthing', 'google-drive', 'onedrive']).optional(),
   })
   .strict()
   .superRefine((file, ctx) => {
@@ -149,7 +150,8 @@ export const FileAnswerSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['url'],
-        message: 'Tautan berkas harus berasal dari OneDrive atau SharePoint.',
+        message:
+          'Tautan berkas harus berasal dari penyimpanan berkas yang didukung.',
       });
     }
   });
