@@ -167,7 +167,10 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
   const result = await next();
 
   const end = Date.now();
-  console.log(`[TRPC] ${path} took ${end - start}ms to execute`);
+  // Hanya log yang lambat; log tiap panggilan membanjiri stdout saat ramai.
+  if (end - start > 500) {
+    console.warn(`[TRPC] ${path} took ${end - start}ms to execute`);
+  }
 
   // Uncomment this to include the execution time in the response
 
