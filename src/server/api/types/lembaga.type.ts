@@ -177,6 +177,7 @@ export const EditProfilLembagaOutputSchema = z.object({
 });
 
 export const AcceptRequestAssociationInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
@@ -188,6 +189,7 @@ export const AcceptRequestAssociationOutputSchema = z.object({
 });
 
 export const DeclineRequestAssociationInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
 });
@@ -211,6 +213,7 @@ export const GetBestStaffOptionsOutputSchema = z.object({
 });
 
 export const GetAllRequestAssociationSummaryInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   name: z.string().optional(),
 });
 
@@ -225,11 +228,13 @@ export const GetAllRequestedAssociationSummaryOutputSchema = z.array(
 );
 
 export const GetAllRequestAssociationKegiatanInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   division: z.array(z.string()).optional(),
 });
 
 export const GetAllRequestAssociationInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   division: z.array(z.string()).optional(),
 });
 
@@ -246,6 +251,7 @@ export const GetAllRequestAssociationLembagaOutputSchema = z.object({
 });
 
 export const AcceptRequestAssociationLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -257,6 +263,7 @@ export const AcceptRequestAssociationLembagaOutputSchema = z.object({
 });
 
 export const DeclineRequestAssociationLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
