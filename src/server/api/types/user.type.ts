@@ -65,6 +65,9 @@ export const EditProfilMahasiswaInputSchema = z.object({
     .string()
     .optional()
     .refine((val) => !val || /^0\d{10,12}$/.test(val)),
+  showWhatsapp: z.boolean().optional(),
+  showLine: z.boolean().optional(),
+  showEmail: z.boolean().optional(),
 });
 
 export const RequestAssociationInputSchema = z.object({

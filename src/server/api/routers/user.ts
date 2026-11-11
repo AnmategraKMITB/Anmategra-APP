@@ -263,6 +263,9 @@ export const userRouter = createTRPCRouter({
         .set({
           lineId: input.idLine,
           whatsapp: input.noWhatsapp,
+          showWhatsapp: input.showWhatsapp,
+          showLine: input.showLine,
+          showEmail: input.showEmail,
         })
         .where(eq(mahasiswa.userId, ctx.session.user.id));
     }),
