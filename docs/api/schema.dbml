@@ -620,6 +620,9 @@ table anmategra_mahasiswa {
   line_id varchar(255)
   whatsapp varchar(255)
   rapor_visible boolean [not null, default: true]
+  show_whatsapp boolean [not null, default: false]
+  show_line boolean [not null, default: false]
+  show_email boolean [not null, default: false]
   status mahasiswa_status [not null, default: 'aktif']
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
