@@ -14,7 +14,7 @@ import {
 import { type GetNilaiKegiatanIndividuOutputSchema } from '~/server/api/types/rapor.type';
 import { api } from '~/trpc/react';
 
-import FormNilaiProfil, { Profile } from '../../form/form-nilai-profil';
+import FormNilaiProfil, { type Profile } from '../../form/form-nilai-profil';
 import NilaiProfilComp from './nilai-profil-comp';
 
 type NilaiKegiatanOutput = z.infer<typeof GetNilaiKegiatanIndividuOutputSchema>;

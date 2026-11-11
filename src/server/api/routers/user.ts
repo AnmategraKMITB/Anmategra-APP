@@ -5,6 +5,7 @@ import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-keg
 import {
   createTRPCRouter,
   lembagaProcedure,
+  mahasiswaProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
 import {
@@ -245,7 +246,7 @@ export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk edit profil mahasiswa
    */
-  editProfilMahasiswa: protectedProcedure
+  editProfilMahasiswa: mahasiswaProcedure
     .input(EditProfilMahasiswaInputSchema)
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
@@ -270,7 +271,7 @@ export const userRouter = createTRPCRouter({
    * Endpoint untuk request association ke suatu lembaga
    */
 
-  requestAssociation: protectedProcedure
+  requestAssociation: mahasiswaProcedure
     .input(RequestAssociationInputSchema)
     .output(RequestAssociationOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -959,7 +960,7 @@ export const userRouter = createTRPCRouter({
       }
     }),
 
-  toggleRaporVisibility: protectedProcedure
+  toggleRaporVisibility: mahasiswaProcedure
     .input(ToggleRaporVisibilityMahasiswaInputSchema)
     .output(ToggleRaporVisibilityOutputSchema)
     .mutation(async ({ ctx, input }) => {
