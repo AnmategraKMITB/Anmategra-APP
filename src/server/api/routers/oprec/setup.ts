@@ -1,5 +1,14 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  eq,
+  inArray,
+  isNull,
+  notInArray,
+  sql,
+} from 'drizzle-orm';
 import { waveOverlapMessage } from '~/lib/oprec/waves';
 import { canManageLembaga } from '~/server/api/access';
 import { oprecPeriodProcedure } from '~/server/api/trpc';
@@ -212,14 +221,26 @@ export const setupProcedures = {
             .where(eq(recruitment.periodId, input.eventId))
         ).map((r) => r.formId),
       );
-      const usable: typeof forms = [];
+      const usable: ((typeof forms)[number] & { hasUnitChoice: boolean })[] =
+        [];
       for (const f of forms) {
         if (bound.has(f.id)) continue;
         const [subs] = await ctx.db
           .select({ n: count() })
           .from(formSubmission)
           .where(eq(formSubmission.formId, f.id));
-        if ((subs?.n ?? 0) === 0) usable.push(f);
+        if ((subs?.n ?? 0) > 0) continue;
+        const [uc] = await ctx.db
+          .select({ n: count() })
+          .from(formField)
+          .where(
+            and(
+              eq(formField.formId, f.id),
+              eq(formField.type, 'unit_choice'),
+              isNull(formField.archivedAt),
+            ),
+          );
+        usable.push({ ...f, hasUnitChoice: (uc?.n ?? 0) > 0 });
       }
       return { sources, sourcePeriodId, tree, forms: usable };
     }),

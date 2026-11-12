@@ -448,6 +448,29 @@ export function stepProblem(
 }
 
 /**
+ * Peringatan: tidak menghalangi pembuatan oprec, tetapi akan menghalangi Buka
+ * pendaftaran (#385). Syarat yang menghalangi pembuatan ada di `stepProblem`.
+ */
+export function openWarnings(
+  steps: StepId[],
+  s: WizardState,
+  c: WizardCtx,
+): { id: StepId; message: string }[] {
+  const out: { id: StepId; message: string }[] = [];
+  if (steps.includes('S10') && s.formMode === 'existing') {
+    const f = c.forms.find((x) => x.id === s.existingFormId);
+    if (f && !f.hasUnitChoice) {
+      out.push({
+        id: 'S10',
+        message:
+          'Formulir ini belum punya blok Pilihan tujuan, jadi pendaftaran belum bisa dibuka. Tambahkan blok itu di formulir atau pilih templat oprec.',
+      });
+    }
+  }
+  return out;
+}
+
+/**
  * Langkah pertama (urut tampil) yang masih bermasalah, termasuk yang dilewati
  * lewat "Pakai bawaan untuk sisanya". Null bila semua langkah lolos.
  */

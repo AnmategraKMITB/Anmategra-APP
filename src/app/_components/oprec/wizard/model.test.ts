@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  type StepId,
   type WizardCtx,
   buildInput,
   defaultState,
   firstInvalidStep,
   normalizeCriteria,
+  openWarnings,
   restoreState,
   stepProblem,
   visibleSteps,
@@ -203,5 +205,32 @@ describe('stepProblem S4: gelombang tumpang tindih (#382)', () => {
     expect(msg).toContain('"Gel 2"');
     s.waves[1]!.startsAt = '2030-01-10T08:00';
     expect(stepProblem('S4', s, ctx)).toBeNull();
+  });
+});
+
+describe('openWarnings (#385)', () => {
+  const steps = ['S10'] as StepId[];
+  const withForm = (hasUnitChoice: boolean) =>
+    ({
+      ...ctx,
+      forms: [{ id: 'f1', title: 'F', status: 'Draft', hasUnitChoice }],
+    }) as WizardCtx;
+
+  it('memperingatkan form yang ada tanpa blok Pilihan tujuan', () => {
+    const s = stateWithDivisions();
+    s.formMode = 'existing';
+    s.existingFormId = 'f1';
+    const w = openWarnings(steps, s, withForm(false));
+    expect(w).toHaveLength(1);
+    expect(w[0]!.id).toBe('S10');
+  });
+
+  it('tanpa peringatan bila lengkap', () => {
+    const s = stateWithDivisions();
+    s.formMode = 'existing';
+    s.existingFormId = 'f1';
+    expect(openWarnings(steps, s, withForm(true))).toEqual([]);
+    s.formMode = 'template';
+    expect(openWarnings(steps, s, withForm(false))).toEqual([]);
   });
 });
