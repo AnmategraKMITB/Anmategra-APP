@@ -13,16 +13,9 @@ import {
 } from './illustrations';
 import { type CriterionDraft, type WizardState, criteriaSlots } from './model';
 import { type StepProps } from './steps-types';
-import {
-  Labeled,
-  LaterNote,
-  type Option,
-  OptionCards,
-  StepFrame,
-  fieldClass,
-} from './ui';
+import { Labeled, type Option, OptionCards, StepFrame, fieldClass } from './ui';
 
-/** Satu layar pilihan tunggal dengan catatan "berlaku di fase berikutnya". */
+/** Satu layar pilihan tunggal. */
 function Choice<T extends string>({
   title,
   hint,
@@ -31,7 +24,6 @@ function Choice<T extends string>({
   value,
   options,
   onChange,
-  later = true,
   children,
 }: {
   title: string;
@@ -41,7 +33,6 @@ function Choice<T extends string>({
   value: T;
   options: Option<T>[];
   onChange: (v: T) => void;
-  later?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -53,7 +44,6 @@ function Choice<T extends string>({
         onChange={onChange}
       />
       {children}
-      {later ? <LaterNote /> : null}
     </StepFrame>
   );
 }
@@ -217,7 +207,6 @@ export function StepPenilaiUmum({ s, update, trees, c }: StepProps) {
           )}
         </Labeled>
       </div>
-      <LaterNote />
     </StepFrame>
   );
 }
@@ -294,7 +283,6 @@ export function StepKriteria({ s, update, trees, c }: StepProps) {
           />
         ))}
       </div>
-      <LaterNote />
     </StepFrame>
   );
 }

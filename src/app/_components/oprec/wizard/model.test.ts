@@ -98,3 +98,33 @@ describe('normalizeCriteria: draf lama', () => {
     expect(normalizeCriteria(null)).toEqual({ criteria: {}, remapped: 0 });
   });
 });
+
+describe('buildInput: jawaban lanjutan', () => {
+  it('mengirim penilai, veto, tahap, gugur, hasil, dan closerec sebagai pengaturan terstruktur', () => {
+    const s = stateWithDivisions();
+    s.assessors = 'keduanya';
+    s.generalAssessorUnitId = 'hr';
+    s.hasGugur = true;
+    s.veto = false;
+    s.staged = false;
+    s.resultsAccess = 'semua';
+    s.closerec = false;
+    const input = buildInput(s, ctx);
+    expect(input.settings).toMatchObject({
+      assessorMode: 'keduanya',
+      hasGugur: true,
+      headDecides: false,
+      stagedPlacement: false,
+      resultsAccess: 'semua',
+      closerecEnabled: false,
+    });
+    expect(input.generalAssessorUnitId).toBe('hr');
+  });
+
+  it('tidak mengirim bagian penilai umum bila penilainya hanya ketua', () => {
+    const s = stateWithDivisions();
+    s.assessors = 'ketua';
+    s.generalAssessorUnitId = 'hr';
+    expect(buildInput(s, ctx).generalAssessorUnitId).toBeNull();
+  });
+});

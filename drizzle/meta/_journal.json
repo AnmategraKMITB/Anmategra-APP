@@ -372,6 +372,13 @@
       "when": 1794433702082,
       "tag": "0052_mahasiswa_contact_visibility",
       "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1794461308503,
+      "tag": "0053_oprec_setup_structured",
+      "breakpoints": true
     }
   ]
 }

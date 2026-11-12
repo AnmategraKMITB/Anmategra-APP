@@ -496,7 +496,15 @@ export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
             : 'umum',
       visibilityDefault: s.visibility === 'ya',
       resultsVisibleToApplicants: s.releaseToApplicants,
+      assessorMode: s.assessors,
+      hasGugur: s.hasGugur,
+      headDecides: s.veto,
+      stagedPlacement: s.staged,
+      resultsAccess: s.resultsAccess,
+      closerecEnabled: s.closerec,
     },
+    generalAssessorUnitId:
+      s.assessors === 'ketua' ? null : s.generalAssessorUnitId,
     // Jawaban mentah untuk riwayat; daftar akun yang diberi akses tidak ikut disimpan.
     answers: JSON.parse(
       JSON.stringify({

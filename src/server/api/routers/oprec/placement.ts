@@ -224,7 +224,7 @@ async function loadChoices(
   return byApp;
 }
 
-function stageMapOf(choices: ChoiceRow[]) {
+function stageMapOf(choices: ChoiceRow[], staged: boolean) {
   return deriveChoiceStage(
     choices.map((choice) => ({
       id: choice.id,
@@ -232,6 +232,7 @@ function stageMapOf(choices: ChoiceRow[]) {
       status: choice.status,
       decision: choice.decision,
     })),
+    { staged },
   );
 }
 
@@ -510,6 +511,7 @@ export const placementProcedures = {
             ),
             decision: (row.decision as Decision | null) ?? null,
           })),
+          { staged: ctx.recruitment.stagedPlacement },
         );
         for (const row of rows) {
           const stage = stages.get(row.id)?.stage;
@@ -681,7 +683,7 @@ export const placementProcedures = {
         },
         rows: pageRows.map((row) => {
           const choices = choicesByApp.get(row.id) ?? [];
-          const stages = stageMapOf(choices);
+          const stages = stageMapOf(choices, ctx.recruitment.stagedPlacement);
           const accepted = choices.find((choice) => choice.decision === 'terima');
           return {
             id: row.id,
@@ -751,6 +753,7 @@ export const placementProcedures = {
             status: choice.status,
             decision: choice.decision,
           })),
+          { staged: ctx.recruitment.stagedPlacement },
         );
         const stage = stages.get(input.choiceId)?.stage ?? 'tertutup';
         if (stage === 'tertutup') {
@@ -874,8 +877,18 @@ export const placementProcedures = {
     .input(PlacementIdInput)
     .query(async ({ ctx }) => {
       const [tolakPlan, masukPlan] = await Promise.all([
-        buildAutofillPlan(ctx.db, ctx.recruitment.id, 'tolak'),
-        buildAutofillPlan(ctx.db, ctx.recruitment.id, 'masukkan'),
+        buildAutofillPlan(
+          ctx.db,
+          ctx.recruitment.id,
+          'tolak',
+          ctx.recruitment.stagedPlacement,
+        ),
+        buildAutofillPlan(
+          ctx.db,
+          ctx.recruitment.id,
+          'masukkan',
+          ctx.recruitment.stagedPlacement,
+        ),
       ]);
       const allowed = allowedDivisions(ctx.assess, await loadPlacementDivisions(ctx.db, ctx.recruitment.id));
       const masukCount = new Map(
@@ -932,6 +945,7 @@ export const placementProcedures = {
           tx,
           ctx.recruitment.id,
           input.overQuota,
+          ctx.recruitment.stagedPlacement,
         );
         const targets = [...plan.terima, ...plan.tolak].filter((choiceId) =>
           allowed.has(plan.divisionOf(choiceId)),
@@ -1831,6 +1845,12 @@ export const placementProcedures = {
     )
     .mutation(async ({ ctx, input }) => {
       assertAdmin(ctx.assess);
+      if (!ctx.recruitment.closerecEnabled) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Jalur closerec tidak dibuka untuk oprec ini.',
+        });
+      }
       if (ctx.recruitment.placementState === 'final') {
         throw new TRPCError({ code: 'FORBIDDEN', message: NOT_FINAL });
       }
@@ -2233,6 +2253,7 @@ async function buildAutofillPlan(
   db: Queryable,
   recruitmentId: string,
   overQuota: 'masukkan' | 'tolak',
+  staged: boolean,
 ): Promise<AutofillData> {
   const divisions = await loadPlacementDivisions(db, recruitmentId);
   const rows = await db
@@ -2298,6 +2319,7 @@ async function buildAutofillPlan(
     acceptedByDivision: accepted,
     existing,
     overQuota,
+    staged,
   });
   const divisionOfChoice = new Map(
     choices.map((choice) => [choice.id, choice.divisionId]),

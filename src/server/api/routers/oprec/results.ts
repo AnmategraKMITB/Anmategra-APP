@@ -254,7 +254,7 @@ async function gateReasonsFor(
   return reasons;
 }
 
-function stagesOf(rows: ChoiceRow[]) {
+function stagesOf(rows: ChoiceRow[], staged: boolean) {
   return deriveChoiceStage(
     rows.map((row) => ({
       id: row.id,
@@ -262,6 +262,7 @@ function stagesOf(rows: ChoiceRow[]) {
       status: statusOf(row),
       decision: row.decision,
     })),
+    { staged },
   );
 }
 
@@ -273,11 +274,15 @@ function groupByApplication(rows: ChoiceRow[]) {
   return map;
 }
 
-async function undecidedCount(db: Queryable, recruitmentId: string) {
+async function undecidedCount(
+  db: Queryable,
+  recruitmentId: string,
+  staged: boolean,
+) {
   const rows = await loadChoiceRows(db, recruitmentId);
   let total = 0;
   for (const group of groupByApplication(rows).values()) {
-    const stages = stagesOf(group);
+    const stages = stagesOf(group, staged);
     total += group.filter(
       (row) =>
         stages.get(row.id)?.stage === 'aktif' && row.decision === null,
@@ -291,7 +296,7 @@ export const resultsProcedures = {
   resultsOverview: oprecAssessProcedure
     .input(RecruitmentIdInputSchema)
     .query(async ({ ctx }) => {
-      assertResultsAccess(ctx.assess, resultsMode(ctx.recruitment.setupAnswers));
+      assertResultsAccess(ctx.assess, resultsMode(ctx.recruitment));
 
       const [divisions, rows] = await Promise.all([
         loadPlacementDivisions(ctx.db, ctx.recruitment.id),
@@ -303,7 +308,7 @@ export const resultsProcedures = {
       const pending = new Map<string, number>();
       let undecided = 0;
       for (const group of groupByApplication(rows).values()) {
-        const stages = stagesOf(group);
+        const stages = stagesOf(group, ctx.recruitment.stagedPlacement);
         for (const row of group) {
           const stage = stages.get(row.id)?.stage;
           if (row.decision === 'terima') {
@@ -365,7 +370,7 @@ export const resultsProcedures = {
   resultsList: oprecAssessProcedure
     .input(ResultsListInputSchema)
     .query(async ({ ctx, input }) => {
-      assertResultsAccess(ctx.assess, resultsMode(ctx.recruitment.setupAnswers));
+      assertResultsAccess(ctx.assess, resultsMode(ctx.recruitment));
 
       if (input.divisionId) {
         const divisions = await loadPlacementDivisions(
@@ -448,7 +453,7 @@ export const resultsProcedures = {
         pageSize: input.pageSize,
         rows: rows.map((row) => {
           const own = choices.get(row.id) ?? [];
-          const stages = stagesOf(own);
+          const stages = stagesOf(own, ctx.recruitment.stagedPlacement);
           const accepted = own.find((choice) => choice.decision === 'terima');
           const hasPending = own.some(
             (choice) =>
@@ -516,7 +521,7 @@ export const resultsProcedures = {
         if (row.resultsReleasedAt !== null) {
           conflict('Hasil sudah dirilis.');
         }
-        const undecided = await undecidedCount(tx, row.id);
+        const undecided = await undecidedCount(tx, row.id, row.stagedPlacement);
         const releasedAt = new Date();
         await tx
           .update(recruitment)
@@ -634,7 +639,7 @@ export const resultsProcedures = {
   resultsLogExport: oprecAssessProcedure
     .input(ResultsLogExportInputSchema)
     .mutation(async ({ ctx, input }) => {
-      assertResultsAccess(ctx.assess, resultsMode(ctx.recruitment.setupAnswers));
+      assertResultsAccess(ctx.assess, resultsMode(ctx.recruitment));
       await logAction(ctx.db, {
         recruitmentId: ctx.recruitment.id,
         actorId: ctx.session.user.id,

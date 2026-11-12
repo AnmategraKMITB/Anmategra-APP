@@ -156,13 +156,3 @@ export function Note({
     </p>
   );
 }
-
-/** Catatan untuk langkah yang pengaruhnya baru terasa di fase berikutnya. */
-export function LaterNote() {
-  return (
-    <Note>
-      Jawaban ini disimpan bersama pengaturan oprec dan mulai berlaku saat fitur
-      penilaian, penempatan, atau hasil dibuka. Bisa diubah lagi nanti.
-    </Note>
-  );
-}

@@ -16,7 +16,9 @@ import {
   organizationPosition,
   organizationStructure,
   organizationUnit,
+  placement,
   recruitment,
+  recruitmentAssessor,
   recruitmentDivision,
   recruitmentEligibilityRule,
   recruitmentWave,
@@ -27,10 +29,12 @@ import {
   SetupOptionsInputSchema,
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
+import { logAction } from './log';
 import {
   type Queryable,
   applySectionBinding,
   assertDivisionTarget,
+  assertSourceUnit,
   conflict,
   notFound,
   pgCode,
@@ -255,6 +259,34 @@ export const setupProcedures = {
           d.positionId,
         );
       }
+      // S13/S14: penilai umum berasal dari satu bagian organogram. Bagian itu
+      // disimpan hanya bila ada penilai umum.
+      const needsGeneral =
+        input.settings.assessorMode === 'umum' ||
+        input.settings.assessorMode === 'keduanya';
+      const generalUnitId = needsGeneral
+        ? (input.generalAssessorUnitId ?? null)
+        : null;
+      if (needsGeneral) {
+        if (!generalUnitId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Pilih bagian penilai umum.',
+          });
+        }
+        await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
+      }
+      // S15: tanpa syarat gugur, kriteria gugur tidak boleh ada.
+      if (
+        input.settings.hasGugur === false &&
+        input.criteria.some((c) => c.kind === 'gugur_manual')
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Syarat gugur dimatikan, tetapi ada kriteria jenis gugur. Hapus kriteria itu atau aktifkan syarat gugur.',
+        });
+      }
 
       try {
         return await ctx.db.transaction(async (tx) => {
@@ -309,6 +341,7 @@ export const setupProcedures = {
             .insert(recruitment)
             .values({
               ...input.settings,
+              generalAssessorUnitId: generalUnitId,
               periodId: input.eventId,
               formId,
               name: input.name,
@@ -339,6 +372,48 @@ export const setupProcedures = {
           const divisionByUnit = new Map(
             divisionRows.map((d) => [d.unitId, d.id]),
           );
+
+          if (generalUnitId) {
+            // Penilai umum: pemegang jabatan di bagian itu saat oprec dibuat.
+            const holders = await tx
+              .selectDistinct({ userId: placement.userId })
+              .from(placement)
+              .innerJoin(
+                organizationPosition,
+                eq(organizationPosition.id, placement.positionId),
+              )
+              .where(eq(organizationPosition.unitId, generalUnitId));
+            if (holders.length > 0) {
+              const assessorRows = await tx
+                .insert(recruitmentAssessor)
+                .values(
+                  holders.map((h) => ({
+                    recruitmentId,
+                    userId: h.userId,
+                    divisionId: null,
+                  })),
+                )
+                .returning({
+                  id: recruitmentAssessor.id,
+                  userId: recruitmentAssessor.userId,
+                });
+              for (const row of assessorRows) {
+                await logAction(tx, {
+                  recruitmentId,
+                  actorId: ctx.session.user.id,
+                  action: 'penilai_ditambah',
+                  entityType: 'recruitment_assessor',
+                  entityId: row.id,
+                  detail: {
+                    userId: row.userId,
+                    divisionId: null,
+                    unitId: generalUnitId,
+                    via: 'wizard',
+                  },
+                });
+              }
+            }
+          }
 
           if (input.criteria.length > 0) {
             const perSlot = new Map<string, number>();

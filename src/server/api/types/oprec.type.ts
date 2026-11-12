@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import {
   APPLICATION_SOURCES,
+  ASSESSOR_MODES,
   ELIGIBILITY_ATTRIBUTES,
   ELIGIBILITY_MATCHES,
   ELIGIBILITY_OPERATORS,
   PLACEMENT_STATES,
   RECRUITMENT_STATUSES,
+  RESULTS_ACCESS_MODES,
   SCORE_SOURCES,
   SCORING_MODES,
   STATUS_METHODS,
@@ -40,6 +42,13 @@ const RecruitmentSettingsShape = {
   allowEarlyAssessment: z.boolean(),
   visibilityDefault: z.boolean(),
   resultsVisibleToApplicants: z.boolean(),
+  /** Jawaban lanjutan wizard yang berlaku di server (#354). */
+  assessorMode: z.enum(ASSESSOR_MODES),
+  hasGugur: z.boolean(),
+  headDecides: z.boolean(),
+  stagedPlacement: z.boolean(),
+  resultsAccess: z.enum(RESULTS_ACCESS_MODES),
+  closerecEnabled: z.boolean(),
 };
 
 export const RecruitmentSettingsPatchSchema = z
@@ -289,6 +298,11 @@ export const CreateFromSetupInputSchema = z.object({
     .default({ match: 'all', rules: [] }),
   /** Pengaturan penilaian dan hasil yang sudah punya kolom; lainnya cukup di `answers`. */
   settings: RecruitmentSettingsPatchSchema.default({}),
+  /**
+   * S14: bagian organogram yang pemegang jabatannya menjadi penilai umum.
+   * Wajib bila `settings.assessorMode` bukan `ketua`.
+   */
+  generalAssessorUnitId: id.nullish(),
   /** Kriteria awal dari wizard (S23): 'umum' atau id bagian tujuan (unitId). */
   criteria: z
     .array(
