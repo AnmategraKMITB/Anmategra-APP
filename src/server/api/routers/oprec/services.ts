@@ -4,6 +4,7 @@ import { type db as Db } from '~/server/db';
 import {
   application,
   events,
+  form,
   formField,
   formSection,
   organizationPosition,
@@ -16,7 +17,14 @@ import {
   recruitmentWave,
 } from '~/server/db/schema';
 
-import { type Tx, enforceConditions } from '../form/services';
+import {
+  type Tx,
+  assertPublishable,
+  countSubmissions,
+  enforceConditions,
+  loadActiveFields,
+  lockForm,
+} from '../form/services';
 
 export type Database = typeof Db;
 export type Queryable = Pick<Database, 'select' | 'query'>;
@@ -369,4 +377,74 @@ export async function applySectionBinding(
   await enforceConditions(tx, args.formId, {
     edited: [args.formSectionId],
   });
+}
+
+
+type RecruitmentRow = typeof recruitment.$inferSelect;
+
+/**
+ * Syarat yang masih kurang agar oprec boleh dibuka. Kosong = siap. Dipakai
+ * `oprec.setStatus` dan `form.setStatus` supaya keduanya menolak hal yang sama.
+ */
+export async function oprecOpenProblems(
+  tx: Tx,
+  rec: Pick<RecruitmentRow, 'id' | 'formId' | 'setupCompletedAt'>,
+): Promise<string[]> {
+  const problems: string[] = [];
+  if (!rec.setupCompletedAt) {
+    problems.push('Selesaikan pengaturan oprec sebelum membukanya.');
+  }
+  const [choice] = await tx
+    .select({ n: count() })
+    .from(formField)
+    .where(
+      and(
+        eq(formField.formId, rec.formId),
+        eq(formField.type, 'unit_choice'),
+        isNull(formField.archivedAt),
+      ),
+    );
+  if ((choice?.n ?? 0) === 0) {
+    problems.push(
+      'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
+    );
+  }
+  const [divs] = await tx
+    .select({ n: count() })
+    .from(recruitmentDivision)
+    .where(eq(recruitmentDivision.recruitmentId, rec.id));
+  if ((divs?.n ?? 0) === 0) {
+    problems.push('Pilih minimal satu tujuan penempatan sebelum membuka oprec.');
+  }
+  return problems;
+}
+
+/**
+ * Samakan status form terikat dengan status oprec (oprec = sumber kebenaran).
+ * Memanggil `lockForm`, jadi pemanggil harus sudah mengunci baris oprec lebih
+ * dulu; urutan kunci yang sama dipakai `form.setStatus`.
+ */
+export async function syncFormToOprec(
+  tx: Tx,
+  formId: string,
+  status: 'draft' | 'open' | 'closed',
+) {
+  const current = await lockForm(tx, formId);
+  if (status === 'open' && current.status !== 'Published') {
+    assertPublishable(current, await loadActiveFields(tx, formId));
+    await tx
+      .update(form)
+      .set({
+        status: 'Published',
+        ...(current.publishedAt === null && { publishedAt: new Date() }),
+      })
+      .where(eq(form.id, formId));
+  } else if (status === 'closed' && current.status === 'Published') {
+    await tx.update(form).set({ status: 'Closed' }).where(eq(form.id, formId));
+  } else if (status === 'draft' && current.status !== 'Draft') {
+    if (((await countSubmissions(tx, [formId])).get(formId) ?? 0) > 0) {
+      conflict('Formulir sudah punya jawaban, tidak bisa kembali ke draf.');
+    }
+    await tx.update(form).set({ status: 'Draft' }).where(eq(form.id, formId));
+  }
 }
