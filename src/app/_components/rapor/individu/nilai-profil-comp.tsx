@@ -1,7 +1,7 @@
 import React from 'react';
 
 import NilaiProfilCard from '../../card/nilai-profil-card';
-import { Profile } from '../../form/form-nilai-profil';
+import { type Profile } from '../../form/form-nilai-profil';
 
 type NilaiProfilCompProps = {
   nilaiProfils?: Profile[];

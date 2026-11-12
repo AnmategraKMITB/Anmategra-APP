@@ -1,12 +1,13 @@
-import { BuilderPage } from '~/app/_components/forms/builder-page';
+import { redirect } from 'next/navigation';
 
-const MahasiswaFormBuilderPage = async ({
+/** Rute lama; halaman pengelola kini di /manage. */
+const LegacyRedirectPage = async ({
   params,
 }: {
   params: Promise<{ formId: string }>;
 }) => {
   const { formId } = await params;
-  return <BuilderPage formId={formId} basePath="/mahasiswa" />;
+  redirect(`/manage/forms/${formId}`);
 };
 
-export default MahasiswaFormBuilderPage;
+export default LegacyRedirectPage;

@@ -59,7 +59,7 @@ export type ApiMeta = {
     | 'authenticated'
     | 'admin'
     | 'admin-permission'
-    | 'lembaga'
+    | 'mahasiswa'
     | 'lembaga-scoped'
     | 'lembaga-owner'
     | 'event-scoped'
@@ -223,12 +223,12 @@ export const adminProcedure = t.procedure
   .meta({ access: 'admin' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (
-      !ctx.session ||
-      !ctx.session.user ||
-      ctx.session.user.role !== 'admin'
-    ) {
+    // 401 = belum login; 403 = sudah login tetapi bukan admin.
+    if (!ctx.session?.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+    if (ctx.session.user.role !== 'admin') {
+      throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({
       ctx: {
@@ -282,17 +282,18 @@ export const adminPermissionProcedure = (required: AdminPermission) =>
       });
     });
 
-export const isLembaga = t.middleware(async ({ ctx, next }) => {
-  if (ctx.session?.user.role !== 'lembaga') {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-  return next();
-});
-
-export const lembagaProcedure = protectedProcedure
-  .meta({ access: 'lembaga' })
-  .use(timingMiddleware)
-  .use(isLembaga);
+/**
+ * Hanya Account Role `mahasiswa`. Untuk tindakan yang mengubah data milik
+ * mahasiswa sendiri; role lain ditolak (403) alih-alih berhasil tanpa efek.
+ */
+export const mahasiswaProcedure = protectedProcedure
+  .meta({ access: 'mahasiswa' })
+  .use(({ ctx, next }) => {
+    if (ctx.session.user.role !== 'mahasiswa') {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next();
+  });
 
 // Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
 // tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
@@ -319,10 +320,9 @@ function rawId(value: unknown): string | undefined {
 }
 
 /**
- * Procedure baru untuk mutation/query yang menerima `lembagaId` di input
- * dan boleh diakses Owner ATAU Admin Lembaga. Endpoint lama yang masih
- * pakai `lembagaProcedure` (Owner-only via role, tanpa cek input) TIDAK
- * perlu dimigrasi sekaligus — migrasi dilakukan bertahap per-endpoint.
+ * Prosedur untuk mutation/query yang menerima `lembagaId` di input dan boleh
+ * diakses Owner ATAU Admin Lembaga (`canManageLembaga`). Semua endpoint
+ * pengelolaan lembaga memakai prosedur ini; `ctx.lembagaId` adalah Scope.
  */
 export const lembagaScopedProcedure = protectedProcedure
   .meta({ access: 'lembaga-scoped' })

@@ -49,6 +49,7 @@ import { GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 
 type TableMeta = {
   lembagaId?: string;
+  raporBasePath?: string;
   eventId?: string;
   session: Session | null;
   posisiBidangData: { posisi: comboboxDataType[]; bidang: comboboxDataType[] };
@@ -138,6 +139,7 @@ function SortableRow({
 export function MahasiswaCardTable({
   data,
   lembagaId,
+  raporBasePath = '/anggota',
   eventId,
   session,
   posisiBidangData,
@@ -149,6 +151,8 @@ export function MahasiswaCardTable({
 }: {
   data: Member[];
   lembagaId?: string;
+  /** Awalan tautan rapor individu; bawaan halaman Owner. */
+  raporBasePath?: string;
   eventId?: string;
   session: Session | null;
   posisiBidangData: { posisi: comboboxDataType[]; bidang: comboboxDataType[] };
@@ -269,12 +273,13 @@ export function MahasiswaCardTable({
   const tableMeta = React.useMemo(
     () => ({
       lembagaId,
+      raporBasePath,
       eventId,
       session,
       posisiBidangData,
       isKegiatan,
     }),
-    [lembagaId, eventId, session, posisiBidangData, isKegiatan],
+    [lembagaId, raporBasePath, eventId, session, posisiBidangData, isKegiatan],
   );
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -306,10 +311,12 @@ export function MahasiswaCardTable({
       cell: ({ row, table }) => {
         const eventId = (table.options.meta as TableMeta)?.eventId;
         const isKegiatan = (table.options.meta as TableMeta)?.isKegiatan;
+        const base =
+          (table.options.meta as TableMeta)?.raporBasePath ?? '/anggota';
         const href =
           isKegiatan && eventId
             ? `/kegiatan/${eventId}/panitia/${row.original.id}`
-            : `/anggota/${row.original.id}`;
+            : `${base}/${row.original.id}`;
 
         return (
           <Link href={href}>
@@ -469,7 +476,7 @@ export function MahasiswaCardTable({
                     href={
                       isKegiatan && eventId
                         ? `/kegiatan/${eventId}/panitia/${row.original.id}`
-                        : `/anggota/${row.original.id}`
+                        : `${raporBasePath}/${row.original.id}`
                     }
                     className="flex-1"
                   >

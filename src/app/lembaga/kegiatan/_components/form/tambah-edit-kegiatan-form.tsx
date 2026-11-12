@@ -88,9 +88,12 @@ const TambahEditKegiatanForm = ({
   setIsOpen,
   kegiatan,
   admin,
+  lembagaId,
   onDone,
 }: {
   session?: Session | null;
+  /** Lembaga yang dikelola. */
+  lembagaId?: string;
   setIsOpen: (param: boolean) => void;
   setEventList?: (param: Event[]) => void;
   kegiatan?: Event | null;
@@ -234,10 +237,11 @@ const TambahEditKegiatanForm = ({
       return;
     }
 
+    const scopeId = lembagaId ?? '';
     if (isEditMode) {
-      updateMutation.mutate({ ...query, id: kegiatan.id });
+      updateMutation.mutate({ ...query, lembagaId: scopeId, id: kegiatan.id });
     } else {
-      createMutation.mutate(query);
+      createMutation.mutate({ ...query, lembagaId: scopeId });
     }
   };
 

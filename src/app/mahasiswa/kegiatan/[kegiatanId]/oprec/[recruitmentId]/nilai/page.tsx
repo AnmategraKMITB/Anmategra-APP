@@ -1,18 +1,13 @@
-import { NilaiPage } from '~/app/_components/oprec/nilai-page';
+import { redirect } from 'next/navigation';
 
-const NilaiRoutePage = async ({
+/** Rute lama; halaman pengelola kini di /manage. */
+const LegacyRedirectPage = async ({
   params,
 }: {
   params: Promise<{ kegiatanId: string; recruitmentId: string }>;
 }) => {
   const { kegiatanId, recruitmentId } = await params;
-  return (
-    <NilaiPage
-      kegiatanId={kegiatanId}
-      recruitmentId={recruitmentId}
-      basePath="/mahasiswa"
-    />
-  );
+  redirect(`/manage/kegiatan/${kegiatanId}/oprec/${recruitmentId}/nilai`);
 };
 
-export default NilaiRoutePage;
+export default LegacyRedirectPage;

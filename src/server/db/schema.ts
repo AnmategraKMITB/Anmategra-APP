@@ -193,6 +193,12 @@ export const mahasiswa = createTable('mahasiswa', {
   lineId: varchar('line_id', { length: 255 }),
   whatsapp: varchar('whatsapp', { length: 255 }),
   raporVisible: boolean('rapor_visible').notNull().default(true),
+  // Visibilitas kontak bagi mahasiswa lain. Pemilik akun, Superadmin, Operator
+  // (accounts.read), serta Owner/Admin yang mengelola lembaga atau kegiatan
+  // tempat mahasiswa ini terlibat selalu dapat melihat, apa pun nilainya.
+  showWhatsapp: boolean('show_whatsapp').notNull().default(false),
+  showLine: boolean('show_line').notNull().default(false),
+  showEmail: boolean('show_email').notNull().default(false),
   status: mahasiswaStatusEnum('status').notNull().default('aktif'),
   ...timestamps,
 });

@@ -90,6 +90,7 @@ export function EditAnggotaDialog({
     
     mutation.mutate(
       {
+        lembagaId,
         user_id: memberId,
         position: values.position,
         division: values.division,

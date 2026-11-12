@@ -87,6 +87,8 @@ const TambahEditAnggotaForm = ({
   editData,
   lembagaId,
 }: TambahEditAnggotaFormProps) => {
+  // Lembaga yang dikelola: dari properti (halaman /manage) atau dari sesi (Owner).
+  const activeLembagaId = lembagaId ?? session?.user.lembagaId ?? undefined;
   const [mahasiswaOpen, setMahasiswaOpen] = useState(false);
   const [nimOpen, setNimOpen] = useState(false);
   const [posisiOpen, setPosisiOpen] = useState(false);
@@ -167,7 +169,7 @@ const TambahEditAnggotaForm = ({
   const { data: mahasiswaSearchResults, isLoading: isMahasiswaSearchLoading } = api.users.searchMahasiswa.useQuery(
     {
       query: debouncedMahasiswaSearch,
-      lembagaId: !isKegiatan ? session?.user.lembagaId : undefined,
+      lembagaId: !isKegiatan ? activeLembagaId : undefined,
       eventId: isKegiatan ? eventId : undefined,
       isKegiatan,
       limit: 10,
@@ -181,7 +183,7 @@ const TambahEditAnggotaForm = ({
   const { data: nimSearchResults, isLoading: isNimSearchLoading } = api.users.searchMahasiswa.useQuery(
     {
       query: debouncedNimSearch,
-      lembagaId: !isKegiatan ? session?.user.lembagaId : undefined,
+      lembagaId: !isKegiatan ? activeLembagaId : undefined,
       eventId: isKegiatan ? eventId : undefined,
       isKegiatan,
       limit: 10,
@@ -224,6 +226,7 @@ const TambahEditAnggotaForm = ({
       if (isKegiatan && eventId) {
         editEventMutation.mutate(
           {
+            lembagaId: activeLembagaId ?? '',
             user_id: values.user_id,
             event_id: eventId,
             position: values.position,
@@ -233,6 +236,7 @@ const TambahEditAnggotaForm = ({
       } else {
         editLembagaMutation.mutate(
           {
+            lembagaId: activeLembagaId ?? '',
             user_id: values.user_id,
             position: values.position,
             division: values.division,
@@ -243,7 +247,7 @@ const TambahEditAnggotaForm = ({
       // Add mode
       const lembagaQuery = {
         ...values,
-        lembagaId: session?.user.id ?? '',
+        lembagaId: activeLembagaId ?? '',
       };
       const eventQuery = {
         ...values,
@@ -253,6 +257,7 @@ const TambahEditAnggotaForm = ({
       if (isKegiatan) {
         if (manualMode) {
           const addManualQuery = {
+            lembagaId: activeLembagaId ?? '',
             event_id: eventQuery.event_id,
             name: eventQuery.user_id, // In manual mode, user_id field contains the name :)
             nim: eventQuery.nim,
@@ -261,11 +266,15 @@ const TambahEditAnggotaForm = ({
           };
           addManualEventMutation.mutate(addManualQuery);
         } else {
-          eventMutation.mutate(eventQuery);
+          eventMutation.mutate({
+            ...eventQuery,
+            lembagaId: activeLembagaId ?? '',
+          });
         }
       } else {
         if (manualMode) {
           const addManualQuery = {
+            lembagaId: lembagaQuery.lembagaId,
             name: lembagaQuery.user_id, // In manual mode, user_id field contains the name :)
             nim: lembagaQuery.nim,
             position: lembagaQuery.position,

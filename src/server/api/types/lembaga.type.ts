@@ -101,6 +101,7 @@ export const GetLembagaEventsOutputSchema = z.object({
 });
 
 export const AddAnggotaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -109,6 +110,7 @@ export const AddAnggotaLembagaInputSchema = z.object({
 });
 
 export const AddAnggotaManualLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   name: z.string().nonempty(),
   nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   division: z.string().nonempty(),
@@ -123,6 +125,7 @@ export const AddAnggotaLembagaOutputSchema = z.object({
 });
 
 export const RemoveAnggotaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
 });
 
@@ -131,6 +134,7 @@ export const RemoveAnggotaLembagaOutputSchema = z.object({
 });
 
 export const editAnggotaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -147,6 +151,7 @@ export const editAnggotaLembagaOutputSchema = z.object({
 // The previous 30/100 caps rejected 62 of 135 names and 134 of 135
 // descriptions, so a seeded lembaga could not save its own profile at all.
 export const EditProfilLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   nama: z
     .string()
     .trim()
@@ -172,6 +177,7 @@ export const EditProfilLembagaOutputSchema = z.object({
 });
 
 export const AcceptRequestAssociationInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
@@ -183,6 +189,7 @@ export const AcceptRequestAssociationOutputSchema = z.object({
 });
 
 export const DeclineRequestAssociationInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   user_id: z.string().nonempty(),
 });
@@ -192,6 +199,7 @@ export const DeclineRequestAssociationOutputSchema = z.object({
 });
 
 export const GetBestStaffOptionsInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   division: z.string().nonempty(),
 });
@@ -206,6 +214,7 @@ export const GetBestStaffOptionsOutputSchema = z.object({
 });
 
 export const GetAllRequestAssociationSummaryInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   name: z.string().optional(),
 });
 
@@ -220,11 +229,13 @@ export const GetAllRequestedAssociationSummaryOutputSchema = z.array(
 );
 
 export const GetAllRequestAssociationKegiatanInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   division: z.array(z.string()).optional(),
 });
 
 export const GetAllRequestAssociationInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   division: z.array(z.string()).optional(),
 });
 
@@ -241,6 +252,7 @@ export const GetAllRequestAssociationLembagaOutputSchema = z.object({
 });
 
 export const AcceptRequestAssociationLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -252,6 +264,7 @@ export const AcceptRequestAssociationLembagaOutputSchema = z.object({
 });
 
 export const DeclineRequestAssociationLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -263,6 +276,7 @@ export const DeclineRequestAssociationLembagaOutputSchema = z.object({
 });
 
 export const ChooseBestStaffKegiatanInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   start_date: z.string().datetime(),
   end_date: z.string().datetime(),
@@ -279,10 +293,11 @@ export const ChooseBestStaffKegiatanOutputSchema = z.object({
 });
 
 export const GetAllLembagaDivisionInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
+  lembagaId: z.string().nonempty(),
 });
 
 export const GetAllKegiatanDivisionInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
 });
 
@@ -291,7 +306,7 @@ export const GetAllDivisionOutputSchema = z.object({
 });
 
 export const GetBestStaffLembagaOptionsInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
+  lembagaId: z.string().nonempty(),
   division: z.string().nonempty(),
 });
 
@@ -305,7 +320,7 @@ export const GetBestStaffLembagaOptionsOutputSchema = z.object({
 });
 
 export const ChooseBestStaffLembagaInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
+  lembagaId: z.string().nonempty(),
   start_date: z.string().datetime(),
   end_date: z.string().datetime(),
   best_staff_list: z.array(
@@ -320,19 +335,16 @@ export const ChooseBestStaffLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
-export const DeleteBestStaffPeriodeInputSchema = z
-  .object({
-    lembaga_id: z.string().nonempty().optional(),
-    event_id: z.string().nonempty().optional(),
-    start_date: z.string().datetime(),
-    end_date: z.string().datetime(),
-  })
-  .refine((data) => !(data.lembaga_id && data.event_id), {
-    message: 'lembaga_id dan event_id tidak boleh dikirim bersamaan',
-  })
-  .refine((data) => data.lembaga_id ?? data.event_id, {
-    message: 'lembaga_id atau event_id wajib diisi',
-  });
+/**
+ * Tanpa `event_id`: hapus periode Best Staff lembaga `lembagaId`. Dengan
+ * `event_id`: hapus periode kegiatan itu (harus milik `lembagaId`).
+ */
+export const DeleteBestStaffPeriodeInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
+  event_id: z.string().nonempty().optional(),
+  start_date: z.string().datetime(),
+  end_date: z.string().datetime(),
+});
 
 export const DeleteBestStaffPeriodeOutputSchema = z.object({
   success: z.boolean(),
@@ -447,6 +459,10 @@ export const GetAllHistoryBestStaffMahasiswaOutputSchema = z.object({
   ),
 });
 
+export const GetPosisiBidangOptionsInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
+});
+
 export const GetPosisiBidangOptionsOutputSchema = z.object({
   posisi: z.array(
     z.object({
@@ -463,6 +479,7 @@ export const GetPosisiBidangOptionsOutputSchema = z.object({
 });
 
 export const ToggleRaporVisibilityLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   rapor_visible: z.boolean(),
 });
 
@@ -472,7 +489,7 @@ export const ToggleRaporVisibilityLembagaOutputSchema = z.object({
 });
 
 export const ReorderAnggotaLembagaInputSchema = z.object({
-  lembaga_id: z.string(),
+  lembagaId: z.string().nonempty(),
   user_ids: z.array(z.string()),
 });
 

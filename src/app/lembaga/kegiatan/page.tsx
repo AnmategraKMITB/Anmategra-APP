@@ -7,7 +7,10 @@ import { getServerAuthSession } from "~/server/auth";
 export default async function Home() {
 
   // Get activities from API
-  const events = await api.kegiatan.getAllByLembaga({ kind: 'kegiatan' }); // Belum ada Auth
+  const events = await api.kegiatan.getAllByLembaga({
+    lembagaId: (await getServerAuthSession())?.user.lembagaId ?? '',
+    kind: 'kegiatan',
+  });
   const formattedActivities = events.map((event) => ({
     id: event.id,
     name: event.name,

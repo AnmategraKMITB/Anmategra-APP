@@ -1,18 +1,13 @@
-import { ApplicantsPage } from '~/app/_components/oprec/applicants-page';
+import { redirect } from 'next/navigation';
 
-const PendaftarPage = async ({
+/** Rute lama; halaman pengelola kini di /manage. */
+const LegacyRedirectPage = async ({
   params,
 }: {
   params: Promise<{ kegiatanId: string; recruitmentId: string }>;
 }) => {
   const { kegiatanId, recruitmentId } = await params;
-  return (
-    <ApplicantsPage
-      kegiatanId={kegiatanId}
-      recruitmentId={recruitmentId}
-      basePath="/mahasiswa"
-    />
-  );
+  redirect(`/manage/kegiatan/${kegiatanId}/oprec/${recruitmentId}/pendaftar`);
 };
 
-export default PendaftarPage;
+export default LegacyRedirectPage;

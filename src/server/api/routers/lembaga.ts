@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import {
   type SQL,
   and,
@@ -15,7 +16,7 @@ import { type z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
   createTRPCRouter,
-  lembagaProcedure,
+  lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
 import { type Prodi } from '~/server/auth';
@@ -83,6 +84,7 @@ import {
   GetLembagaEventsOutputSchema,
   GetLembagaHighlightedEventInputSchema,
   GetLembagaHighlightedEventOutputSchema,
+  GetPosisiBidangOptionsInputSchema,
   GetPosisiBidangOptionsOutputSchema,
   RemoveAnggotaLembagaInputSchema,
   RemoveAnggotaLembagaOutputSchema,
@@ -206,12 +208,12 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  getAllRequestAssociationSummary: lembagaProcedure
+  getAllRequestAssociationSummary: lembagaScopedProcedure
     .input(GetAllRequestAssociationSummaryInputSchema)
     .output(GetAllRequestedAssociationSummaryOutputSchema)
     .query(async ({ ctx, input }) => {
-      const conditions1 = [eq(lembaga.id, ctx.session.user.lembagaId!)];
-      const conditions2 = [eq(events.org_id, ctx.session.user.lembagaId!)];
+      const conditions1 = [eq(lembaga.id, ctx.lembagaId)];
+      const conditions2 = [eq(events.org_id, ctx.lembagaId)];
 
       if (input.name) {
         conditions1.push(ilike(lembaga.name, `%${input.name}%`));
@@ -241,7 +243,7 @@ export const lembagaRouter = createTRPCRouter({
             and(
               eq(
                 associationRequestsLembaga.lembagaId,
-                ctx.session.user.lembagaId!,
+                ctx.lembagaId,
               ),
               eq(associationRequestsLembaga.status, 'Pending'),
             ),
@@ -249,7 +251,7 @@ export const lembagaRouter = createTRPCRouter({
 
         if (Number(countLembagaRequests[0]?.count ?? 0) > 0) {
           res.push({
-            id: ctx.session.user.lembagaId!,
+            id: ctx.lembagaId,
             name: lembaga1[0]?.name ?? '',
             total_requests: Number(countLembagaRequests[0]?.count ?? 0),
             type: 'Lembaga',
@@ -311,7 +313,7 @@ export const lembagaRouter = createTRPCRouter({
     }),
 
   // Fetch all associated events with lembaga
-  getAllRequestAssociation: lembagaProcedure
+  getAllRequestAssociation: lembagaScopedProcedure
     .input(GetAllRequestAssociationKegiatanInputSchema)
     .output(GetAllRequestAssociationOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -327,7 +329,7 @@ export const lembagaRouter = createTRPCRouter({
         });
       }
 
-      if (eventOrg.org_id !== ctx.session.user.lembagaId!) {
+      if (eventOrg.org_id !== ctx.lembagaId) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
           message: 'Anda tidak memiliki izin untuk mengakses data ini.',
@@ -430,14 +432,14 @@ export const lembagaRouter = createTRPCRouter({
     }),
 
   // Add new anggota to lembaga
-  addAnggota: lembagaProcedure
+  addAnggota: lembagaScopedProcedure
     .input(AddAnggotaLembagaInputSchema)
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         const added = await ctx.db.transaction((tx) =>
           addLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: input.user_id,
             division: input.division ?? '',
             position: input.position ?? '',
@@ -471,7 +473,7 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  addAnggotaManual: lembagaProcedure
+  addAnggotaManual: lembagaScopedProcedure
     .input(AddAnggotaManualLembagaInputSchema)
     .output(AddAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -494,7 +496,7 @@ export const lembagaRouter = createTRPCRouter({
           // User exists, just add them to the lembaga
           const added = await ctx.db.transaction((tx) =>
             addLembagaMember(tx, {
-              lembagaId: ctx.session.user.lembagaId!,
+              lembagaId: ctx.lembagaId,
               userId: existingUser.id,
               division: input.division ?? '',
               position: input.position ?? '',
@@ -538,7 +540,7 @@ export const lembagaRouter = createTRPCRouter({
           });
 
           await addLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: user[0]!.id,
             division: input.division ?? '',
             position: input.position ?? '',
@@ -568,13 +570,13 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  removeAnggota: lembagaProcedure
+  removeAnggota: lembagaScopedProcedure
     .input(RemoveAnggotaLembagaInputSchema)
     .output(RemoveAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const existingKehimpunan = await lembagaMemberOf(
         ctx.db,
-        ctx.session.user.lembagaId!,
+        ctx.lembagaId,
         input.user_id,
       );
 
@@ -586,14 +588,14 @@ export const lembagaRouter = createTRPCRouter({
       }
 
       const lembagaRow = await ctx.db.query.lembaga.findFirst({
-        where: eq(lembaga.id, ctx.session.user.lembagaId!),
+        where: eq(lembaga.id, ctx.lembagaId),
         columns: { id: true, name: true, type: true },
       });
 
       await ctx.db.transaction(async (tx) => {
         await tx.insert(riwayatOrganisasi).values({
           userId: existingKehimpunan.userId,
-          lembagaId: ctx.session.user.lembagaId!,
+          lembagaId: ctx.lembagaId,
           lembagaNama: lembagaRow?.name ?? 'Lembaga',
           lembagaTipe: lembagaRow?.type ?? null,
           division: existingKehimpunan.division,
@@ -603,7 +605,7 @@ export const lembagaRouter = createTRPCRouter({
           endReason: 'removed',
         });
 
-        await removeLembagaMember(tx, ctx.session.user.lembagaId!, input.user_id);
+        await removeLembagaMember(tx, ctx.lembagaId, input.user_id);
       });
 
       return {
@@ -611,14 +613,14 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  editAnggota: lembagaProcedure
+  editAnggota: lembagaScopedProcedure
     .input(editAnggotaLembagaInputSchema)
     .output(editAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         const updated = await ctx.db.transaction((tx) =>
           editLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: input.user_id,
             division: input.division ?? '',
             position: input.position ?? '',
@@ -647,17 +649,25 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  editProfil: lembagaProcedure
+  editProfil: lembagaScopedProcedure
     .input(EditProfilLembagaInputSchema)
     .output(EditProfilLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       if (input.gambar) {
-        await ctx.db
-          .update(users)
-          .set({
-            image: input.gambar,
-          })
-          .where(eq(users.id, ctx.session.user.id));
+        // Foto profil lembaga disimpan di akun Owner, bukan akun pengelola.
+        const [target] = await ctx.db
+          .select({ userId: lembaga.userId })
+          .from(lembaga)
+          .where(eq(lembaga.id, ctx.lembagaId))
+          .limit(1);
+        if (target?.userId) {
+          await ctx.db
+            .update(users)
+            .set({
+              image: input.gambar,
+            })
+            .where(eq(users.id, target.userId));
+        }
       }
 
       await ctx.db
@@ -670,14 +680,14 @@ export const lembagaRouter = createTRPCRouter({
             ? { acronym: input.singkatan || null }
             : {}),
         })
-        .where(eq(lembaga.id, ctx.session.user.lembagaId!));
+        .where(eq(lembaga.id, ctx.lembagaId));
 
       return {
         success: true,
       };
     }),
 
-  acceptRequestAssociation: lembagaProcedure
+  acceptRequestAssociation: lembagaScopedProcedure
     .input(AcceptRequestAssociationInputSchema)
     .output(AcceptRequestAssociationOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -689,7 +699,7 @@ export const lembagaRouter = createTRPCRouter({
             events,
             and(
               eq(associationRequests.event_id, events.id),
-              eq(events.org_id, ctx.session.user.lembagaId!),
+              eq(events.org_id, ctx.lembagaId),
             ),
           )
           .where(
@@ -719,7 +729,7 @@ export const lembagaRouter = createTRPCRouter({
         const eventToUpdate = await ctx.db.query.events.findFirst({
           where: and(
             eq(events.id, input.event_id),
-            eq(events.org_id, ctx.session.user.lembagaId!),
+            eq(events.org_id, ctx.lembagaId),
           ),
           columns: {
             id: true,
@@ -770,7 +780,7 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  declineRequestAssociation: lembagaProcedure
+  declineRequestAssociation: lembagaScopedProcedure
     .input(DeclineRequestAssociationInputSchema)
     .output(DeclineRequestAssociationOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -782,7 +792,7 @@ export const lembagaRouter = createTRPCRouter({
             events,
             and(
               eq(associationRequests.event_id, events.id),
-              eq(events.org_id, ctx.session.user.lembagaId!),
+              eq(events.org_id, ctx.lembagaId),
             ),
           )
           .where(
@@ -828,15 +838,11 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  getAllLembagaDivision: lembagaProcedure
+  getAllLembagaDivision: lembagaScopedProcedure
     .input(GetAllLembagaDivisionInputSchema)
     .output(GetAllDivisionOutputSchema)
     .query(async ({ ctx, input }) => {
-      if (ctx.session.user.lembagaId !== input.lembaga_id) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
-      const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+      const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
       const divisionsRaw = await ctx.db
         .select({ division: members.division })
         .from(members);
@@ -848,7 +854,7 @@ export const lembagaRouter = createTRPCRouter({
       return { divisions: uniqueDivisions };
     }),
 
-  getAllKegiatanDivision: lembagaProcedure
+  getAllKegiatanDivision: lembagaScopedProcedure
     .input(GetAllKegiatanDivisionInputSchema)
     .output(GetAllDivisionOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -861,7 +867,7 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
       }
 
-      if (orgId.org_id !== ctx.session.user.lembagaId) {
+      if (orgId.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -877,7 +883,7 @@ export const lembagaRouter = createTRPCRouter({
       return { divisions: uniqueDivisions };
     }),
 
-  getBestStaffOptions: lembagaProcedure
+  getBestStaffOptions: lembagaScopedProcedure
     .input(GetBestStaffOptionsInputSchema)
     .output(GetBestStaffOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -890,7 +896,7 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
       }
 
-      if (orgId.org_id !== ctx.session.user.lembagaId) {
+      if (orgId.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -912,14 +918,14 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  getAllRequestAssociationLembaga: lembagaProcedure
+  getAllRequestAssociationLembaga: lembagaScopedProcedure
     .input(GetAllRequestAssociationInputSchema)
     .output(GetAllRequestAssociationLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       const conditions = [
         eq(
           associationRequestsLembaga.lembagaId,
-          ctx.session?.user?.lembagaId ?? '',
+          ctx.lembagaId,
         ),
       ];
 
@@ -954,7 +960,7 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  acceptRequestAssociationLembaga: lembagaProcedure
+  acceptRequestAssociationLembaga: lembagaScopedProcedure
     .input(AcceptRequestAssociationLembagaInputSchema)
     .output(AcceptRequestAssociationLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -966,7 +972,7 @@ export const lembagaRouter = createTRPCRouter({
             and(
               eq(
                 associationRequestsLembaga.lembagaId,
-                ctx.session.user.lembagaId!,
+                ctx.lembagaId,
               ),
               eq(associationRequestsLembaga.user_id, input.user_id),
               eq(associationRequestsLembaga.status, 'Pending'),
@@ -985,7 +991,7 @@ export const lembagaRouter = createTRPCRouter({
         if (
           await isLembagaMember(
             ctx.db,
-            ctx.session.user.lembagaId!,
+            ctx.lembagaId,
             input.user_id,
           )
         ) {
@@ -999,7 +1005,7 @@ export const lembagaRouter = createTRPCRouter({
         await ctx.db.transaction(async (tx) => {
           // Add user to the lembaga
           await addLembagaMember(tx, {
-            lembagaId: ctx.session.user.lembagaId!,
+            lembagaId: ctx.lembagaId,
             userId: input.user_id,
             division: input.division,
             position: input.position,
@@ -1016,7 +1022,7 @@ export const lembagaRouter = createTRPCRouter({
               and(
                 eq(
                   associationRequestsLembaga.lembagaId,
-                  ctx.session.user.lembagaId!,
+                  ctx.lembagaId,
                 ),
                 eq(associationRequestsLembaga.user_id, input.user_id),
               ),
@@ -1039,7 +1045,7 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  declineRequestAssociationLembaga: lembagaProcedure
+  declineRequestAssociationLembaga: lembagaScopedProcedure
     .input(DeclineRequestAssociationLembagaInputSchema)
     .output(DeclineRequestAssociationLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -1052,7 +1058,7 @@ export const lembagaRouter = createTRPCRouter({
             and(
               eq(
                 associationRequestsLembaga.lembagaId,
-                ctx.session.user.lembagaId!,
+                ctx.lembagaId,
               ),
               eq(associationRequestsLembaga.user_id, input.user_id),
               eq(associationRequestsLembaga.status, 'Pending'),
@@ -1077,7 +1083,7 @@ export const lembagaRouter = createTRPCRouter({
             and(
               eq(
                 associationRequestsLembaga.lembagaId,
-                ctx.session.user.lembagaId!,
+                ctx.lembagaId,
               ),
               eq(associationRequestsLembaga.user_id, input.user_id),
             ),
@@ -1099,7 +1105,7 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  chooseBestStaffKegiatan: lembagaProcedure
+  chooseBestStaffKegiatan: lembagaScopedProcedure
     .input(ChooseBestStaffKegiatanInputSchema)
     .output(ChooseBestStaffKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -1109,7 +1115,7 @@ export const lembagaRouter = createTRPCRouter({
         columns: { org_id: true },
       });
 
-      if (ctx.session.user.lembagaId! !== eventOrg?.org_id) {
+      if (ctx.lembagaId !== eventOrg?.org_id) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -1148,15 +1154,11 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  getBestStaffLembagaOptions: lembagaProcedure
+  getBestStaffLembagaOptions: lembagaScopedProcedure
     .input(GetBestStaffLembagaOptionsInputSchema)
     .output(GetBestStaffLembagaOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
-      if (input.lembaga_id !== ctx.session.user.lembagaId) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
-      const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+      const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
       const staffOptions = await ctx.db
         .select({
           user_id: users.id,
@@ -1174,15 +1176,10 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  chooseBestStaffLembaga: lembagaProcedure
+  chooseBestStaffLembaga: lembagaScopedProcedure
     .input(ChooseBestStaffLembagaInputSchema)
     .output(ChooseBestStaffLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify that lembaga id matches
-      if (ctx.session.user.lembagaId! !== input.lembaga_id) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
       // Verify the start date and end date is valid
       if (new Date(input.start_date) > new Date(input.end_date)) {
         throw new TRPCError({
@@ -1195,7 +1192,7 @@ export const lembagaRouter = createTRPCRouter({
         .delete(bestStaffLembaga)
         .where(
           and(
-            eq(bestStaffLembaga.lembagaId, input.lembaga_id),
+            eq(bestStaffLembaga.lembagaId, ctx.lembagaId),
             lte(bestStaffLembaga.startDate, new Date(input.end_date)),
             gte(bestStaffLembaga.endDate, new Date(input.start_date)),
           ),
@@ -1205,7 +1202,7 @@ export const lembagaRouter = createTRPCRouter({
       await ctx.db.insert(bestStaffLembaga).values(
         input.best_staff_list.map((staff) => ({
           id: crypto.randomUUID(),
-          lembagaId: input.lembaga_id,
+          lembagaId: ctx.lembagaId,
           mahasiswaId: staff.user_id,
           division: staff.division,
           startDate: new Date(input.start_date),
@@ -1510,30 +1507,26 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  deleteBestStaffPeriode: lembagaProcedure
+  deleteBestStaffPeriode: lembagaScopedProcedure
     .input(DeleteBestStaffPeriodeInputSchema)
     .output(DeleteBestStaffPeriodeOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (input.lembaga_id) {
-        if (ctx.session.user.lembagaId! !== input.lembaga_id) {
-          throw new TRPCError({ code: 'FORBIDDEN' });
-        }
-
+      if (!input.event_id) {
         await ctx.db
           .delete(bestStaffLembaga)
           .where(
             and(
-              eq(bestStaffLembaga.lembagaId, input.lembaga_id),
+              eq(bestStaffLembaga.lembagaId, ctx.lembagaId),
               eq(bestStaffLembaga.startDate, new Date(input.start_date)),
               eq(bestStaffLembaga.endDate, new Date(input.end_date)),
             ),
           );
-      } else if (input.event_id) {
+      } else {
         const event = await ctx.db.query.events.findFirst({
           where: eq(events.id, input.event_id),
         });
 
-        if (!event || event.org_id !== ctx.session.user.lembagaId) {
+        if (event?.org_id !== ctx.lembagaId) {
           throw new TRPCError({ code: 'FORBIDDEN' });
         }
 
@@ -1546,11 +1539,6 @@ export const lembagaRouter = createTRPCRouter({
               eq(bestStaffKegiatan.endDate, new Date(input.end_date)),
             ),
           );
-      } else {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Either lembaga_id or event_id must be provided',
-        });
       }
 
       return {
@@ -1558,12 +1546,13 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  getPosisiBidangOptions: lembagaProcedure
+  getPosisiBidangOptions: lembagaScopedProcedure
+    .input(GetPosisiBidangOptionsInputSchema)
     .output(GetPosisiBidangOptionsOutputSchema)
     .query(async ({ ctx }) => {
       const options = await periodTextOptions(
         ctx.db,
-        await currentLembagaPeriodId(ctx.db, ctx.session.user.lembagaId!),
+        await currentLembagaPeriodId(ctx.db, ctx.lembagaId),
       );
       const posisi_list = options.positions.map((position) => ({
         value: position,
@@ -1580,7 +1569,7 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  toggleRaporVisibility: lembagaProcedure
+  toggleRaporVisibility: lembagaScopedProcedure
     .input(ToggleRaporVisibilityLembagaInputSchema)
     .output(ToggleRaporVisibilityLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -1590,7 +1579,7 @@ export const lembagaRouter = createTRPCRouter({
           .set({
             raporVisible: input.rapor_visible,
           })
-          .where(eq(lembaga.id, ctx.session.user.lembagaId!));
+          .where(eq(lembaga.id, ctx.lembagaId));
 
         return {
           success: true,
@@ -1604,20 +1593,12 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  reorderAnggotaLembaga: lembagaProcedure
+  reorderAnggotaLembaga: lembagaScopedProcedure
     .input(ReorderAnggotaLembagaInputSchema)
     .output(ReorderAnggotaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        if (ctx.session.user.lembagaId !== input.lembaga_id) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message:
-              'Anda tidak memiliki izin untuk mengubah urutan anggota lembaga ini',
-          });
-        }
-
-        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+        const members = await lembagaMembersSq(ctx.db, input.lembagaId);
         const [totalAnggotaResult] = await ctx.db
           .select({ count: count() })
           .from(members);
@@ -1633,7 +1614,7 @@ export const lembagaRouter = createTRPCRouter({
 
         const periodId = await currentLembagaPeriodId(
           ctx.db,
-          input.lembaga_id,
+          input.lembagaId,
         );
         if (periodId) {
           await ctx.db.transaction((tx) =>
@@ -1653,8 +1634,8 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  reorderAnggotaKegiatan: lembagaProcedure
-    .input(ReorderAnggotaKegiatanInputSchema)
+  reorderAnggotaKegiatan: lembagaScopedProcedure
+    .input(ReorderAnggotaKegiatanInputSchema.and(LembagaScopeInput))
     .output(ReorderAnggotaKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
       const event = await ctx.db.query.events.findFirst({
@@ -1668,7 +1649,7 @@ export const lembagaRouter = createTRPCRouter({
           message: 'Kegiatan tidak ditemukan',
         });
       }
-      if (event.org_id !== ctx.session.user.lembagaId) {
+      if (event.org_id !== ctx.lembagaId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message:

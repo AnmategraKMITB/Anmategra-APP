@@ -1,3 +1,5 @@
+import { type AppBase } from '~/lib/app-base';
+
 export const RECRUITMENT_STATUS_LABEL = {
   draft: 'Draf',
   open: 'Dibuka',
@@ -10,7 +12,7 @@ export const RECRUITMENT_STATUS_STYLE = {
   closed: 'bg-warning-light text-neutral-1000',
 } as const;
 
-export type OprecBase = '/lembaga' | '/mahasiswa';
+export type OprecBase = AppBase;
 
 export const pendaftarHref = (
   base: OprecBase,

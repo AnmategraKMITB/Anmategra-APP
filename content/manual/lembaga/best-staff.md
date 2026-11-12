@@ -10,6 +10,10 @@ Best Staff digunakan untuk memberi penghargaan kepada anggota atau panitia
 dengan kinerja terbaik pada periode tertentu. Penghargaan dapat ditampilkan
 pada profil lembaga atau detail kegiatan.
 
+## Coba di sini
+
+::demo[best-staff]
+
 ## Menambahkan Best Staff
 
 1. Buka halaman **Anggota** lembaga, atau buka daftar **Panitia** pada kegiatan.

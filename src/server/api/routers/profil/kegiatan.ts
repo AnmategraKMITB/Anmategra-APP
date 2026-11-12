@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { eq } from 'drizzle-orm';
-import { createTRPCRouter, lembagaProcedure, protectedProcedure } from '~/server/api/trpc';
+import { createTRPCRouter, lembagaScopedProcedure, protectedProcedure } from '~/server/api/trpc';
 import {
   CreateProfilKegiatanInputSchema,
   CreateProfilKegiatanOutputSchema,
@@ -50,11 +51,11 @@ export const profilKegiatanRouter = createTRPCRouter({
       };
     }),
 
-  createProfilKegiatan: lembagaProcedure
-    .input(CreateProfilKegiatanInputSchema)
+  createProfilKegiatan: lembagaScopedProcedure
+    .input(CreateProfilKegiatanInputSchema.and(LembagaScopeInput))
     .output(CreateProfilKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateKegiatanOwnership(ctx, input.event_id);
+      await validateKegiatanOwnership(ctx, input.event_id, ctx.lembagaId);
 
       const eventExists = await ctx.db.query.events.findFirst({
         where: eq(events.id, input.event_id),
@@ -122,11 +123,11 @@ export const profilKegiatanRouter = createTRPCRouter({
       return result;
     }),
 
-  deleteProfilKegiatan: lembagaProcedure
-    .input(DeleteProfilInputSchema)
+  deleteProfilKegiatan: lembagaScopedProcedure
+    .input(DeleteProfilInputSchema.and(LembagaScopeInput))
     .output(DeleteProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateKegiatanProfileOwnership(ctx, input.profil_id);
+      await validateKegiatanProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
 
       const profilExists = await ctx.db.query.profilKegiatan.findFirst({
         where: eq(profilKegiatan.id, input.profil_id),
@@ -146,11 +147,11 @@ export const profilKegiatanRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  editProfilKegiatan: lembagaProcedure
-    .input(EditProfilInputSchema)
+  editProfilKegiatan: lembagaScopedProcedure
+    .input(EditProfilInputSchema.and(LembagaScopeInput))
     .output(EditProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateKegiatanProfileOwnership(ctx, input.profil_id);
+      await validateKegiatanProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
 
       // Validate profil KM IDs exist
       if (input.profil_km_id && input.profil_km_id.length > 0) {
