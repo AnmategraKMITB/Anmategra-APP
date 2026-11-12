@@ -37174,7 +37174,8 @@
                     "enum": [
                       "pdf",
                       "office",
-                      "zip"
+                      "zip",
+                      "gambar"
                     ]
                   },
                   "maxFiles": {
@@ -38083,7 +38084,8 @@
                 "enum": [
                   "pdf",
                   "office",
-                  "zip"
+                  "zip",
+                  "gambar"
                 ]
               },
               "maxFiles": {
@@ -40082,7 +40084,8 @@
                     "enum": [
                       "pdf",
                       "office",
-                      "zip"
+                      "zip",
+                      "gambar"
                     ]
                   },
                   "maxFiles": {
@@ -40991,7 +40994,8 @@
                 "enum": [
                   "pdf",
                   "office",
-                  "zip"
+                  "zip",
+                  "gambar"
                 ]
               },
               "maxFiles": {
@@ -41523,7 +41527,8 @@
                       "enum": [
                         "pdf",
                         "office",
-                        "zip"
+                        "zip",
+                        "gambar"
                       ]
                     },
                     "maxFiles": {
@@ -42742,7 +42747,8 @@
                       "enum": [
                         "pdf",
                         "office",
-                        "zip"
+                        "zip",
+                        "gambar"
                       ]
                     },
                     "maxFiles": {
@@ -43515,7 +43521,8 @@
                       "enum": [
                         "pdf",
                         "office",
-                        "zip"
+                        "zip",
+                        "gambar"
                       ]
                     },
                     "maxFiles": {
