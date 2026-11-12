@@ -51,7 +51,9 @@ import {
   type Queryable,
   applySectionBinding,
   assertDivisionTarget,
+  assertDivisionsHaveHead,
   assertSourceUnit,
+  assertUnitHasPeople,
   conflict,
   notFound,
   pgCode,
@@ -385,6 +387,15 @@ export const setupProcedures = {
           });
         }
         await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
+        await assertUnitHasPeople(ctx.db, generalUnitId);
+      }
+      // Ketua menilai (mode bukan `umum`) atau memutuskan (veto): tiap divisi
+      // yang dibuka harus punya ketua.
+      if (input.settings.assessorMode !== 'umum' || input.settings.headDecides) {
+        await assertDivisionsHaveHead(
+          ctx.db,
+          input.divisions.map((d) => d.unitId),
+        );
       }
       const overlap = waveOverlapMessage(input.waves);
       if (overlap)

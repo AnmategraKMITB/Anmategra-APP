@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, inArray, isNull, max } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, max } from 'drizzle-orm';
 import { MAX_RULES } from '~/lib/forms/conditions';
 import { waveOverlapMessage } from '~/lib/oprec/waves';
 import {
@@ -11,7 +11,6 @@ import {
   application,
   applicationChoice,
   form,
-  formField,
   formSubmission,
   recruitment,
   recruitmentDivision,
@@ -50,7 +49,9 @@ import {
   countApplications,
   loadRecruitmentDetail,
   notFound,
+  oprecOpenProblems,
   pgCode,
+  syncFormToOprec,
 } from './services';
 import { setupProcedures } from './setup';
 
@@ -213,33 +214,8 @@ export const oprecRouter = createTRPCRouter({
         if (current.status === input.status) return;
 
         if (input.status === 'open') {
-          if (!current.setupCompletedAt) {
-            conflict('Selesaikan pengaturan oprec sebelum membukanya.');
-          }
-          const [divs] = await tx
-            .select({ n: count() })
-            .from(recruitmentDivision)
-            .where(eq(recruitmentDivision.recruitmentId, current.id));
-          const [choice] = await tx
-            .select({ n: count() })
-            .from(formField)
-            .where(
-              and(
-                eq(formField.formId, current.formId),
-                eq(formField.type, 'unit_choice'),
-                isNull(formField.archivedAt),
-              ),
-            );
-          if ((choice?.n ?? 0) === 0) {
-            conflict(
-              'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
-            );
-          }
-          if ((divs?.n ?? 0) === 0) {
-            conflict(
-              'Pilih minimal satu tujuan penempatan sebelum membuka oprec.',
-            );
-          }
+          const [problem] = await oprecOpenProblems(tx, current);
+          if (problem) conflict(problem);
         }
         if (
           input.status === 'draft' &&
@@ -253,6 +229,7 @@ export const oprecRouter = createTRPCRouter({
           .update(recruitment)
           .set({ status: input.status })
           .where(eq(recruitment.id, current.id));
+        await syncFormToOprec(tx, current.formId, input.status);
       });
       return OK;
     }),
