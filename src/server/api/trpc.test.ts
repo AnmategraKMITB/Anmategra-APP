@@ -4,7 +4,6 @@ import {
   adminProcedure,
   createCallerFactory,
   createTRPCRouter,
-  lembagaProcedure,
   mahasiswaProcedure,
   protectedProcedure,
 } from './trpc';
@@ -12,7 +11,6 @@ import {
 const router = createTRPCRouter({
   authenticated: protectedProcedure.query(() => 'ok'),
   adminOnly: adminProcedure.query(() => 'ok'),
-  lembagaOnly: lembagaProcedure.query(() => 'ok'),
   mahasiswaOnly: mahasiswaProcedure.query(() => 'ok'),
 });
 
@@ -46,7 +44,7 @@ const ROLES: Anyone[] = ['anonim', 'mahasiswa', 'lembaga', 'admin'];
 describe('guard peran pada prosedur tRPC', () => {
   // Belum login = 401; sudah login tetapi salah peran = 403.
   const expected: Record<
-    'authenticated' | 'adminOnly' | 'lembagaOnly' | 'mahasiswaOnly',
+    'authenticated' | 'adminOnly' | 'mahasiswaOnly',
     Record<Anyone, string>
   > = {
     authenticated: {
@@ -60,12 +58,6 @@ describe('guard peran pada prosedur tRPC', () => {
       mahasiswa: 'FORBIDDEN',
       lembaga: 'FORBIDDEN',
       admin: 'OK',
-    },
-    lembagaOnly: {
-      anonim: 'UNAUTHORIZED',
-      mahasiswa: 'FORBIDDEN',
-      lembaga: 'OK',
-      admin: 'FORBIDDEN',
     },
     mahasiswaOnly: {
       anonim: 'UNAUTHORIZED',

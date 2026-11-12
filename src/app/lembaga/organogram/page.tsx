@@ -12,9 +12,11 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const OrganogramPeriodPickerPage = async () => {
-  const events = await api.kegiatan.getAllByLembaga();
   const session = await getServerAuthSession();
   const lembagaId = session?.user.lembagaId;
+  const events = await api.kegiatan.getAllByLembaga({
+    lembagaId: lembagaId ?? '',
+  });
   const hasKepengurusan = events.some((e) => e.kind === 'kepengurusan');
 
   return (

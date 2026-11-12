@@ -49,6 +49,7 @@ interface AjuanAsosiasiFormProps {
   isOpen: boolean;
   setIsOpen: (open: boolean) => void;
   eventId: string;
+  lembagaId: string;
   eventName: string;
   eventLogo: string;
   organizationName: string;
@@ -60,6 +61,7 @@ const AjuanAsosiasiForm = ({
   isOpen,
   setIsOpen,
   eventId,
+  lembagaId,
   eventName,
   eventLogo,
   organizationName,
@@ -75,7 +77,7 @@ const AjuanAsosiasiForm = ({
   const [divisiOptions, setDivisiOptions] = useState<{ value: string; label: string }[]>([]);
 
   const { data: kegiatanOptions } = api.users.getTambahAnggotaKegiatanOptions.useQuery(
-    { kegiatanId: eventId },
+    { lembagaId, kegiatanId: eventId },
     { enabled: Boolean(eventId) },
   );
 

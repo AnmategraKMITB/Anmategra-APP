@@ -202,6 +202,7 @@ export function EventHeader({
           isOpen={isOpen}
           setIsOpen={setIsOpen}
           eventId={eventId ?? ''}
+          lembagaId={session?.user.lembagaId ?? ''}
           eventName={title}
           eventLogo={logoImage}
           organizationName={organizer}

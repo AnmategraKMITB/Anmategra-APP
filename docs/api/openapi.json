@@ -5554,7 +5554,7 @@
           "event"
         ],
         "summary": "event.addNewPanitia",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -5614,7 +5614,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -5675,7 +5675,7 @@
           "event"
         ],
         "summary": "event.addNewPanitiaManual",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -5735,7 +5735,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -5796,7 +5796,7 @@
           "event"
         ],
         "summary": "event.create",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -5856,7 +5856,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -5917,7 +5917,7 @@
           "event"
         ],
         "summary": "event.delete",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -5977,7 +5977,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -6038,7 +6038,7 @@
           "event"
         ],
         "summary": "event.editPanitia",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -6098,7 +6098,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -6411,7 +6411,7 @@
           "event"
         ],
         "summary": "event.removePanitia",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -6471,7 +6471,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -6532,7 +6532,7 @@
           "event"
         ],
         "summary": "event.toggleHighlight",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -6592,7 +6592,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -6653,7 +6653,7 @@
           "event"
         ],
         "summary": "event.toggleRaporVisibility",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -6713,7 +6713,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -6774,7 +6774,7 @@
           "event"
         ],
         "summary": "event.update",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -6834,7 +6834,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -10667,7 +10667,7 @@
           "kegiatan"
         ],
         "summary": "kegiatan.getAllByLembaga",
-        "description": "Daftar seluruh kegiatan milik lembaga yang sedang login, diurutkan: event `is_highlighted` dulu, lalu `start_date` terbaru. - ⚠️ perlu konfirmasi: memakai non-null assertion `ctx.session.user.lembagaId!` — tidak ada guard eksplisit jika `lembagaId` ternyata kosong.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Daftar seluruh kegiatan milik lembaga yang sedang login, diurutkan: event `is_highlighted` dulu, lalu `start_date` terbaru. - ⚠️ perlu konfirmasi: memakai non-null assertion `ctx.session.user.lembagaId!` — tidak ada guard eksplisit jika `lembagaId` ternyata kosong.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -10727,7 +10727,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -10761,7 +10761,7 @@
           {
             "name": "input",
             "in": "query",
-            "required": false,
+            "required": true,
             "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
             "content": {
               "application/json": {
@@ -10970,7 +10970,7 @@
           "kegiatan"
         ],
         "summary": "kegiatan.getPosisiBidangOptions",
-        "description": "Daftar posisi & divisi unik yang pernah dipakai di `keanggotaan` untuk suatu event. - ⚠️ perlu konfirmasi: tidak ada pengecekan bahwa `event_id` benar-benar milik lembaga yang sedang login. Lembaga manapun berpotensi menarik data posisi/bidang milik event lembaga lain jika mengetahui `event_id`-nya.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Daftar posisi & divisi unik yang pernah dipakai di `keanggotaan` untuk suatu event. - ⚠️ perlu konfirmasi: tidak ada pengecekan bahwa `event_id` benar-benar milik lembaga yang sedang login. Lembaga manapun berpotensi menarik data posisi/bidang milik event lembaga lain jika mengetahui `event_id`-nya.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -11030,7 +11030,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -15452,7 +15452,7 @@
           "lembaga"
         ],
         "summary": "lembaga.reorderAnggotaKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -15512,7 +15512,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -25403,7 +25403,7 @@
           "profil"
         ],
         "summary": "profil.createProfilKegiatan",
-        "description": "Membuat kriteria penilaian baru untuk kegiatan. Alur: (1) `event.org_id` harus sama dengan `lembagaId` sesi → `FORBIDDEN` jika tidak; (2) event harus ada → `NOT_FOUND`; (3) semua `profil_km_id` harus ada di `profil_km` → `BAD_REQUEST` dengan daftar id tidak valid; (4) transaksi: insert `profil_kegiatan` + insert mapping `pemetaan_profil_kegiatan` per `profil_km_id`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Membuat kriteria penilaian baru untuk kegiatan. Alur: (1) `event.org_id` harus sama dengan `lembagaId` sesi → `FORBIDDEN` jika tidak; (2) event harus ada → `NOT_FOUND`; (3) semua `profil_km_id` harus ada di `profil_km` → `BAD_REQUEST` dengan daftar id tidak valid; (4) transaksi: insert `profil_kegiatan` + insert mapping `pemetaan_profil_kegiatan` per `profil_km_id`.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -25463,7 +25463,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -25645,7 +25645,7 @@
           "profil"
         ],
         "summary": "profil.deleteProfilKegiatan",
-        "description": "Menghapus kriteria penilaian kegiatan. Ownership dicek via profil → event → `org_id` harus sama dengan `lembagaId` sesi (`FORBIDDEN` jika tidak); profil harus ada (`NOT_FOUND`). Delete `profil_kegiatan` cascade ke `pemetaan_profil_kegiatan` dan `nilai_profil_kegiatan`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Menghapus kriteria penilaian kegiatan. Ownership dicek via profil → event → `org_id` harus sama dengan `lembagaId` sesi (`FORBIDDEN` jika tidak); profil harus ada (`NOT_FOUND`). Delete `profil_kegiatan` cascade ke `pemetaan_profil_kegiatan` dan `nilai_profil_kegiatan`.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -25705,7 +25705,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -25887,7 +25887,7 @@
           "profil"
         ],
         "summary": "profil.editProfilKegiatan",
-        "description": "Mengubah nama/deskripsi profil kegiatan. `profil_km_id` divalidasi terhadap `profil_km` (`BAD_REQUEST` jika ada id invalid), lalu — **hanya jika array tidak kosong** — mapping lama dihapus semua dan diganti mapping baru dalam satu transaksi. - ⚠️ perlu konfirmasi: jika `profil_km_id: []` dikirim, mapping lama TIDAK dihapus/diubah sama sekali — tidak ada cara mengosongkan seluruh pemetaan profil KM lewat endpoint ini.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Mengubah nama/deskripsi profil kegiatan. `profil_km_id` divalidasi terhadap `profil_km` (`BAD_REQUEST` jika ada id invalid), lalu — **hanya jika array tidak kosong** — mapping lama dihapus semua dan diganti mapping baru dalam satu transaksi. - ⚠️ perlu konfirmasi: jika `profil_km_id: []` dikirim, mapping lama TIDAK dihapus/diubah sama sekali — tidak ada cara mengosongkan seluruh pemetaan profil KM lewat endpoint ini.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -25947,7 +25947,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -27038,7 +27038,7 @@
           "rapor"
         ],
         "summary": "rapor.getAllNilaiProfilKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -27098,7 +27098,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -27290,7 +27290,7 @@
           "rapor"
         ],
         "summary": "rapor.getNilaiKegiatanIndividu",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -27350,7 +27350,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -27794,7 +27794,7 @@
           "rapor"
         ],
         "summary": "rapor.upsertNilaiMahasiswaKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -27854,7 +27854,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -30336,7 +30336,7 @@
           "users"
         ],
         "summary": "users.getTambahAnggotaKegiatanOptions",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -30396,7 +30396,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -30462,7 +30462,7 @@
           "users"
         ],
         "summary": "users.getTambahAnggotaLembagaOptions",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -30522,7 +30522,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -33752,13 +33752,18 @@
           "org_role_id": {
             "type": "string",
             "minLength": 1
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
           "user_id",
           "position",
-          "division"
+          "division",
+          "lembagaId"
         ]
       },
       "event_addNewPanitia_output": {
@@ -33806,6 +33811,10 @@
           "org_role_id": {
             "type": "string",
             "minLength": 1
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -33813,7 +33822,8 @@
           "name",
           "nim",
           "position",
-          "division"
+          "division",
+          "lembagaId"
         ]
       },
       "event_addNewPanitiaManual_output": {
@@ -33910,6 +33920,10 @@
           },
           "rapor_visible": {
             "type": "boolean"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
@@ -33917,7 +33931,8 @@
           "description",
           "image",
           "start_date",
-          "status"
+          "status",
+          "lembagaId"
         ]
       },
       "event_create_output": {},
@@ -33926,10 +33941,15 @@
         "properties": {
           "id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "id"
+          "id",
+          "lembagaId"
         ]
       },
       "event_delete_output": {
@@ -33970,13 +33990,18 @@
           "org_role_id": {
             "type": "string",
             "minLength": 1
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
           "user_id",
           "position",
-          "division"
+          "division",
+          "lembagaId"
         ]
       },
       "event_editPanitia_output": {
@@ -34249,11 +34274,16 @@
           },
           "id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
-          "id"
+          "id",
+          "lembagaId"
         ]
       },
       "event_removePanitia_output": {
@@ -34280,11 +34310,16 @@
           },
           "is_highlighted": {
             "type": "boolean"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "id",
-          "is_highlighted"
+          "is_highlighted",
+          "lembagaId"
         ]
       },
       "event_toggleHighlight_output": {
@@ -34311,11 +34346,16 @@
           },
           "rapor_visible": {
             "type": "boolean"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "id",
-          "rapor_visible"
+          "rapor_visible",
+          "lembagaId"
         ]
       },
       "event_toggleRaporVisibility_output": {
@@ -34415,10 +34455,15 @@
           },
           "id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "id"
+          "id",
+          "lembagaId"
         ]
       },
       "event_update_output": {},
@@ -46646,6 +46691,10 @@
       "kegiatan_getAllByLembaga_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "kind": {
             "type": "string",
             "enum": [
@@ -46653,7 +46702,10 @@
               "kepengurusan"
             ]
           }
-        }
+        },
+        "required": [
+          "lembagaId"
+        ]
       },
       "kegiatan_getAllByLembaga_output": {
         "type": "array",
@@ -47026,10 +47078,15 @@
         "properties": {
           "event_id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "event_id"
+          "event_id",
+          "lembagaId"
         ]
       },
       "kegiatan_getPosisiBidangOptions_output": {
@@ -48943,11 +49000,16 @@
             "items": {
               "type": "string"
             }
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
-          "user_ids"
+          "user_ids",
+          "lembagaId"
         ]
       },
       "lembaga_reorderAnggotaKegiatan_output": {
@@ -52430,13 +52492,18 @@
               "type": "string",
               "minLength": 1
             }
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
           "name",
           "description",
-          "profil_km_id"
+          "profil_km_id",
+          "lembagaId"
         ]
       },
       "profil_createProfilKegiatan_output": {
@@ -52537,10 +52604,15 @@
         "properties": {
           "profil_id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "profil_id"
+          "profil_id",
+          "lembagaId"
         ]
       },
       "profil_deleteProfilKegiatan_output": {
@@ -52600,13 +52672,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "profil_id",
           "name",
           "description",
-          "profil_km_id"
+          "profil_km_id",
+          "lembagaId"
         ]
       },
       "profil_editProfilKegiatan_output": {
@@ -53396,10 +53473,15 @@
         "properties": {
           "event_id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "event_id"
+          "event_id",
+          "lembagaId"
         ]
       },
       "rapor_getAllNilaiProfilKegiatan_output": {
@@ -53526,11 +53608,16 @@
           },
           "mahasiswa_id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
-          "mahasiswa_id"
+          "mahasiswa_id",
+          "lembagaId"
         ]
       },
       "rapor_getNilaiKegiatanIndividu_output": {
@@ -53875,11 +53962,16 @@
                 "nilai"
               ]
             }
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "event_id",
-          "mahasiswa"
+          "mahasiswa",
+          "lembagaId"
         ]
       },
       "rapor_upsertNilaiMahasiswaKegiatan_output": {
@@ -54998,10 +55090,15 @@
         "properties": {
           "kegiatanId": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "kegiatanId"
+          "kegiatanId",
+          "lembagaId"
         ]
       },
       "users_getTambahAnggotaKegiatanOptions_output": {
@@ -55056,7 +55153,15 @@
         "type": "object",
         "properties": {
           "lembagaId": {
-            "type": "string"
+            "allOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "string",
+                "minLength": 1
+              }
+            ]
           }
         },
         "required": [

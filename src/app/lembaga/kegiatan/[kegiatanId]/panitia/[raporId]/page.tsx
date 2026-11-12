@@ -3,6 +3,7 @@ import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import RaporIndividuPage from '~/app/_components/rapor/individu/rapor-individu-page';
 import { type GetAllProfilOutputSchema } from '~/server/api/types/profil.type';
 import { type GetNilaiKegiatanIndividuOutputSchema } from '~/server/api/types/rapor.type';
+import { getServerAuthSession } from '~/server/auth';
 import { api } from '~/trpc/server';
 
 type NilaiKegiatanOutput = z.infer<typeof GetNilaiKegiatanIndividuOutputSchema>;
@@ -20,10 +21,13 @@ export default async function RaporIndividuPanitiaPage(
 ) {
   const params = await props.params;
   const { kegiatanId, raporId } = params;
+  const session = await getServerAuthSession();
+  const lembagaId = session?.user.lembagaId ?? '';
 
   try {
     const [raporData, profilData, profilKMData] = await Promise.all([
       api.rapor.getNilaiKegiatanIndividu({
+        lembagaId,
         event_id: kegiatanId,
         mahasiswa_id: raporId,
       }),
@@ -40,6 +44,7 @@ export default async function RaporIndividuPanitiaPage(
         profilKMData={profilKMData}
         isLembaga={false}
         id={kegiatanId}
+        lembagaId={lembagaId}
         breadcrumbItems={[
           {
             label: 'Kegiatan',

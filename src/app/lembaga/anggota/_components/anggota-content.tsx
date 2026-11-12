@@ -34,6 +34,10 @@ interface AnggotaContentProps {
   lembagaId?: string;
   /** Awalan rute anggota (rapor komunal dan individu); bawaan halaman Owner. */
   anggotaBasePath?: string;
+  /** Kegiatan yang dikelola; bawaan: diturunkan dari path Owner. */
+  eventId?: string;
+  /** Awalan rute kegiatan (rapor, organogram); bawaan halaman Owner. */
+  kegiatanBasePath?: string;
   /** Tombol Rapor Komunal. */
   showRapor?: boolean;
   /** Tombol Best Staff. */
@@ -48,6 +52,8 @@ export default function AnggotaContent({
   title,
   lembagaId: lembagaIdProp,
   anggotaBasePath = '/anggota',
+  eventId: eventIdProp,
+  kegiatanBasePath,
   showRapor = true,
   showBestStaff = true,
 }: AnggotaContentProps) {
@@ -60,7 +66,8 @@ export default function AnggotaContent({
   const [isSaving, setIsSaving] = useState(false);
   const pathname = usePathname();
   const isAnggota = pageAnggota ?? false;
-  const eventId = !isAnggota && pathname ? pathname.split('/')[3] : undefined;
+  const eventId =
+    eventIdProp ?? (!isAnggota && pathname ? pathname.split('/')[3] : undefined);
   const lembagaId = lembagaIdProp ?? session?.user.lembagaId ?? undefined;
 
   const reorderLembagaMutation = api.lembaga.reorderAnggotaLembaga.useMutation({
@@ -145,6 +152,7 @@ export default function AnggotaContent({
 
       setIsSaving(true);
       reorderKegiatanMutation.mutate({
+        lembagaId: lembagaId ?? '',
         event_id: eventId,
         user_ids: reorderedUserIds,
       });
@@ -250,7 +258,7 @@ export default function AnggotaContent({
                   href={
                     isAnggota
                       ? `${anggotaBasePath}/rapor`
-                      : `/kegiatan/${eventId}/rapor`
+                      : `${kegiatanBasePath ?? ''}/kegiatan/${eventId}/rapor`
                   }
                 >
                   <Button
@@ -290,7 +298,13 @@ export default function AnggotaContent({
                 </Link>
               )}
               {!isAnggota && eventId ? (
-                <Link href={`/lembaga/kegiatan/${eventId}/organogram`}>
+                <Link
+                  href={
+                    kegiatanBasePath !== undefined
+                      ? `/manage/kegiatan/${eventId}/organogram`
+                      : `/lembaga/kegiatan/${eventId}/organogram`
+                  }
+                >
                   <Button
                     variant="light_blue"
                     className="rounded-[12px] px-3 shadow-none flex items-center gap-2"

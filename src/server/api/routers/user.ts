@@ -1,10 +1,11 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
   createTRPCRouter,
-  lembagaProcedure,
+  lembagaScopedProcedure,
   mahasiswaProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
@@ -71,8 +72,8 @@ export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk mengambil data pilihan untuk tambah anggota pada suatu lembaga
    */
-  getTambahAnggotaLembagaOptions: lembagaProcedure
-    .input(GetTambahAnggotaLembagaOptionsInputSchema)
+  getTambahAnggotaLembagaOptions: lembagaScopedProcedure
+    .input(GetTambahAnggotaLembagaOptionsInputSchema.and(LembagaScopeInput))
     .output(GetTambahAnggotaLembagaOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
       const [mahasiswa_hide_list, lembaga_list] = await Promise.all([
@@ -142,8 +143,8 @@ export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk mengambil data pilihan untuk tambah anggota pada suatu kegiatan
    */
-  getTambahAnggotaKegiatanOptions: lembagaProcedure
-    .input(GetTambahAnggotaKegiatanOptionsInputSchema)
+  getTambahAnggotaKegiatanOptions: lembagaScopedProcedure
+    .input(GetTambahAnggotaKegiatanOptionsInputSchema.and(LembagaScopeInput))
     .output(GetTambahAnggotaKegiatanOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findFirst({
@@ -155,7 +156,7 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Kegiatan tidak ditemukan' });
       }
 
-      if (kegiatan.org_id !== ctx.session.user.lembagaId) {
+      if (kegiatan.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 

@@ -80,6 +80,9 @@ const ManageLembagaPage = async ({
           <Button asChild variant="outline">
             <Link href={`/manage/${lembagaId}/inbox`}>Permintaan asosiasi</Link>
           </Button>
+          <Button asChild variant="outline">
+            <Link href={`/manage/${lembagaId}/kegiatan`}>Kelola kegiatan</Link>
+          </Button>
         </div>
       </section>
 

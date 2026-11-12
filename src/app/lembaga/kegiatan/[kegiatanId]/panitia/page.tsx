@@ -14,8 +14,10 @@ const DaftarPanitiaKegiatanPage = async ({
 }) => {
   const session = await getServerAuthSession();
   const query = (await params).kegiatanId;
+  const lembagaId = session?.user.lembagaId ?? '';
   const formatted_anggota = await api.event.getAllAnggota({ event_id: query });
   const getPosisiBidang = await api.kegiatan.getPosisiBidangOptions({
+    lembagaId,
     event_id: query,
   });
   const event = await api.event.getByID({ id: query });

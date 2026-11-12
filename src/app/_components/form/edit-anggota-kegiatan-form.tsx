@@ -38,6 +38,7 @@ type EditAnggotaKegiatanFormProps = {
   setIsOpen: (open: boolean) => void;
   memberId: string;
   eventId: string;
+  lembagaId: string;
   currentNama: string;
   currentNim: string;
   currentPosition: string;
@@ -49,6 +50,7 @@ const EditAnggotaKegiatanForm: React.FC<EditAnggotaKegiatanFormProps> = ({
   setIsOpen,
   memberId,
   eventId,
+  lembagaId,
   currentNama,
   currentNim,
   currentPosition,
@@ -85,6 +87,7 @@ const EditAnggotaKegiatanForm: React.FC<EditAnggotaKegiatanFormProps> = ({
     
     mutation.mutate(
       {
+        lembagaId,
         user_id: memberId,
         event_id: eventId,
         position: values.position,
