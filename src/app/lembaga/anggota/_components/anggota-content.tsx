@@ -31,6 +31,13 @@ interface AnggotaContentProps {
   };
   pageAnggota?: boolean;
   title: string;
+  /** Lembaga yang dikelola; bila kosong dipakai lembaga dari sesi (Owner). */
+  lembagaId?: string;
+  /**
+   * Tombol Rapor Komunal dan Best Staff mengarah ke halaman Owner. Di /manage
+   * keduanya disembunyikan sampai kelompok migrasinya selesai.
+   */
+  showRaporAndBestStaff?: boolean;
 }
 
 export default function AnggotaContent({
@@ -39,6 +46,8 @@ export default function AnggotaContent({
   dataPosisiBidang,
   pageAnggota,
   title,
+  lembagaId: lembagaIdProp,
+  showRaporAndBestStaff = true,
   }: AnggotaContentProps) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,7 +57,7 @@ export default function AnggotaContent({
   const pathname = usePathname();
   const isAnggota = pageAnggota ?? false;
   const eventId = !isAnggota && pathname ? pathname.split('/')[3] : undefined;
-  const lembagaId = session?.user.lembagaId ?? undefined;
+  const lembagaId = lembagaIdProp ?? session?.user.lembagaId ?? undefined;
 
   const reorderLembagaMutation = api.lembaga.reorderAnggotaLembaga.useMutation({
     onSuccess: () => {
@@ -122,7 +131,7 @@ export default function AnggotaContent({
       
       setIsSaving(true);
       reorderLembagaMutation.mutate({
-        lembaga_id: lembagaId,
+        lembagaId,
         user_ids: reorderedUserIds,
       });
     } else {
@@ -148,7 +157,7 @@ export default function AnggotaContent({
   const handleExport = async () => {
     try {
       const endpoint = isAnggota
-        ? `/api/lembaga/${session?.user.lembagaId}/anggota`
+        ? `/api/lembaga/${lembagaId}/anggota`
         : `/api/lembaga/kegiatan/${eventId}/anggota`;
       const response = await fetch(endpoint);
       if (response.ok) {
@@ -223,7 +232,10 @@ export default function AnggotaContent({
                 session={session}
                 dataPosisiBidang={dataPosisiBidang}
                 pageAnggota={isAnggota}
+                lembagaId={lembagaId}
               />
+              {(!isAnggota || showRaporAndBestStaff) && (
+                <>
               <Link
                 href={
                   isAnggota ? '/anggota/rapor' : `/kegiatan/${eventId}/rapor`
@@ -262,6 +274,8 @@ export default function AnggotaContent({
                   Pilih Best Staff
                 </Button>
               </Link>
+                </>
+              )}
               {!isAnggota && eventId ? (
                 <Link href={`/lembaga/kegiatan/${eventId}/organogram`}>
                   <Button

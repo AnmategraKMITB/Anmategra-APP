@@ -74,7 +74,7 @@ export function ActionCell({
       );
     } else {
       lembagaMutation.mutate(
-        { user_id: id },
+        { user_id: id, lembagaId: lembagaId ?? '' },
         {
           onSuccess: () => {
             lembagaMutation.reset();

@@ -101,6 +101,7 @@ export const GetLembagaEventsOutputSchema = z.object({
 });
 
 export const AddAnggotaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -109,6 +110,7 @@ export const AddAnggotaLembagaInputSchema = z.object({
 });
 
 export const AddAnggotaManualLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   name: z.string().nonempty(),
   nim: z.string().regex(/^\d{8}$/, 'NIM harus 8 digit angka'),
   division: z.string().nonempty(),
@@ -123,6 +125,7 @@ export const AddAnggotaLembagaOutputSchema = z.object({
 });
 
 export const RemoveAnggotaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
 });
 
@@ -131,6 +134,7 @@ export const RemoveAnggotaLembagaOutputSchema = z.object({
 });
 
 export const editAnggotaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   user_id: z.string().nonempty(),
   division: z.string().nonempty(),
   position: z.string().nonempty(),
@@ -447,6 +451,10 @@ export const GetAllHistoryBestStaffMahasiswaOutputSchema = z.object({
   ),
 });
 
+export const GetPosisiBidangOptionsInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
+});
+
 export const GetPosisiBidangOptionsOutputSchema = z.object({
   posisi: z.array(
     z.object({
@@ -472,7 +480,7 @@ export const ToggleRaporVisibilityLembagaOutputSchema = z.object({
 });
 
 export const ReorderAnggotaLembagaInputSchema = z.object({
-  lembaga_id: z.string(),
+  lembagaId: z.string().nonempty(),
   user_ids: z.array(z.string()),
 });
 

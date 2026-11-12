@@ -60,18 +60,35 @@ const ManageIndexPage = async () => {
             Lembaga
           </h2>
           <ul className="grid gap-3 sm:grid-cols-2">
-            {lembaga.map((l) => (
-              <li key={l.lembagaId} className="rounded-2xl border px-4 py-3">
-                <p className="font-medium">{l.lembagaNama}</p>
-                <p className="text-sm text-neutral-600">
-                  {l.access === 'owner'
-                    ? 'Owner'
-                    : l.features.includes('admin')
-                      ? 'Admin Lembaga'
-                      : 'Pengelola terbatas'}
-                </p>
-              </li>
-            ))}
+            {lembaga.map((l) => {
+              const isAdmin = l.features.includes('admin');
+              const card = (
+                <>
+                  <p className="font-medium">{l.lembagaNama}</p>
+                  <p className="text-sm text-neutral-600">
+                    {l.access === 'owner'
+                      ? 'Owner'
+                      : isAdmin
+                        ? 'Admin Lembaga'
+                        : 'Pengelola terbatas'}
+                  </p>
+                </>
+              );
+              return (
+                <li key={l.lembagaId}>
+                  {isAdmin ? (
+                    <Link
+                      href={`/manage/${l.lembagaId}`}
+                      className="block rounded-2xl border px-4 py-3 hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                    >
+                      {card}
+                    </Link>
+                  ) : (
+                    <div className="rounded-2xl border px-4 py-3">{card}</div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </section>
       )}
