@@ -1,7 +1,7 @@
 'use client';
 
 import { Eye, Paperclip, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -77,8 +77,37 @@ export function FileInput({
     providerId,
     providerLabel,
     remove,
+    needsConnect,
+    isConnected,
+    prepare,
+    connect,
   } = useFormFileUpload();
   const configured = Boolean(formId);
+  const [connecting, setConnecting] = useState(false);
+  const [connected, setConnected] = useState(isConnected);
+
+  // Muat skrip Google sedini mungkin supaya popup izin bisa dibuka langsung
+  // dari klik tanpa menunggu unduhan skrip.
+  useEffect(() => {
+    prepare();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Dipanggil langsung dari klik: popup izin Google hanya lolos dari sini. */
+  const connectNow = () => {
+    setProblem(null);
+    setConnecting(true);
+    connect()
+      .then(() => setConnected(true))
+      .catch((error: unknown) =>
+        setProblem(
+          error instanceof Error
+            ? error.message
+            : 'Belum bisa terhubung ke Google Drive. Coba lagi.',
+        ),
+      )
+      .finally(() => setConnecting(false));
+  };
 
   const pick = async (list: FileList | null) => {
     const file = list?.[0];
@@ -125,6 +154,7 @@ export function FileInput({
       );
     } finally {
       setBusy(false);
+      setConnected(isConnected());
       if (input.current) input.current.value = '';
     }
   };
@@ -183,18 +213,30 @@ export function FileInput({
             tabIndex={-1}
             aria-hidden
             accept={preset.mimes.join(',')}
-            disabled={!upload?.enabled || !configured || busy}
+            disabled={!upload?.enabled || !configured || busy || connecting}
             onChange={(e) => void pick(e.target.files)}
           />
           <Button
             type="button"
             variant="dark_blue_outline"
-            disabled={!upload?.enabled || !configured || busy}
+            disabled={!upload?.enabled || !configured || busy || connecting}
             aria-invalid={invalid}
             aria-describedby={describedBy}
-            onClick={() => input.current?.click()}
+            onClick={() => {
+              // Google Drive: izin diminta di klik ini, bukan setelah berkas
+              // dipilih, karena browser HP memblokir popup dari `onChange`.
+              if (needsConnect && !isConnected()) return connectNow();
+              input.current?.click();
+            }}
           >
-            <Paperclip /> {busy ? 'Mengunggah…' : 'Pilih berkas'}
+            <Paperclip />{' '}
+            {connecting
+              ? 'Menghubungkan…'
+              : busy
+                ? 'Mengunggah…'
+                : needsConnect && !connected
+                  ? 'Hubungkan Google Drive'
+                  : 'Pilih berkas'}
           </Button>
         </div>
       ) : null}
