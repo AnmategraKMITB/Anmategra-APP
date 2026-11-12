@@ -9,6 +9,10 @@ description: Melihat dan memperbarui informasi profil mahasiswa.
 Profil mahasiswa berisi identitas akademik, kontak, foto, kegiatan, dan rapor
 yang tersedia.
 
+## Coba di sini
+
+::demo[profil-mahasiswa]
+
 ## Membuka profil
 
 1. Buka sidebar.

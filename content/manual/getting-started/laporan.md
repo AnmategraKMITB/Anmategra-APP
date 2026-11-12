@@ -10,6 +10,10 @@ Gunakan menu **Laporan** untuk menyampaikan masalah teknis kepada admin. Fitur
 ini tersedia untuk mahasiswa dan lembaga. **Laporan** berbeda dari **Rapor**,
 yaitu penilaian kinerja anggota.
 
+## Coba di sini
+
+::demo[laporan]
+
 ## Membuat laporan
 
 1. Buka menu **Laporan** pada sidebar.

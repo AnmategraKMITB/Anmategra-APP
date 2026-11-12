@@ -10,6 +10,10 @@ Fitur ini tersedia untuk akun dengan peran **lembaga**. Lembaga dapat membuat
 kegiatan, menambahkan panitia, mengatur visibilitas rapor, dan menampilkan satu
 kegiatan sebagai kegiatan utama.
 
+## Coba di sini
+
+::demo[kegiatan]
+
 ## Membuat kegiatan baru
 
 1. Buka menu **Kegiatan** di sidebar.
@@ -28,8 +32,9 @@ kegiatan sebagai kegiatan utama.
 9. Klik **SIMPAN**.
 
 Link pendaftaran akan digunakan mahasiswa melalui tombol **Daftar menjadi
-Panitia** pada detail kegiatan. Organogram yang diunggah dapat dibuka dari
-detail kegiatan.
+Panitia** pada detail kegiatan. Jika rekrutmen dijalankan lewat
+[Oprec](/manual/oprec/alur-oprec), isi kolom ini dengan tautan formulir oprec.
+Organogram yang diunggah sebagai gambar dapat dibuka dari detail kegiatan.
 
 ## Mengubah kegiatan
 
@@ -65,6 +70,20 @@ Pada baris kegiatan:
 Lanjutkan ke [Mengelola anggota](/manual/anggota/mengelola-anggota) untuk
 menambahkan panitia, atau [Mengelola rapor lembaga](/manual/lembaga/rapor) untuk
 mengisi nilai.
+
+## Fitur lain untuk kegiatan
+
+Setiap kegiatan juga dapat memiliki:
+
+- **Organogram** — susunan bidang, divisi, dan jabatannya. Lihat
+  [Menyusun organogram](/manual/organogram/menyusun-organogram).
+- **Forms** — form khusus kegiatan itu. Lihat
+  [Membuat form](/manual/forms/membuat-form).
+- **Oprec** — rekrutmen panitia di dalam Anmategra. Lihat
+  [Alur oprec](/manual/oprec/alur-oprec).
+
+Ketiganya dibuka dari menu **Organogram**, **Forms**, dan **Oprec** di sidebar,
+lalu memilih kegiatannya.
 
 > [!WARNING]
 > Perubahan visibilitas rapor memengaruhi apakah tautan rapor dapat dilihat dari

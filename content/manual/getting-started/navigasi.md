@@ -9,6 +9,10 @@ description: Mengenal sidebar, navbar, profil, dan pencarian Anmategra.
 Setelah masuk, gunakan sidebar dan navbar untuk berpindah halaman. Menu yang
 tersedia berbeda menurut peran akun.
 
+## Coba di sini
+
+::demo[navigasi]
+
 ## Sidebar mahasiswa
 
 Sidebar mahasiswa berisi:
@@ -25,7 +29,15 @@ Sidebar lembaga berisi semua menu mahasiswa, ditambah:
 
 - **Anggota** — mengelola anggota yang terasosiasi dengan lembaga.
 - **Kegiatan** — mengelola kegiatan yang diselenggarakan lembaga.
+- **Organogram** — menyusun struktur bagian dan jabatan tiap periode.
+- **Forms** — membuat form dan membaca responsnya.
+- **Oprec** — menjalankan rekrutmen dari pendaftaran sampai hasil.
 - **Inbox** — memproses pengajuan asosiasi yang masuk.
+
+## Sidebar admin
+
+Akun admin memiliki menu **Laporan**, **Akun**, **Lembaga**, **Akses**,
+**Audit**, dan **Manual**. Lihat [Konsol admin](/manual/admin/konsol-admin).
 
 Di bagian bawah sidebar terdapat nama dan foto profil. Klik bagian tersebut
 untuk membuka profil Anda. Tombol **Keluar** juga tersedia di area ini.
@@ -46,7 +58,8 @@ untuk membuka kolom pencarian.
 
 > [!TIP]
 > Jika Anda tidak menemukan fitur yang dicari, pastikan Anda masuk dengan peran
-> yang benar. Menu **Anggota** dan pengelolaan rapor hanya tersedia untuk lembaga.
+> yang benar. Menu **Anggota**, **Organogram**, **Forms**, **Oprec**, dan
+> pengelolaan rapor hanya tersedia untuk lembaga.
 
 Lanjutkan ke [Membuat kegiatan](/manual/kegiatan/membuat-kegiatan),
 [Mengelola anggota](/manual/anggota/mengelola-anggota), atau [Melaporkan bug](/manual/getting-started/laporan).
