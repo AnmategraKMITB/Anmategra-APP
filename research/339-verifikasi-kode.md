@@ -57,7 +57,7 @@ Status: **terbukti**; penyebab di halaman login, bukan di middleware.
 - Middleware benar: `decideFormsPath` mengarahkan pengguna belum login dari `/forms/<id>` ke `/authentication?callbackUrl=<path+query>` (`src/lib/forms-path.ts:24-27`, dipakai `src/middleware.ts`). `fill-page.tsx:23` juga melakukan hal sama.
 - Halaman login mendefinisikan `signInTo` yang membaca `callbackUrl` dan memvalidasinya dengan `isSafeFormsCallback` (`src/app/authentication/page.tsx:20-23`), tetapi **tidak dipakai di mana pun**. Kedua tombol memanggil `signIn("azure-ad")` dan `signIn("google")` langsung (`:52`, `:64`) tanpa `callbackUrl`, sehingga NextAuth kembali ke `/` dan middleware mengalihkannya ke beranda peran.
 - Form login demo (`demo-login-form.tsx:19-29`) memakai `redirect: false` lalu `window.location.assign(result?.url ?? '/')`, juga tanpa `callbackUrl`.
-- `git log` menunjukkan `signInTo` bagian dari perubahan yang sama dengan commit awal halaman; tidak ada konsumen.
+- Pencarian `signInTo` di `src` hanya menemukan definisinya; tidak ada pemanggil.
 
 Usulan: tiket implementasi Frontend kecil: tombol memakai `signInTo`, form demo meneruskan `callbackUrl` yang lolos `isSafeFormsCallback`, plus tes untuk `isSafeFormsCallback`/alur. Tanpa keputusan produk; masih dalam peta karena terkait Oprec (tautan form pendaftaran).
 
@@ -71,7 +71,7 @@ Status: **ambigu**; tidak dapat disimpulkan dari kode, dan kode tidak pernah men
   - Pool `postgres` max 20, `connect_timeout` 10 dtk, tanpa `statement_timeout`/`lock_timeout` (`src/server/db/index.ts:19-23`). Transaksi dengan `FOR UPDATE` bisa menunggu lama.
   - Klien memakai `unstable_httpBatchStreamLink` (`src/trpc/react.tsx:50`): beberapa panggilan satu batch satu permintaan HTTP; bila permintaan itu 503, semua panggilan di batch tampak gagal walau sebagian sudah berjalan.
   - Di produksi `onError` tRPC tidak aktif (`api/trpc/[trpc]/route.ts:24-30`), jadi galat server hanya terlihat lewat `console.error` di `rethrow`.
-  - Tidak ada retry otomatis di klien untuk mutasi; "data tersimpan padahal 503" sesuai dengan permintaan yang sampai ke origin tetapi respons gagal kembali.
+  - "Data tersimpan padahal 503" konsisten dengan permintaan yang sampai ke origin dan selesai, tetapi respons gagal kembali melalui proxy (hipotesis, belum terbukti).
 - Tidak dapat dibuktikan: apakah masalahnya timeout proxy, restart kontainer, atau pool habis.
 
 Usulan: tetap sebagai kabut di #344 sampai ada log Cloudflare/origin pada jam kejadian. Satu tiket kecil yang dapat dikerjakan tanpa log: aktifkan logging `onError` di produksi (path, kode, durasi) agar kejadian berikutnya dapat dikorelasikan. Pertanyaan terbuka: akses log dan jam kejadian QA.
