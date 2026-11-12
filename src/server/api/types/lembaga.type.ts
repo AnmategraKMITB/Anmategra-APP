@@ -199,6 +199,7 @@ export const DeclineRequestAssociationOutputSchema = z.object({
 });
 
 export const GetBestStaffOptionsInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   division: z.string().nonempty(),
 });
@@ -275,6 +276,7 @@ export const DeclineRequestAssociationLembagaOutputSchema = z.object({
 });
 
 export const ChooseBestStaffKegiatanInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
   start_date: z.string().datetime(),
   end_date: z.string().datetime(),
@@ -291,10 +293,11 @@ export const ChooseBestStaffKegiatanOutputSchema = z.object({
 });
 
 export const GetAllLembagaDivisionInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
+  lembagaId: z.string().nonempty(),
 });
 
 export const GetAllKegiatanDivisionInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   event_id: z.string().nonempty(),
 });
 
@@ -303,7 +306,7 @@ export const GetAllDivisionOutputSchema = z.object({
 });
 
 export const GetBestStaffLembagaOptionsInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
+  lembagaId: z.string().nonempty(),
   division: z.string().nonempty(),
 });
 
@@ -317,7 +320,7 @@ export const GetBestStaffLembagaOptionsOutputSchema = z.object({
 });
 
 export const ChooseBestStaffLembagaInputSchema = z.object({
-  lembaga_id: z.string().nonempty(),
+  lembagaId: z.string().nonempty(),
   start_date: z.string().datetime(),
   end_date: z.string().datetime(),
   best_staff_list: z.array(
@@ -332,19 +335,16 @@ export const ChooseBestStaffLembagaOutputSchema = z.object({
   success: z.boolean(),
 });
 
-export const DeleteBestStaffPeriodeInputSchema = z
-  .object({
-    lembaga_id: z.string().nonempty().optional(),
-    event_id: z.string().nonempty().optional(),
-    start_date: z.string().datetime(),
-    end_date: z.string().datetime(),
-  })
-  .refine((data) => !(data.lembaga_id && data.event_id), {
-    message: 'lembaga_id dan event_id tidak boleh dikirim bersamaan',
-  })
-  .refine((data) => data.lembaga_id ?? data.event_id, {
-    message: 'lembaga_id atau event_id wajib diisi',
-  });
+/**
+ * Tanpa `event_id`: hapus periode Best Staff lembaga `lembagaId`. Dengan
+ * `event_id`: hapus periode kegiatan itu (harus milik `lembagaId`).
+ */
+export const DeleteBestStaffPeriodeInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
+  event_id: z.string().nonempty().optional(),
+  start_date: z.string().datetime(),
+  end_date: z.string().datetime(),
+});
 
 export const DeleteBestStaffPeriodeOutputSchema = z.object({
   success: z.boolean(),

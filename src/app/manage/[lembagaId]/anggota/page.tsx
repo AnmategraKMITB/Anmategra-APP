@@ -51,7 +51,6 @@ const ManageAnggotaPage = async ({
         title={info?.nama ?? ''}
         lembagaId={lembagaId}
         anggotaBasePath={`/manage/${lembagaId}/anggota`}
-        showBestStaff={false}
       />
     </main>
   );

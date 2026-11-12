@@ -838,15 +838,11 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  getAllLembagaDivision: lembagaProcedure
+  getAllLembagaDivision: lembagaScopedProcedure
     .input(GetAllLembagaDivisionInputSchema)
     .output(GetAllDivisionOutputSchema)
     .query(async ({ ctx, input }) => {
-      if (ctx.session.user.lembagaId !== input.lembaga_id) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
-      const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+      const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
       const divisionsRaw = await ctx.db
         .select({ division: members.division })
         .from(members);
@@ -858,7 +854,7 @@ export const lembagaRouter = createTRPCRouter({
       return { divisions: uniqueDivisions };
     }),
 
-  getAllKegiatanDivision: lembagaProcedure
+  getAllKegiatanDivision: lembagaScopedProcedure
     .input(GetAllKegiatanDivisionInputSchema)
     .output(GetAllDivisionOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -871,7 +867,7 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
       }
 
-      if (orgId.org_id !== ctx.session.user.lembagaId) {
+      if (orgId.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -887,7 +883,7 @@ export const lembagaRouter = createTRPCRouter({
       return { divisions: uniqueDivisions };
     }),
 
-  getBestStaffOptions: lembagaProcedure
+  getBestStaffOptions: lembagaScopedProcedure
     .input(GetBestStaffOptionsInputSchema)
     .output(GetBestStaffOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -900,7 +896,7 @@ export const lembagaRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Event not found' });
       }
 
-      if (orgId.org_id !== ctx.session.user.lembagaId) {
+      if (orgId.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -1109,7 +1105,7 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  chooseBestStaffKegiatan: lembagaProcedure
+  chooseBestStaffKegiatan: lembagaScopedProcedure
     .input(ChooseBestStaffKegiatanInputSchema)
     .output(ChooseBestStaffKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -1119,7 +1115,7 @@ export const lembagaRouter = createTRPCRouter({
         columns: { org_id: true },
       });
 
-      if (ctx.session.user.lembagaId! !== eventOrg?.org_id) {
+      if (ctx.lembagaId !== eventOrg?.org_id) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -1158,15 +1154,11 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  getBestStaffLembagaOptions: lembagaProcedure
+  getBestStaffLembagaOptions: lembagaScopedProcedure
     .input(GetBestStaffLembagaOptionsInputSchema)
     .output(GetBestStaffLembagaOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
-      if (input.lembaga_id !== ctx.session.user.lembagaId) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
-      const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+      const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
       const staffOptions = await ctx.db
         .select({
           user_id: users.id,
@@ -1184,15 +1176,10 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  chooseBestStaffLembaga: lembagaProcedure
+  chooseBestStaffLembaga: lembagaScopedProcedure
     .input(ChooseBestStaffLembagaInputSchema)
     .output(ChooseBestStaffLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      // Verify that lembaga id matches
-      if (ctx.session.user.lembagaId! !== input.lembaga_id) {
-        throw new TRPCError({ code: 'FORBIDDEN' });
-      }
-
       // Verify the start date and end date is valid
       if (new Date(input.start_date) > new Date(input.end_date)) {
         throw new TRPCError({
@@ -1205,7 +1192,7 @@ export const lembagaRouter = createTRPCRouter({
         .delete(bestStaffLembaga)
         .where(
           and(
-            eq(bestStaffLembaga.lembagaId, input.lembaga_id),
+            eq(bestStaffLembaga.lembagaId, ctx.lembagaId),
             lte(bestStaffLembaga.startDate, new Date(input.end_date)),
             gte(bestStaffLembaga.endDate, new Date(input.start_date)),
           ),
@@ -1215,7 +1202,7 @@ export const lembagaRouter = createTRPCRouter({
       await ctx.db.insert(bestStaffLembaga).values(
         input.best_staff_list.map((staff) => ({
           id: crypto.randomUUID(),
-          lembagaId: input.lembaga_id,
+          lembagaId: ctx.lembagaId,
           mahasiswaId: staff.user_id,
           division: staff.division,
           startDate: new Date(input.start_date),
@@ -1520,30 +1507,26 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  deleteBestStaffPeriode: lembagaProcedure
+  deleteBestStaffPeriode: lembagaScopedProcedure
     .input(DeleteBestStaffPeriodeInputSchema)
     .output(DeleteBestStaffPeriodeOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      if (input.lembaga_id) {
-        if (ctx.session.user.lembagaId! !== input.lembaga_id) {
-          throw new TRPCError({ code: 'FORBIDDEN' });
-        }
-
+      if (!input.event_id) {
         await ctx.db
           .delete(bestStaffLembaga)
           .where(
             and(
-              eq(bestStaffLembaga.lembagaId, input.lembaga_id),
+              eq(bestStaffLembaga.lembagaId, ctx.lembagaId),
               eq(bestStaffLembaga.startDate, new Date(input.start_date)),
               eq(bestStaffLembaga.endDate, new Date(input.end_date)),
             ),
           );
-      } else if (input.event_id) {
+      } else {
         const event = await ctx.db.query.events.findFirst({
           where: eq(events.id, input.event_id),
         });
 
-        if (!event || event.org_id !== ctx.session.user.lembagaId) {
+        if (event?.org_id !== ctx.lembagaId) {
           throw new TRPCError({ code: 'FORBIDDEN' });
         }
 
@@ -1556,11 +1539,6 @@ export const lembagaRouter = createTRPCRouter({
               eq(bestStaffKegiatan.endDate, new Date(input.end_date)),
             ),
           );
-      } else {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Either lembaga_id or event_id must be provided',
-        });
       }
 
       return {
