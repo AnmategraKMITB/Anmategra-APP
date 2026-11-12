@@ -94,7 +94,7 @@
           "admin"
         ],
         "summary": "admin.addVerifiedEmail",
-        "description": "Menambahkan email ke whitelist `verified_user` agar email tsb diizinkan mendaftar di sistem.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`.",
+        "description": "Menambahkan email ke whitelist `verified_user` agar email tsb diizinkan mendaftar di sistem.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
         "security": [
           {
             "sessionCookie": []
@@ -215,7 +215,7 @@
           "admin"
         ],
         "summary": "admin.deleteVerifiedEmail",
-        "description": "Menghapus email dari whitelist `verified_user`. Jika email tsb sudah terhubung ke akun aktif, seluruh akun `users` ikut dihapus (hard delete — cascade ke semua tabel berelasi FK `ON DELETE CASCADE`: account, mahasiswa, lembaga, dst). - ⚠️ perlu konfirmasi: bentuk output tidak konsisten antar 3 skenario di atas dan tidak divalidasi `.output()` — client harus menangani union type secara manual.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`.",
+        "description": "Menghapus email dari whitelist `verified_user`. Jika email tsb sudah terhubung ke akun aktif, seluruh akun `users` ikut dihapus (hard delete — cascade ke semua tabel berelasi FK `ON DELETE CASCADE`: account, mahasiswa, lembaga, dst). - ⚠️ perlu konfirmasi: bentuk output tidak konsisten antar 3 skenario di atas dan tidak divalidasi `.output()` — client harus menangani union type secara manual.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
         "security": [
           {
             "sessionCookie": []
@@ -583,7 +583,7 @@
           "admin"
         ],
         "summary": "admin.uploadAlumniCsv",
-        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`.",
+        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
         "security": [
           {
             "sessionCookie": []
@@ -5554,7 +5554,7 @@
           "event"
         ],
         "summary": "event.addNewPanitia",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -5675,7 +5675,7 @@
           "event"
         ],
         "summary": "event.addNewPanitiaManual",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -5796,7 +5796,7 @@
           "event"
         ],
         "summary": "event.create",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -5917,7 +5917,7 @@
           "event"
         ],
         "summary": "event.delete",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -6038,7 +6038,7 @@
           "event"
         ],
         "summary": "event.editPanitia",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -6411,7 +6411,7 @@
           "event"
         ],
         "summary": "event.removePanitia",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -6532,7 +6532,7 @@
           "event"
         ],
         "summary": "event.toggleHighlight",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -6653,7 +6653,7 @@
           "event"
         ],
         "summary": "event.toggleRaporVisibility",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -6774,7 +6774,7 @@
           "event"
         ],
         "summary": "event.update",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -10667,7 +10667,7 @@
           "kegiatan"
         ],
         "summary": "kegiatan.getAllByLembaga",
-        "description": "Daftar seluruh kegiatan milik lembaga yang sedang login, diurutkan: event `is_highlighted` dulu, lalu `start_date` terbaru. - ⚠️ perlu konfirmasi: memakai non-null assertion `ctx.session.user.lembagaId!` — tidak ada guard eksplisit jika `lembagaId` ternyata kosong.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Daftar seluruh kegiatan milik lembaga yang sedang login, diurutkan: event `is_highlighted` dulu, lalu `start_date` terbaru. - ⚠️ perlu konfirmasi: memakai non-null assertion `ctx.session.user.lembagaId!` — tidak ada guard eksplisit jika `lembagaId` ternyata kosong.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -10970,7 +10970,7 @@
           "kegiatan"
         ],
         "summary": "kegiatan.getPosisiBidangOptions",
-        "description": "Daftar posisi & divisi unik yang pernah dipakai di `keanggotaan` untuk suatu event. - ⚠️ perlu konfirmasi: tidak ada pengecekan bahwa `event_id` benar-benar milik lembaga yang sedang login. Lembaga manapun berpotensi menarik data posisi/bidang milik event lembaga lain jika mengetahui `event_id`-nya.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Daftar posisi & divisi unik yang pernah dipakai di `keanggotaan` untuk suatu event. - ⚠️ perlu konfirmasi: tidak ada pengecekan bahwa `event_id` benar-benar milik lembaga yang sedang login. Lembaga manapun berpotensi menarik data posisi/bidang milik event lembaga lain jika mengetahui `event_id`-nya.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -15452,7 +15452,7 @@
           "lembaga"
         ],
         "summary": "lembaga.reorderAnggotaKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -25403,7 +25403,7 @@
           "profil"
         ],
         "summary": "profil.createProfilKegiatan",
-        "description": "Membuat kriteria penilaian baru untuk kegiatan. Alur: (1) `event.org_id` harus sama dengan `lembagaId` sesi → `FORBIDDEN` jika tidak; (2) event harus ada → `NOT_FOUND`; (3) semua `profil_km_id` harus ada di `profil_km` → `BAD_REQUEST` dengan daftar id tidak valid; (4) transaksi: insert `profil_kegiatan` + insert mapping `pemetaan_profil_kegiatan` per `profil_km_id`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Membuat kriteria penilaian baru untuk kegiatan. Alur: (1) `event.org_id` harus sama dengan `lembagaId` sesi → `FORBIDDEN` jika tidak; (2) event harus ada → `NOT_FOUND`; (3) semua `profil_km_id` harus ada di `profil_km` → `BAD_REQUEST` dengan daftar id tidak valid; (4) transaksi: insert `profil_kegiatan` + insert mapping `pemetaan_profil_kegiatan` per `profil_km_id`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -25645,7 +25645,7 @@
           "profil"
         ],
         "summary": "profil.deleteProfilKegiatan",
-        "description": "Menghapus kriteria penilaian kegiatan. Ownership dicek via profil → event → `org_id` harus sama dengan `lembagaId` sesi (`FORBIDDEN` jika tidak); profil harus ada (`NOT_FOUND`). Delete `profil_kegiatan` cascade ke `pemetaan_profil_kegiatan` dan `nilai_profil_kegiatan`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Menghapus kriteria penilaian kegiatan. Ownership dicek via profil → event → `org_id` harus sama dengan `lembagaId` sesi (`FORBIDDEN` jika tidak); profil harus ada (`NOT_FOUND`). Delete `profil_kegiatan` cascade ke `pemetaan_profil_kegiatan` dan `nilai_profil_kegiatan`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -25887,7 +25887,7 @@
           "profil"
         ],
         "summary": "profil.editProfilKegiatan",
-        "description": "Mengubah nama/deskripsi profil kegiatan. `profil_km_id` divalidasi terhadap `profil_km` (`BAD_REQUEST` jika ada id invalid), lalu — **hanya jika array tidak kosong** — mapping lama dihapus semua dan diganti mapping baru dalam satu transaksi. - ⚠️ perlu konfirmasi: jika `profil_km_id: []` dikirim, mapping lama TIDAK dihapus/diubah sama sekali — tidak ada cara mengosongkan seluruh pemetaan profil KM lewat endpoint ini.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Mengubah nama/deskripsi profil kegiatan. `profil_km_id` divalidasi terhadap `profil_km` (`BAD_REQUEST` jika ada id invalid), lalu — **hanya jika array tidak kosong** — mapping lama dihapus semua dan diganti mapping baru dalam satu transaksi. - ⚠️ perlu konfirmasi: jika `profil_km_id: []` dikirim, mapping lama TIDAK dihapus/diubah sama sekali — tidak ada cara mengosongkan seluruh pemetaan profil KM lewat endpoint ini.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -27038,7 +27038,7 @@
           "rapor"
         ],
         "summary": "rapor.getAllNilaiProfilKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -27290,7 +27290,7 @@
           "rapor"
         ],
         "summary": "rapor.getNilaiKegiatanIndividu",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -27794,7 +27794,7 @@
           "rapor"
         ],
         "summary": "rapor.upsertNilaiMahasiswaKegiatan",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -28893,7 +28893,7 @@
           "users"
         ],
         "summary": "users.editProfilMahasiswa",
-        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "**Akses:** Mahasiswa — Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).",
         "security": [
           {
             "sessionCookie": []
@@ -28953,7 +28953,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Mahasiswa (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -30336,7 +30336,7 @@
           "users"
         ],
         "summary": "users.getTambahAnggotaKegiatanOptions",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -30462,7 +30462,7 @@
           "users"
         ],
         "summary": "users.getTambahAnggotaLembagaOptions",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
         "security": [
           {
             "sessionCookie": []
@@ -30588,7 +30588,7 @@
           "users"
         ],
         "summary": "users.requestAssociation",
-        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "**Akses:** Mahasiswa — Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).",
         "security": [
           {
             "sessionCookie": []
@@ -30648,7 +30648,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Mahasiswa (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -31077,7 +31077,7 @@
           "users"
         ],
         "summary": "users.toggleRaporVisibility",
-        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "**Akses:** Mahasiswa — Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).",
         "security": [
           {
             "sessionCookie": []
@@ -31137,7 +31137,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Mahasiswa (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -53239,12 +53239,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           },
@@ -54245,6 +54328,15 @@
           },
           "noWhatsapp": {
             "type": "string"
+          },
+          "showWhatsapp": {
+            "type": "boolean"
+          },
+          "showLine": {
+            "type": "boolean"
+          },
+          "showEmail": {
+            "type": "boolean"
           }
         }
       },
@@ -54505,12 +54597,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           }
@@ -54538,12 +54713,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           }
