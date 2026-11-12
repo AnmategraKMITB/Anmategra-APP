@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+import { pickFormsCallback } from '~/lib/forms-path';
 
 /** Login khusus deployment demo; tidak pernah dirender saat APP_ENV production. */
 export function DemoLoginForm() {
@@ -16,10 +17,12 @@ export function DemoLoginForm() {
     event.preventDefault();
     setPending(true);
     setError(null);
+    const callbackUrl = pickFormsCallback(window.location.search);
     const result = await signIn('credentials', {
       email,
       password,
       redirect: false,
+      ...(callbackUrl ? { callbackUrl } : {}),
     });
     setPending(false);
     if (result?.error) {

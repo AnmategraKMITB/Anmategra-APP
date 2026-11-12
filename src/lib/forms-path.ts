@@ -55,3 +55,9 @@ export function isSafeFormsCallback(value: unknown): boolean {
 
   return ID_PATTERN.test(idMatch[1] ?? '');
 }
+
+/** Ambil callbackUrl yang aman dari query string halaman login; selain itu `undefined`. */
+export function pickFormsCallback(search: string): string | undefined {
+  const value = new URLSearchParams(search).get('callbackUrl');
+  return isSafeFormsCallback(value) ? value! : undefined;
+}
