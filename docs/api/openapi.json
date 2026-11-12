@@ -11858,7 +11858,7 @@
           "lembaga"
         ],
         "summary": "lembaga.acceptRequestAssociation",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -11918,7 +11918,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -11979,7 +11979,7 @@
           "lembaga"
         ],
         "summary": "lembaga.acceptRequestAssociationLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -12039,7 +12039,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -12584,7 +12584,7 @@
           "lembaga"
         ],
         "summary": "lembaga.declineRequestAssociation",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -12644,7 +12644,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -12705,7 +12705,7 @@
           "lembaga"
         ],
         "summary": "lembaga.declineRequestAssociationLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -12765,7 +12765,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -13945,7 +13945,7 @@
           "lembaga"
         ],
         "summary": "lembaga.getAllRequestAssociation",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -14005,7 +14005,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -14071,7 +14071,7 @@
           "lembaga"
         ],
         "summary": "lembaga.getAllRequestAssociationLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -14131,7 +14131,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -14197,7 +14197,7 @@
           "lembaga"
         ],
         "summary": "lembaga.getAllRequestAssociationSummary",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -14257,7 +14257,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -47371,6 +47371,10 @@
       "lembaga_acceptRequestAssociation_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "event_id": {
             "type": "string",
             "minLength": 1
@@ -47389,6 +47393,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "event_id",
           "user_id",
           "division",
@@ -47410,6 +47415,10 @@
       "lembaga_acceptRequestAssociationLembaga_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "user_id": {
             "type": "string",
             "minLength": 1
@@ -47424,6 +47433,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "user_id",
           "division",
           "position"
@@ -47662,6 +47672,10 @@
       "lembaga_declineRequestAssociation_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "event_id": {
             "type": "string",
             "minLength": 1
@@ -47672,6 +47686,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "event_id",
           "user_id"
         ]
@@ -47691,6 +47706,10 @@
       "lembaga_declineRequestAssociationLembaga_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "user_id": {
             "type": "string",
             "minLength": 1
@@ -47705,6 +47724,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "user_id",
           "division",
           "position"
@@ -48223,6 +48243,10 @@
       "lembaga_getAllRequestAssociation_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "event_id": {
             "type": "string",
             "minLength": 1
@@ -48235,6 +48259,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "event_id"
         ]
       },
@@ -48282,13 +48307,20 @@
       "lembaga_getAllRequestAssociationLembaga_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "division": {
             "type": "array",
             "items": {
               "type": "string"
             }
           }
-        }
+        },
+        "required": [
+          "lembagaId"
+        ]
       },
       "lembaga_getAllRequestAssociationLembaga_output": {
         "type": "object",
@@ -48335,10 +48367,17 @@
       "lembaga_getAllRequestAssociationSummary_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "name": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "lembagaId"
+        ]
       },
       "lembaga_getAllRequestAssociationSummary_output": {
         "type": "array",

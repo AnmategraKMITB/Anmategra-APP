@@ -20,9 +20,15 @@ type PermintaanAsosiasi = {
 
 type InboxContentProps = {
   entries: PermintaanAsosiasi[];
+  lembagaId: string;
+  basePath?: string;
 };
 
-export default function InboxContent({ entries: initialEntries }: InboxContentProps) {
+export default function InboxContent({
+  entries: initialEntries,
+  lembagaId,
+  basePath = '/lembaga/inbox',
+}: InboxContentProps) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -35,7 +41,7 @@ export default function InboxContent({ entries: initialEntries }: InboxContentPr
   }, [searchQuery]);
 
   const {data: searchData, isFetching} = api.lembaga.getAllRequestAssociationSummary.useQuery(
-    {name: debouncedSearch,},
+    {lembagaId, name: debouncedSearch},
     {enabled: debouncedSearch.length > 0,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
@@ -134,7 +140,7 @@ export default function InboxContent({ entries: initialEntries }: InboxContentPr
         </div>
 
         <div className="overflow-x-auto">
-          <RequestTableEventsEntries data={filteredData} />
+          <RequestTableEventsEntries data={filteredData} basePath={basePath} />
         </div>
       </div>
     </div>
