@@ -10,14 +10,23 @@ import { TRPCError, initTRPC } from '@trpc/server';
 import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
-import { getServerAuthSession } from '~/server/auth';
 import {
   type AdminPermission,
   hasAdminPermission,
 } from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
+import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { adminPermission, form, recruitment } from '~/server/db/schema';
+
+// Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
+// tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
+import {
+  type GrantFeature,
+  type LembagaAccess,
+  canManageEvent,
+  canManageLembaga,
+} from './access';
 
 /**
  * 1. CONTEXT
@@ -295,13 +304,6 @@ export const mahasiswaProcedure = protectedProcedure
     return next();
   });
 
-// Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
-// tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
-import {
-  canManageEvent,
-  canManageLembaga,
-  type LembagaAccess,
-} from './access';
 export { canManageEvent, canManageLembaga, type LembagaAccess };
 
 /**
@@ -324,7 +326,8 @@ function rawId(value: unknown): string | undefined {
  * diakses Owner ATAU Admin Lembaga (`canManageLembaga`). Semua endpoint
  * pengelolaan lembaga memakai prosedur ini; `ctx.lembagaId` adalah Scope.
  */
-export const lembagaScopedProcedure = protectedProcedure
+function lembagaScopedFor(features: readonly GrantFeature[]) {
+  return protectedProcedure
   .meta({ access: 'lembaga-scoped' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
@@ -336,18 +339,29 @@ export const lembagaScopedProcedure = protectedProcedure
         message: 'lembagaId is required',
       });
     }
-    const access = await canManageLembaga(
+      let access: Awaited<ReturnType<typeof canManageLembaga>> = null;
+      for (const feature of features) {
+        access = await canManageLembaga(
       ctx.db,
       ctx.session.user.id,
       ctx.session.user.role,
       ctx.session.user.lembagaId,
       lembagaId,
+          feature,
     );
+        if (access) break;
+      }
     if (!access) {
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
   });
+}
+
+export const lembagaScopedProcedure = lembagaScopedFor(['admin']);
+
+/** Seperti `lembagaScopedProcedure`, tetapi juga membuka pemegang fitur `forms` (daftar dan buat form lembaga). */
+export const lembagaFormsProcedure = lembagaScopedFor(['admin', 'forms']);
 
 /** Owner-only: kelola/grant/revoke admin lain — bukan operasional biasa. */
 export const lembagaOwnerProcedure = lembagaScopedProcedure
@@ -367,7 +381,8 @@ export const lembagaOwnerProcedure = lembagaScopedProcedure
  * Lembaga otomatis boleh kelola event di bawah lembaganya; Admin Kepanitiaan
  * cuma boleh kelola event yang di-grant ke dia secara spesifik.
  */
-export const eventScopedProcedure = protectedProcedure
+function eventScopedFor(features: readonly GrantFeature[]) {
+  return protectedProcedure
   .meta({ access: 'event-scoped' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
@@ -379,19 +394,29 @@ export const eventScopedProcedure = protectedProcedure
         message: 'eventId is required',
       });
     }
-    const access = await canManageEvent(
+      let access: Awaited<ReturnType<typeof canManageEvent>> = null;
+      for (const feature of features) {
+        access = await canManageEvent(
       ctx.db,
       ctx.session.user.id,
       ctx.session.user.role,
       ctx.session.user.lembagaId,
       eventId,
-      'events',
+          feature,
     );
+        if (access) break;
+      }
     if (!access) {
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, eventAccess: access, eventId } });
   });
+}
+
+export const eventScopedProcedure = eventScopedFor(['events']);
+
+/** Seperti `eventScopedProcedure`, tetapi juga membuka pemegang fitur `forms` (daftar dan buat form kegiatan). */
+export const eventFormsProcedure = eventScopedFor(['events', 'forms']);
 
 /**
  * Di-scope oleh `formId` (#210). Form dimiliki tepat satu lembaga ATAU satu

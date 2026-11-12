@@ -39,6 +39,8 @@ const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       ['lembaga.write', 'Ubah profil lembaga'],
       ['lembaga.events', 'Kelola kegiatan/kepengurusan'],
       ['lembaga.organization', 'Kelola organogram'],
+      ['lembaga.forms', 'Kelola forms'],
+      ['lembaga.oprec', 'Kelola oprec'],
       ['lembaga.members', 'Kelola anggota'],
     ],
   },

@@ -116,7 +116,7 @@
   },
   "form.field.create": {
     "summary": "Tambah pertanyaan",
-    "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Untuk teks, `config.pattern` dipilih dari preset `email`, `nomor_hp`, atau `nim` — regex bebas tidak diterima. Maksimal 100 pertanyaan per formulir."
+    "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Untuk teks, `config.pattern` dipilih dari preset `email`, `nomor_hp`, atau `nim` — regex bebas tidak diterima. Maksimal 500 pertanyaan per formulir."
   },
   "form.field.update": {
     "summary": "Ubah satu pertanyaan (penggantian utuh)",

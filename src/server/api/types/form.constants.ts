@@ -5,7 +5,7 @@
 
 export const SHORT_TEXT_MAX_LENGTH = 500;
 export const LONG_TEXT_MAX_LENGTH = 5000;
-export const MAX_FIELDS_PER_FORM = 100;
+export const MAX_FIELDS_PER_FORM = 500;
 export const MAX_OPTIONS_PER_FIELD = 100;
 export const MAX_SECTIONS_PER_FORM = 50;
 export const LINK_MAX_LENGTH = 2048;

@@ -4,9 +4,9 @@ import { isReservedFormSlug } from '~/lib/forms/slug';
 import { recruitmentStatusFor } from '~/lib/oprec/registration';
 import {
   createTRPCRouter,
-  eventScopedProcedure,
+  eventFormsProcedure,
   formScopedProcedure,
-  lembagaScopedProcedure,
+  lembagaFormsProcedure,
 } from '~/server/api/trpc';
 import {
   type FormStatus,
@@ -110,7 +110,7 @@ function readThemeImages(theme: unknown): string[] {
 }
 
 export const formFormRouter = createTRPCRouter({
-  createForLembaga: lembagaScopedProcedure
+  createForLembaga: lembagaFormsProcedure
     .input(CreateFormForLembagaInputSchema)
     .output(CreateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -145,7 +145,7 @@ export const formFormRouter = createTRPCRouter({
       }
     }),
 
-  createForEvent: eventScopedProcedure
+  createForEvent: eventFormsProcedure
     .input(CreateFormForEventInputSchema)
     .output(CreateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -180,7 +180,7 @@ export const formFormRouter = createTRPCRouter({
       }
     }),
 
-  listByLembaga: lembagaScopedProcedure
+  listByLembaga: lembagaFormsProcedure
     .input(ListFormsByLembagaInputSchema)
     .output(ListFormsOutputSchema)
     .query(async ({ ctx }) => {
@@ -192,7 +192,7 @@ export const formFormRouter = createTRPCRouter({
       return listWithCounts(ctx.db, rows);
     }),
 
-  listByEvent: eventScopedProcedure
+  listByEvent: eventFormsProcedure
     .input(ListFormsByEventInputSchema)
     .output(ListFormsOutputSchema)
     .query(async ({ ctx }) => {
