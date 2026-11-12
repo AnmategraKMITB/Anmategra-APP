@@ -1093,7 +1093,9 @@ export const placementProcedures = {
           );
           if (!registrationEnded) {
             conflict(
-              'Pendaftaran masih dibuka. Tutup pendaftaran sebelum masuk masa banding.',
+              input.state === 'final'
+                ? 'Pendaftaran masih dibuka. Tutup pendaftaran sebelum menetapkan final.'
+                : 'Pendaftaran masih dibuka. Tutup pendaftaran sebelum masuk masa banding.',
             );
           }
         }

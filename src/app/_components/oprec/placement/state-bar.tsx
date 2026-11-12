@@ -105,10 +105,11 @@ export function StateBar({
         ) : null}
       </div>
       <p className="text-sm text-neutral-700">{HELP[state]}</p>
-      {state === 'berjalan' && !overview.registrationEnded ? (
+      {state !== 'final' && !overview.registrationEnded ? (
         <p className="text-sm text-neutral-700">
-          Pendaftaran masih dibuka. Tutup pendaftaran sebelum masuk masa
-          banding.
+          Pendaftaran masih dibuka. Tutup pendaftaran (tombol di atas tab)
+          sebelum{' '}
+          {state === 'berjalan' ? 'masuk masa banding' : 'menetapkan final'}.
         </p>
       ) : null}
 
@@ -132,7 +133,11 @@ export function StateBar({
               >
                 Kembali ke berjalan
               </Button>
-              <Button size="sm" onClick={() => setAsk('final')}>
+              <Button
+                size="sm"
+                disabled={!overview.registrationEnded}
+                onClick={() => setAsk('final')}
+              >
                 Tetapkan final
               </Button>
             </>
