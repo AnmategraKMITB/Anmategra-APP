@@ -14,19 +14,26 @@ const STATIC = [
   // Halaman pendaratan popup MSAL; harus bisa dibuka tanpa sesi dan tanpa
   // dialihkan ke halaman peran.
   '/msal-redirect',
-  // Purwarupa untuk dibagikan ke pengguna uji (mis. tim MSDM); tidak butuh login.
-  '/prototype',
 ];
 const PUBLIC_ROUTES = [
   '/profile-lembaga',
   '/profile-kegiatan',
   '/404',
 ];
+// Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
+// semua role, jadi tidak dialihkan ke `/<role>/manual`.
+const PUBLIC_SHARED_ROUTES: string[] = [];
+// Purwarupa internal: tidak untuk publik. Tanpa login dialihkan ke halaman
+// login; yang sudah login dilewatkan tanpa prefiks role.
+const PROTOTYPE_ROUTES = ['/prototype'];
 // Authenticated-only routes shared by all roles. These stay unprefixed so the
-// same documentation URL works for lembaga, mahasiswa, and admin users.
+// same URL works for lembaga, mahasiswa, and admin users.
 // `/manage` memuat alat pengelola (kegiatan, oprec, forms); aksesnya ditentukan
 // per halaman lewat canManageLembaga/canManageEvent, bukan oleh role akun.
 const AUTHENTICATED_SHARED_ROUTES = ['/manual', '/manage'];
+
+const matchesRoute = (pathname: string, route: string) =>
+  pathname === route || pathname.startsWith(`${route}/`);
 
 export default async function middleware(req: NextRequest) {
   // Skip static files and API routes
@@ -61,10 +68,14 @@ export default async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL(forms.location, req.url));
   }
 
-  // The manual is available after login but uses one shared URL for all roles.
+  // Manual terbuka untuk publik dan memakai satu URL untuk semua role.
+  if (PUBLIC_SHARED_ROUTES.some((route) => matchesRoute(pathname, route))) {
+    return NextResponse.next();
+  }
+
   if (
-    AUTHENTICATED_SHARED_ROUTES.some(
-      (route) => pathname === route || pathname.startsWith(`${route}/`),
+    [...PROTOTYPE_ROUTES, ...AUTHENTICATED_SHARED_ROUTES].some((route) =>
+      matchesRoute(pathname, route),
     )
   ) {
     if (!token) {
@@ -129,6 +140,6 @@ export default async function middleware(req: NextRequest) {
 // panggilan tRPC tetap menjalankan middleware dulu sebelum dilewatkan.
 export const config = {
   matcher: [
-    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|msal-redirect|prototype).*)',
+    '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|msal-redirect).*)',
   ],
 };
