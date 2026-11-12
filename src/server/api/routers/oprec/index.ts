@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, inArray, isNull, max } from 'drizzle-orm';
 import { MAX_RULES } from '~/lib/forms/conditions';
+import { waveOverlapMessage } from '~/lib/oprec/waves';
 import {
   createTRPCRouter,
   oprecPeriodProcedure,
@@ -297,6 +298,9 @@ export const oprecRouter = createTRPCRouter({
     .input(ReplaceWavesInputSchema)
     .output(OkOutputSchema)
     .mutation(async ({ ctx, input }) => {
+      const overlap = waveOverlapMessage(input.waves);
+      if (overlap)
+        throw new TRPCError({ code: 'BAD_REQUEST', message: overlap });
       await ctx.db.transaction(async (tx) => {
         await tx
           .select({ id: recruitment.id })

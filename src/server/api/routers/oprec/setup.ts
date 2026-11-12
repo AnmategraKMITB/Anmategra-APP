@@ -1,5 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { and, asc, count, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import { waveOverlapMessage } from '~/lib/oprec/waves';
 import { canManageLembaga } from '~/server/api/access';
 import { oprecPeriodProcedure } from '~/server/api/trpc';
 import {
@@ -344,6 +345,9 @@ export const setupProcedures = {
         }
         await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
       }
+      const overlap = waveOverlapMessage(input.waves);
+      if (overlap)
+        throw new TRPCError({ code: 'BAD_REQUEST', message: overlap });
       // S15: tanpa syarat gugur, kriteria gugur tidak boleh ada.
       if (
         input.settings.hasGugur === false &&

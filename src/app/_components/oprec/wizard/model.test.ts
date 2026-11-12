@@ -181,3 +181,27 @@ describe('validasi ulang langkah yang dilewati (H-08, K-04)', () => {
     expect(remapped).toBe(1);
   });
 });
+
+describe('stepProblem S4: gelombang tumpang tindih (#382)', () => {
+  it('menolak dengan pesan yang menyebut kedua gelombang', () => {
+    const s = stateWithDivisions();
+    s.useWaves = true;
+    s.waves = [
+      {
+        label: 'Gel 1',
+        startsAt: '2030-01-01T08:00',
+        endsAt: '2030-01-10T08:00',
+      },
+      {
+        label: 'Gel 2',
+        startsAt: '2030-01-05T08:00',
+        endsAt: '2030-01-20T08:00',
+      },
+    ];
+    const msg = stepProblem('S4', s, ctx);
+    expect(msg).toContain('"Gel 1"');
+    expect(msg).toContain('"Gel 2"');
+    s.waves[1]!.startsAt = '2030-01-10T08:00';
+    expect(stepProblem('S4', s, ctx)).toBeNull();
+  });
+});

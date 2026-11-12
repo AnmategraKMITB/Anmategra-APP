@@ -47,6 +47,14 @@ const TITLES: Record<StepId, (c: WizardCtx) => string> = {
 };
 
 /** Ringkasan jawaban satu langkah dalam kalimat pendek. */
+const waveDate = (v: string) =>
+  v
+    ? new Date(v).toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : '?';
+
 export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
   const l2 = c.labels[1].toLowerCase();
   switch (id) {
@@ -62,7 +70,12 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
     }
     case 'S4':
       return s.useWaves
-        ? s.waves.map((w) => w.label || '?').join(', ')
+        ? s.waves
+            .map(
+              (w) =>
+                `${w.label || '?'} (${waveDate(w.startsAt)} – ${waveDate(w.endsAt)})`,
+            )
+            .join('; ')
         : 'Tanpa gelombang';
     case 'S5':
       return s.eligibility.enabled

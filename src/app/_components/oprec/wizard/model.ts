@@ -4,6 +4,7 @@ import {
   type EligibilityAttribute,
   type EligibilityOperator,
 } from '~/lib/oprec/eligibility';
+import { waveOverlapMessage } from '~/lib/oprec/waves';
 import { type RouterInputs, type RouterOutputs } from '~/trpc/react';
 
 export type SetupOptions = RouterOutputs['oprec']['setupOptions'];
@@ -390,7 +391,13 @@ export function stepProblem(
           return 'Tanggal berakhir harus setelah tanggal mulai.';
         }
       }
-      return null;
+      return waveOverlapMessage(
+        s.waves.map((w) => ({
+          label: w.label,
+          startsAt: new Date(w.startsAt),
+          endsAt: new Date(w.endsAt),
+        })),
+      );
     }
     case 'S5': {
       if (!s.eligibility.enabled) return null;

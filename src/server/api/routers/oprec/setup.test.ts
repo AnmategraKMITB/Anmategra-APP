@@ -603,3 +603,49 @@ describe('createFromSetup: pengelola (S17)', () => {
     ).toBe('OK');
   });
 });
+
+describe('gelombang tumpang tindih (#382)', () => {
+  const wave = (label: string, startsAt: string, endsAt: string) => ({
+    label,
+    startsAt: new Date(startsAt),
+    endsAt: new Date(endsAt),
+  });
+
+  it('createFromSetup menolak tumpang tindih dan menerima bersebelahan', async () => {
+    const w = await createOprecWorld(db);
+    expect(
+      await codeOf(
+        createWith(w, {
+          waves: [
+            wave('A', '2030-01-01', '2030-01-10'),
+            wave('B', '2030-01-05', '2030-01-20'),
+          ],
+        }),
+      ),
+    ).toBe('BAD_REQUEST');
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+    await createWith(w, {
+      waves: [
+        wave('A', '2030-01-01', '2030-01-10'),
+        wave('B', '2030-01-10', '2030-01-20'),
+      ],
+    });
+    expect(await db.select().from(recruitment)).toHaveLength(1);
+  });
+
+  it('replaceWaves menolak tumpang tindih', async () => {
+    const w = await createOprecWorld(db);
+    const { recruitmentId } = await createWith(w, {});
+    expect(
+      await codeOf(
+        callerFor(w.owner).oprec.replaceWaves({
+          recruitmentId,
+          waves: [
+            wave('A', '2030-01-01', '2030-01-10'),
+            wave('B', '2030-01-09', '2030-01-20'),
+          ],
+        }),
+      ),
+    ).toBe('BAD_REQUEST');
+  });
+});
