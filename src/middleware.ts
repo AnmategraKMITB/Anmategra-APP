@@ -23,8 +23,9 @@ const PUBLIC_ROUTES = [
 // Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
 // semua role, jadi tidak dialihkan ke `/<role>/manual`.
 const PUBLIC_SHARED_ROUTES = ['/manual'];
-// Purwarupa internal: tidak untuk publik. Tanpa login dialihkan ke halaman
-// login; yang sudah login dilewatkan tanpa prefiks role.
+// Purwarupa internal: middleware hanya melewatkan. Gerbangnya ada di
+// src/app/prototype/layout.tsx (superadmin/operator atau kata sandi statis);
+// operator butuh DB sehingga tidak bisa diperiksa di middleware edge.
 const PROTOTYPE_ROUTES = ['/prototype'];
 // Authenticated-only routes shared by all roles. These stay unprefixed so the
 // same URL works for lembaga, mahasiswa, and admin users.
@@ -69,14 +70,16 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Manual terbuka untuk publik dan memakai satu URL untuk semua role.
-  if (PUBLIC_SHARED_ROUTES.some((route) => matchesRoute(pathname, route))) {
+  if (
+    [...PUBLIC_SHARED_ROUTES, ...PROTOTYPE_ROUTES].some((route) =>
+      matchesRoute(pathname, route),
+    )
+  ) {
     return NextResponse.next();
   }
 
   if (
-    [...PROTOTYPE_ROUTES, ...AUTHENTICATED_SHARED_ROUTES].some((route) =>
-      matchesRoute(pathname, route),
-    )
+    AUTHENTICATED_SHARED_ROUTES.some((route) => matchesRoute(pathname, route))
   ) {
     if (!token) {
       return NextResponse.redirect(new URL('/authentication', req.url));

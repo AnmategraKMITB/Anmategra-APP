@@ -27,12 +27,9 @@ beforeEach(() => {
 
 describe('/prototype/*', () => {
   it.each(['/prototype', '/prototype/oprec', '/prototype/oprec/forms'])(
-    'tanpa login %s dialihkan ke halaman login',
+    'tanpa login %s dilewatkan (gerbang ada di layout)',
     async (path) => {
-      expect(await run(path, null)).toEqual({
-        kind: 'redirect',
-        to: '/authentication',
-      });
+      expect(await run(path, null)).toEqual({ kind: 'next' });
     },
   );
 
