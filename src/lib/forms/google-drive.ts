@@ -134,7 +134,11 @@ async function getSilentToken(clientId: string): Promise<string | null> {
         client_id: clientId,
         scope: SCOPE,
         callback: (response) =>
-          resolve(response.error || !response.access_token ? null : response.access_token),
+          resolve(
+            response.error || !response.access_token
+              ? null
+              : response.access_token,
+          ),
       });
       client.requestAccessToken({ prompt: 'none' });
     });
@@ -166,13 +170,15 @@ async function assertDriveSpace(size: number, token: string): Promise<void> {
       );
     }
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Penyimpanan')) throw error;
+    if (error instanceof Error && error.message.includes('Penyimpanan'))
+      throw error;
   }
 }
 
 /**
- * Upload jawaban berkas ke Drive pengisi, lalu jadikan public-read.
- * Catatan: permission `anyone` tetap bisa diblokir oleh kebijakan Workspace.
+ * Upload jawaban berkas ke Drive pengisi. Aplikasi hanya menyimpan tautannya;
+ * pengisi sendiri yang mengatur akses (diingatkan di form), karena kebijakan
+ * Workspace sering melarang berbagi publik lewat aplikasi.
  */
 export async function uploadToGoogleDrive(
   file: File,
@@ -226,27 +232,8 @@ export async function uploadToGoogleDrive(
     mimeType?: string;
     webViewLink?: string;
   };
-  if (!uploaded.id) throw new Error('Google Drive tidak mengembalikan file ID.');
-
-  const permission = await fetch(
-    `${DRIVE_API}/files/${encodeURIComponent(uploaded.id)}/permissions?fields=id`,
-    {
-      method: 'POST',
-      headers: {
-        ...headers,
-        'Content-Type': 'application/json; charset=UTF-8',
-      },
-      body: JSON.stringify({ role: 'reader', type: 'anyone' }),
-    },
-  );
-  if (!permission.ok) {
-    // Berkas sudah ada di Drive tetapi tidak bisa dibuka publik. Jangan
-    // tinggalkan file yatim: coba hapus diam-diam.
-    void deleteFromGoogleDrive(uploaded.id);
-    throw new Error(
-      'Berkas terunggah, tetapi izin “siapa saja yang punya tautan” gagal. Hubungi admin Google Workspace.',
-    );
-  }
+  if (!uploaded.id)
+    throw new Error('Google Drive tidak mengembalikan file ID.');
 
   return {
     itemId: uploaded.id,
@@ -257,6 +244,7 @@ export async function uploadToGoogleDrive(
     url:
       uploaded.webViewLink ??
       `https://drive.google.com/file/d/${uploaded.id}/view`,
+    // ponytail: skema mewajibkan `scope`; akses sebenarnya diatur pengisi.
     scope: 'anyone',
     provider: 'google-drive',
   };
