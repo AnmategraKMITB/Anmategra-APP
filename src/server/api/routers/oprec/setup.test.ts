@@ -617,6 +617,76 @@ describe('createFromSetup: pengelola (S17)', () => {
   });
 });
 
+describe('createFromSetup: opsi belum berlaku (#384)', () => {
+  it('menolak pengelola "level" atau "ketua" dan tak membuat oprec', async () => {
+    const w = await createOprecWorld(db);
+    for (const managers of ['level', 'ketua']) {
+      expect(
+        await codeOf(
+          callerFor(w.owner).oprec.createFromSetup({
+            ...baseInput(w),
+            answers: { managers },
+          } as never),
+        ),
+      ).toBe('BAD_REQUEST');
+    }
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+  });
+
+  it('menolak nilai resultsAccess di luar daftar', async () => {
+    const w = await createOprecWorld(db);
+    expect(
+      await codeOf(createWith(w, {}, { resultsAccess: 'ketua_saja' })),
+    ).toBe('BAD_REQUEST');
+  });
+});
+
+describe('gelombang tumpang tindih (#382)', () => {
+  const wave = (label: string, startsAt: string, endsAt: string) => ({
+    label,
+    startsAt: new Date(startsAt),
+    endsAt: new Date(endsAt),
+  });
+
+  it('createFromSetup menolak tumpang tindih dan menerima bersebelahan', async () => {
+    const w = await createOprecWorld(db);
+    expect(
+      await codeOf(
+        createWith(w, {
+          waves: [
+            wave('A', '2030-01-01', '2030-01-10'),
+            wave('B', '2030-01-05', '2030-01-20'),
+          ],
+        }),
+      ),
+    ).toBe('BAD_REQUEST');
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+    await createWith(w, {
+      waves: [
+        wave('A', '2030-01-01', '2030-01-10'),
+        wave('B', '2030-01-10', '2030-01-20'),
+      ],
+    });
+    expect(await db.select().from(recruitment)).toHaveLength(1);
+  });
+
+  it('replaceWaves menolak tumpang tindih', async () => {
+    const w = await createOprecWorld(db);
+    const { recruitmentId } = await createWith(w, {});
+    expect(
+      await codeOf(
+        callerFor(w.owner).oprec.replaceWaves({
+          recruitmentId,
+          waves: [
+            wave('A', '2030-01-01', '2030-01-10'),
+            wave('B', '2030-01-09', '2030-01-20'),
+          ],
+        }),
+      ),
+    ).toBe('BAD_REQUEST');
+  });
+});
+
 describe('createFromSetup: kelengkapan organogram (#383)', () => {
   it('menolak penilai umum dari bagian tanpa anggota dan menyebut namanya', async () => {
     const { w, hr } = await worldWithGeneralUnit();

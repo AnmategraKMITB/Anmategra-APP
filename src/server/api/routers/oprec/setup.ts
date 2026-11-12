@@ -1,5 +1,15 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import {
+  and,
+  asc,
+  count,
+  eq,
+  inArray,
+  isNull,
+  notInArray,
+  sql,
+} from 'drizzle-orm';
+import { waveOverlapMessage } from '~/lib/oprec/waves';
 import { canManageLembaga } from '~/server/api/access';
 import { oprecPeriodProcedure } from '~/server/api/trpc';
 import {
@@ -168,12 +178,32 @@ async function loadTree(db: Queryable, periodId: string) {
       )
       .orderBy(asc(organizationPosition.sort_order)),
   ]);
+  const placed = await db
+    .select({
+      unitId: organizationPosition.unitId,
+      rank: organizationPosition.rank,
+    })
+    .from(placement)
+    .innerJoin(
+      organizationPosition,
+      eq(organizationPosition.id, placement.positionId),
+    )
+    .innerJoin(
+      organizationUnit,
+      eq(organizationUnit.id, organizationPosition.unitId),
+    )
+    .where(eq(organizationUnit.structure_id, structure.id));
   return {
     structureId: structure.id,
     name: structure.name,
     levelLabels: resolveLevelLabels(structure.levelLabels, units),
     units,
     positions,
+    /** Bagian yang punya penempat, dan yang penempatnya mengisi posisi ketua. */
+    staffedUnitIds: [...new Set(placed.map((r) => r.unitId))],
+    headedUnitIds: [
+      ...new Set(placed.filter((r) => r.rank === 'head').map((r) => r.unitId)),
+    ],
   };
 }
 
@@ -213,14 +243,26 @@ export const setupProcedures = {
             .where(eq(recruitment.periodId, input.eventId))
         ).map((r) => r.formId),
       );
-      const usable: typeof forms = [];
+      const usable: ((typeof forms)[number] & { hasUnitChoice: boolean })[] =
+        [];
       for (const f of forms) {
         if (bound.has(f.id)) continue;
         const [subs] = await ctx.db
           .select({ n: count() })
           .from(formSubmission)
           .where(eq(formSubmission.formId, f.id));
-        if ((subs?.n ?? 0) === 0) usable.push(f);
+        if ((subs?.n ?? 0) > 0) continue;
+        const [uc] = await ctx.db
+          .select({ n: count() })
+          .from(formField)
+          .where(
+            and(
+              eq(formField.formId, f.id),
+              eq(formField.type, 'unit_choice'),
+              isNull(formField.archivedAt),
+            ),
+          );
+        usable.push({ ...f, hasUnitChoice: (uc?.n ?? 0) > 0 });
       }
       return { sources, sourcePeriodId, tree, forms: usable };
     }),
@@ -347,14 +389,29 @@ export const setupProcedures = {
         await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
         await assertUnitHasPeople(ctx.db, generalUnitId);
       }
+      // Opsi pengelola 'level' dan 'ketua' belum berlaku; jangan simpan seolah aktif.
+      const managersAnswer = (input.answers as { managers?: unknown }).managers;
+      if (managersAnswer === 'level' || managersAnswer === 'ketua') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Opsi pengelola per bagian atau hanya ketua belum tersedia. Pilih "Saya saja" atau "Saya dan orang tertentu".',
+        });
+      }
       // Ketua menilai (mode bukan `umum`) atau memutuskan (veto): tiap divisi
       // yang dibuka harus punya ketua.
-      if (input.settings.assessorMode !== 'umum' || input.settings.headDecides) {
+      if (
+        input.settings.assessorMode !== 'umum' ||
+        input.settings.headDecides
+      ) {
         await assertDivisionsHaveHead(
           ctx.db,
           input.divisions.map((d) => d.unitId),
         );
       }
+      const overlap = waveOverlapMessage(input.waves);
+      if (overlap)
+        throw new TRPCError({ code: 'BAD_REQUEST', message: overlap });
       // S15: tanpa syarat gugur, kriteria gugur tidak boleh ada.
       if (
         input.settings.hasGugur === false &&
