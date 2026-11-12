@@ -2086,6 +2086,40 @@ export const recruitment = createTable(
   }),
 );
 
+/**
+ * Draf wizard setup sebelum oprec ada: satu draf per (periode, pengguna).
+ * `saveSetup` butuh `recruitment` yang sudah ada, jadi draf tahap awal
+ * disimpan di sini dan dihapus saat `createFromSetup` berhasil.
+ */
+export const recruitmentSetupDraft = createTable(
+  'recruitment_setup_draft',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    periodId: varchar('period_id', { length: 255 })
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Jawaban wizard (`WizardState`), bentuknya dijaga klien. */
+    state: jsonb('state').$type<Record<string, unknown>>().notNull(),
+    /** Langkah terakhir yang dibuka, mis. 'S12a'. */
+    step: varchar('step', { length: 8 }).notNull().default('S1'),
+    /** 'steps' atau 'summary'. */
+    phase: varchar('phase', { length: 16 }).notNull().default('steps'),
+    ...timestamps,
+  },
+  (table) => ({
+    periodUserUnique: uniqueIndex('recruitment_setup_draft_period_user_unique').on(
+      table.periodId,
+      table.userId,
+    ),
+  }),
+);
+
 export const recruitmentWave = createTable(
   'recruitment_wave',
   {

@@ -436,6 +436,38 @@ export function stepProblem(
   }
 }
 
+/**
+ * Langkah pertama (urut tampil) yang masih bermasalah, termasuk yang dilewati
+ * lewat "Pakai bawaan untuk sisanya". Null bila semua langkah lolos.
+ */
+export function firstInvalidStep(
+  steps: StepId[],
+  s: WizardState,
+  c: WizardCtx,
+): { id: StepId; problem: string } | null {
+  for (const id of steps) {
+    const problem = stepProblem(id, s, c);
+    if (problem) return { id, problem };
+  }
+  return null;
+}
+
+/** Memulihkan state dari draf server di atas bawaan; kriteria dinormalkan. */
+export function restoreState(
+  base: WizardState,
+  saved: Record<string, unknown>,
+): { state: WizardState; remapped: number } {
+  const { criteria, remapped } = normalizeCriteria(saved.criteria);
+  return {
+    state: {
+      ...base,
+      ...(saved as Partial<WizardState>),
+      criteria,
+    },
+    remapped,
+  };
+}
+
 export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
   const rules = s.eligibility.enabled
     ? s.eligibility.rules.map((r) => {

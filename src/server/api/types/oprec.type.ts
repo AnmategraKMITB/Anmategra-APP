@@ -264,6 +264,14 @@ export const SetupOptionsInputSchema = z.object({
   sourcePeriodId: id.optional(),
 });
 
+export const SetupDraftGetInputSchema = z.object({ eventId: id });
+export const SetupDraftSaveInputSchema = z.object({
+  eventId: id,
+  state: z.record(z.string(), z.unknown()),
+  step: z.string().min(1).max(8),
+  phase: z.enum(['steps', 'summary']),
+});
+
 export const SetupFormChoiceSchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal('template'),

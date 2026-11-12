@@ -4,8 +4,11 @@ import {
   type WizardCtx,
   buildInput,
   defaultState,
+  firstInvalidStep,
   normalizeCriteria,
+  restoreState,
   stepProblem,
+  visibleSteps,
 } from './model';
 
 const ctx: WizardCtx = {
@@ -137,5 +140,44 @@ describe('buildInput: pengelola', () => {
     expect(buildInput(s, ctx).managers).toEqual(['a@itb.ac.id', '13523001']);
     s.managers = 'saya';
     expect(buildInput(s, ctx).managers).toEqual([]);
+  });
+});
+
+describe('validasi ulang langkah yang dilewati (H-08, K-04)', () => {
+  it('menemukan langkah bermasalah di depan langkah sekarang', () => {
+    const s = stateWithDivisions();
+    s.name = '';
+    s.maxChoices = 2;
+    const steps = visibleSteps(s, { hasMultipleSources: false });
+    expect(firstInvalidStep(steps, s, ctx)?.id).toBe('S1');
+    s.name = 'Oprec';
+    s.rubrics = 'umum';
+    s.criteria = { umum: [{ name: '', kind: 'skor', weight: 10 }] };
+    const bad = firstInvalidStep(
+      visibleSteps(s, { hasMultipleSources: false }),
+      s,
+      ctx,
+    );
+    expect(bad?.id).toBe('S23');
+  });
+
+  it('null bila semua langkah lolos', () => {
+    const s = stateWithDivisions();
+    s.criteria = {};
+    s.maxChoices = 2;
+    expect(
+      firstInvalidStep(visibleSteps(s, { hasMultipleSources: false }), s, ctx),
+    ).toBeNull();
+  });
+
+  it('restoreState menormalkan kriteria lama dan menghitungnya', () => {
+    const base = defaultState('Kegiatan', 'ev-1');
+    const { state, remapped } = restoreState(base, {
+      name: 'Draf',
+      criteria: { umum: [{ name: 'X', kind: 'gugur_otomatis' }] },
+    });
+    expect(state.name).toBe('Draf');
+    expect(state.criteria.umum?.[0]?.kind).toBe('gugur_manual');
+    expect(remapped).toBe(1);
   });
 });

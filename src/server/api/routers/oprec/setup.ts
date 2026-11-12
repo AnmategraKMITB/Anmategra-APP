@@ -24,12 +24,15 @@ import {
   recruitmentAssessor,
   recruitmentDivision,
   recruitmentEligibilityRule,
+  recruitmentSetupDraft,
   recruitmentWave,
   users,
 } from '~/server/db/schema';
 
 import {
   CreateFromSetupInputSchema,
+  SetupDraftGetInputSchema,
+  SetupDraftSaveInputSchema,
   SetupOptionsInputSchema,
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
@@ -218,6 +221,67 @@ export const setupProcedures = {
         if ((subs?.n ?? 0) === 0) usable.push(f);
       }
       return { sources, sourcePeriodId, tree, forms: usable };
+    }),
+
+  /** Draf wizard milik pengguna ini pada periode ini, atau null. */
+  setupDraftGet: oprecPeriodProcedure
+    .input(SetupDraftGetInputSchema)
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({
+          state: recruitmentSetupDraft.state,
+          step: recruitmentSetupDraft.step,
+          phase: recruitmentSetupDraft.phase,
+          updatedAt: recruitmentSetupDraft.updated_at,
+        })
+        .from(recruitmentSetupDraft)
+        .where(
+          and(
+            eq(recruitmentSetupDraft.periodId, input.eventId),
+            eq(recruitmentSetupDraft.userId, ctx.session.user.id),
+          ),
+        );
+      return row ?? null;
+    }),
+
+  /** Simpan draf (upsert per periode + pengguna) tiap pindah langkah. */
+  setupDraftSave: oprecPeriodProcedure
+    .input(SetupDraftSaveInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const values = {
+        state: input.state,
+        step: input.step,
+        phase: input.phase,
+      };
+      await ctx.db
+        .insert(recruitmentSetupDraft)
+        .values({
+          periodId: input.eventId,
+          userId: ctx.session.user.id,
+          ...values,
+        })
+        .onConflictDoUpdate({
+          target: [
+            recruitmentSetupDraft.periodId,
+            recruitmentSetupDraft.userId,
+          ],
+          set: { ...values, updated_at: new Date() },
+        });
+      return { ok: true as const };
+    }),
+
+  setupDraftDiscard: oprecPeriodProcedure
+    .input(SetupDraftGetInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(recruitmentSetupDraft)
+        .where(
+          and(
+            eq(recruitmentSetupDraft.periodId, input.eventId),
+            eq(recruitmentSetupDraft.userId, ctx.session.user.id),
+          ),
+        );
+      return { ok: true as const };
     }),
 
   /**
@@ -489,6 +553,15 @@ export const setupProcedures = {
               unitNames: await unitNames(tx, unitIds),
             });
           }
+
+          await tx
+            .delete(recruitmentSetupDraft)
+            .where(
+              and(
+                eq(recruitmentSetupDraft.periodId, input.eventId),
+                eq(recruitmentSetupDraft.userId, ctx.session.user.id),
+              ),
+            );
 
           return {
             recruitmentId,
