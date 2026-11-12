@@ -55,17 +55,23 @@ const ACCESS: Record<
   },
   admin: {
     label: 'Admin',
-    description: 'Hanya untuk akun dengan `role = admin`.',
+    description:
+      'Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.',
   },
   'admin-permission': {
     label: 'Operator admin',
     description:
       'Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.',
   },
+  mahasiswa: {
+    label: 'Mahasiswa',
+    description:
+      'Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).',
+  },
   lembaga: {
     label: 'Lembaga (owner)',
     description:
-      'Hanya untuk akun dengan `role = lembaga`. Akses dicek dari role saja, bukan dari `lembagaId` di input.',
+      'Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.',
   },
   'lembaga-scoped': {
     label: 'Owner / Admin Lembaga',

@@ -1,19 +1,15 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
-import type { events, mahasiswa, users } from '~/server/db/schema';
+import type { events } from '~/server/db/schema';
 import type { Kepanitiaan } from '~/types/kepanitiaan';
+import { MahasiswaProfileSchema } from './mahasiswa-profile.type';
 
-type User = InferSelectModel<typeof users>;
-type Mahasiswa = InferSelectModel<typeof mahasiswa>;
 type Event = InferSelectModel<typeof events>;
 
 export const GetMahasiswaInputSchema = z.object({ mahasiswaId: z.string() });
 
 export const GetMahasiswaOutputSchema = z.object({
-  mahasiswaData: z.object({
-    mahasiswa: z.custom<Mahasiswa>(),
-    user: z.custom<User>(),
-  }),
+  mahasiswaData: MahasiswaProfileSchema,
   newestEvent: z.array(z.custom<Kepanitiaan>()),
   memberLembaga: z.array(
     z.object({
