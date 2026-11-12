@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import { type Metadata } from 'next';
 import KegiatanPageContent from './_components/kegiatan-page-content';
 
 export const metadata: Metadata = {

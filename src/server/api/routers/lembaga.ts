@@ -1526,7 +1526,7 @@ export const lembagaRouter = createTRPCRouter({
           where: eq(events.id, input.event_id),
         });
 
-        if (!event || event.org_id !== ctx.lembagaId) {
+        if (event?.org_id !== ctx.lembagaId) {
           throw new TRPCError({ code: 'FORBIDDEN' });
         }
 

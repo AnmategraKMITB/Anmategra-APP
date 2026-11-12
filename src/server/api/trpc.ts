@@ -59,6 +59,7 @@ export type ApiMeta = {
     | 'authenticated'
     | 'admin'
     | 'admin-permission'
+    | 'mahasiswa'
     | 'lembaga-scoped'
     | 'lembaga-owner'
     | 'event-scoped'
@@ -222,12 +223,12 @@ export const adminProcedure = t.procedure
   .meta({ access: 'admin' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
-    if (
-      !ctx.session ||
-      !ctx.session.user ||
-      ctx.session.user.role !== 'admin'
-    ) {
+    // 401 = belum login; 403 = sudah login tetapi bukan admin.
+    if (!ctx.session?.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
+    }
+    if (ctx.session.user.role !== 'admin') {
+      throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({
       ctx: {
@@ -280,6 +281,19 @@ export const adminPermissionProcedure = (required: AdminPermission) =>
         },
       });
     });
+
+/**
+ * Hanya Account Role `mahasiswa`. Untuk tindakan yang mengubah data milik
+ * mahasiswa sendiri; role lain ditolak (403) alih-alih berhasil tanpa efek.
+ */
+export const mahasiswaProcedure = protectedProcedure
+  .meta({ access: 'mahasiswa' })
+  .use(({ ctx, next }) => {
+    if (ctx.session.user.role !== 'mahasiswa') {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next();
+  });
 
 // Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
 // tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.

@@ -35,7 +35,7 @@ export function rehypeGithubAlerts() {
         (child) => child.type === 'element' && child.tagName === 'p',
       );
       const firstText = firstParagraph?.children?.[0];
-      if (!firstText || firstText.type !== 'text' || !firstText.value) return;
+      if (firstText?.type !== 'text' || !firstText.value) return;
 
       const match = ALERT_RE.exec(firstText.value);
       if (!match) return;

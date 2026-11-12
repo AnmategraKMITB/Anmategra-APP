@@ -130,3 +130,101 @@ export async function createOperator(
     .returning();
   return row!;
 }
+
+// ---------------------------------------------------------------------------
+// Pabrik data untuk profil mahasiswa dan keterlibatannya.
+// ---------------------------------------------------------------------------
+
+let nimCounter = 0;
+
+export async function createMahasiswa(
+  db: TestDb,
+  userId: string,
+  over: Partial<typeof schema.mahasiswa.$inferInsert> = {},
+) {
+  nimCounter += 1;
+  const [row] = await db
+    .insert(schema.mahasiswa)
+    .values({
+      userId,
+      nim: 13523000 + nimCounter,
+      jurusan: 'Teknik Informatika',
+      angkatan: 2023,
+      lineId: 'line-rahasia',
+      whatsapp: '081200000000',
+      ...over,
+    })
+    .returning();
+  return row!;
+}
+
+export async function addMembership(
+  db: TestDb,
+  lembagaId: string,
+  userId: string,
+  status: 'aktif' | 'keluar' = 'aktif',
+) {
+  await db
+    .insert(schema.lembagaMembership)
+    .values({ lembagaId, userId, status, source: 'manual' });
+}
+
+export async function requestEventAssociation(
+  db: TestDb,
+  eventId: string,
+  userId: string,
+  status: 'Pending' | 'Accepted' | 'Declined' = 'Pending',
+) {
+  await db.insert(schema.associationRequests).values({
+    id: crypto.randomUUID(),
+    event_id: eventId,
+    user_id: userId,
+    division: 'Acara',
+    position: 'Staf',
+    status,
+  });
+}
+
+export async function requestLembagaAssociation(
+  db: TestDb,
+  lembagaId: string,
+  userId: string,
+  status: 'Pending' | 'Accepted' | 'Declined' = 'Pending',
+) {
+  await db.insert(schema.associationRequestsLembaga).values({
+    id: crypto.randomUUID(),
+    lembagaId,
+    user_id: userId,
+    division: 'Acara',
+    position: 'Staf',
+    status,
+  });
+}
+
+/** Menempatkan pengguna pada satu jabatan di struktur aktif sebuah kegiatan. */
+export async function placeInEvent(
+  db: TestDb,
+  eventId: string,
+  userId: string,
+) {
+  const [structure] = await db
+    .insert(schema.organizationStructure)
+    .values({ eventId, name: 'Struktur Uji', is_active: true })
+    .returning();
+  const [unit] = await db
+    .insert(schema.organizationUnit)
+    .values({ structure_id: structure!.id, name: 'Acara', level: 1 })
+    .returning();
+  const [position] = await db
+    .insert(schema.organizationPosition)
+    .values({
+      unitId: unit!.id,
+      title: 'Staf',
+      rank: 'staff',
+      kind: 'nonstruktural',
+    })
+    .returning();
+  await db
+    .insert(schema.placement)
+    .values({ positionId: position!.id, userId, source: 'manual' });
+}

@@ -94,7 +94,7 @@
           "admin"
         ],
         "summary": "admin.addVerifiedEmail",
-        "description": "Menambahkan email ke whitelist `verified_user` agar email tsb diizinkan mendaftar di sistem.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`.",
+        "description": "Menambahkan email ke whitelist `verified_user` agar email tsb diizinkan mendaftar di sistem.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
         "security": [
           {
             "sessionCookie": []
@@ -215,7 +215,7 @@
           "admin"
         ],
         "summary": "admin.deleteVerifiedEmail",
-        "description": "Menghapus email dari whitelist `verified_user`. Jika email tsb sudah terhubung ke akun aktif, seluruh akun `users` ikut dihapus (hard delete — cascade ke semua tabel berelasi FK `ON DELETE CASCADE`: account, mahasiswa, lembaga, dst). - ⚠️ perlu konfirmasi: bentuk output tidak konsisten antar 3 skenario di atas dan tidak divalidasi `.output()` — client harus menangani union type secara manual.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`.",
+        "description": "Menghapus email dari whitelist `verified_user`. Jika email tsb sudah terhubung ke akun aktif, seluruh akun `users` ikut dihapus (hard delete — cascade ke semua tabel berelasi FK `ON DELETE CASCADE`: account, mahasiswa, lembaga, dst). - ⚠️ perlu konfirmasi: bentuk output tidak konsisten antar 3 skenario di atas dan tidak divalidasi `.output()` — client harus menangani union type secara manual.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
         "security": [
           {
             "sessionCookie": []
@@ -583,7 +583,7 @@
           "admin"
         ],
         "summary": "admin.uploadAlumniCsv",
-        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`.",
+        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
         "security": [
           {
             "sessionCookie": []
@@ -28893,7 +28893,7 @@
           "users"
         ],
         "summary": "users.editProfilMahasiswa",
-        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "**Akses:** Mahasiswa — Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).",
         "security": [
           {
             "sessionCookie": []
@@ -28953,7 +28953,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Mahasiswa (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -30588,7 +30588,7 @@
           "users"
         ],
         "summary": "users.requestAssociation",
-        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "**Akses:** Mahasiswa — Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).",
         "security": [
           {
             "sessionCookie": []
@@ -30648,7 +30648,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Mahasiswa (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -31077,7 +31077,7 @@
           "users"
         ],
         "summary": "users.toggleRaporVisibility",
-        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "description": "**Akses:** Mahasiswa — Hanya untuk akun dengan `role = mahasiswa`; role lain ditolak (403).",
         "security": [
           {
             "sessionCookie": []
@@ -31137,7 +31137,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Mahasiswa (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -53316,12 +53316,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           },
@@ -54337,6 +54420,15 @@
           },
           "noWhatsapp": {
             "type": "string"
+          },
+          "showWhatsapp": {
+            "type": "boolean"
+          },
+          "showLine": {
+            "type": "boolean"
+          },
+          "showEmail": {
+            "type": "boolean"
           }
         }
       },
@@ -54597,12 +54689,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           }
@@ -54630,12 +54805,95 @@
           "mahasiswaData": {
             "type": "object",
             "properties": {
-              "mahasiswa": {},
-              "user": {}
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "image": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "email": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "image",
+                  "email"
+                ],
+                "additionalProperties": false
+              },
+              "mahasiswa": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "nim": {
+                    "type": "number"
+                  },
+                  "jurusan": {
+                    "type": "string"
+                  },
+                  "angkatan": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "aktif",
+                      "alumni"
+                    ]
+                  },
+                  "raporVisible": {
+                    "type": "boolean"
+                  },
+                  "lineId": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "whatsapp": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "showWhatsapp": {
+                    "type": "boolean"
+                  },
+                  "showLine": {
+                    "type": "boolean"
+                  },
+                  "showEmail": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "userId",
+                  "nim",
+                  "jurusan",
+                  "angkatan",
+                  "status",
+                  "raporVisible",
+                  "lineId",
+                  "whatsapp",
+                  "showWhatsapp",
+                  "showLine",
+                  "showEmail"
+                ],
+                "additionalProperties": false
+              }
             },
             "required": [
-              "mahasiswa",
-              "user"
+              "user",
+              "mahasiswa"
             ],
             "additionalProperties": false
           }
