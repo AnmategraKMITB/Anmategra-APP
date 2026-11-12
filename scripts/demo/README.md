@@ -55,6 +55,21 @@ Seed (`scripts/demo/seed.ts`) idempoten dan mengisi data untuk kelima peran. Sem
 
 Data HMD: kepengurusan 2025/2026, Demo Fest 2025 (selesai), Demo Fest 2026 (berjalan, organogram 4 bidang, panitia terisi), Open Recruitment Staf 2026/2027; tiga oprec (selesai dengan hasil dirilis, terbuka dengan pendaftar, draf), tiga laporan berstatus berbeda, dan permintaan asosiasi yang menunggu.
 
+## Mereset data demo
+
+```bash
+APP_ENV=demo NEXT_PUBLIC_APP_ENV=demo DATABASE_URL=<database demo> npm run demo:reset
+```
+
+Perintah ini mengosongkan semua tabel aplikasi (`anmategra_*`, termasuk `recruitment*`, `access_grant`, `admin_permission`) dengan satu `TRUNCATE ... CASCADE` dalam transaksi, lalu menjalankan seed. Daftar tabel dibaca dari katalog PostgreSQL, jadi tabel baru ikut otomatis. Tabel migrasi Drizzle tidak disentuh. Menjalankannya dua kali menghasilkan kondisi yang sama. Variabel lingkungan harus dikirim dari shell (`tsx` tidak membaca `.env`).
+
+Penjaga lingkungan (`scripts/demo/lib/guard.ts`) menolak berjalan, sebelum koneksi database dibuka, kecuali:
+
+- `APP_ENV=demo` (dan `NEXT_PUBLIC_APP_ENV=demo` bila diisi);
+- `DATABASE_URL` terisi dan menunjuk host lokal (`localhost`, `127.0.0.1`, `::1`) atau host/nama database yang memuat kata `demo`.
+
+Untuk hanya menambah data tanpa menghapus: `npm run demo:seed` (idempoten).
+
 ## Pengamanan demo
 
 - Pasang HTTP Basic Auth, Cloudflare Access, atau IP allowlist di reverse proxy untuk `demo.anmategra.com`.

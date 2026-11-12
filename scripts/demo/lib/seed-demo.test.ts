@@ -3,6 +3,7 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 
 import { createTestDb, resetDb } from '~/test/test-db';
 import { DEMO_ACCOUNTS, seedDemo, type DemoDb } from './seed-demo';
+import { countAll } from './test-helpers';
 
 const { db, close } = createTestDb();
 const demoDb = db as unknown as DemoDb;
@@ -10,25 +11,10 @@ const demoDb = db as unknown as DemoDb;
 afterAll(close);
 beforeEach(() => resetDb(db));
 
-/** Jumlah baris tiap tabel aplikasi, urut nama tabel. */
-export async function countAll(): Promise<Record<string, number>> {
-  const tables = await db.execute<{ tablename: string }>(
-    sql`select tablename from pg_tables where schemaname = 'public' and tablename like 'anmategra\\_%' order by tablename`,
-  );
-  const counts: Record<string, number> = {};
-  for (const { tablename } of tables) {
-    const [row] = await db.execute<{ n: number }>(
-      sql`select count(*)::int as n from ${sql.identifier(tablename)}`,
-    );
-    counts[tablename] = row!.n;
-  }
-  return counts;
-}
-
 describe('seedDemo', () => {
   it('membuat data untuk kelima peran', async () => {
     await seedDemo(demoDb);
-    const c = await countAll();
+    const c = await countAll(db);
 
     expect(c.anmategra_user).toBe(DEMO_ACCOUNTS.length);
     expect(c.anmategra_user).toBeGreaterThanOrEqual(10);
@@ -69,8 +55,8 @@ describe('seedDemo', () => {
 
   it('idempoten: dua kali jalan menghasilkan jumlah baris sama', async () => {
     await seedDemo(demoDb);
-    const first = await countAll();
+    const first = await countAll(db);
     await seedDemo(demoDb);
-    expect(await countAll()).toEqual(first);
+    expect(await countAll(db)).toEqual(first);
   });
 });

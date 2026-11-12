@@ -10,6 +10,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
+    "demo:seed": "tsx scripts/demo/seed.ts",
+    "demo:reset": "tsx scripts/demo/reset.ts",
     "db:clear": "tsx src/server/db/seeding/clear-db.ts",
     "db:generate:csv": "cd ./src/server/db/seeding && python3 generate_csv.py && cd ../../../",
     "db:seed-csv": "tsx src/server/db/seeding/seed.ts",
