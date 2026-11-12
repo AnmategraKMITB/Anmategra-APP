@@ -39,15 +39,21 @@ npm run db:migrate
 APP_ENV=demo npx tsx scripts/demo/seed.ts
 ```
 
-Akun seed:
+Seed (`scripts/demo/seed.ts`) idempoten dan mengisi data untuk kelima peran. Semua akun memakai password dari `DEMO_PASSWORD_HASH`; email superadmin tetap mendapat role admin.
 
-- `demo.admin@demo.anmategra.local`
-- `demo.mahasiswa@demo.anmategra.local`
-- `demo.lembaga@demo.anmategra.local`
-- `13523094@mahasiswa.itb.ac.id`
-- `anmategra@km.itb.ac.id`
+| Peran skenario | Email | Data terkait |
+| --- | --- | --- |
+| Superadmin | `demo.admin@demo.anmategra.local` | role `admin` |
+| Mahasiswa | `demo.mahasiswa@demo.anmategra.local` | NIM 13523001; pelamar diterima di Demo Fest 2026; belum melamar oprec terbuka |
+| Owner Lembaga | `demo.lembaga@demo.anmategra.local` | lembaga Himpunan Demo (HMD) |
+| Admin Lembaga | `demo.admin-lembaga@demo.anmategra.local` | `access_grant` fitur `admin` pada HMD |
+| Admin Kegiatan | `demo.admin-kegiatan@demo.anmategra.local` | `access_grant` (`oprec`, `forms`, `organization`) pada Demo Fest 2026 |
+| Operator | `demo.operator@demo.anmategra.local` | `admin_permission`: `accounts.read`, `lembaga.read`, `audit.read`, `reports.read`, `reports.write` |
+| Anggota | `demo.mhs1` sampai `demo.mhs8@demo.anmategra.local` | panitia, pelamar, anggota HMD |
+| Superadmin kedua (email nyata) | `13523094@mahasiswa.itb.ac.id` | mahasiswa NIM 13523094 |
+| Superadmin kedua (email nyata) | `anmategra@km.itb.ac.id` | lembaga Anmategra (ANM) |
 
-Semua memakai password dari `DEMO_PASSWORD_HASH`. Email superadmin tetap mendapat role admin.
+Data HMD: kepengurusan 2025/2026, Demo Fest 2025 (selesai), Demo Fest 2026 (berjalan, organogram 4 bidang, panitia terisi), Open Recruitment Staf 2026/2027; tiga oprec (selesai dengan hasil dirilis, terbuka dengan pendaftar, draf), tiga laporan berstatus berbeda, dan permintaan asosiasi yang menunggu.
 
 ## Pengamanan demo
 
