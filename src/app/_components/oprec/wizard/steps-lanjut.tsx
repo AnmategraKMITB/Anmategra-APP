@@ -11,7 +11,7 @@ import {
   ScoreArt,
   SectionsArt,
 } from './illustrations';
-import { type CriterionDraft, type WizardState } from './model';
+import { type CriterionDraft, type WizardState, criteriaSlots } from './model';
 import { type StepProps } from './steps-types';
 import {
   Labeled,
@@ -226,7 +226,7 @@ export function StepGugur({ s, update }: StepProps) {
   return (
     <Choice
       title="Ada syarat gugur?"
-      hint="Contoh: “bersedia = Tidak” gugur otomatis, atau twibbon diperiksa penilai. Kriteria gugur diikat ke pertanyaan di langkah ikatan."
+      hint="Contoh: twibbon diperiksa penilai, dan yang tidak memenuhi dinyatakan gugur secara manual."
       art={<ScoreArt />}
       label="Syarat gugur"
       value={s.hasGugur ? 'ya' : 'tidak'}
@@ -236,7 +236,8 @@ export function StepGugur({ s, update }: StepProps) {
         {
           value: 'ya',
           label: 'Ya',
-          description: 'Tambahkan kriteria jenis gugur di langkah kriteria.',
+          description:
+            'Tambahkan kriteria jenis gugur manual di langkah kriteria.',
         },
       ]}
     />
@@ -270,12 +271,10 @@ export function StepVeto({ s, update, c }: StepProps) {
 
 export function StepKriteria({ s, update, trees, c }: StepProps) {
   const unitName = c.unitName;
-  const slots: { key: string; label: string }[] = [
-    ...(s.rubrics !== 'divisi' ? [{ key: 'umum', label: 'Umum' }] : []),
-    ...(s.rubrics !== 'umum'
-      ? Object.keys(s.divisions).map((id) => ({ key: id, label: unitName(id) }))
-      : []),
-  ];
+  const slots = criteriaSlots(s).map((key) => ({
+    key,
+    label: key === 'umum' ? 'Umum' : unitName(key),
+  }));
   void trees;
   const setSlot = (key: string, list: CriterionDraft[]) =>
     update({ criteria: { ...s.criteria, [key]: list } });
@@ -355,7 +354,6 @@ function Slot({
                 }
               >
                 <option value="skor">Skor</option>
-                <option value="gugur_otomatis">Gugur otomatis</option>
                 <option value="gugur_manual">Gugur manual</option>
               </select>
               <input

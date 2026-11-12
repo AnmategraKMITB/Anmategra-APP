@@ -18,9 +18,57 @@ export type RuleDraft = {
 
 export type CriterionDraft = {
   name: string;
-  kind: 'skor' | 'gugur_otomatis' | 'gugur_manual';
+  /** `gugur_otomatis` ditunda sampai wizard mengumpulkan `gateRule` (keputusan #345). */
+  kind: WizardCriterionKind;
   weight: number;
 };
+
+export const WIZARD_CRITERION_KINDS = ['skor', 'gugur_manual'] as const;
+export type WizardCriterionKind = (typeof WIZARD_CRITERION_KINDS)[number];
+
+/**
+ * Memulihkan kriteria dari jawaban yang tersimpan. Jenis yang tidak lagi
+ * ditawarkan (mis. `gugur_otomatis` dari draf lama) dipetakan ke
+ * `gugur_manual` dan dihitung, supaya antarmuka dapat memberi tahu pengguna.
+ */
+export function normalizeCriteria(raw: unknown): {
+  criteria: Record<string, CriterionDraft[]>;
+  remapped: number;
+} {
+  const criteria: Record<string, CriterionDraft[]> = {};
+  let remapped = 0;
+  if (typeof raw !== 'object' || raw === null) return { criteria, remapped };
+  for (const [slot, list] of Object.entries(raw)) {
+    if (!Array.isArray(list)) continue;
+    criteria[slot] = list.flatMap((item: unknown) => {
+      if (typeof item !== 'object' || item === null) return [];
+      const k = item as Record<string, unknown>;
+      let kind: WizardCriterionKind;
+      if (k.kind === 'skor') kind = 'skor';
+      else if (k.kind === 'gugur_manual') kind = 'gugur_manual';
+      else {
+        kind = 'gugur_manual';
+        remapped += 1;
+      }
+      return [
+        {
+          name: typeof k.name === 'string' ? k.name : '',
+          kind,
+          weight: typeof k.weight === 'number' ? k.weight : 0,
+        },
+      ];
+    });
+  }
+  return { criteria, remapped };
+}
+
+/** Lingkup kriteria yang sedang ditampilkan: 'umum' dan/atau tiap tujuan, sesuai rubrik. */
+export function criteriaSlots(s: WizardState): string[] {
+  return [
+    ...(s.rubrics !== 'divisi' ? ['umum'] : []),
+    ...(s.rubrics !== 'umum' ? Object.keys(s.divisions) : []),
+  ];
+}
 
 export type PresetId = 'besar' | 'ami' | 'himpunan' | 'custom';
 
@@ -357,6 +405,20 @@ export function stepProblem(
       return s.maxChoices > c.divisionCount
         ? `Jumlah pilihan melebihi jumlah ${c.labels[1].toLowerCase()} yang dibuka (${c.divisionCount}).`
         : null;
+    case 'S23':
+      for (const slot of criteriaSlots(s)) {
+        for (const k of s.criteria[slot] ?? []) {
+          if (!k.name.trim())
+            return 'Beri nama setiap kriteria atau hapus barisnya.';
+          if (
+            k.kind === 'skor' &&
+            (!Number.isInteger(k.weight) || k.weight < 0 || k.weight > 100)
+          ) {
+            return 'Bobot kriteria berupa bilangan bulat 0 sampai 100.';
+          }
+        }
+      }
+      return null;
     case 'S10':
       if (s.formMode === 'existing' && !s.existingFormId)
         return 'Pilih formnya.';
@@ -415,6 +477,14 @@ export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
       match: s.eligibility.match,
       rules,
     } as CreateFromSetupInput['eligibility'],
+    criteria: criteriaSlots(s).flatMap((scope) =>
+      (s.criteria[scope] ?? []).map((k) => ({
+        scope,
+        name: k.name.trim(),
+        kind: k.kind,
+        ...(k.kind === 'skor' ? { weight: k.weight } : {}),
+      })),
+    ),
     settings: {
       scoringMode: s.scoringMode,
       statusMethod: s.statusMethod,

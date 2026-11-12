@@ -1,0 +1,100 @@
+import { describe, expect, it } from 'vitest';
+
+import {
+  type WizardCtx,
+  buildInput,
+  defaultState,
+  normalizeCriteria,
+  stepProblem,
+} from './model';
+
+const ctx: WizardCtx = {
+  eventId: 'ev-1',
+  eventName: 'Kegiatan',
+  lembagaId: 'lem-1',
+  labels: ['Bidang', 'Divisi'],
+  hasOrganogram: true,
+  forms: [],
+  divisionCount: 2,
+  unitName: (id) => id,
+};
+
+function stateWithDivisions() {
+  const s = defaultState('Kegiatan', 'ev-1');
+  s.divisions = {
+    u1: { positionId: 'p1', sourcePeriodId: 'ev-1' },
+    u2: { positionId: 'p2', sourcePeriodId: 'ev-1' },
+  };
+  return s;
+}
+
+describe('buildInput: kriteria', () => {
+  it('mengirim kriteria umum dan per tujuan dengan jenis serta bobot', () => {
+    const s = stateWithDivisions();
+    s.criteria = {
+      umum: [{ name: ' Motivasi ', kind: 'skor', weight: 70 }],
+      u1: [
+        { name: 'Twibbon', kind: 'gugur_manual', weight: 55 },
+        { name: 'Teknis', kind: 'skor', weight: 30 },
+      ],
+    };
+    expect(buildInput(s, ctx).criteria).toEqual([
+      { scope: 'umum', name: 'Motivasi', kind: 'skor', weight: 70 },
+      { scope: 'u1', name: 'Twibbon', kind: 'gugur_manual' },
+      { scope: 'u1', name: 'Teknis', kind: 'skor', weight: 30 },
+    ]);
+  });
+
+  it('melewatkan slot yang tidak ditampilkan menurut rubrik atau tujuan yang dibatalkan', () => {
+    const s = stateWithDivisions();
+    s.rubrics = 'umum';
+    s.criteria = {
+      umum: [{ name: 'Motivasi', kind: 'skor', weight: 100 }],
+      u1: [{ name: 'Sisa', kind: 'skor', weight: 10 }],
+    };
+    expect((buildInput(s, ctx).criteria ?? []).map((k) => k.name)).toEqual([
+      'Motivasi',
+    ]);
+
+    s.rubrics = 'keduanya';
+    delete s.divisions.u1;
+    s.criteria = { u1: [{ name: 'Sisa', kind: 'skor', weight: 10 }] };
+    expect(buildInput(s, ctx).criteria).toEqual([]);
+  });
+});
+
+describe('stepProblem S23', () => {
+  it('menolak nama kosong dan bobot di luar 0-100', () => {
+    const s = stateWithDivisions();
+    s.criteria = { umum: [{ name: ' ', kind: 'skor', weight: 10 }] };
+    expect(stepProblem('S23', s, ctx)).toMatch(/nama/i);
+    s.criteria = { umum: [{ name: 'A', kind: 'skor', weight: 101 }] };
+    expect(stepProblem('S23', s, ctx)).toMatch(/0 sampai 100/);
+    s.criteria = { umum: [{ name: 'A', kind: 'skor', weight: 2.5 }] };
+    expect(stepProblem('S23', s, ctx)).toMatch(/bulat/);
+    s.criteria = { umum: [{ name: 'A', kind: 'gugur_manual', weight: 999 }] };
+    expect(stepProblem('S23', s, ctx)).toBeNull();
+  });
+});
+
+describe('normalizeCriteria: draf lama', () => {
+  it('memetakan gugur_otomatis ke gugur_manual tanpa kehilangan kriteria', () => {
+    const { criteria, remapped } = normalizeCriteria({
+      umum: [
+        { name: 'Bersedia', kind: 'gugur_otomatis', weight: 0 },
+        { name: 'Motivasi', kind: 'skor', weight: 50 },
+      ],
+      u1: 'rusak',
+    });
+    expect(remapped).toBe(1);
+    expect(criteria.umum).toEqual([
+      { name: 'Bersedia', kind: 'gugur_manual', weight: 0 },
+      { name: 'Motivasi', kind: 'skor', weight: 50 },
+    ]);
+    expect(criteria.u1).toBeUndefined();
+  });
+
+  it('menerima masukan bukan objek', () => {
+    expect(normalizeCriteria(null)).toEqual({ criteria: {}, remapped: 0 });
+  });
+});
