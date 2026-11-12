@@ -290,9 +290,10 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
             )}
           </Button>
           {editable ? (
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <Input
                 value={position.title}
+                title={position.title}
                 onChange={(event) =>
                   dispatch({
                     type: 'updatePosition',
@@ -305,7 +306,7 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
               />
             </div>
           ) : (
-            <span className="flex-1 text-sm font-semibold text-neutral-1000">
+            <span className="min-w-0 flex-1 break-words text-sm font-semibold text-neutral-1000">
               {position.title}
             </span>
           )}

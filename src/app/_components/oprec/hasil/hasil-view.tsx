@@ -202,7 +202,7 @@ export function HasilView({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {(['xlsx', 'csv'] as const).map((format) => (
+          {(['csv', 'xlsx'] as const).map((format) => (
             <Button
               key={format}
               asChild

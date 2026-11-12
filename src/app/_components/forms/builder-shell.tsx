@@ -149,12 +149,15 @@ export function FormBuilder({
               ← {backLabel}
             </Link>
             <div className="mt-2 flex flex-wrap items-center gap-3">
-              <input
+              {/* Textarea agar judul panjang membungkus, tidak terpotong (L-08). */}
+              <textarea
                 key={detail.title}
+                rows={1}
                 defaultValue={detail.title}
                 aria-label="Judul form"
                 maxLength={255}
-                className="min-w-0 flex-1 rounded-lg border border-transparent bg-transparent px-2 py-1 text-2xl font-semibold text-neutral-1000 hover:border-neutral-400 focus-visible:border-primary-400 focus-visible:outline-none sm:text-[32px]"
+                style={{ fieldSizing: 'content' } as React.CSSProperties}
+                className="min-w-0 flex-1 resize-none break-words rounded-lg border border-transparent bg-transparent px-2 py-1 text-2xl font-semibold text-neutral-1000 hover:border-neutral-400 focus-visible:border-primary-400 focus-visible:outline-none sm:text-[32px]"
                 onBlur={(e) => {
                   const value = e.currentTarget.value.trim();
                   if (value && value !== detail.title) {
@@ -163,7 +166,12 @@ export function FormBuilder({
                     e.currentTarget.value = detail.title;
                   }
                 }}
-                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    e.currentTarget.blur();
+                  }
+                }}
               />
               <StatusBadge status={detail.status} />
             </div>

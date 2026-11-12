@@ -1,5 +1,6 @@
 'use client';
 
+import { DATETIME_MAX, DATETIME_MIN } from '~/lib/date-input';
 import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -432,6 +433,8 @@ export function StepGelombang({ s, update }: StepProps) {
                   <input
                     id={id}
                     type="datetime-local"
+                    min={DATETIME_MIN}
+                    max={DATETIME_MAX}
                     className={fieldClass}
                     value={w.startsAt}
                     onChange={(e) => setWave(i, { startsAt: e.target.value })}
@@ -443,6 +446,8 @@ export function StepGelombang({ s, update }: StepProps) {
                   <input
                     id={id}
                     type="datetime-local"
+                    min={DATETIME_MIN}
+                    max={DATETIME_MAX}
                     className={fieldClass}
                     value={w.endsAt}
                     onChange={(e) => setWave(i, { endsAt: e.target.value })}

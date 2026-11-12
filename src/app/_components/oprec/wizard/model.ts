@@ -1,3 +1,4 @@
+import { MAX_YEAR, MIN_YEAR, isValidDateInput } from '~/lib/date-input';
 import {
   ELIGIBILITY_ATTRIBUTE_LABELS,
   type EligibilityAttribute,
@@ -333,6 +334,9 @@ export function stepProblem(
       for (const w of s.waves) {
         if (!w.label.trim() || !w.startsAt || !w.endsAt) {
           return 'Lengkapi nama dan tanggal tiap gelombang.';
+        }
+        if (!isValidDateInput(w.startsAt) || !isValidDateInput(w.endsAt)) {
+          return `Tanggal gelombang harus bertahun ${MIN_YEAR} sampai ${MAX_YEAR}.`;
         }
         if (new Date(w.endsAt) <= new Date(w.startsAt)) {
           return 'Tanggal berakhir harus setelah tanggal mulai.';

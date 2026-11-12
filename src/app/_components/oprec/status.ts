@@ -23,3 +23,10 @@ export const pendaftarHref = (
 /** Tombol Buka pendaftaran hanya berlaku untuk oprec yang masih Draf. */
 export const canOpenRegistration = (status: 'draft' | 'open' | 'closed') =>
   status === 'draft';
+
+/**
+ * Judul gelombang dari labelnya (L-01). Label disimpan polos ("1", "3.1"),
+ * tetapi data lama bisa berisi "Gelombang 1"; awalan ganda dibuang.
+ */
+export const waveTitle = (label: string) =>
+  `Gelombang ${label.trim().replace(/^gelombang\s+/i, '')}`;

@@ -130,12 +130,13 @@ export function StepMetode({ s, update }: StepProps) {
           value: 'peringkat_kuota_minimum',
           label: 'Peringkat dalam kuota dengan nilai minimum',
           description:
-            'Yang teratas sebanyak kuota dan tidak di bawah nilai minimum lolos.',
+            'Yang teratas sebanyak kuota dan tidak di bawah nilai minimum lolos. Divisi berkuota 0 berarti tanpa batas: semua kandidat yang tidak di bawah nilai minimum lolos.',
         },
         {
           value: 'peringkat_kuota',
           label: 'Peringkat dalam kuota',
-          description: 'Yang teratas sebanyak kuota lolos.',
+          description:
+            'Yang teratas sebanyak kuota lolos. Divisi berkuota 0 berarti tanpa batas: semua kandidat yang tidak gugur lolos tanpa penyaringan.',
         },
         {
           value: 'ambang',
