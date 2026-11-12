@@ -176,12 +176,32 @@ async function loadTree(db: Queryable, periodId: string) {
       )
       .orderBy(asc(organizationPosition.sort_order)),
   ]);
+  const placed = await db
+    .select({
+      unitId: organizationPosition.unitId,
+      rank: organizationPosition.rank,
+    })
+    .from(placement)
+    .innerJoin(
+      organizationPosition,
+      eq(organizationPosition.id, placement.positionId),
+    )
+    .innerJoin(
+      organizationUnit,
+      eq(organizationUnit.id, organizationPosition.unitId),
+    )
+    .where(eq(organizationUnit.structure_id, structure.id));
   return {
     structureId: structure.id,
     name: structure.name,
     levelLabels: resolveLevelLabels(structure.levelLabels, units),
     units,
     positions,
+    /** Bagian yang punya penempat, dan yang penempatnya mengisi posisi ketua. */
+    staffedUnitIds: [...new Set(placed.map((r) => r.unitId))],
+    headedUnitIds: [
+      ...new Set(placed.filter((r) => r.rank === 'head').map((r) => r.unitId)),
+    ],
   };
 }
 

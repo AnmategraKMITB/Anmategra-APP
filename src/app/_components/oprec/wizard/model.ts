@@ -188,6 +188,9 @@ export type WizardCtx = {
   divisionCount: number;
   /** Nama bagian lintas sumber, untuk ringkasan. */
   unitName: (unitId: string) => string;
+  /** Bagian punya penempat / penempat di posisi ketua, dari organogram. */
+  hasPeople: (unitId: string) => boolean;
+  hasHead: (unitId: string) => boolean;
 };
 
 export const STEP_IDS = [
@@ -457,6 +460,28 @@ export function openWarnings(
   c: WizardCtx,
 ): { id: StepId; message: string }[] {
   const out: { id: StepId; message: string }[] = [];
+  if (
+    steps.includes('S14') &&
+    s.assessors !== 'ketua' &&
+    s.generalAssessorUnitId &&
+    !c.hasPeople(s.generalAssessorUnitId)
+  ) {
+    out.push({
+      id: 'S14',
+      message: `Bagian "${c.unitName(s.generalAssessorUnitId)}" belum punya anggota, jadi tidak bisa menjadi penilai umum. Isi bagian itu di organogram atau pilih bagian lain.`,
+    });
+  }
+  if (steps.includes('S3') && (s.assessors !== 'umum' || s.veto)) {
+    const names = Object.keys(s.divisions)
+      .filter((u) => !c.hasHead(u))
+      .map((u) => `"${c.unitName(u)}"`);
+    if (names.length > 0) {
+      out.push({
+        id: 'S3',
+        message: `${names.join(', ')} belum punya ketua. Isi ketua di organogram, atau pilih penilai umum dan matikan veto ketua.`,
+      });
+    }
+  }
   if (steps.includes('S10') && s.formMode === 'existing') {
     const f = c.forms.find((x) => x.id === s.existingFormId);
     if (f && !f.hasUnitChoice) {

@@ -22,6 +22,8 @@ const ctx: WizardCtx = {
   forms: [],
   divisionCount: 2,
   unitName: (id) => id,
+  hasPeople: () => true,
+  hasHead: () => true,
 };
 
 function stateWithDivisions() {
@@ -232,5 +234,38 @@ describe('openWarnings (#385)', () => {
     expect(openWarnings(steps, s, withForm(true))).toEqual([]);
     s.formMode = 'template';
     expect(openWarnings(steps, s, withForm(false))).toEqual([]);
+  });
+});
+
+describe('openWarnings: organogram (#385)', () => {
+  const c2 = (people: string[], heads: string[]) =>
+    ({
+      ...ctx,
+      unitName: (u: string) => u,
+      hasPeople: (u: string) => people.includes(u),
+      hasHead: (u: string) => heads.includes(u),
+    }) as WizardCtx;
+
+  it('memperingatkan penilai umum kosong dan divisi tanpa ketua', () => {
+    const s = stateWithDivisions();
+    s.assessors = 'keduanya';
+    s.generalAssessorUnitId = 'hr';
+    const ids = openWarnings(['S3', 'S14'] as StepId[], s, c2([], [])).map(
+      (w) => w.id,
+    );
+    expect(ids).toEqual(['S14', 'S3']);
+  });
+
+  it('tanpa peringatan bila lengkap atau mode penilai umum tanpa veto', () => {
+    const s = stateWithDivisions();
+    s.assessors = 'keduanya';
+    s.generalAssessorUnitId = 'hr';
+    const all = Object.keys(s.divisions);
+    expect(openWarnings(['S3', 'S14'] as StepId[], s, c2(['hr'], all))).toEqual(
+      [],
+    );
+    s.assessors = 'umum';
+    s.veto = false;
+    expect(openWarnings(['S3'] as StepId[], s, c2(['hr'], []))).toEqual([]);
   });
 });
