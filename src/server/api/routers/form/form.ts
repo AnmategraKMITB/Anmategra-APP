@@ -1,5 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { desc, eq, sql } from 'drizzle-orm';
+import { isReservedFormSlug } from '~/lib/forms/slug';
+import { recruitmentStatusFor } from '~/lib/oprec/registration';
 import {
   createTRPCRouter,
   eventScopedProcedure,
@@ -12,9 +14,9 @@ import {
   formField,
   formSection,
   formSubmission,
+  recruitment,
 } from '~/server/db/schema';
 import { deleteUploadedFiles, keyFromUploadUrl } from '~/server/uploads';
-import { isReservedFormSlug } from '~/lib/forms/slug';
 
 import {
   CreateFormForEventInputSchema,
@@ -37,6 +39,12 @@ import {
   UpdateFormInputSchema,
   UpdateFormOutputSchema,
 } from '../../types/form.type';
+import {
+  assertOprecManager,
+  assertReopenable,
+  lockRegistrationByForm,
+  setRegistrationStatus,
+} from '../oprec/registration';
 import {
   type Queryable,
   assertOwnedImageUrl,
@@ -230,6 +238,22 @@ export const formFormRouter = createTRPCRouter({
           // meloloskan formulir rilis yang tenggatnya sudah lewat.
           const current = await lockForm(tx, ctx.form.id);
 
+          // Formulir oprec yang tenggatnya sudah lewat: memundurkan atau
+          // mengosongkan tenggat sama dengan membuka pendaftaran lagi.
+          const now = new Date();
+          if (
+            input.closesAt !== undefined &&
+            current.closesAt !== null &&
+            current.closesAt.getTime() <= now.getTime() &&
+            (input.closesAt === null ||
+              input.closesAt.getTime() > now.getTime())
+          ) {
+            const lock = await lockRegistrationByForm(tx, current.id);
+            if (lock?.recruitment.status === 'open') {
+              await assertReopenable(tx, lock.recruitment, now);
+            }
+          }
+
           // Formulir oprec: identitas dari akun, satu respons per akun, tanpa
           // edit setelah kirim, dan tanpa kuota respons (kuota ada di tujuan
           // penempatan). Mengaktifkannya akan merusak data pendaftar.
@@ -290,7 +314,8 @@ export const formFormRouter = createTRPCRouter({
             if (isReservedFormSlug(input.slug)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
-                message: 'Slug tersebut dipakai oleh jalur lain. Pilih slug lain.',
+                message:
+                  'Slug tersebut dipakai oleh jalur lain. Pilih slug lain.',
               });
             }
             const [clash] = await tx
@@ -417,7 +442,38 @@ export const formFormRouter = createTRPCRouter({
     .output(SetFormStatusOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
+        // Formulir oprec: statusnya hanya boleh diubah pengelola oprec, dan
+        // status oprec ikut berubah. Hak dicek sebelum transaksi dibuka.
+        const [bound] = await ctx.db
+          .select({ periodId: recruitment.periodId })
+          .from(recruitment)
+          .where(eq(recruitment.formId, ctx.form.id));
+        if (bound) {
+          await assertOprecManager(ctx.db, ctx.session.user, bound.periodId);
+        }
+
         const row = await ctx.db.transaction(async (tx) => {
+          const lock = await lockRegistrationByForm(tx, ctx.form.id);
+          if (lock) {
+            if (lock.recruitment.periodId !== bound?.periodId) {
+              throw new TRPCError({
+                code: 'CONFLICT',
+                message: 'Formulir baru saja dipakai oprec. Coba lagi.',
+              });
+            }
+            await setRegistrationStatus(
+              tx,
+              lock,
+              recruitmentStatusFor(input.status),
+              { actorId: ctx.session.user.id, via: 'form' },
+            );
+            const [fresh] = await tx
+              .select()
+              .from(form)
+              .where(eq(form.id, ctx.form.id));
+            return fresh!;
+          }
+
           const current = await lockForm(tx, ctx.form.id);
           if (current.status === input.status) return current;
 

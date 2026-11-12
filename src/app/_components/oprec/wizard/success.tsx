@@ -23,27 +23,16 @@ export function Done({
   basePath: OprecBase;
 }) {
   const [opened, setOpened] = useState(false);
-  const setFormStatus = api.form.setStatus.useMutation();
-  const setStatus = api.oprec.setStatus.useMutation();
-  const busy = setFormStatus.isPending || setStatus.isPending;
-  const error =
-    setFormStatus.error?.message ?? setStatus.error?.message ?? null;
+  // Satu mutasi: oprec dibuka dan formulirnya terbit dalam transaksi yang sama.
+  const setStatus = api.oprec.setStatus.useMutation({
+    onSuccess: () => setOpened(true),
+  });
+  const busy = setStatus.isPending;
+  const problems =
+    setStatus.error?.message.split('\n').filter((line) => line.trim()) ?? [];
 
-  const open = async () => {
-    try {
-      await setFormStatus.mutateAsync({
-        formId: created.formId,
-        status: 'Published',
-      });
-      await setStatus.mutateAsync({
-        recruitmentId: created.recruitmentId,
-        status: 'open',
-      });
-      setOpened(true);
-    } catch {
-      // pesan galat ditampilkan dari state mutasi
-    }
-  };
+  const open = () =>
+    setStatus.mutate({ recruitmentId: created.recruitmentId, status: 'open' });
 
   return (
     <div className="max-w-2xl">
@@ -74,13 +63,28 @@ export function Done({
         </ul>
       ) : null}
 
-      {error ? (
-        <p
+      {problems.length > 0 ? (
+        <div
           role="alert"
           className="mt-5 rounded-xl bg-danger-light px-4 py-3 text-sm text-danger-dark"
         >
-          Pendaftaran belum bisa dibuka: {error}
-        </p>
+          <p className="font-semibold">Pendaftaran belum bisa dibuka:</p>
+          <ul className="mt-1 list-disc pl-5">
+            {problems.map((problem) => (
+              <li key={problem}>{problem}</li>
+            ))}
+          </ul>
+          <p className="mt-2">
+            Periksa formulirnya lewat{' '}
+            <Link
+              href={`${basePath}/forms/${created.formId}`}
+              className="font-semibold underline underline-offset-2"
+            >
+              pembuat formulir
+            </Link>
+            .
+          </p>
+        </div>
       ) : null}
 
       <div className="mt-8 flex flex-wrap gap-3">

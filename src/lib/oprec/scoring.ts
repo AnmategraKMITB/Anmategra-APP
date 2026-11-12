@@ -322,21 +322,23 @@ export function overrideNeedsReview(
 // ---------------------------------------------------------------------------
 
 /**
- * Penilaian pendaftar dibuka setelah gelombangnya berakhir; `allowEarly`
- * membukanya lebih awal. Oprec tanpa gelombang dibuka saat oprec ditutup.
+ * Penilaian seorang pendaftar terbuka bila `allowEarly` aktif, bila pendaftaran
+ * sudah berakhir (lihat `registrationEnded` di `./registration`), atau bila
+ * gelombang pendaftar itu sendiri sudah berakhir. Oprec tanpa gelombang
+ * menunggu pendaftaran berakhir.
  */
 export function assessmentOpen(input: {
   now: Date;
   allowEarly: boolean;
-  recruitmentStatus: 'draft' | 'open' | 'closed';
+  registrationEnded: boolean;
   waveEndsAt: Date | null;
   hasWaves: boolean;
 }): boolean {
-  if (input.allowEarly) return true;
+  if (input.allowEarly || input.registrationEnded) return true;
   if (input.hasWaves) {
     return input.waveEndsAt !== null && input.waveEndsAt <= input.now;
   }
-  return input.recruitmentStatus === 'closed';
+  return false;
 }
 
 /** Kode tetap untuk pendaftar pada mode blind, mis. `P-4K2Z`. */

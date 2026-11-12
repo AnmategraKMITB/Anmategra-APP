@@ -60,7 +60,8 @@ import {
 import { loadGateAnswers } from './gate-answers';
 import { logAction } from './log';
 import { recomputeDivisions } from './recompute';
-import { type Queryable, conflict, notFound } from './services';
+import { loadRegistrationWindow } from './registration';
+import { conflict, notFound } from './services';
 
 const OK = { success: true };
 
@@ -109,14 +110,6 @@ function identity(
     prodi: row.prodi,
     angkatan: row.angkatan,
   };
-}
-
-async function loadWindow(db: Queryable, recruitmentId: string) {
-  const waves = await db
-    .select({ id: recruitmentWave.id, endsAt: recruitmentWave.endsAt })
-    .from(recruitmentWave)
-    .where(eq(recruitmentWave.recruitmentId, recruitmentId));
-  return new Map(waves.map((w) => [w.id, w.endsAt]));
 }
 
 export const assessProcedures = {
@@ -238,7 +231,7 @@ export const assessProcedures = {
       ]);
 
       const ids = rows.map((r) => r.id);
-      const [mine, choices, waves] = await Promise.all([
+      const [mine, choices, registration] = await Promise.all([
         ids.length && assessable.length
           ? ctx.db
               .select({
@@ -284,7 +277,7 @@ export const assessProcedures = {
               .where(inArray(applicationChoice.applicationId, ids))
               .orderBy(asc(applicationChoice.rank))
           : Promise.resolve([]),
-        loadWindow(ctx.db, rec.id),
+        loadRegistrationWindow(ctx.db, rec.id, new Date()),
       ]);
 
       // Antrean menampilkan status efektif: override aktif menggantikan hitungan.
@@ -358,9 +351,11 @@ export const assessProcedures = {
           open: assessmentOpen({
             now: new Date(),
             allowEarly: rec.allowEarlyAssessment,
-            recruitmentStatus: rec.status,
-            waveEndsAt: r.waveId ? (waves.get(r.waveId) ?? null) : null,
-            hasWaves: waves.size > 0,
+            registrationEnded: registration.registrationEnded,
+            waveEndsAt: r.waveId
+              ? (registration.waves.get(r.waveId) ?? null)
+              : null,
+            hasWaves: registration.waves.size > 0,
           }),
           progress: { done, total: assessable.length },
           choices: myChoices.map((c) => ({
@@ -546,7 +541,11 @@ export const assessProcedures = {
         ? (gate.answersBySubmission.get(app.formSubmissionId) ?? {})
         : {};
 
-      const waves = await loadWindow(ctx.db, rec.id);
+      const { waves, registrationEnded } = await loadRegistrationWindow(
+        ctx.db,
+        rec.id,
+        new Date(),
+      );
       const overrides =
         scopeChoice || divisionId === null
           ? await ctx.db
@@ -575,7 +574,7 @@ export const assessProcedures = {
         open: assessmentOpen({
           now: new Date(),
           allowEarly: rec.allowEarlyAssessment,
-          recruitmentStatus: rec.status,
+          registrationEnded,
           waveEndsAt: app.waveId ? (waves.get(app.waveId) ?? null) : null,
           hasWaves: waves.size > 0,
         }),
@@ -757,12 +756,17 @@ export const assessProcedures = {
           });
         }
 
-        const waves = await loadWindow(tx, rec.id);
+        // Dibaca di dalam transaksi agar status pendaftaran segar.
+        const { waves, registrationEnded } = await loadRegistrationWindow(
+          tx,
+          rec.id,
+          new Date(),
+        );
         if (
           !assessmentOpen({
             now: new Date(),
             allowEarly: rec.allowEarlyAssessment,
-            recruitmentStatus: rec.status,
+            registrationEnded,
             waveEndsAt: app.waveId ? (waves.get(app.waveId) ?? null) : null,
             hasWaves: waves.size > 0,
           })

@@ -1,8 +1,9 @@
 import { notFound } from 'next/navigation';
 import { api } from '~/trpc/server';
 
-import { loadManagedOprec, canOpenResults } from './access';
+import { canOpenResults, loadManagedOprec } from './access';
 import { ApplicantsView } from './applicants-view';
+import { OprecStatusBar } from './oprec-status-bar';
 import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';
 
@@ -28,15 +29,23 @@ export async function ApplicantsPage({
       periodName={event?.name ?? ''}
       backHref={`${basePath}/kegiatan/${kegiatanId}/oprec`}
       tabs={
-        <OprecTabs
-          basePath={basePath}
-          kegiatanId={kegiatanId}
-          recruitmentId={recruitmentId}
-          current="pendaftar"
-          showPendaftar
-          showPenempatan
-          showHasil={showHasil}
-        />
+        <>
+          <OprecStatusBar
+            recruitmentId={recruitmentId}
+            status={managed.status}
+            formHref={`${basePath}/forms/${managed.formId}`}
+            canManage
+          />
+          <OprecTabs
+            basePath={basePath}
+            kegiatanId={kegiatanId}
+            recruitmentId={recruitmentId}
+            current="pendaftar"
+            showPendaftar
+            showPenempatan
+            showHasil={showHasil}
+          />
+        </>
       }
     />
   );

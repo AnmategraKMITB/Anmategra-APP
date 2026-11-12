@@ -443,7 +443,7 @@ describe('assessmentOpen', () => {
   const base = {
     now,
     allowEarly: false,
-    recruitmentStatus: 'open' as const,
+    registrationEnded: false,
     waveEndsAt: null,
     hasWaves: false,
   };
@@ -470,12 +470,20 @@ describe('assessmentOpen', () => {
     );
   });
 
-  // Perilaku saat ini (N-1): tanpa gelombang, penilaian hanya terbuka bila
-  // status oprec "closed", dan belum ada UI yang menutup oprec. PR 2 mengubahnya.
-  it('tanpa gelombang: hanya terbuka bila oprec ditutup', () => {
-    expect(assessmentOpen({ ...base, recruitmentStatus: 'closed' })).toBe(true);
-    expect(assessmentOpen({ ...base, recruitmentStatus: 'open' })).toBe(false);
-    expect(assessmentOpen({ ...base, recruitmentStatus: 'draft' })).toBe(false);
+  it('tanpa gelombang: terbuka begitu pendaftaran berakhir', () => {
+    expect(assessmentOpen({ ...base, registrationEnded: true })).toBe(true);
+    expect(assessmentOpen({ ...base, registrationEnded: false })).toBe(false);
+  });
+
+  it('pendaftaran berakhir membuka semua pendaftar, termasuk gelombang yang belum usai', () => {
+    expect(
+      assessmentOpen({
+        ...base,
+        registrationEnded: true,
+        hasWaves: true,
+        waveEndsAt: future,
+      }),
+    ).toBe(true);
   });
 });
 

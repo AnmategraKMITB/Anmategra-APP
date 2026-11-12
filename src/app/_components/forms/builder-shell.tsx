@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '~/components/ui/dialog';
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -407,8 +415,36 @@ export function FormBuilder({
 
 function StatusActions({ status }: { status: FormStatus }) {
   const builder = useBuilder();
+  const [confirmClose, setConfirmClose] = useState(false);
+  const isOprec = Boolean(builder.detail?.oprec);
   return (
     <>
+      <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
+        <DialogContent className="rounded-[20px] sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Tutup form?</DialogTitle>
+            <DialogDescription>
+              {isOprec
+                ? 'Pendaftaran oprec ikut ditutup dan tidak menerima pendaftar baru. Penilaian terbuka untuk semua pendaftar.'
+                : 'Form tidak lagi menerima jawaban sampai dibuka kembali.'}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setConfirmClose(false)}>
+              Batal
+            </Button>
+            <Button
+              variant="warning"
+              onClick={() => {
+                setConfirmClose(false);
+                void builder.changeStatus('Closed');
+              }}
+            >
+              Tutup form
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       {status === 'Draft' ? (
         <Button
           variant="light_blue"
@@ -427,7 +463,7 @@ function StatusActions({ status }: { status: FormStatus }) {
           </Button>
           <Button
             variant="warning_outline"
-            onClick={() => void builder.changeStatus('Closed')}
+            onClick={() => setConfirmClose(true)}
           >
             Tutup form
           </Button>

@@ -151,12 +151,14 @@ describe('pendaftaran lewat form oprec', () => {
     expect(app!.formSubmissionId).not.toBeNull();
   });
 
-  it('oprec draf menolak pendaftaran walau formnya sudah terbit (H-01)', async () => {
+  // Sejak status oprec dan formulir diubah bersama, keadaan ini hanya ada pada
+  // data lama yang berselisih (H-01); gerbang pendaftaran tetap menolaknya.
+  it('oprec draf menolak pendaftaran walau formnya terbit (data lama berselisih)', async () => {
     const fx = await createOprecFixture(db, { open: false });
-    await callerFor(db, fx.owner).form.setStatus({
-      formId: fx.formId,
-      status: 'Published',
-    });
+    await db
+      .update(schema.form)
+      .set({ status: 'Published', publishedAt: new Date() })
+      .where(eq(schema.form.id, fx.formId));
 
     expect(await codeOf(applyToOprec(db, fx, ['Acara']))).toBe('FORBIDDEN');
     expect(

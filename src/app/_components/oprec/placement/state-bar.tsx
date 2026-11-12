@@ -94,9 +94,7 @@ export function StateBar({
       className="mt-6 grid gap-3 rounded-[24px] border border-neutral-400 bg-neutral-50 p-4 sm:p-5"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold text-neutral-1000">
-          Keadaan
-        </span>
+        <span className="text-sm font-semibold text-neutral-1000">Keadaan</span>
         <Chip tone={state === 'final' ? 'success' : 'primary'}>
           {LABEL[state]}
         </Chip>
@@ -107,11 +105,21 @@ export function StateBar({
         ) : null}
       </div>
       <p className="text-sm text-neutral-700">{HELP[state]}</p>
+      {state === 'berjalan' && !overview.registrationEnded ? (
+        <p className="text-sm text-neutral-700">
+          Pendaftaran masih dibuka. Tutup pendaftaran sebelum masuk masa
+          banding.
+        </p>
+      ) : null}
 
       {overview.isAdmin ? (
         <div className="flex flex-wrap gap-2">
           {state === 'berjalan' ? (
-            <Button size="sm" onClick={() => setAsk('masa_banding')}>
+            <Button
+              size="sm"
+              disabled={!overview.registrationEnded}
+              onClick={() => setAsk('masa_banding')}
+            >
               Masuk masa banding
             </Button>
           ) : null}

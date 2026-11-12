@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 
 import { canOpenResults, loadAssessableOprec } from './access';
 import { NilaiView } from './nilai/nilai-view';
+import { OprecStatusBar } from './oprec-status-bar';
 import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';
 
@@ -30,6 +31,16 @@ export async function NilaiPage({
           ← Kembali ke oprec
         </Link>
       ) : null}
+      <OprecStatusBar
+        recruitmentId={recruitmentId}
+        status={found.recruitment.status}
+        formHref={
+          found.access.isAdmin
+            ? `${basePath}/forms/${found.recruitment.formId}`
+            : null
+        }
+        canManage={found.access.isAdmin}
+      />
       <OprecTabs
         basePath={basePath}
         kegiatanId={kegiatanId}
