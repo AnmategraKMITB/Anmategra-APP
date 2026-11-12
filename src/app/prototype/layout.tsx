@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from 'crypto';
+import { scryptSync, timingSafeEqual } from 'crypto';
 import { and, eq, isNull, or, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
@@ -12,12 +12,12 @@ export const dynamic = 'force-dynamic';
 
 const COOKIE = 'prototype_access';
 
-// Nilai cookie = HMAC kata sandi; mengganti sandi atau NEXTAUTH_SECRET
-// otomatis mencabut semua akses lama.
+// Nilai cookie = scrypt(kata sandi, NEXTAUTH_SECRET); mengganti sandi atau
+// NEXTAUTH_SECRET otomatis mencabut semua akses lama.
 const token = (password: string) =>
-  createHmac('sha256', process.env.NEXTAUTH_SECRET ?? 'dev')
-    .update(`prototype:${password}`)
-    .digest('hex');
+  scryptSync(password, process.env.NEXTAUTH_SECRET ?? 'dev', 32).toString(
+    'hex',
+  );
 
 const same = (a: string, b: string) =>
   a.length === b.length && timingSafeEqual(Buffer.from(a), Buffer.from(b));
