@@ -8,7 +8,7 @@
  * yang terbalik bisa saling menunggu.
  */
 import { TRPCError } from '@trpc/server';
-import { and, count, eq, isNull, ne } from 'drizzle-orm';
+import { and, count, eq, isNull } from 'drizzle-orm';
 import {
   type FormStatus,
   REGISTRATION_TRANSITIONS,
@@ -18,12 +18,9 @@ import {
 } from '~/lib/oprec/registration';
 import { canManageEvent } from '~/server/api/access';
 import {
-  application,
-  applicationChoice,
   form,
   formField,
   formSubmission,
-  placementDecision,
   recruitment,
   recruitmentDivision,
   recruitmentWave,
@@ -147,9 +144,10 @@ export async function readinessProblems(
 }
 
 /**
- * Pendaftaran yang sudah berakhir hanya boleh dibuka lagi selama belum ada
- * keputusan penempatan: pendaftar baru akan menggeser peringkat dan kuota yang
- * sudah dipakai untuk memutuskan.
+ * Pendaftaran yang sudah berakhir boleh dibuka lagi selama penempatan masih
+ * berjalan dan hasil belum dirilis. Keputusan yang sudah ada tetap berlaku;
+ * pendaftar baru masuk sebagai pendaftar yang belum diputuskan. UI meminta
+ * konfirmasi sebelum membuka lagi.
  */
 export async function assertReopenable(
   db: Queryable,
@@ -163,25 +161,6 @@ export async function assertReopenable(
   }
   if (rec.resultsReleasedAt) {
     conflict('Hasil sudah dirilis, jadi pendaftaran tidak bisa dibuka lagi.');
-  }
-  const [decided] = await db
-    .select({ n: count() })
-    .from(placementDecision)
-    .innerJoin(
-      applicationChoice,
-      eq(applicationChoice.id, placementDecision.choiceId),
-    )
-    .innerJoin(application, eq(application.id, applicationChoice.applicationId))
-    .where(
-      and(
-        eq(application.recruitmentId, rec.id),
-        ne(applicationChoice.origin, 'closerec'),
-      ),
-    );
-  if ((decided?.n ?? 0) > 0) {
-    conflict(
-      'Sudah ada keputusan penempatan, jadi pendaftaran tidak bisa dibuka lagi.',
-    );
   }
   const waves = await db
     .select({ endsAt: recruitmentWave.endsAt })

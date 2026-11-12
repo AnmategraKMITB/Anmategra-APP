@@ -34,7 +34,7 @@ const ACTIONS: Record<
     label: 'Buka lagi',
     title: 'Buka pendaftaran lagi?',
     description:
-      'Formulir diterbitkan lagi. Pada oprec tanpa gelombang, penilaian dijeda sampai pendaftaran ditutup lagi; nilai yang sudah masuk tetap tersimpan. Tidak bisa dibuka lagi bila sudah ada keputusan penempatan.',
+      'Formulir diterbitkan lagi dan pendaftar baru bisa masuk. Keputusan penempatan yang sudah ada tetap berlaku; pendaftar baru masuk sebagai belum diputuskan. Pada oprec tanpa gelombang, penilaian dijeda sampai pendaftaran ditutup lagi, dan nilai yang sudah masuk tetap tersimpan.',
   },
 };
 

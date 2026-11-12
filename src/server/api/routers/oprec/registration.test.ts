@@ -192,7 +192,25 @@ describe('membuka pendaftaran lagi', () => {
     );
   };
 
-  it('berhasil selama belum ada keputusan penempatan', async () => {
+  const acceptFirst = async (
+    fx: Awaited<ReturnType<typeof createOprecFixture>>,
+  ) => {
+    const a = await applyToOprec(db, fx, ['Acara']);
+    const [choice] = await choicesOf(db, a.applicationId);
+    await callerFor(db, fx.divisions.Acara!.kadiv).oprec.decide({
+      recruitmentId: fx.recruitmentId,
+      choiceId: choice!.id,
+      decision: 'terima',
+    });
+    return choice!.id;
+  };
+  const placementsOf = (choiceId: string) =>
+    db
+      .select()
+      .from(schema.placement)
+      .where(eq(schema.placement.applicationChoiceId, choiceId));
+
+  it('berhasil selama penempatan masih berjalan', async () => {
     const fx = await createOprecFixture(db);
     await applyToOprec(db, fx, ['Acara']);
     expect(await closeAndReopen(fx)).toBe('OK');
@@ -202,16 +220,34 @@ describe('membuka pendaftaran lagi', () => {
     });
   });
 
-  it('ditolak setelah ada keputusan penempatan', async () => {
+  it('diizinkan walau sudah ada keputusan; keputusan itu tetap berlaku', async () => {
     const fx = await createOprecFixture(db);
-    const a = await applyToOprec(db, fx, ['Acara']);
-    const [choice] = await choicesOf(db, a.applicationId);
-    await callerFor(db, fx.divisions.Acara!.kadiv).oprec.decide({
+    const accepted = await acceptFirst(fx);
+    expect(await closeAndReopen(fx)).toBe('OK');
+    expect(await placementsOf(accepted)).toHaveLength(1);
+    // Pendaftar baru tetap bisa masuk setelah dibuka lagi.
+    expect(await codeOf(applyToOprec(db, fx, ['Humas']))).toBe('OK');
+  });
+
+  it('ditolak setelah penempatan masuk masa banding', async () => {
+    const fx = await createOprecFixture(db);
+    await acceptFirst(fx);
+    const owner = callerFor(db, fx.owner);
+    await owner.oprec.setStatus({
       recruitmentId: fx.recruitmentId,
-      choiceId: choice!.id,
-      decision: 'terima',
+      status: 'closed',
     });
-    expect(await closeAndReopen(fx)).toBe('CONFLICT');
+    await owner.oprec.setPlacementState({
+      recruitmentId: fx.recruitmentId,
+      state: 'masa_banding',
+    });
+    const code = await codeOf(
+      owner.oprec.setStatus({
+        recruitmentId: fx.recruitmentId,
+        status: 'open',
+      }),
+    );
+    expect(code).toBe('CONFLICT');
   });
 
   it('ditolak bila tenggat formulir sudah lewat', async () => {
@@ -223,27 +259,40 @@ describe('membuka pendaftaran lagi', () => {
     expect(await closeAndReopen(fx)).toBe('BAD_REQUEST');
   });
 
-  it('memundurkan tenggat yang sudah lewat diperlakukan sebagai buka lagi', async () => {
-    const fx = await createOprecFixture(db);
-    const a = await applyToOprec(db, fx, ['Acara']);
-    const [choice] = await choicesOf(db, a.applicationId);
-    await db
-      .update(schema.form)
-      .set({ closesAt: new Date(Date.now() - DAY) })
-      .where(eq(schema.form.id, fx.formId));
-    await callerFor(db, fx.divisions.Acara!.kadiv).oprec.decide({
-      recruitmentId: fx.recruitmentId,
-      choiceId: choice!.id,
-      decision: 'terima',
+  describe('memundurkan tenggat yang sudah lewat diperlakukan sebagai buka lagi', () => {
+    const passDeadline = (fx: { formId: string }) =>
+      db
+        .update(schema.form)
+        .set({ closesAt: new Date(Date.now() - DAY) })
+        .where(eq(schema.form.id, fx.formId));
+    const extendDeadline = (
+      fx: Awaited<ReturnType<typeof createOprecFixture>>,
+    ) =>
+      codeOf(
+        callerFor(db, fx.owner).form.update({
+          formId: fx.formId,
+          closesAt: new Date(Date.now() + DAY),
+        }),
+      );
+
+    it('boleh setelah ada keputusan selama penempatan masih berjalan', async () => {
+      const fx = await createOprecFixture(db);
+      const accepted = await acceptFirst(fx);
+      await passDeadline(fx);
+      expect(await extendDeadline(fx)).toBe('OK');
+      expect(await placementsOf(accepted)).toHaveLength(1);
     });
 
-    const code = await codeOf(
-      callerFor(db, fx.owner).form.update({
-        formId: fx.formId,
-        closesAt: new Date(Date.now() + DAY),
-      }),
-    );
-    expect(code).toBe('CONFLICT');
+    it('ditolak setelah penempatan masuk masa banding', async () => {
+      const fx = await createOprecFixture(db);
+      await acceptFirst(fx);
+      await passDeadline(fx);
+      await callerFor(db, fx.owner).oprec.setPlacementState({
+        recruitmentId: fx.recruitmentId,
+        state: 'masa_banding',
+      });
+      expect(await extendDeadline(fx)).toBe('CONFLICT');
+    });
   });
 });
 

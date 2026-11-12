@@ -415,32 +415,50 @@ export function FormBuilder({
 
 function StatusActions({ status }: { status: FormStatus }) {
   const builder = useBuilder();
-  const [confirmClose, setConfirmClose] = useState(false);
+  const [confirm, setConfirm] = useState<'close' | 'reopen' | null>(null);
   const isOprec = Boolean(builder.detail?.oprec);
+  const dialog =
+    confirm === 'close'
+      ? {
+          title: 'Tutup form?',
+          description: isOprec
+            ? 'Pendaftaran oprec ikut ditutup dan tidak menerima pendaftar baru. Penilaian terbuka untuk semua pendaftar.'
+            : 'Form tidak lagi menerima jawaban sampai dibuka kembali.',
+          action: 'Tutup form',
+          status: 'Closed' as const,
+        }
+      : {
+          title: 'Buka kembali pendaftaran oprec?',
+          description:
+            'Pendaftar baru bisa masuk lagi. Keputusan penempatan yang sudah ada tetap berlaku; pendaftar baru masuk sebagai belum diputuskan. Pada oprec tanpa gelombang, penilaian dijeda sampai pendaftaran ditutup lagi.',
+          action: 'Buka kembali',
+          status: 'Published' as const,
+        };
   return (
     <>
-      <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
+      <Dialog
+        open={confirm !== null}
+        onOpenChange={(open) => {
+          if (!open) setConfirm(null);
+        }}
+      >
         <DialogContent className="rounded-[20px] sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Tutup form?</DialogTitle>
-            <DialogDescription>
-              {isOprec
-                ? 'Pendaftaran oprec ikut ditutup dan tidak menerima pendaftar baru. Penilaian terbuka untuk semua pendaftar.'
-                : 'Form tidak lagi menerima jawaban sampai dibuka kembali.'}
-            </DialogDescription>
+            <DialogTitle>{dialog.title}</DialogTitle>
+            <DialogDescription>{dialog.description}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setConfirmClose(false)}>
+            <Button variant="ghost" onClick={() => setConfirm(null)}>
               Batal
             </Button>
             <Button
-              variant="warning"
+              variant={confirm === 'close' ? 'warning' : 'light_blue'}
               onClick={() => {
-                setConfirmClose(false);
-                void builder.changeStatus('Closed');
+                setConfirm(null);
+                void builder.changeStatus(dialog.status);
               }}
             >
-              Tutup form
+              {dialog.action}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -461,10 +479,7 @@ function StatusActions({ status }: { status: FormStatus }) {
           >
             Kembali ke draf
           </Button>
-          <Button
-            variant="warning_outline"
-            onClick={() => setConfirmClose(true)}
-          >
+          <Button variant="warning_outline" onClick={() => setConfirm('close')}>
             Tutup form
           </Button>
         </>
@@ -479,7 +494,11 @@ function StatusActions({ status }: { status: FormStatus }) {
           </Button>
           <Button
             variant="light_blue"
-            onClick={() => void builder.changeStatus('Published')}
+            onClick={() =>
+              isOprec
+                ? setConfirm('reopen')
+                : void builder.changeStatus('Published')
+            }
           >
             Buka kembali
           </Button>
