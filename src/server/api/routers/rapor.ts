@@ -18,6 +18,7 @@ import {
 } from '~/server/db/schema';
 
 import { lembagaMembersSq, periodMembersSq } from './organization/membership';
+import { contactAccess, type ContactViewer } from '../contact';
 
 import {
   GetAllNilaiProfilKegiatanInputSchema,
@@ -34,6 +35,31 @@ import {
   UpsertNilaiMahasiswaLembagaInputSchema,
   UpsertNilaiMahasiswaLembagaOutputSchema,
 } from '../types/rapor.type';
+
+/** Kontak yang boleh dilihat penonton; bidang yang disembunyikan menjadi string kosong. */
+async function visibleContactFields(
+  database: typeof import('~/server/db').db,
+  viewer: ContactViewer,
+  m: {
+    user_id: string;
+    lineId: string | null;
+    whatsapp: string | null;
+    showWhatsapp: boolean;
+    showLine: boolean;
+    showEmail: boolean;
+  },
+) {
+  const access = await contactAccess(database, viewer, {
+    userId: m.user_id,
+    showWhatsapp: m.showWhatsapp,
+    showLine: m.showLine,
+    showEmail: m.showEmail,
+  });
+  return {
+    lineId: access.line ? (m.lineId ?? '') : '',
+    whatsapp: access.whatsapp ? (m.whatsapp ?? '') : '',
+  };
+}
 
 export const raporRouter = createTRPCRouter({
   getAllNilaiProfilKegiatan: lembagaProcedure
@@ -160,6 +186,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
           })
@@ -206,8 +235,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -376,6 +404,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
           })
@@ -422,8 +453,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -537,6 +567,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
             raporVisible: mahasiswa.raporVisible,
@@ -591,8 +624,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -641,6 +673,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
             raporVisible: mahasiswa.raporVisible,
@@ -695,8 +730,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
