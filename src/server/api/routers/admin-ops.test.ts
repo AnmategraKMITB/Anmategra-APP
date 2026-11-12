@@ -157,6 +157,63 @@ describe('menurunkan Superadmin', () => {
     expect(row?.role).toBe('mahasiswa');
     expect(await auditActions()).toContain('superadmin_remove');
   });
+
+  it('Superadmin yang punya baris lembaga diturunkan menjadi lembaga', async () => {
+    const actor = await makeSuperadmin();
+    const target = await makeSuperadmin();
+    await db.insert(lembaga).values({
+      name: 'HMX',
+      type: 'Himpunan',
+      userId: target.id,
+    } as never);
+    await ops(actor).superadminRemove({ userId: target.id, confirmEmail: target.email });
+    const [row] = await db.select().from(users).where(eq(users.id, target.id));
+    expect(row?.role).toBe('lembaga');
+  });
+});
+
+describe('peran diperiksa ulang ke basis data (token lama ditolak)', () => {
+  it('Superadmin diturunkan: prosedur Superadmin, console, dan legacy ditolak', async () => {
+    const actor = await makeSuperadmin();
+    const stale = { id: actor.id, role: 'admin' as const };
+    // Sebelum diturunkan semua lolos.
+    expect(await codeOf(ops(stale).superadminList())).toBe('OK');
+    expect(await codeOf(console_(stale).stats())).toBe('OK');
+    expect(await codeOf(legacy(stale).uploadAlumniCsv({ nims: [13523001] }))).toBe('OK');
+
+    await db.update(users).set({ role: 'mahasiswa' }).where(eq(users.id, actor.id));
+
+    expect(await codeOf(ops(stale).superadminList())).toBe('FORBIDDEN');
+    expect(await codeOf(ops(stale).lembagaCreate({ name: 'X', type: 'Himpunan', email: 'x@gmail.com' }))).toBe('FORBIDDEN');
+    expect(await codeOf(console_(stale).stats())).toBe('FORBIDDEN');
+    expect(await codeOf(console_(stale).usersList({} as never))).toBe('FORBIDDEN');
+    expect(await codeOf(legacy(stale).uploadAlumniCsv({ nims: [13523001] }))).toBe('FORBIDDEN');
+    expect(await console_(stale).myAdminPermissions()).toEqual({ permissions: [], expiresAt: null });
+  });
+
+  it('Operator dicabut izinnya: panggilan berikutnya ditolak', async () => {
+    const op = await makeOperator(['accounts.read', 'alumni.write', 'lembaga.write']);
+    expect(await codeOf(console_(op).stats())).toBe('OK');
+    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe('OK');
+
+    await db
+      .update(adminPermission)
+      .set({ revokedAt: new Date() })
+      .where(eq(adminPermission.userId, op.id));
+
+    expect(await codeOf(console_(op).stats())).toBe('FORBIDDEN');
+    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe('FORBIDDEN');
+    expect(await codeOf(ops(op).verifiedEmailList())).toBe('FORBIDDEN');
+  });
+
+  it('Operator dengan izin kedaluwarsa ditolak', async () => {
+    const op = await makeOperator(['accounts.read']);
+    await db
+      .update(adminPermission)
+      .set({ expiresAt: new Date(Date.now() - 1000) })
+      .where(eq(adminPermission.userId, op.id));
+    expect(await codeOf(console_(op).stats())).toBe('FORBIDDEN');
+  });
 });
 
 describe('userUpdate tidak lagi membuka eskalasi ke Superadmin', () => {
