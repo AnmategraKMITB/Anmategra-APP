@@ -344,6 +344,15 @@ export const setupProcedures = {
         }
         await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
       }
+      // Opsi pengelola 'level' dan 'ketua' belum berlaku; jangan simpan seolah aktif.
+      const managersAnswer = (input.answers as { managers?: unknown }).managers;
+      if (managersAnswer === 'level' || managersAnswer === 'ketua') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Opsi pengelola per bagian atau hanya ketua belum tersedia. Pilih "Saya saja" atau "Saya dan orang tertentu".',
+        });
+      }
       // S15: tanpa syarat gugur, kriteria gugur tidak boleh ada.
       if (
         input.settings.hasGugur === false &&

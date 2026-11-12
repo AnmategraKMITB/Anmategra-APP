@@ -16,6 +16,7 @@ import {
   type WizardCtx,
   type WizardState,
   buildInput,
+  clampChoices,
   defaultState,
   firstInvalidStep,
   restoreState,
@@ -115,7 +116,7 @@ export function SetupWizard({
   const frame = useRef<HTMLDivElement>(null);
 
   const update = (patch: Partial<WizardState>) =>
-    setS((prev) => ({ ...prev, ...patch }));
+    setS((prev) => clampChoices({ ...prev, ...patch }));
 
   const applyPreset = (id: PresetId) => {
     const preset = PRESETS.find((item) => item.id === id);

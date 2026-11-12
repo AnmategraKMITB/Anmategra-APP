@@ -603,3 +603,29 @@ describe('createFromSetup: pengelola (S17)', () => {
     ).toBe('OK');
   });
 });
+
+describe('createFromSetup: opsi belum berlaku (#384)', () => {
+  it('menolak pengelola "level" atau "ketua" dan tak membuat oprec', async () => {
+    const w = await createOprecWorld(db);
+    for (const managers of ['level', 'ketua']) {
+      expect(
+        await codeOf(
+          callerFor(w.owner).oprec.createFromSetup({
+            ...baseInput(w),
+            answers: { managers },
+          } as never),
+        ),
+      ).toBe('BAD_REQUEST');
+    }
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+  });
+
+  it('menolak nilai resultsAccess di luar daftar', async () => {
+    const w = await createOprecWorld(db);
+    expect(
+      await codeOf(
+        createWith(w, {}, { resultsAccess: 'ketua_saja' }),
+      ),
+    ).toBe('BAD_REQUEST');
+  });
+});
