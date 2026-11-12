@@ -241,6 +241,17 @@ export function FormBuilder({
             className="mt-4 rounded-xl bg-danger-light px-4 py-3 text-sm text-danger-dark"
           >
             {builder.publishProblem.message}
+            {builder.detail?.oprec && builder.detail.eventId ? (
+              <>
+                {' '}
+                <Link
+                  className="font-medium underline"
+                  href={`${backHref.replace(/\/forms$/, '')}/oprec/${builder.detail.oprec.recruitmentId}`}
+                >
+                  Buka halaman oprec
+                </Link>
+              </>
+            ) : null}
           </p>
         ) : null}
 
