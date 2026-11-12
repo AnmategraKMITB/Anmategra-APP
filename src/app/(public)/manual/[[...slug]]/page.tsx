@@ -1,9 +1,14 @@
 import { type Metadata } from 'next';
-
+import { redirect } from 'next/navigation';
 import { DocsPage } from '~/app/_components/manual/docs-page';
+import { isSuperadminOrOperator } from '~/server/admin-access';
+import { getServerAuthSession } from '~/server/auth';
 import { getDocPage } from '~/server/manual/docs';
 
 type Props = { params: Promise<{ slug?: string[] }> };
+
+// Akses bergantung pada sesi, jadi jangan di-cache statis.
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
@@ -21,6 +26,10 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ManualPage(props: Props) {
   const params = await props.params;
-  // Manual terbuka untuk publik; isinya dokumen statis tanpa data pengguna.
+  const session = await getServerAuthSession();
+  if (!session) redirect('/authentication?callbackUrl=/manual');
+  if (!(await isSuperadminOrOperator(session.user)))
+    redirect(`/${session.user.role}`);
+
   return <DocsPage slug={params.slug ?? []} basePath="/manual" />;
 }

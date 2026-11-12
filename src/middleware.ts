@@ -22,7 +22,7 @@ const PUBLIC_ROUTES = [
 ];
 // Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
 // semua role, jadi tidak dialihkan ke `/<role>/manual`.
-const PUBLIC_SHARED_ROUTES = ['/manual'];
+const PUBLIC_SHARED_ROUTES: string[] = [];
 // Purwarupa internal: tidak untuk publik. Tanpa login dialihkan ke halaman
 // login; yang sudah login dilewatkan tanpa prefiks role.
 const PROTOTYPE_ROUTES = ['/prototype'];
@@ -30,7 +30,8 @@ const PROTOTYPE_ROUTES = ['/prototype'];
 // same URL works for lembaga, mahasiswa, and admin users.
 // `/manage` memuat alat pengelola (kegiatan, oprec, forms); aksesnya ditentukan
 // per halaman lewat canManageLembaga/canManageEvent, bukan oleh role akun.
-const AUTHENTICATED_SHARED_ROUTES = ['/manage'];
+// `/manual` hanya untuk superadmin dan operator; dijaga di page-nya.
+const AUTHENTICATED_SHARED_ROUTES = ['/manual', '/manage'];
 
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);

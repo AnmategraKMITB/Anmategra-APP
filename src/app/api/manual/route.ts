@@ -1,13 +1,16 @@
 import { promises as fs } from 'fs';
 import { NextResponse } from 'next/server';
 import path from 'path';
-
+import { isSuperadminOrOperator } from '~/server/admin-access';
 import { getServerAuthSession } from '~/server/auth';
 
 export async function GET() {
   const session = await getServerAuthSession();
   if (!session) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+  if (!(await isSuperadminOrOperator(session.user))) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   try {
