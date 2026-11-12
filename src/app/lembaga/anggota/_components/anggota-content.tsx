@@ -1,5 +1,6 @@
 'use client';
 
+import { Download, Edit, Network, Save } from 'lucide-react';
 import { type Session } from 'next-auth';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -20,8 +21,6 @@ import { Button } from '~/components/ui/button';
 import { toast } from '~/hooks/use-toast';
 import { api } from '~/trpc/react';
 
-import { Download, Edit, Network, Save } from 'lucide-react';
-
 interface AnggotaContentProps {
   session: Session | null;
   data: Member[];
@@ -33,11 +32,15 @@ interface AnggotaContentProps {
   title: string;
   /** Lembaga yang dikelola; bila kosong dipakai lembaga dari sesi (Owner). */
   lembagaId?: string;
+  /** Awalan rute anggota (rapor komunal dan individu); bawaan halaman Owner. */
+  anggotaBasePath?: string;
+  /** Tombol Rapor Komunal. */
+  showRapor?: boolean;
   /**
-   * Tombol Rapor Komunal dan Best Staff mengarah ke halaman Owner. Di /manage
-   * keduanya disembunyikan sampai kelompok migrasinya selesai.
+   * Tombol Best Staff mengarah ke halaman Owner. Di /manage disembunyikan
+   * sampai kelompok migrasinya selesai.
    */
-  showRaporAndBestStaff?: boolean;
+  showBestStaff?: boolean;
 }
 
 export default function AnggotaContent({
@@ -47,12 +50,16 @@ export default function AnggotaContent({
   pageAnggota,
   title,
   lembagaId: lembagaIdProp,
-  showRaporAndBestStaff = true,
-  }: AnggotaContentProps) {
+  anggotaBasePath = '/anggota',
+  showRapor = true,
+  showBestStaff = true,
+}: AnggotaContentProps) {
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isEditMode, setIsEditMode] = useState(false);
-  const [reorderedUserIds, setReorderedUserIds] = useState<string[] | null>(null);
+  const [reorderedUserIds, setReorderedUserIds] = useState<string[] | null>(
+    null,
+  );
   const [isSaving, setIsSaving] = useState(false);
   const pathname = usePathname();
   const isAnggota = pageAnggota ?? false;
@@ -79,25 +86,26 @@ export default function AnggotaContent({
     },
   });
 
-  const reorderKegiatanMutation = api.lembaga.reorderAnggotaKegiatan.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Berhasil menyimpan urutan anggota',
-      });
-      setIsEditMode(false);
-      setReorderedUserIds(null);
-      setIsSaving(false);
-      window.location.reload();
-    },
-    onError: (error) => {
-      toast({
-        title: 'Gagal menyimpan urutan anggota',
-        description: error.message,
-        variant: 'destructive',
-      });
-      setIsSaving(false);
-    },
-  });
+  const reorderKegiatanMutation =
+    api.lembaga.reorderAnggotaKegiatan.useMutation({
+      onSuccess: () => {
+        toast({
+          title: 'Berhasil menyimpan urutan anggota',
+        });
+        setIsEditMode(false);
+        setReorderedUserIds(null);
+        setIsSaving(false);
+        window.location.reload();
+      },
+      onError: (error) => {
+        toast({
+          title: 'Gagal menyimpan urutan anggota',
+          description: error.message,
+          variant: 'destructive',
+        });
+        setIsSaving(false);
+      },
+    });
 
   const filterOptions: FilterOption[] = useMemo(
     () =>
@@ -109,7 +117,8 @@ export default function AnggotaContent({
     [dataPosisiBidang.bidang],
   );
 
-  const hasActiveFilters = searchQuery.trim() !== '' || selectedFilters.length > 0;
+  const hasActiveFilters =
+    searchQuery.trim() !== '' || selectedFilters.length > 0;
 
   useEffect(() => {
     if (hasActiveFilters && isEditMode) {
@@ -125,10 +134,10 @@ export default function AnggotaContent({
   const handleSaveOrder = useCallback(async () => {
     setIsEditMode(false);
     if (!reorderedUserIds) return;
-    
+
     if (isAnggota) {
       if (!lembagaId) return;
-      
+
       setIsSaving(true);
       reorderLembagaMutation.mutate({
         lembagaId,
@@ -136,23 +145,30 @@ export default function AnggotaContent({
       });
     } else {
       if (!eventId) return;
-      
+
       setIsSaving(true);
       reorderKegiatanMutation.mutate({
         event_id: eventId,
         user_ids: reorderedUserIds,
       });
     }
-  }, [isAnggota, lembagaId, eventId, reorderedUserIds, reorderLembagaMutation, reorderKegiatanMutation, data.length]);
+  }, [
+    isAnggota,
+    lembagaId,
+    eventId,
+    reorderedUserIds,
+    reorderLembagaMutation,
+    reorderKegiatanMutation,
+    data.length,
+  ]);
 
   const handleReorder = useCallback((newOrder: Member[]) => {
-    setReorderedUserIds(newOrder.map(member => member.id));
+    setReorderedUserIds(newOrder.map((member) => member.id));
   }, []);
 
   const handleFilterChange = useCallback((filters: string[]) => {
     setSelectedFilters(filters);
   }, []);
-
 
   const handleExport = async () => {
     try {
@@ -198,9 +214,7 @@ export default function AnggotaContent({
   return (
     <main className="flex flex-col p-4 sm:p-6 md:p-8 min-h-screen">
       <h1 className="text-2xl sm:text-3xl md:text-[32px] font-semibold mb-2">
-        {isAnggota ? 'Anggota' : 'Panitia Kegiatan'}
-        {' '}
-        {title}
+        {isAnggota ? 'Anggota' : 'Panitia Kegiatan'} {title}
       </h1>
       <div className="mb-4" />
 
@@ -234,47 +248,49 @@ export default function AnggotaContent({
                 pageAnggota={isAnggota}
                 lembagaId={lembagaId}
               />
-              {(!isAnggota || showRaporAndBestStaff) && (
-                <>
-              <Link
-                href={
-                  isAnggota ? '/anggota/rapor' : `/kegiatan/${eventId}/rapor`
-                }
-              >
-                <Button
-                  variant="light_blue"
-                  className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+              {(!isAnggota || showRapor) && (
+                <Link
+                  href={
+                    isAnggota
+                      ? `${anggotaBasePath}/rapor`
+                      : `/kegiatan/${eventId}/rapor`
+                  }
                 >
-                  <Image
-                    src={Rapor}
-                    alt="Rapor Komunal"
-                    width={24}
-                    height={24}
-                  />
-                  Rapor Komunal
-                </Button>
-              </Link>
-              <Link
-                href={
-                  isAnggota
-                    ? '/anggota/histori'
-                    : `/lembaga/profile-kegiatan/${eventId}/histori`
-                }
-              >
-                <Button
-                  variant="light_blue"
-                  className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+                  <Button
+                    variant="light_blue"
+                    className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+                  >
+                    <Image
+                      src={Rapor}
+                      alt="Rapor Komunal"
+                      width={24}
+                      height={24}
+                    />
+                    Rapor Komunal
+                  </Button>
+                </Link>
+              )}
+              {(!isAnggota || showBestStaff) && (
+                <Link
+                  href={
+                    isAnggota
+                      ? '/anggota/histori'
+                      : `/lembaga/profile-kegiatan/${eventId}/histori`
+                  }
                 >
-                  <Image
-                    src={Best}
-                    alt="Pilih Best Staff"
-                    width={24}
-                    height={24}
-                  />
-                  Pilih Best Staff
-                </Button>
-              </Link>
-                </>
+                  <Button
+                    variant="light_blue"
+                    className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+                  >
+                    <Image
+                      src={Best}
+                      alt="Pilih Best Staff"
+                      width={24}
+                      height={24}
+                    />
+                    Pilih Best Staff
+                  </Button>
+                </Link>
               )}
               {!isAnggota && eventId ? (
                 <Link href={`/lembaga/kegiatan/${eventId}/organogram`}>
@@ -300,7 +316,9 @@ export default function AnggotaContent({
                 variant={isEditMode ? 'dark_blue' : 'outline'}
                 className="flex items-center gap-2"
                 disabled={isSaving || hasActiveFilters}
-                title={hasActiveFilters ? 'Hapus filter untuk mengedit urutan' : ''}
+                title={
+                  hasActiveFilters ? 'Hapus filter untuk mengedit urutan' : ''
+                }
               >
                 {isEditMode ? (
                   <>
@@ -320,13 +338,10 @@ export default function AnggotaContent({
                 selectedFilters={selectedFilters}
                 onFilterChange={handleFilterChange}
               />
-              <Button
-              onClick={handleExport}
-              variant={'dark_blue'}
-            >
-              <Download size={24} />
-              Unduh
-            </Button>
+              <Button onClick={handleExport} variant={'dark_blue'}>
+                <Download size={24} />
+                Unduh
+              </Button>
             </div>
           </div>
 
@@ -334,6 +349,7 @@ export default function AnggotaContent({
           <MahasiswaCardTable
             data={data}
             lembagaId={lembagaId}
+            raporBasePath={anggotaBasePath}
             eventId={eventId}
             session={session}
             posisiBidangData={dataPosisiBidang}

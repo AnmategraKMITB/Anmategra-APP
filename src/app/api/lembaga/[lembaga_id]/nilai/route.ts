@@ -1,5 +1,6 @@
 import { eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
+import { canManageLembaga } from '~/server/api/trpc';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { lembagaMembersSq } from '~/server/api/routers/organization/membership';
@@ -18,25 +19,28 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   if (!session) {
     return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
-  if (session.user.role !== 'lembaga') {
-    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
-  }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
     return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
-  // --- Validate lembaga ownership ---
+  // --- Validate Owner/Admin access to this lembaga ---
   const userLembaga = await db.query.lembaga.findFirst({
-    where: (l, { eq }) => eq(l.userId, session.user.id),
+    where: (l, { eq }) => eq(l.id, lembaga_id),
   });
   if (!userLembaga) {
     return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
-  // --- Validate lembaga_id matches user's lembaga ---
-  if (userLembaga.id !== lembaga_id) {
+  const access = await canManageLembaga(
+    db,
+    session.user.id,
+    session.user.role,
+    session.user.lembagaId,
+    lembaga_id,
+  );
+  if (!access) {
     return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 
@@ -186,25 +190,28 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
   if (!session) {
     return apiError(401, 'Unauthorized', 'UNAUTHORIZED');
   }
-  if (session.user.role !== 'lembaga') {
-    return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
-  }
 
   const { lembaga_id } = params;
   if (!lembaga_id) {
     return apiError(400, 'Missing lembaga_id', 'BAD_REQUEST');
   }
 
-  // --- Validate lembaga ownership ---
+  // --- Validate Owner/Admin access to this lembaga ---
   const userLembaga = await db.query.lembaga.findFirst({
-    where: (l, { eq }) => eq(l.userId, session.user.id),
+    where: (l, { eq }) => eq(l.id, lembaga_id),
   });
   if (!userLembaga) {
     return apiError(404, 'Lembaga not found', 'NOT_FOUND');
   }
 
-  // --- Validate lembaga_id matches user's lembaga ---
-  if (userLembaga.id !== lembaga_id) {
+  const access = await canManageLembaga(
+    db,
+    session.user.id,
+    session.user.role,
+    session.user.lembagaId,
+    lembaga_id,
+  );
+  if (!access) {
     return apiError(403, 'Forbidden Resource', 'FORBIDDEN');
   }
 

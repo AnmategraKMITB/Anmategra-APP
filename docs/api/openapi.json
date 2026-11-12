@@ -13068,7 +13068,7 @@
           "lembaga"
         ],
         "summary": "lembaga.editProfil",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -13128,7 +13128,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -15694,7 +15694,7 @@
           "lembaga"
         ],
         "summary": "lembaga.toggleRaporVisibility",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -15754,7 +15754,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -25524,7 +25524,7 @@
           "profil"
         ],
         "summary": "profil.createProfilLembaga",
-        "description": "Analog `createProfilKegiatan`. Ownership: `lembagaId` sesi harus sama dengan `input.lembaga_id` → `FORBIDDEN`; lembaga harus ada (`NOT_FOUND`); validasi `profil_km_id`; insert `profil_lembaga` + mapping dalam transaksi.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Analog `createProfilKegiatan`. Ownership: `lembagaId` sesi harus sama dengan `input.lembaga_id` → `FORBIDDEN`; lembaga harus ada (`NOT_FOUND`); validasi `profil_km_id`; insert `profil_lembaga` + mapping dalam transaksi.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -25584,7 +25584,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -25766,7 +25766,7 @@
           "profil"
         ],
         "summary": "profil.deleteProfilLembaga",
-        "description": "Analog `deleteProfilKegiatan`. Cascade delete ke `pemetaan_profil_lembaga` dan `nilai_profil_lembaga`.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Analog `deleteProfilKegiatan`. Cascade delete ke `pemetaan_profil_lembaga` dan `nilai_profil_lembaga`.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -25826,7 +25826,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -26008,7 +26008,7 @@
           "profil"
         ],
         "summary": "profil.editProfilLembaga",
-        "description": "Analog `editProfilKegiatan` untuk profil lembaga. - ⚠️ perlu konfirmasi: caveat sama — `profil_km_id: []` tidak mengosongkan mapping yang ada.\n\n**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "Analog `editProfilKegiatan` untuk profil lembaga. - ⚠️ perlu konfirmasi: caveat sama — `profil_km_id: []` tidak mengosongkan mapping yang ada.\n\n**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -26068,7 +26068,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -27164,7 +27164,7 @@
           "rapor"
         ],
         "summary": "rapor.getAllNilaiProfilLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -27224,7 +27224,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -27542,7 +27542,7 @@
           "rapor"
         ],
         "summary": "rapor.getNilaiLembagaIndividu",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -27602,7 +27602,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -27915,7 +27915,7 @@
           "rapor"
         ],
         "summary": "rapor.upsertNilaiMahasiswaLembaga",
-        "description": "**Akses:** Lembaga (owner) — Hanya untuk akun dengan `role = lembaga` (role lain ditolak 403). Akses dicek dari role saja, bukan dari `lembagaId` di input.",
+        "description": "**Akses:** Owner / Admin Lembaga — Butuh `lembagaId` di input. Boleh diakses Owner Lembaga tersebut atau akun yang di-grant sebagai Admin Lembaga.",
         "security": [
           {
             "sessionCookie": []
@@ -27975,7 +27975,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Lembaga (owner) (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Owner / Admin Lembaga (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -47814,6 +47814,10 @@
       "lembaga_editProfil_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "nama": {
             "type": "string",
             "minLength": 1,
@@ -47843,6 +47847,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "nama"
         ]
       },
@@ -48936,11 +48941,16 @@
       "lembaga_toggleRaporVisibility_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "rapor_visible": {
             "type": "boolean"
           }
         },
         "required": [
+          "lembagaId",
           "rapor_visible"
         ]
       },
@@ -52408,7 +52418,7 @@
       "profil_createProfilLembaga_input": {
         "type": "object",
         "properties": {
-          "lembaga_id": {
+          "lembagaId": {
             "type": "string",
             "minLength": 1
           },
@@ -52430,7 +52440,7 @@
           }
         },
         "required": [
-          "lembaga_id",
+          "lembagaId",
           "name",
           "description",
           "profil_km_id"
@@ -52495,10 +52505,15 @@
         "properties": {
           "profil_id": {
             "type": "string"
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "profil_id"
+          "profil_id",
+          "lembagaId"
         ]
       },
       "profil_deleteProfilLembaga_output": {
@@ -52568,13 +52583,18 @@
             "items": {
               "type": "string"
             }
+          },
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
           "profil_id",
           "name",
           "description",
-          "profil_km_id"
+          "profil_km_id",
+          "lembagaId"
         ]
       },
       "profil_editProfilLembaga_output": {
@@ -53382,12 +53402,13 @@
       "rapor_getAllNilaiProfilLembaga_input": {
         "type": "object",
         "properties": {
-          "lembaga_id": {
-            "type": "string"
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           }
         },
         "required": [
-          "lembaga_id"
+          "lembagaId"
         ]
       },
       "rapor_getAllNilaiProfilLembaga_output": {
@@ -53603,15 +53624,16 @@
       "rapor_getNilaiLembagaIndividu_input": {
         "type": "object",
         "properties": {
-          "lembaga_id": {
-            "type": "string"
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
           },
           "mahasiswa_id": {
             "type": "string"
           }
         },
         "required": [
-          "lembaga_id",
+          "lembagaId",
           "mahasiswa_id"
         ]
       },
@@ -53820,6 +53842,10 @@
       "rapor_upsertNilaiMahasiswaLembaga_input": {
         "type": "object",
         "properties": {
+          "lembagaId": {
+            "type": "string",
+            "minLength": 1
+          },
           "mahasiswa": {
             "type": "array",
             "items": {
@@ -53857,6 +53883,7 @@
           }
         },
         "required": [
+          "lembagaId",
           "mahasiswa"
         ]
       },

@@ -45,6 +45,8 @@ interface TableProps {
   session: Session | null;
   event_id?: string;
   lembaga_id?: string;
+  /** Tautan ke halaman profil; bawaan rute Owner. */
+  profilHref?: string;
   selectOptions: { value: string; label: string }[];
   type: 'event' | 'lembaga';
 }
@@ -53,6 +55,7 @@ export default function RaporTable({
   session,
   event_id,
   lembaga_id,
+  profilHref = '/profil',
   selectOptions,
   type,
 }: TableProps) {
@@ -65,7 +68,7 @@ export default function RaporTable({
   );
 
   const lembagaQuery = api.rapor.getAllNilaiProfilLembaga.useQuery(
-    { lembaga_id: lembaga_id! },
+    { lembagaId: lembaga_id! },
     { enabled: type === 'lembaga' && !!lembaga_id },
   );
 
@@ -307,7 +310,7 @@ export default function RaporTable({
         : deleteKegiatanProfilMutation;
 
     mutation.mutate(
-      { profil_id: profilIdToDelete },
+      { profil_id: profilIdToDelete, lembagaId: lembaga_id! },
       {
         onSuccess: () => {
           setProfilHeaders((prev) => prev.filter((_, i) => i !== deleteColIdx));
@@ -327,7 +330,7 @@ export default function RaporTable({
             title: 'Profil berhasil dihapus',
           });
         },
-        onError: (error) => {
+        onError: (error: { message: string }) => {
           toast({
             title: 'Gagal menghapus profil',
             description: error.message,
@@ -356,7 +359,7 @@ export default function RaporTable({
     if (type === 'lembaga') {
       createLembagaProfilMutation.mutate(
         {
-          lembaga_id: lembaga_id!,
+          lembagaId: lembaga_id!,
           name: profil,
           description: deskripsi,
           profil_km_id: pemetaan,
@@ -446,6 +449,7 @@ export default function RaporTable({
         : editKegiatanProfilMutation;
     const payload = {
       profil_id: profilIdToUpdate,
+      lembagaId: lembaga_id!,
       name: profil,
       description: deskripsi,
       profil_km_id: pemetaan,
@@ -475,7 +479,7 @@ export default function RaporTable({
           description: `Profil "${profil}" telah diperbarui di database`,
         });
       },
-      onError: (error) => {
+      onError: (error: { message: string }) => {
         toast({
           title: 'Gagal memperbarui profil',
           description: error.message,
@@ -582,7 +586,7 @@ export default function RaporTable({
       );
     } else {
       lembagaUpsertMutation.mutate(
-        { mahasiswa: changedMahasiswa },
+        { lembagaId: lembaga_id!, mahasiswa: changedMahasiswa },
         {
           onSuccess: () => {
             toast({
@@ -649,7 +653,7 @@ export default function RaporTable({
   };
 
   const linkHref =
-    type === 'event' ? `/kegiatan/${event_id}/profil` : `/profil`;
+    type === 'event' ? `/kegiatan/${event_id}/profil` : profilHref;
 
   return (
     <>
@@ -676,7 +680,11 @@ export default function RaporTable({
               </LinkButton>
             </div>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-x-5">
-              <ImportDialog session={session} isLembaga={type === 'lembaga'} />
+              <ImportDialog
+                session={session}
+                lembagaId={lembaga_id}
+                isLembaga={type === 'lembaga'}
+              />
               <Button onClick={handleExportRapor} variant={'dark_blue'}>
                 <Download size={24} />
                 Unduh

@@ -649,17 +649,25 @@ export const lembagaRouter = createTRPCRouter({
       }
     }),
 
-  editProfil: lembagaProcedure
+  editProfil: lembagaScopedProcedure
     .input(EditProfilLembagaInputSchema)
     .output(EditProfilLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       if (input.gambar) {
-        await ctx.db
-          .update(users)
-          .set({
-            image: input.gambar,
-          })
-          .where(eq(users.id, ctx.session.user.id));
+        // Foto profil lembaga disimpan di akun Owner, bukan akun pengelola.
+        const [target] = await ctx.db
+          .select({ userId: lembaga.userId })
+          .from(lembaga)
+          .where(eq(lembaga.id, ctx.lembagaId))
+          .limit(1);
+        if (target?.userId) {
+          await ctx.db
+            .update(users)
+            .set({
+              image: input.gambar,
+            })
+            .where(eq(users.id, target.userId));
+        }
       }
 
       await ctx.db
@@ -672,7 +680,7 @@ export const lembagaRouter = createTRPCRouter({
             ? { acronym: input.singkatan || null }
             : {}),
         })
-        .where(eq(lembaga.id, ctx.session.user.lembagaId!));
+        .where(eq(lembaga.id, ctx.lembagaId));
 
       return {
         success: true,
@@ -1583,7 +1591,7 @@ export const lembagaRouter = createTRPCRouter({
       };
     }),
 
-  toggleRaporVisibility: lembagaProcedure
+  toggleRaporVisibility: lembagaScopedProcedure
     .input(ToggleRaporVisibilityLembagaInputSchema)
     .output(ToggleRaporVisibilityLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -1593,7 +1601,7 @@ export const lembagaRouter = createTRPCRouter({
           .set({
             raporVisible: input.rapor_visible,
           })
-          .where(eq(lembaga.id, ctx.session.user.lembagaId!));
+          .where(eq(lembaga.id, ctx.lembagaId));
 
         return {
           success: true,
