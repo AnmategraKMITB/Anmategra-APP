@@ -536,4 +536,28 @@ describe('canManageEvent', () => {
       await canManageEvent(database, op.id, 'mahasiswa', null, e.id, 'oprec'),
     ).toBeNull();
   });
+
+  it('Operator dengan izin lembaga.forms dan lembaga.oprec hanya membuka fitur masing-masing', async () => {
+    const { lembaga: l } = await makeLembaga(db);
+    const e = await createEvent(db, l.id);
+    const forms = await createUser(db);
+    const oprec = await createUser(db);
+    await createOperator(db, forms.id, ['lembaga.forms']);
+    await createOperator(db, oprec.id, ['lembaga.oprec']);
+    const event = (id: string, feature?: 'forms' | 'oprec') =>
+      canManageEvent(database, id, 'mahasiswa', null, e.id, feature);
+
+    expect(await event(forms.id, 'forms')).toBe('admin');
+    expect(await event(forms.id, 'oprec')).toBeNull();
+    expect(await event(forms.id)).toBeNull();
+    expect(
+      await canManageLembaga(database, forms.id, 'mahasiswa', null, l.id, 'forms'),
+    ).toBe('admin');
+    expect(
+      await canManageLembaga(database, forms.id, 'mahasiswa', null, l.id),
+    ).toBeNull();
+
+    expect(await event(oprec.id, 'oprec')).toBe('admin');
+    expect(await event(oprec.id, 'forms')).toBeNull();
+  });
 });
