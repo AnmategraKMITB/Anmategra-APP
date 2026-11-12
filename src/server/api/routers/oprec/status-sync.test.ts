@@ -3,8 +3,8 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { formRouter } from '~/server/api/routers/form';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 import { form, formField, formSection, recruitment } from '~/server/db/schema';
-import { createOprecWorld } from '~/test/oprec-fixtures';
-import { createTestDb, resetDb } from '~/test/test-db';
+import { createOprecWorld as baseWorld, placeAt } from '~/test/oprec-fixtures';
+import { createTestDb, createUser, resetDb } from '~/test/test-db';
 
 import { oprecRouter } from '.';
 
@@ -18,6 +18,15 @@ afterAll(async () => {
 });
 
 const appRouter = createTRPCRouter({ oprec: oprecRouter, form: formRouter });
+
+/** Dunia uji dengan satu ketua per divisi (syarat wizard, #383). */
+async function createOprecWorld(...args: Parameters<typeof baseWorld>) {
+  const w = await baseWorld(...args);
+  for (const u of w.units) {
+    await placeAt(db, u.headPositionId, (await createUser(db)).id);
+  }
+  return w;
+}
 
 type World = Awaited<ReturnType<typeof createOprecWorld>>;
 
