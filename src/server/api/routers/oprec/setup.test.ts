@@ -8,11 +8,13 @@ import {
   accessGrant,
   application,
   criterion,
+  organizationStructure,
+  organizationUnit,
   recruitment,
   recruitmentAssessor,
   recruitmentDivision,
 } from '~/server/db/schema';
-import { createOprecWorld, placeAt } from '~/test/oprec-fixtures';
+import { createOprecWorld as baseWorld, placeAt } from '~/test/oprec-fixtures';
 import {
   createMahasiswa,
   createTestDb,
@@ -31,6 +33,16 @@ beforeEach(async () => {
 afterAll(async () => {
   await close();
 });
+
+/** Dunia uji dengan satu ketua di tiap divisi (syarat wizard, #383). */
+async function createOprecWorld(...args: Parameters<typeof baseWorld>) {
+  const w = await baseWorld(...args);
+  for (const [i, u] of w.units.entries()) {
+    if (args[1]?.[i] === 'HR') continue;
+    await placeAt(db, u.headPositionId, (await createUser(db)).id);
+  }
+  return w;
+}
 
 const appRouter = createTRPCRouter({ oprec: oprecRouter });
 
@@ -260,6 +272,7 @@ describe('createFromSetup: penilai (S13, S14)', () => {
 
   it('mode umum mencabut hak menilai ketua, tetapi hak memutuskannya tetap', async () => {
     const { w, hr } = await worldWithGeneralUnit();
+    await placeAt(db, hr.staffPositionId, (await createUser(db)).id);
     const kadiv = await createUser(db);
     await placeAt(db, w.units[0]!.headPositionId, kadiv.id);
     const actor = { id: kadiv.id, role: 'mahasiswa', lembagaId: null };
@@ -623,9 +636,114 @@ describe('createFromSetup: opsi belum berlaku (#384)', () => {
   it('menolak nilai resultsAccess di luar daftar', async () => {
     const w = await createOprecWorld(db);
     expect(
+      await codeOf(createWith(w, {}, { resultsAccess: 'ketua_saja' })),
+    ).toBe('BAD_REQUEST');
+  });
+});
+
+describe('gelombang tumpang tindih (#382)', () => {
+  const wave = (label: string, startsAt: string, endsAt: string) => ({
+    label,
+    startsAt: new Date(startsAt),
+    endsAt: new Date(endsAt),
+  });
+
+  it('createFromSetup menolak tumpang tindih dan menerima bersebelahan', async () => {
+    const w = await createOprecWorld(db);
+    expect(
       await codeOf(
-        createWith(w, {}, { resultsAccess: 'ketua_saja' }),
+        createWith(w, {
+          waves: [
+            wave('A', '2030-01-01', '2030-01-10'),
+            wave('B', '2030-01-05', '2030-01-20'),
+          ],
+        }),
       ),
     ).toBe('BAD_REQUEST');
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+    await createWith(w, {
+      waves: [
+        wave('A', '2030-01-01', '2030-01-10'),
+        wave('B', '2030-01-10', '2030-01-20'),
+      ],
+    });
+    expect(await db.select().from(recruitment)).toHaveLength(1);
+  });
+
+  it('replaceWaves menolak tumpang tindih', async () => {
+    const w = await createOprecWorld(db);
+    const { recruitmentId } = await createWith(w, {});
+    expect(
+      await codeOf(
+        callerFor(w.owner).oprec.replaceWaves({
+          recruitmentId,
+          waves: [
+            wave('A', '2030-01-01', '2030-01-10'),
+            wave('B', '2030-01-09', '2030-01-20'),
+          ],
+        }),
+      ),
+    ).toBe('BAD_REQUEST');
+  });
+});
+
+describe('createFromSetup: kelengkapan organogram (#383)', () => {
+  it('menolak penilai umum dari bagian tanpa anggota dan menyebut namanya', async () => {
+    const { w, hr } = await worldWithGeneralUnit();
+    const [structure] = await db.select().from(organizationStructure);
+    const [empty] = await db
+      .insert(organizationUnit)
+      .values({
+        structure_id: structure!.id,
+        name: 'Kosong',
+        level: 1,
+        sort_order: 9,
+      })
+      .returning();
+    let message = '';
+    try {
+      await createWith(
+        w,
+        { generalAssessorUnitId: empty!.id },
+        { assessorMode: 'umum', headDecides: false },
+      );
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(message).toContain('"Kosong"');
+    expect(hr.unitId).toBeTruthy();
+  });
+
+  it('menolak ketua menilai atau veto pada divisi tanpa ketua, menyebut divisinya', async () => {
+    const w = await baseWorld(db, ['Divisi A', 'Divisi B', 'HR']);
+    await placeAt(db, w.units[0]!.headPositionId, (await createUser(db)).id);
+    await placeAt(db, w.units[2]!.staffPositionId, (await createUser(db)).id);
+    const general = { generalAssessorUnitId: w.units[2]!.unitId };
+    for (const settings of [
+      { assessorMode: 'ketua' },
+      { assessorMode: 'keduanya' },
+      { assessorMode: 'umum', headDecides: true },
+    ]) {
+      let message = '';
+      try {
+        await createWith(w, general, settings);
+      } catch (e) {
+        message = (e as Error).message;
+      }
+      expect(message).toContain('"Divisi B"');
+      expect(message).not.toContain('"Divisi A"');
+    }
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+  });
+
+  it('mengizinkan divisi tanpa ketua bila hanya penilai umum dan tanpa veto', async () => {
+    const w = await baseWorld(db, ['Divisi A', 'Divisi B', 'HR']);
+    await placeAt(db, w.units[2]!.staffPositionId, (await createUser(db)).id);
+    await createWith(
+      w,
+      { generalAssessorUnitId: w.units[2]!.unitId },
+      { assessorMode: 'umum', headDecides: false },
+    );
+    expect(await db.select().from(recruitment)).toHaveLength(1);
   });
 });

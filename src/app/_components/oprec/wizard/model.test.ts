@@ -1,12 +1,14 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  type StepId,
   type WizardCtx,
   buildInput,
   clampChoices,
   defaultState,
   firstInvalidStep,
   normalizeCriteria,
+  openWarnings,
   restoreState,
   stepProblem,
   visibleSteps,
@@ -21,6 +23,8 @@ const ctx: WizardCtx = {
   forms: [],
   divisionCount: 2,
   unitName: (id) => id,
+  hasPeople: () => true,
+  hasHead: () => true,
 };
 
 function stateWithDivisions() {
@@ -203,5 +207,89 @@ describe('jumlah pilihan dan opsi belum berlaku (#384)', () => {
     expect(restoreState(base, { managers: 'orang' }).state.managers).toBe(
       'orang',
     );
+  });
+});
+
+describe('stepProblem S4: gelombang tumpang tindih (#382)', () => {
+  it('menolak dengan pesan yang menyebut kedua gelombang', () => {
+    const s = stateWithDivisions();
+    s.useWaves = true;
+    s.waves = [
+      {
+        label: 'Gel 1',
+        startsAt: '2030-01-01T08:00',
+        endsAt: '2030-01-10T08:00',
+      },
+      {
+        label: 'Gel 2',
+        startsAt: '2030-01-05T08:00',
+        endsAt: '2030-01-20T08:00',
+      },
+    ];
+    const msg = stepProblem('S4', s, ctx);
+    expect(msg).toContain('"Gel 1"');
+    expect(msg).toContain('"Gel 2"');
+    s.waves[1]!.startsAt = '2030-01-10T08:00';
+    expect(stepProblem('S4', s, ctx)).toBeNull();
+  });
+});
+
+describe('openWarnings (#385)', () => {
+  const steps = ['S10'] as StepId[];
+  const withForm = (hasUnitChoice: boolean) =>
+    ({
+      ...ctx,
+      forms: [{ id: 'f1', title: 'F', status: 'Draft', hasUnitChoice }],
+    }) as WizardCtx;
+
+  it('memperingatkan form yang ada tanpa blok Pilihan tujuan', () => {
+    const s = stateWithDivisions();
+    s.formMode = 'existing';
+    s.existingFormId = 'f1';
+    const w = openWarnings(steps, s, withForm(false));
+    expect(w).toHaveLength(1);
+    expect(w[0]!.id).toBe('S10');
+  });
+
+  it('tanpa peringatan bila lengkap', () => {
+    const s = stateWithDivisions();
+    s.formMode = 'existing';
+    s.existingFormId = 'f1';
+    expect(openWarnings(steps, s, withForm(true))).toEqual([]);
+    s.formMode = 'template';
+    expect(openWarnings(steps, s, withForm(false))).toEqual([]);
+  });
+});
+
+describe('openWarnings: organogram (#385)', () => {
+  const c2 = (people: string[], heads: string[]) =>
+    ({
+      ...ctx,
+      unitName: (u: string) => u,
+      hasPeople: (u: string) => people.includes(u),
+      hasHead: (u: string) => heads.includes(u),
+    }) as WizardCtx;
+
+  it('memperingatkan penilai umum kosong dan divisi tanpa ketua', () => {
+    const s = stateWithDivisions();
+    s.assessors = 'keduanya';
+    s.generalAssessorUnitId = 'hr';
+    const ids = openWarnings(['S3', 'S14'] as StepId[], s, c2([], [])).map(
+      (w) => w.id,
+    );
+    expect(ids).toEqual(['S14', 'S3']);
+  });
+
+  it('tanpa peringatan bila lengkap atau mode penilai umum tanpa veto', () => {
+    const s = stateWithDivisions();
+    s.assessors = 'keduanya';
+    s.generalAssessorUnitId = 'hr';
+    const all = Object.keys(s.divisions);
+    expect(openWarnings(['S3', 'S14'] as StepId[], s, c2(['hr'], all))).toEqual(
+      [],
+    );
+    s.assessors = 'umum';
+    s.veto = false;
+    expect(openWarnings(['S3'] as StepId[], s, c2(['hr'], []))).toEqual([]);
   });
 });

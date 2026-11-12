@@ -13,6 +13,7 @@ import {
   formField,
   formSection,
   formSubmission,
+  recruitment,
 } from '~/server/db/schema';
 import { deleteUploadedFiles, keyFromUploadUrl } from '~/server/uploads';
 
@@ -52,9 +53,11 @@ import {
   lockForm,
   ownedImageKeys,
   rethrow,
+  type Tx,
   toFormOutput,
   unreferencedImageKeys,
 } from './services';
+import { countApplications, oprecOpenProblems } from '../oprec/services';
 
 async function listWithCounts(
   db: Queryable,
@@ -68,6 +71,40 @@ async function listWithCounts(
     ...toFormOutput(r),
     submissionCount: counts.get(r.id) ?? 0,
   }));
+}
+
+/**
+ * Form terikat oprec: menerbitkan membuka oprec dalam satu langkah bila syaratnya
+ * lengkap (kalau tidak, pesan menyebut yang kurang); menutup menutup oprec;
+ * kembali ke draf mengembalikan oprec ke draf selama belum ada pendaftar.
+ */
+async function syncOprecToForm(
+  tx: Tx,
+  rec: typeof recruitment.$inferSelect,
+  status: FormStatus,
+) {
+  const next =
+    status === 'Published' ? 'open' : status === 'Closed' ? 'closed' : 'draft';
+  if (rec.status === next) return;
+  if (next === 'open') {
+    const problems = await oprecOpenProblems(tx, rec);
+    if (problems.length > 0) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Oprec belum bisa dibuka: ${problems.join(' ')}`,
+      });
+    }
+  }
+  if (next === 'draft' && (await countApplications(tx, rec.id)) > 0) {
+    throw new TRPCError({
+      code: 'CONFLICT',
+      message: 'Oprec yang sudah punya pendaftar tidak bisa kembali ke draf.',
+    });
+  }
+  await tx
+    .update(recruitment)
+    .set({ status: next })
+    .where(eq(recruitment.id, rec.id));
 }
 
 /**
@@ -419,6 +456,13 @@ export const formFormRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       try {
         const row = await ctx.db.transaction(async (tx) => {
+          // Form terikat oprec: kunci oprec lebih dulu (urutan sama dengan
+          // oprec.setStatus) agar status keduanya berubah bersama.
+          const [rec] = await tx
+            .select()
+            .from(recruitment)
+            .where(eq(recruitment.formId, ctx.form.id))
+            .for('update');
           const current = await lockForm(tx, ctx.form.id);
           if (current.status === input.status) return current;
 
@@ -443,6 +487,8 @@ export const formFormRouter = createTRPCRouter({
               });
             }
           }
+
+          if (rec) await syncOprecToForm(tx, rec, input.status);
 
           const [updated] = await tx
             .update(form)

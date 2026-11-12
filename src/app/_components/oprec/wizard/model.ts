@@ -4,6 +4,7 @@ import {
   type EligibilityAttribute,
   type EligibilityOperator,
 } from '~/lib/oprec/eligibility';
+import { waveOverlapMessage } from '~/lib/oprec/waves';
 import { type RouterInputs, type RouterOutputs } from '~/trpc/react';
 
 export type SetupOptions = RouterOutputs['oprec']['setupOptions'];
@@ -187,6 +188,9 @@ export type WizardCtx = {
   divisionCount: number;
   /** Nama bagian lintas sumber, untuk ringkasan. */
   unitName: (unitId: string) => string;
+  /** Bagian punya penempat / penempat di posisi ketua, dari organogram. */
+  hasPeople: (unitId: string) => boolean;
+  hasHead: (unitId: string) => boolean;
 };
 
 export const STEP_IDS = [
@@ -390,7 +394,13 @@ export function stepProblem(
           return 'Tanggal berakhir harus setelah tanggal mulai.';
         }
       }
-      return null;
+      return waveOverlapMessage(
+        s.waves.map((w) => ({
+          label: w.label,
+          startsAt: new Date(w.startsAt),
+          endsAt: new Date(w.endsAt),
+        })),
+      );
     }
     case 'S5': {
       if (!s.eligibility.enabled) return null;
@@ -438,6 +448,51 @@ export function stepProblem(
     default:
       return null;
   }
+}
+
+/**
+ * Peringatan: tidak menghalangi pembuatan oprec, tetapi akan menghalangi Buka
+ * pendaftaran (#385). Syarat yang menghalangi pembuatan ada di `stepProblem`.
+ */
+export function openWarnings(
+  steps: StepId[],
+  s: WizardState,
+  c: WizardCtx,
+): { id: StepId; message: string }[] {
+  const out: { id: StepId; message: string }[] = [];
+  if (
+    steps.includes('S14') &&
+    s.assessors !== 'ketua' &&
+    s.generalAssessorUnitId &&
+    !c.hasPeople(s.generalAssessorUnitId)
+  ) {
+    out.push({
+      id: 'S14',
+      message: `Bagian "${c.unitName(s.generalAssessorUnitId)}" belum punya anggota, jadi tidak bisa menjadi penilai umum. Isi bagian itu di organogram atau pilih bagian lain.`,
+    });
+  }
+  if (steps.includes('S3') && (s.assessors !== 'umum' || s.veto)) {
+    const names = Object.keys(s.divisions)
+      .filter((u) => !c.hasHead(u))
+      .map((u) => `"${c.unitName(u)}"`);
+    if (names.length > 0) {
+      out.push({
+        id: 'S3',
+        message: `${names.join(', ')} belum punya ketua. Isi ketua di organogram, atau pilih penilai umum dan matikan veto ketua.`,
+      });
+    }
+  }
+  if (steps.includes('S10') && s.formMode === 'existing') {
+    const f = c.forms.find((x) => x.id === s.existingFormId);
+    if (f && !f.hasUnitChoice) {
+      out.push({
+        id: 'S10',
+        message:
+          'Formulir ini belum punya blok Pilihan tujuan, jadi pendaftaran belum bisa dibuka. Tambahkan blok itu di formulir atau pilih templat oprec.',
+      });
+    }
+  }
+  return out;
 }
 
 /**

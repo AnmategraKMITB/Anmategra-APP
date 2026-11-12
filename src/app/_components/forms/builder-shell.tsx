@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '~/components/ui/dialog';
+import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -241,6 +249,17 @@ export function FormBuilder({
             className="mt-4 rounded-xl bg-danger-light px-4 py-3 text-sm text-danger-dark"
           >
             {builder.publishProblem.message}
+            {builder.detail?.oprec && builder.detail.eventId ? (
+              <>
+                {' '}
+                <Link
+                  className="font-medium underline"
+                  href={`${backHref.replace(/\/forms$/, '')}/oprec/${builder.detail.oprec.recruitmentId}`}
+                >
+                  Buka halaman oprec
+                </Link>
+              </>
+            ) : null}
           </p>
         ) : null}
 
@@ -415,6 +434,7 @@ export function FormBuilder({
 
 function StatusActions({ status }: { status: FormStatus }) {
   const builder = useBuilder();
+  const [confirmClose, setConfirmClose] = useState(false);
   return (
     <>
       {status === 'Draft' ? (
@@ -435,10 +455,38 @@ function StatusActions({ status }: { status: FormStatus }) {
           </Button>
           <Button
             variant="warning_outline"
-            onClick={() => void builder.changeStatus('Closed')}
+            onClick={() => setConfirmClose(true)}
           >
             Tutup form
           </Button>
+          <Dialog open={confirmClose} onOpenChange={setConfirmClose}>
+            <DialogContent className="rounded-[20px]">
+              <DialogHeader>
+                <DialogTitle>Tutup form?</DialogTitle>
+                <DialogDescription>
+                  Pendaftar tidak bisa lagi mengirim jawaban. Form bisa dibuka
+                  kembali nanti.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="gap-2">
+                <Button
+                  variant="dark_blue_outline"
+                  onClick={() => setConfirmClose(false)}
+                >
+                  Batal
+                </Button>
+                <Button
+                  variant="warning"
+                  onClick={() => {
+                    setConfirmClose(false);
+                    void builder.changeStatus('Closed');
+                  }}
+                >
+                  Tutup form
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </>
       ) : null}
       {status === 'Closed' ? (
