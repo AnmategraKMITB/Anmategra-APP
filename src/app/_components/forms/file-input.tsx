@@ -39,7 +39,7 @@ const fmt = (bytes: number) =>
 
 /**
  * Jawaban berkas via UploadThing (public-read) atau Google Drive pengisi
- * (aplikasi hanya menyimpan tautan; aksesnya diatur pengisi).
+ * (aplikasi hanya menyimpan tautan; akses dibuka otomatis).
  */
 export function FileInput({
   field,
@@ -204,9 +204,9 @@ export function FileInput({
       </p>
       {providerId === 'google-drive' ? (
         <p className="text-sm text-neutral-700">
-          Setelah mengunggah, buka berkas di Google Drive kamu lalu atur akses
-          ke <strong>Siapa saja yang memiliki link</strong> (Viewer). Tanpa ini,
-          panitia tidak bisa membukanya.
+          Akses berkas diatur otomatis ke{' '}
+          <strong>Siapa saja yang memiliki link</strong> (Viewer). Bila panitia
+          tidak bisa membukanya, atur akses itu sendiri di Google Drive kamu.
         </p>
       ) : null}
       {!upload?.enabled ? (

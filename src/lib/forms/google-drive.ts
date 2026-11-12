@@ -176,9 +176,10 @@ async function assertDriveSpace(size: number, token: string): Promise<void> {
 }
 
 /**
- * Upload jawaban berkas ke Drive pengisi. Aplikasi hanya menyimpan tautannya;
- * pengisi sendiri yang mengatur akses (diingatkan di form), karena kebijakan
- * Workspace sering melarang berbagi publik lewat aplikasi.
+ * Upload jawaban berkas ke Drive pengisi, lalu buka akses "siapa saja yang
+ * memiliki link" (Viewer) otomatis. Aplikasi hanya menyimpan tautannya.
+ * Bila kebijakan Workspace menolak, berkas tetap dipakai dan pengisi
+ * diingatkan mengatur akses sendiri.
  */
 export async function uploadToGoogleDrive(
   file: File,
@@ -235,6 +236,20 @@ export async function uploadToGoogleDrive(
   if (!uploaded.id)
     throw new Error('Google Drive tidak mengembalikan file ID.');
 
+  // ponytail: kegagalan izin (mis. dibatasi Workspace) diabaikan; pengisi
+  // diingatkan di form dan pengelola mendapat petunjuk di tabel respons.
+  await fetch(
+    `${DRIVE_API}/files/${encodeURIComponent(uploaded.id)}/permissions?fields=id`,
+    {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: JSON.stringify({ role: 'reader', type: 'anyone' }),
+    },
+  ).catch(() => undefined);
+
   return {
     itemId: uploaded.id,
     driveId: 'google-drive',
@@ -244,7 +259,6 @@ export async function uploadToGoogleDrive(
     url:
       uploaded.webViewLink ??
       `https://drive.google.com/file/d/${uploaded.id}/view`,
-    // ponytail: skema mewajibkan `scope`; akses sebenarnya diatur pengisi.
     scope: 'anyone',
     provider: 'google-drive',
   };
