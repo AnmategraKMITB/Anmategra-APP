@@ -30,3 +30,15 @@ export const canOpenRegistration = (status: 'draft' | 'open' | 'closed') =>
  */
 export const waveTitle = (label: string) =>
   `Gelombang ${label.trim().replace(/^gelombang\s+/i, '')}`;
+
+/**
+ * Tab Penempatan terkunci sampai pendaftaran ditutup atau ada minimal satu
+ * pendaftar (#346). Mengembalikan alasan, atau null bila terbuka.
+ */
+export const placementLockReason = (
+  status: 'draft' | 'open' | 'closed',
+  applicantCount: number,
+) =>
+  status === 'closed' || applicantCount > 0
+    ? null
+    : 'Terkunci sampai pendaftaran ditutup atau ada minimal satu pendaftar.';
