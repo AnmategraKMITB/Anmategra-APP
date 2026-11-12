@@ -19,6 +19,7 @@ export const ADMIN_PERMISSIONS = [
   'audit.read',
   'reports.read',
   'reports.write',
+  'alumni.write',
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
@@ -72,6 +73,11 @@ export const ADMIN_PERMISSION_GROUPS: AdminPermissionGroup[] = [
       { value: 'reports.read', label: 'Lihat laporan' },
       { value: 'reports.write', label: 'Ubah laporan' },
     ],
+  },
+  {
+    id: 'alumni',
+    label: 'Alumni',
+    permissions: [{ value: 'alumni.write', label: 'Impor data alumni' }],
   },
 ];
 

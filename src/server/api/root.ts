@@ -4,6 +4,7 @@ import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 import { adminConsoleRouter } from './routers/admin-console';
 import { adminGrantRouter } from './routers/admin-grant';
 import { adminRouter } from './routers/admin';
+import { adminOpsRouter } from './routers/admin-ops';
 import { eventRouter } from './routers/event';
 import { formRouter } from './routers/form';
 import { kegiatanRouter } from './routers/kegiatan';
@@ -24,6 +25,7 @@ import { userRouter } from './routers/user';
 export const appRouter = createTRPCRouter({
   admin: adminRouter,
   adminConsole: adminConsoleRouter,
+  adminOps: adminOpsRouter,
   adminGrant: adminGrantRouter,
   landing: landingRouter,
   lembaga: lembagaRouter,

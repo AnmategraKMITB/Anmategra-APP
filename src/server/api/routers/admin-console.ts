@@ -12,9 +12,11 @@ import {
   sql,
 } from 'drizzle-orm';
 import { env } from '~/env';
+import { assertConfirmEmail } from '~/server/api/superadmin';
 import { ADMIN_PERMISSIONS, type AdminPermission } from '~/server/api/admin-permissions';
 import {
   adminPermissionProcedure,
+  loadAdminAccess,
   createTRPCRouter,
   protectedProcedure,
 } from '~/server/api/trpc';
@@ -72,11 +74,6 @@ import {
 type Db = typeof database;
 
 const likeOf = (value: string) => `%${value.replace(/[\\%_]/g, '\\$&')}%`;
-
-const activeAdminPermission = and(
-  isNull(adminPermission.revokedAt),
-  or(isNull(adminPermission.expiresAt), sql`${adminPermission.expiresAt} > now()`),
-);
 
 async function findUserByIdentifier(db: Db, identifier: string) {
   const value = identifier.trim();
@@ -145,14 +142,12 @@ export const adminConsoleRouter = createTRPCRouter({
   }),
 
   myAdminPermissions: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.session.user.role === 'admin') {
-      return { permissions: ['*'], expiresAt: null };
-    }
-    const row = await ctx.db.query.adminPermission.findFirst({
-      where: and(eq(adminPermission.userId, ctx.session.user.id), activeAdminPermission),
-      columns: { permissions: true, expiresAt: true },
-    });
-    return { permissions: row?.permissions ?? [], expiresAt: row?.expiresAt ?? null };
+    const access = await loadAdminAccess(ctx.db, ctx.session.user.id);
+    if (access?.isSuperadmin) return { permissions: ['*'], expiresAt: null };
+    return {
+      permissions: access?.permissions ?? [],
+      expiresAt: access?.expiresAt ?? null,
+    };
   }),
 
   usersList: adminPermissionProcedure('accounts.read')
@@ -488,6 +483,29 @@ export const adminConsoleRouter = createTRPCRouter({
         .where(eq(users.id, input.userId))
         .limit(1);
       if (!before) throw new TRPCError({ code: 'NOT_FOUND' });
+      // Perubahan ke/dari Superadmin hanya lewat prosedur Superadmin khusus
+      // (adminOps.superadminAdd/Remove). Email Superadmin juga dikunci: mengganti
+      // email akun admin sama dengan mengambil alih akun itu.
+      if (input.role === 'admin' && before.role !== 'admin') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Menjadikan Superadmin hanya bisa lewat halaman Superadmin.',
+        });
+      }
+      if (before.role === 'admin') {
+        const changesRole = input.role !== undefined && input.role !== 'admin';
+        const changesEmail = input.email !== undefined && input.email !== before.email;
+        if (changesRole || changesEmail) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Email dan role Superadmin hanya bisa diubah lewat halaman Superadmin.',
+          });
+        }
+      }
+      // Konfirmasi tambahan untuk perubahan role.
+      if (input.role !== undefined && input.role !== before.role) {
+        assertConfirmEmail(input.confirmEmail, before.email);
+      }
       const [beforeMahasiswa] = await ctx.db
         .select()
         .from(mahasiswa)

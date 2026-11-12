@@ -17,7 +17,15 @@ import {
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { adminPermission, form, recruitment } from '~/server/db/schema';
+
+import { env } from '~/env';
+import { isEmergencySuperadmin } from '~/server/api/superadmin';
+import {
+  adminPermission,
+  form,
+  recruitment,
+  users,
+} from '~/server/db/schema';
 
 // Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
 // tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
@@ -228,29 +236,72 @@ export const protectedProcedure = t.procedure
     });
   });
 
+/**
+ * Peran dan izin admin dibaca ulang dari basis data pada setiap panggilan,
+ * dengan satu query ringkas (users LEFT JOIN admin_permission aktif). Token
+ * sesi berlaku hingga 30 hari, sehingga peran di token tidak boleh dipercaya:
+ * Superadmin/Operator yang diturunkan harus langsung kehilangan akses.
+ */
+export async function loadAdminAccess(database: typeof db, userId: string) {
+  const [row] = await database
+    .select({
+      role: users.role,
+      email: users.email,
+      permissions: adminPermission.permissions,
+      expiresAt: adminPermission.expiresAt,
+    })
+    .from(users)
+    .leftJoin(
+      adminPermission,
+      and(
+        eq(adminPermission.userId, users.id),
+        isNull(adminPermission.revokedAt),
+        or(
+          isNull(adminPermission.expiresAt),
+          gt(adminPermission.expiresAt, new Date()),
+        ),
+      ),
+    )
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!row) return null;
+  return {
+    isSuperadmin:
+      row.role === 'admin' ||
+      isEmergencySuperadmin(row.email, env.SUPERADMIN_EMAILS),
+    permissions: row.permissions ?? [],
+    expiresAt: row.expiresAt ?? null,
+  };
+}
+
+/**
+ * Khusus Superadmin (`users.role = 'admin'` atau akun `SUPERADMIN_EMAILS`),
+ * diperiksa ke basis data. Operator berizin tidak lolos di sini.
+ */
 export const adminProcedure = t.procedure
   .meta({ access: 'admin' })
   .use(timingMiddleware)
-  .use(({ ctx, next }) => {
+  .use(async ({ ctx, next }) => {
     // 401 = belum login; 403 = sudah login tetapi bukan admin.
     if (!ctx.session?.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
-    if (ctx.session.user.role !== 'admin') {
+    const access = await loadAdminAccess(ctx.db, ctx.session.user.id);
+    if (!access?.isSuperadmin) {
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
+      ctx: { session: { ...ctx.session, user: ctx.session.user } },
     });
   });
 
+/** Sama dengan `adminProcedure`; satu pemeriksaan basis data, tanpa query ganda. */
+export const superadminProcedure = adminProcedure;
+
 /**
- * Izin operator admin console. Superadmin (`role === 'admin'`) melewati semua
- * pemeriksaan; operator biasa harus punya baris `admin_permission` aktif yang
- * memuat izin yang diminta.
+ * Izin operator admin console, diperiksa ulang ke basis data. Superadmin
+ * melewati semua pemeriksaan; operator biasa harus punya baris `admin_permission`
+ * aktif yang memuat izin yang diminta.
  */
 export const adminPermissionProcedure = (required: AdminPermission) =>
   t.procedure
@@ -260,7 +311,9 @@ export const adminPermissionProcedure = (required: AdminPermission) =>
       if (!ctx.session?.user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-      if (ctx.session.user.role === 'admin') {
+      const access = await loadAdminAccess(ctx.db, ctx.session.user.id);
+      if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
+      if (access.isSuperadmin) {
         return next({
           ctx: {
             session: { ...ctx.session, user: ctx.session.user },
@@ -268,25 +321,13 @@ export const adminPermissionProcedure = (required: AdminPermission) =>
           },
         });
       }
-
-      const row = await ctx.db.query.adminPermission.findFirst({
-        where: and(
-          eq(adminPermission.userId, ctx.session.user.id),
-          isNull(adminPermission.revokedAt),
-          or(
-            isNull(adminPermission.expiresAt),
-            gt(adminPermission.expiresAt, new Date()),
-          ),
-        ),
-        columns: { permissions: true },
-      });
-      if (!row || !hasAdminPermission(row.permissions, required)) {
+      if (!hasAdminPermission(access.permissions, required)) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
       return next({
         ctx: {
           session: { ...ctx.session, user: ctx.session.user },
-          adminPermissions: row.permissions,
+          adminPermissions: access.permissions,
         },
       });
     });
