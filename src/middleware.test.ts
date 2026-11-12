@@ -48,6 +48,29 @@ describe('/prototype/*', () => {
   });
 });
 
+describe('/manual', () => {
+  it.each(['/manual', '/manual/forms', '/manual/oprec/daftar'])(
+    'tanpa login %s terbuka',
+    async (path) => {
+      expect(await run(path, null)).toEqual({ kind: 'next' });
+    },
+  );
+
+  it.each(['mahasiswa', 'lembaga', 'admin'])(
+    'role %s tidak diberi prefiks role',
+    async (role) => {
+      expect(await run('/manual/forms', { role })).toEqual({ kind: 'next' });
+    },
+  );
+
+  it('tidak membuka rute lain yang berawalan sama', async () => {
+    expect(await run('/manualx', null)).toEqual({
+      kind: 'redirect',
+      to: '/authentication',
+    });
+  });
+});
+
 describe('regresi rute lain', () => {
   it('/manage tetap butuh login', async () => {
     expect(await run('/manage/kegiatan', null)).toEqual({
