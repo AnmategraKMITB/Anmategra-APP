@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, inArray, isNull, max } from 'drizzle-orm';
+import { and, count, desc, eq, inArray, max } from 'drizzle-orm';
 import { MAX_RULES } from '~/lib/forms/conditions';
 import {
   createTRPCRouter,
@@ -10,7 +10,6 @@ import {
   application,
   applicationChoice,
   form,
-  formField,
   formSubmission,
   recruitment,
   recruitmentDivision,
@@ -40,6 +39,10 @@ import { assessorProcedures } from './assessors';
 import { criteriaProcedures } from './criteria';
 import { flagProcedures } from './flags';
 import { placementProcedures } from './placement';
+import {
+  lockRegistrationByRecruitment,
+  setRegistrationStatus,
+} from './registration';
 import { resultsProcedures } from './results';
 import {
   applySectionBinding,
@@ -202,56 +205,16 @@ export const oprecRouter = createTRPCRouter({
     .input(SetRecruitmentStatusInputSchema)
     .output(OkOutputSchema)
     .mutation(async ({ ctx, input }) => {
+      // Status oprec dan formulirnya berubah bersama; lihat ./registration.
       await ctx.db.transaction(async (tx) => {
-        const [current] = await tx
-          .select()
-          .from(recruitment)
-          .where(eq(recruitment.id, input.recruitmentId))
-          .for('update');
-        if (!current) notFound('Oprec tidak ditemukan.');
-        if (current.status === input.status) return;
-
-        if (input.status === 'open') {
-          if (!current.setupCompletedAt) {
-            conflict('Selesaikan pengaturan oprec sebelum membukanya.');
-          }
-          const [divs] = await tx
-            .select({ n: count() })
-            .from(recruitmentDivision)
-            .where(eq(recruitmentDivision.recruitmentId, current.id));
-          const [choice] = await tx
-            .select({ n: count() })
-            .from(formField)
-            .where(
-              and(
-                eq(formField.formId, current.formId),
-                eq(formField.type, 'unit_choice'),
-                isNull(formField.archivedAt),
-              ),
-            );
-          if ((choice?.n ?? 0) === 0) {
-            conflict(
-              'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
-            );
-          }
-          if ((divs?.n ?? 0) === 0) {
-            conflict(
-              'Pilih minimal satu tujuan penempatan sebelum membuka oprec.',
-            );
-          }
-        }
-        if (
-          input.status === 'draft' &&
-          (await countApplications(tx, current.id)) > 0
-        ) {
-          conflict(
-            'Oprec yang sudah punya pendaftar tidak bisa kembali ke draf.',
-          );
-        }
-        await tx
-          .update(recruitment)
-          .set({ status: input.status })
-          .where(eq(recruitment.id, current.id));
+        const lock = await lockRegistrationByRecruitment(
+          tx,
+          input.recruitmentId,
+        );
+        await setRegistrationStatus(tx, lock, input.status, {
+          actorId: ctx.session.user.id,
+          via: 'oprec',
+        });
       });
       return OK;
     }),

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { api } from '~/trpc/server';
 
 import { canOpenResults, loadAssessableOprec } from './access';
+import { OprecStatusBar } from './oprec-status-bar';
 import { OprecTabs } from './oprec-tabs';
 import { PlacementView } from './placement-view';
 import { type OprecBase } from './status';
@@ -19,8 +20,7 @@ export async function PenempatanPage({
   const found = await loadAssessableOprec(recruitmentId);
   if (found?.recruitment.periodId !== kegiatanId) notFound();
   const isAdmin = found.access.isAdmin;
-  const canDecide =
-    isAdmin || found.access.deciderDivisionIds.size > 0;
+  const canDecide = isAdmin || found.access.deciderDivisionIds.size > 0;
   if (!canDecide) notFound();
 
   const event = await api.event.getByID({ id: kegiatanId });
@@ -34,15 +34,25 @@ export async function PenempatanPage({
         isAdmin ? `${basePath}/kegiatan/${kegiatanId}/oprec` : undefined
       }
       tabs={
-        <OprecTabs
-          basePath={basePath}
-          kegiatanId={kegiatanId}
-          recruitmentId={recruitmentId}
-          current="penempatan"
-          showPendaftar={isAdmin}
-          showPenempatan
-          showHasil={showHasil}
-        />
+        <>
+          <OprecStatusBar
+            recruitmentId={recruitmentId}
+            status={found.recruitment.status}
+            formHref={
+              isAdmin ? `${basePath}/forms/${found.recruitment.formId}` : null
+            }
+            canManage={isAdmin}
+          />
+          <OprecTabs
+            basePath={basePath}
+            kegiatanId={kegiatanId}
+            recruitmentId={recruitmentId}
+            current="penempatan"
+            showPendaftar={isAdmin}
+            showPenempatan
+            showHasil={showHasil}
+          />
+        </>
       }
     />
   );

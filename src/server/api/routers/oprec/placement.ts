@@ -22,6 +22,7 @@ import {
 import { effectiveStatus } from '~/lib/oprec/scoring';
 import { oprecAssessProcedure } from '~/server/api/trpc';
 import {
+  type DecisionTag,
   application,
   applicationChoice,
   choiceStatusOverride,
@@ -37,16 +38,16 @@ import {
   recruitmentWave,
   transferRequest,
   users,
-  type DecisionTag,
 } from '~/server/db/schema';
 
+import { type Tx } from '../form/services';
 import {
   type AssessAccess,
   canDecideDivision,
   canSeeSensitive,
 } from './assess-access';
-import { type Tx } from '../form/services';
 import { logAction } from './log';
+import { loadRegistrationWindow } from './registration';
 import { type Queryable, conflict, notFound, pgCode } from './services';
 
 const id = z.string().min(1);
@@ -522,7 +523,10 @@ export const placementProcedures = {
           if (row.rank !== null) {
             const perRank =
               rankStats.get(row.divisionId) ??
-              new Map<number, { total: number; pending: number; done: number }>();
+              new Map<
+                number,
+                { total: number; pending: number; done: number }
+              >();
             const stat = perRank.get(row.rank) ?? {
               total: 0,
               pending: 0,
@@ -541,12 +545,19 @@ export const placementProcedures = {
 
       const blockers = await openTransferRows(ctx.db, ctx.recruitment.id);
       const state = ctx.recruitment.placementState;
+      // Masa banding baru bisa dimasuki setelah pendaftaran berakhir.
+      const { registrationEnded } = await loadRegistrationWindow(
+        ctx.db,
+        ctx.recruitment.id,
+        new Date(),
+      );
 
       return {
         name: ctx.recruitment.name,
         maxChoices: ctx.recruitment.maxChoices,
         isAdmin: access.isAdmin,
         state,
+        registrationEnded,
         canFinalize:
           access.isAdmin && state === 'masa_banding' && blockers.length === 0,
         blockers: access.isAdmin
@@ -568,8 +579,7 @@ export const placementProcedures = {
             groupLabel: division.groupLabel,
             quota: division.quota,
             accepted,
-            remaining:
-              division.quota === 0 ? null : division.quota - accepted,
+            remaining: division.quota === 0 ? null : division.quota - accepted,
             overQuota: division.quota > 0 && accepted > division.quota,
             waiting: waiting.get(division.id) ?? 0,
             pending: pending.get(division.id) ?? 0,
@@ -682,7 +692,9 @@ export const placementProcedures = {
         rows: pageRows.map((row) => {
           const choices = choicesByApp.get(row.id) ?? [];
           const stages = stageMapOf(choices);
-          const accepted = choices.find((choice) => choice.decision === 'terima');
+          const accepted = choices.find(
+            (choice) => choice.decision === 'terima',
+          );
           return {
             id: row.id,
             name: row.name,
@@ -694,7 +706,8 @@ export const placementProcedures = {
             submittedAt: row.submittedAt,
             waveLabel: row.waveLabel,
             acceptedElsewhere:
-              accepted !== undefined && accepted.divisionId !== input.divisionId,
+              accepted !== undefined &&
+              accepted.divisionId !== input.divisionId,
             choices: choices.map((choice) => {
               const stage = stages.get(choice.id);
               return {
@@ -742,7 +755,11 @@ export const placementProcedures = {
           .for('update');
         if (!locked) notFound('Oprec tidak ditemukan.');
 
-        const loaded = await loadChoiceForDecision(tx, ctx.recruitment.id, input.choiceId);
+        const loaded = await loadChoiceForDecision(
+          tx,
+          ctx.recruitment.id,
+          input.choiceId,
+        );
         assertDecider(ctx.assess, loaded.division.id);
         const stages = deriveChoiceStage(
           loaded.siblings.map((choice) => ({
@@ -796,14 +813,12 @@ export const placementProcedures = {
         }
 
         if (input.decision === 'terima') {
-          await tx
-            .delete(placement)
-            .where(
-              inArray(
-                placement.applicationChoiceId,
-                loaded.siblings.map((choice) => choice.id),
-              ),
-            );
+          await tx.delete(placement).where(
+            inArray(
+              placement.applicationChoiceId,
+              loaded.siblings.map((choice) => choice.id),
+            ),
+          );
           try {
             await tx.insert(placement).values({
               positionId: loaded.division.positionId,
@@ -877,14 +892,20 @@ export const placementProcedures = {
         buildAutofillPlan(ctx.db, ctx.recruitment.id, 'tolak'),
         buildAutofillPlan(ctx.db, ctx.recruitment.id, 'masukkan'),
       ]);
-      const allowed = allowedDivisions(ctx.assess, await loadPlacementDivisions(ctx.db, ctx.recruitment.id));
+      const allowed = allowedDivisions(
+        ctx.assess,
+        await loadPlacementDivisions(ctx.db, ctx.recruitment.id),
+      );
       const masukCount = new Map(
         masukPlan.perDivision.map((row) => [row.divisionId, row.terima]),
       );
       const divisions = tolakPlan.perDivision
         .filter((row) => allowed.has(row.divisionId))
         .map((row) => {
-          const extra = Math.max(0, (masukCount.get(row.divisionId) ?? 0) - row.terima);
+          const extra = Math.max(
+            0,
+            (masukCount.get(row.divisionId) ?? 0) - row.terima,
+          );
           return {
             divisionId: row.divisionId,
             label: tolakPlan.labelOf(row.divisionId),
@@ -951,9 +972,14 @@ export const placementProcedures = {
             eq(application.id, applicationChoice.applicationId),
           )
           .where(inArray(applicationChoice.id, targets));
-        const applicationIds = [...new Set(rows.map((row) => row.applicationId))];
+        const applicationIds = [
+          ...new Set(rows.map((row) => row.applicationId)),
+        ];
         const allChoices = await tx
-          .select({ id: applicationChoice.id, applicationId: applicationChoice.applicationId })
+          .select({
+            id: applicationChoice.id,
+            applicationId: applicationChoice.applicationId,
+          })
           .from(applicationChoice)
           .where(inArray(applicationChoice.applicationId, applicationIds));
         const siblingsOf = new Map<string, string[]>();
@@ -973,7 +999,9 @@ export const placementProcedures = {
           const decision: Decision = terimaSet.has(row.id) ? 'terima' : 'tolak';
           const accepted = acceptedMap.get(division.id) ?? 0;
           const over =
-            decision === 'terima' && division.quota > 0 && accepted >= division.quota;
+            decision === 'terima' &&
+            division.quota > 0 &&
+            accepted >= division.quota;
           await writeDecision(tx, {
             choiceId: row.id,
             applicationId: row.applicationId,
@@ -1047,6 +1075,31 @@ export const placementProcedures = {
           });
         }
 
+        // Maju ke masa banding atau final hanya setelah pendaftaran berakhir;
+        // mundur tetap boleh.
+        const forward =
+          (current === 'berjalan' && input.state === 'masa_banding') ||
+          (current === 'masa_banding' && input.state === 'final');
+        if (forward) {
+          if (rec.status === 'draft') {
+            conflict(
+              'Oprec masih draf. Buka dan tutup pendaftaran lebih dulu.',
+            );
+          }
+          const { registrationEnded } = await loadRegistrationWindow(
+            tx,
+            rec.id,
+            new Date(),
+          );
+          if (!registrationEnded) {
+            conflict(
+              input.state === 'final'
+                ? 'Pendaftaran masih dibuka. Tutup pendaftaran sebelum menetapkan final.'
+                : 'Pendaftaran masih dibuka. Tutup pendaftaran sebelum masuk masa banding.',
+            );
+          }
+        }
+
         const open = await openTransferRows(tx, ctx.recruitment.id);
         if (input.state === 'final' && open.length > 0) {
           if (!input.resolution) {
@@ -1077,9 +1130,15 @@ export const placementProcedures = {
                 ),
               );
           } else {
-            const divisions = await loadPlacementDivisions(tx, ctx.recruitment.id);
+            const divisions = await loadPlacementDivisions(
+              tx,
+              ctx.recruitment.id,
+            );
             const divisionOf = new Map(divisions.map((row) => [row.id, row]));
-            const acceptedMap = await acceptedByDivision(tx, ctx.recruitment.id);
+            const acceptedMap = await acceptedByDivision(
+              tx,
+              ctx.recruitment.id,
+            );
             const over: {
               requestId: string;
               divisionId: string;
@@ -1149,7 +1208,8 @@ export const placementProcedures = {
               status: 'dibatalkan',
               resolvedBy: ctx.session.user.id,
               resolvedAt: new Date(),
-              resolutionNote: 'Dibatalkan karena penempatan keluar dari masa banding.',
+              resolutionNote:
+                'Dibatalkan karena penempatan keluar dari masa banding.',
             })
             .where(
               and(
@@ -1288,9 +1348,10 @@ export const placementProcedures = {
           )
           .for('update');
         if (!app) notFound('Pendaftar itu bukan milik oprec ini.');
-        const choices = (await loadChoices(tx, [input.applicationId], true)).get(
-          input.applicationId,
-        ) ?? [];
+        const choices =
+          (await loadChoices(tx, [input.applicationId], true)).get(
+            input.applicationId,
+          ) ?? [];
         const accepted = choices.find((choice) => choice.decision === 'terima');
         if (!accepted) {
           throw new TRPCError({
@@ -1360,9 +1421,10 @@ export const placementProcedures = {
         });
       }
       return ctx.db.transaction(async (tx) => {
-        const choices = (await loadChoices(tx, [input.applicationId], true)).get(
-          input.applicationId,
-        ) ?? [];
+        const choices =
+          (await loadChoices(tx, [input.applicationId], true)).get(
+            input.applicationId,
+          ) ?? [];
         const accepted = choices.find((choice) => choice.decision === 'terima');
         if (!accepted) {
           throw new TRPCError({
@@ -1476,9 +1538,7 @@ export const placementProcedures = {
         }
 
         const divisions = await loadPlacementDivisions(tx, ctx.recruitment.id);
-        const target = divisions.find(
-          (row) => row.id === request.toDivisionId,
-        );
+        const target = divisions.find((row) => row.id === request.toDivisionId);
         if (!target) notFound('Divisi tujuan permintaan tidak ditemukan.');
         const [app] = await tx
           .select({ userId: application.userId })
@@ -1649,7 +1709,10 @@ export const placementProcedures = {
     )
     .mutation(async ({ ctx, input }) => {
       assertAdmin(ctx.assess);
-      const divisions = await loadPlacementDivisions(ctx.db, ctx.recruitment.id);
+      const divisions = await loadPlacementDivisions(
+        ctx.db,
+        ctx.recruitment.id,
+      );
       const known = new Set(divisions.map((row) => row.id));
       for (const row of input.overrides) {
         if (
@@ -1664,7 +1727,8 @@ export const placementProcedures = {
         if (row.viewerDivisionId === row.targetDivisionId) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'Pengecualian visibilitas harus antar divisi yang berbeda.',
+            message:
+              'Pengecualian visibilitas harus antar divisi yang berbeda.',
           });
         }
       }
@@ -1678,10 +1742,7 @@ export const placementProcedures = {
         await tx
           .delete(recruitmentVisibilityOverride)
           .where(
-            eq(
-              recruitmentVisibilityOverride.recruitmentId,
-              ctx.recruitment.id,
-            ),
+            eq(recruitmentVisibilityOverride.recruitmentId, ctx.recruitment.id),
           );
         if (input.overrides.length > 0) {
           await tx.insert(recruitmentVisibilityOverride).values(
@@ -2166,9 +2227,7 @@ async function loadChoiceForDecision(
     userId: row.userId,
     division,
     status: found?.status ?? null,
-    decision: found?.decision
-      ? { choiceId, decision: found.decision }
-      : null,
+    decision: found?.decision ? { choiceId, decision: found.decision } : null,
     siblings,
   };
 }

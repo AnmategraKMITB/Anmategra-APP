@@ -12,6 +12,7 @@ import { api } from '~/trpc/server';
 
 import { canOpenResults, loadAssessableOprec } from './access';
 import { HasilView } from './hasil/hasil-view';
+import { OprecStatusBar } from './oprec-status-bar';
 import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';
 
@@ -34,8 +35,7 @@ export async function HasilPage({
 
   const event = await api.event.getByID({ id: kegiatanId });
   const isAdmin = found.access.isAdmin;
-  const canPlacement =
-    isAdmin || found.access.deciderDivisionIds.size > 0;
+  const canPlacement = isAdmin || found.access.deciderDivisionIds.size > 0;
 
   // Nama yang sudah diterima per divisi, lengkap (melewati paginasi tabel).
   const accepted = await db
@@ -51,10 +51,7 @@ export async function HasilPage({
       applicationChoice,
       eq(applicationChoice.id, placementDecision.choiceId),
     )
-    .innerJoin(
-      application,
-      eq(application.id, applicationChoice.applicationId),
-    )
+    .innerJoin(application, eq(application.id, applicationChoice.applicationId))
     .innerJoin(users, eq(users.id, application.userId))
     .leftJoin(mahasiswa, eq(mahasiswa.userId, users.id))
     .where(
@@ -86,20 +83,32 @@ export async function HasilPage({
       backHref={
         isAdmin ? `${basePath}/kegiatan/${kegiatanId}/oprec` : undefined
       }
-      penempatanHref={canPlacement
-        ? `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/penempatan`
-        : undefined}
+      penempatanHref={
+        canPlacement
+          ? `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/penempatan`
+          : undefined
+      }
       acceptedByDivision={acceptedByDivision}
       tabs={
-        <OprecTabs
-          basePath={basePath}
-          kegiatanId={kegiatanId}
-          recruitmentId={recruitmentId}
-          current="hasil"
-          showPendaftar={isAdmin}
-          showPenempatan={canPlacement}
-          showHasil
-        />
+        <>
+          <OprecStatusBar
+            recruitmentId={recruitmentId}
+            status={found.recruitment.status}
+            formHref={
+              isAdmin ? `${basePath}/forms/${found.recruitment.formId}` : null
+            }
+            canManage={isAdmin}
+          />
+          <OprecTabs
+            basePath={basePath}
+            kegiatanId={kegiatanId}
+            recruitmentId={recruitmentId}
+            current="hasil"
+            showPendaftar={isAdmin}
+            showPenempatan={canPlacement}
+            showHasil
+          />
+        </>
       }
     />
   );
