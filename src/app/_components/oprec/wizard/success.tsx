@@ -24,18 +24,13 @@ export function Done({
   basePath: OprecBase;
 }) {
   const [opened, setOpened] = useState(false);
-  const setFormStatus = api.form.setStatus.useMutation();
   const setStatus = api.oprec.setStatus.useMutation();
-  const busy = setFormStatus.isPending || setStatus.isPending;
-  const error =
-    setFormStatus.error?.message ?? setStatus.error?.message ?? null;
+  const busy = setStatus.isPending;
+  const error = setStatus.error?.message ?? null;
 
   const open = async () => {
     try {
-      await setFormStatus.mutateAsync({
-        formId: created.formId,
-        status: 'Published',
-      });
+      // Server juga menerbitkan formulir terikat dalam transaksi yang sama.
       await setStatus.mutateAsync({
         recruitmentId: created.recruitmentId,
         status: 'open',

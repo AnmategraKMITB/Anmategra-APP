@@ -16,6 +16,7 @@ import {
   type WizardCtx,
   type WizardState,
   buildInput,
+  clampChoices,
   defaultState,
   firstInvalidStep,
   restoreState,
@@ -115,7 +116,7 @@ export function SetupWizard({
   const frame = useRef<HTMLDivElement>(null);
 
   const update = (patch: Partial<WizardState>) =>
-    setS((prev) => ({ ...prev, ...patch }));
+    setS((prev) => clampChoices({ ...prev, ...patch }));
 
   const applyPreset = (id: PresetId) => {
     const preset = PRESETS.find((item) => item.id === id);
@@ -174,6 +175,13 @@ export function SetupWizard({
     return m;
   }, [trees]);
 
+  const staffed = new Set<string>();
+  const headed = new Set<string>();
+  for (const t of trees) {
+    t.tree?.staffedUnitIds.forEach((u) => staffed.add(u));
+    t.tree?.headedUnitIds.forEach((u) => headed.add(u));
+  }
+
   const labels = (own.data?.tree?.levelLabels ?? ['Bidang', 'Divisi']) as [
     string,
     string,
@@ -187,6 +195,8 @@ export function SetupWizard({
     forms: own.data?.forms ?? [],
     divisionCount: Object.keys(s.divisions).length,
     unitName: (id) => unitMap.get(id) ?? 'Bagian',
+    hasPeople: (id) => staffed.has(id),
+    hasHead: (id) => headed.has(id),
   };
 
   const steps = visibleSteps(s, { hasMultipleSources: sources.length > 1 });

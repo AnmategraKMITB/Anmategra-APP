@@ -419,13 +419,14 @@ export function StepAkses({ s, update, trees, c }: StepProps) {
           {
             value: 'level',
             label: `Saya dan ${l2} tertentu`,
-            description:
-              'Tersimpan sebagai jawaban; akses per bagian aktif di fase berikutnya.',
+            disabled: true,
+            description: 'Belum tersedia; dibuka di fase berikutnya.',
           },
           {
             value: 'ketua',
             label: `Hanya ketua ${l2}`,
-            description: 'Tersimpan sebagai jawaban; aktif di fase berikutnya.',
+            disabled: true,
+            description: 'Belum tersedia; dibuka di fase berikutnya.',
           },
         ]}
       />
