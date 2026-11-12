@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 import { recruitmentSetupDraft } from '~/server/db/schema';
-import { createOprecWorld } from '~/test/oprec-fixtures';
+import { createOprecWorld, placeAt } from '~/test/oprec-fixtures';
 import { createTestDb, createUser, grantAccess, resetDb } from '~/test/test-db';
 
 import { oprecRouter } from '.';
@@ -81,6 +81,7 @@ describe('draf wizard (H-08, K-04)', () => {
 
   it('draf hilang setelah createFromSetup berhasil', async () => {
     const w = await createOprecWorld(db);
+    await placeAt(db, w.units[0]!.headPositionId, (await createUser(db)).id);
     const caller = callerFor(w.owner);
     await caller.oprec.setupDraftSave({
       eventId: w.eventId,
