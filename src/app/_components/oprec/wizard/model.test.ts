@@ -128,3 +128,14 @@ describe('buildInput: jawaban lanjutan', () => {
     expect(buildInput(s, ctx).generalAssessorUnitId).toBeNull();
   });
 });
+
+describe('buildInput: pengelola', () => {
+  it('mengirim daftar email atau NIM hanya bila memilih orang tertentu', () => {
+    const s = stateWithDivisions();
+    s.managers = 'orang';
+    s.managerIdentifiers = ['a@itb.ac.id', '13523001'];
+    expect(buildInput(s, ctx).managers).toEqual(['a@itb.ac.id', '13523001']);
+    s.managers = 'saya';
+    expect(buildInput(s, ctx).managers).toEqual([]);
+  });
+});

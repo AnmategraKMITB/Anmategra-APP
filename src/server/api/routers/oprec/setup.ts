@@ -1,11 +1,13 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import { canManageLembaga } from '~/server/api/access';
 import { oprecPeriodProcedure } from '~/server/api/trpc';
 import {
   MAX_FIELDS_PER_FORM,
   MAX_SECTIONS_PER_FORM,
 } from '~/server/api/types/form.constants';
 import {
+  accessGrant,
   criterion,
   events,
   form,
@@ -13,6 +15,7 @@ import {
   formSection,
   formSubmission,
   lembaga,
+  mahasiswa,
   organizationPosition,
   organizationStructure,
   organizationUnit,
@@ -22,6 +25,7 @@ import {
   recruitmentDivision,
   recruitmentEligibilityRule,
   recruitmentWave,
+  users,
 } from '~/server/db/schema';
 
 import {
@@ -288,8 +292,21 @@ export const setupProcedures = {
         });
       }
 
+      // S17: pengelola divalidasi seluruhnya sebelum ada yang ditulis.
+      const managers = await resolveManagers(
+        ctx,
+        input.eventId,
+        input.managers,
+      );
+
       try {
         return await ctx.db.transaction(async (tx) => {
+          await grantOprecAccess(tx, {
+            periodId: input.eventId,
+            grantedBy: ctx.session.user.id,
+            userIds: managers.map((m) => m.userId),
+          });
+
           // Formulir: dari templat atau yang sudah ada.
           let formId: string;
           if (input.form.mode === 'existing') {
@@ -472,7 +489,17 @@ export const setupProcedures = {
               unitNames: await unitNames(tx, unitIds),
             });
           }
-          return { recruitmentId, formId };
+
+          return {
+            recruitmentId,
+            formId,
+            managers: managers.map(({ identifier, userId, name, email }) => ({
+              identifier,
+              userId,
+              name,
+              email,
+            })),
+          };
         });
       } catch (error) {
         if (pgCode(error) === '23505') {
@@ -482,6 +509,137 @@ export const setupProcedures = {
       }
     }),
 };
+
+type ResolvedManager = {
+  identifier: string;
+  userId: string;
+  name: string | null;
+  email: string;
+};
+
+/**
+ * Akun pengelola dari email atau NIM. Hanya Owner/Admin Lembaga yang boleh
+ * memberi akses (sama dengan `grantEventAdmin`); akun yang tak dikenal
+ * menggagalkan seluruh permintaan dengan menyebut identifiernya.
+ */
+async function resolveManagers(
+  ctx: {
+    db: Queryable;
+    session: { user: { id: string; role: string; lembagaId?: string | null } };
+  },
+  eventId: string,
+  identifiers: string[],
+): Promise<ResolvedManager[]> {
+  if (identifiers.length === 0) return [];
+  const event = await ctx.db.query.events.findFirst({
+    where: eq(events.id, eventId),
+    columns: { org_id: true },
+  });
+  const allowed =
+    event?.org_id != null &&
+    (await canManageLembaga(
+      ctx.db as Parameters<typeof canManageLembaga>[0],
+      ctx.session.user.id,
+      ctx.session.user.role,
+      ctx.session.user.lembagaId,
+      event.org_id,
+    ));
+  if (!allowed) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message:
+        'Hanya Owner atau Admin lembaga yang boleh memberi akses pengelola oprec.',
+    });
+  }
+
+  const resolved: ResolvedManager[] = [];
+  const missing: string[] = [];
+  const seenUsers = new Set<string>();
+  for (const identifier of identifiers) {
+    const user = await findAccount(ctx.db, identifier);
+    if (!user) {
+      missing.push(identifier);
+      continue;
+    }
+    if (seenUsers.has(user.id)) continue;
+    seenUsers.add(user.id);
+    resolved.push({
+      identifier,
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+    });
+  }
+  if (missing.length > 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Akun belum terdaftar di sistem: ${missing.join(', ')}. Oprec tidak dibuat.`,
+    });
+  }
+  return resolved;
+}
+
+async function findAccount(db: Queryable, identifier: string) {
+  const value = identifier.trim();
+  const [row] = /^\d+$/.test(value)
+    ? await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(mahasiswa)
+        .innerJoin(users, eq(users.id, mahasiswa.userId))
+        .where(eq(mahasiswa.nim, Number(value)))
+    : await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(users)
+        .where(sql`lower(${users.email}) = ${value.toLowerCase()}`);
+  return row ?? null;
+}
+
+/**
+ * Memberi fitur `oprec` pada periode. Fitur yang sudah dimiliki digabung
+ * (keputusan #355), kecuali hibah lama yang sudah dicabut: yang itu dimulai
+ * ulang dari `['oprec']`.
+ */
+async function grantOprecAccess(
+  tx: Parameters<typeof lockForm>[0],
+  args: { periodId: string; grantedBy: string; userIds: string[] },
+) {
+  for (const userId of args.userIds) {
+    const [existing] = await tx
+      .select({
+        id: accessGrant.id,
+        features: accessGrant.features,
+        status: accessGrant.status,
+      })
+      .from(accessGrant)
+      .where(
+        and(
+          eq(accessGrant.periodId, args.periodId),
+          eq(accessGrant.userId, userId),
+        ),
+      )
+      .for('update');
+    if (existing) {
+      const kept = existing.status === 'active' ? existing.features : [];
+      await tx
+        .update(accessGrant)
+        .set({
+          status: 'active',
+          features: [...new Set([...kept, 'oprec'])],
+          grantedBy: args.grantedBy,
+          revokedAt: null,
+          revokedBy: null,
+        })
+        .where(eq(accessGrant.id, existing.id));
+    } else {
+      await tx.insert(accessGrant).values({
+        periodId: args.periodId,
+        userId,
+        features: ['oprec'],
+        grantedBy: args.grantedBy,
+      });
+    }
+  }
+}
 
 async function unitNames(db: Queryable, unitIds: string[]) {
   const rows = await db

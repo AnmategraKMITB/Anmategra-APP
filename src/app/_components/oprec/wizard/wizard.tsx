@@ -126,7 +126,6 @@ export function SetupWizard({
     extraIds.map((id) => t.oprec.setupOptions({ eventId, sourcePeriodId: id })),
   );
   const createMutation = api.oprec.createFromSetup.useMutation();
-  const grantMutation = api.adminGrant.grantEventAdmin.useMutation();
   const utils = api.useUtils();
 
   const sources = own.data?.sources ?? [];
@@ -207,26 +206,11 @@ export function SetupWizard({
     setError(null);
     try {
       const res = await createMutation.mutateAsync(buildInput(s, c));
-      const results: GrantResult[] = [];
-      if (s.managers === 'orang' && lembagaId) {
-        for (const identifier of s.managerIdentifiers) {
-          try {
-            await grantMutation.mutateAsync({
-              lembagaId,
-              eventId,
-              identifier,
-              features: ['oprec'],
-            });
-            results.push({ identifier, ok: true });
-          } catch (e) {
-            results.push({
-              identifier,
-              ok: false,
-              message: e instanceof Error ? e.message : undefined,
-            });
-          }
-        }
-      }
+      // Akses pengelola diberikan server dalam transaksi yang sama dengan oprec.
+      const results: GrantResult[] = res.managers.map((m) => ({
+        identifier: m.name ? `${m.name} (${m.email})` : m.email,
+        ok: true,
+      }));
       await utils.oprec.list.invalidate();
       setGrants(results);
       setCreated(res);
@@ -321,7 +305,7 @@ export function SetupWizard({
             c={c}
             onEdit={goto}
             onCreate={create}
-            creating={createMutation.isPending || grantMutation.isPending}
+            creating={createMutation.isPending}
             error={error}
           />
         ) : created ? (

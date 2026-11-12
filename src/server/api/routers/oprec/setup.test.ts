@@ -5,6 +5,7 @@ import { afterAll, beforeEach, describe, expect, it } from 'vitest';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { createCallerFactory, createTRPCRouter } from '~/server/api/trpc';
 import {
+  accessGrant,
   application,
   criterion,
   recruitment,
@@ -12,7 +13,13 @@ import {
   recruitmentDivision,
 } from '~/server/db/schema';
 import { createOprecWorld, placeAt } from '~/test/oprec-fixtures';
-import { createTestDb, createUser, resetDb } from '~/test/test-db';
+import {
+  createMahasiswa,
+  createTestDb,
+  createUser,
+  grantAccess,
+  resetDb,
+} from '~/test/test-db';
 
 import { oprecRouter } from '.';
 
@@ -472,5 +479,127 @@ describe('migrasi 0053', () => {
     expect(update).toBeDefined();
     await db.execute(sql.raw(update!));
     expect((await asRecruitmentRow(recruitmentId)).resultsAccess).toBe('admin');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Akses pengelola (K-07)
+// ---------------------------------------------------------------------------
+
+async function grantsOf(eventId: string) {
+  return db.select().from(accessGrant).where(eq(accessGrant.periodId, eventId));
+}
+
+describe('createFromSetup: pengelola (S17)', () => {
+  it('memberi akses oprec ke semua pengelola dalam transaksi yang sama', async () => {
+    const w = await createOprecWorld(db);
+    const byEmail = await createUser(db, { email: 'Satu@Test.Local' });
+    const byNim = await createUser(db);
+    const mhs = await createMahasiswa(db, byNim.id);
+
+    const res = await createWith(w, {
+      managers: ['satu@test.local', String(mhs.nim), ' SATU@test.local '],
+    });
+
+    expect(res.managers.map((m) => m.userId).sort()).toEqual(
+      [byEmail.id, byNim.id].sort(),
+    );
+    const grants = await grantsOf(w.eventId);
+    expect(grants).toHaveLength(2);
+    expect(grants.every((g) => g.status === 'active')).toBe(true);
+    expect(grants.every((g) => g.features.join() === 'oprec')).toBe(true);
+    expect(await db.select().from(recruitment)).toHaveLength(1);
+  });
+
+  it('menggabungkan fitur yang sudah dimiliki dengan oprec, bukan menimpa', async () => {
+    const w = await createOprecWorld(db);
+    const user = await createUser(db);
+    await grantAccess(db, {
+      userId: user.id,
+      periodId: w.eventId,
+      features: ['events', 'oprec'],
+    });
+    const revoked = await createUser(db);
+    await grantAccess(db, {
+      userId: revoked.id,
+      periodId: w.eventId,
+      features: ['events'],
+      status: 'revoked',
+    });
+
+    await createWith(w, { managers: [user.email, revoked.email] });
+
+    const grants = await grantsOf(w.eventId);
+    const of = (id: string) => grants.find((g) => g.userId === id)!;
+    expect(of(user.id).features.sort()).toEqual(['events', 'oprec']);
+    expect(of(user.id).status).toBe('active');
+    // Hibah yang sudah dicabut dihidupkan lagi tanpa membawa fitur lamanya.
+    expect(of(revoked.id)).toMatchObject({
+      status: 'active',
+      features: ['oprec'],
+    });
+  });
+
+  it('identifier tak dikenal menggagalkan semuanya dan disebut di pesan', async () => {
+    const w = await createOprecWorld(db);
+    const known = await createUser(db);
+    let message = '';
+    try {
+      await createWith(w, {
+        managers: [known.email, 'hantu@test.local', '99999999'],
+      });
+    } catch (e) {
+      message = (e as Error).message;
+    }
+    expect(message).toContain('hantu@test.local');
+    expect(message).toContain('99999999');
+    expect(message).not.toContain(known.email);
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+    expect(await grantsOf(w.eventId)).toHaveLength(0);
+  });
+
+  it('kegagalan di tengah membatalkan akses yang sudah diberikan', async () => {
+    const w = await createOprecWorld(db);
+    const first = await createWith(w, {});
+    const manager = await createUser(db);
+
+    // Formulir pertama sudah terikat oprec, jadi pembuatan kedua gagal setelah
+    // akses diberikan di dalam transaksi.
+    const code = await codeOf(
+      createWith(w, {
+        form: { mode: 'existing', formId: first.formId },
+        managers: [manager.email],
+      }),
+    );
+    expect(code).not.toBe('OK');
+    expect(await db.select().from(recruitment)).toHaveLength(1);
+    expect(await grantsOf(w.eventId)).toHaveLength(0);
+  });
+
+  it('penerima akses oprec saja tidak boleh memberi akses ke orang lain', async () => {
+    const w = await createOprecWorld(db);
+    const delegate = await createUser(db);
+    await grantAccess(db, {
+      userId: delegate.id,
+      periodId: w.eventId,
+      features: ['oprec'],
+    });
+    const target = await createUser(db);
+    const caller = callerFor({
+      id: delegate.id,
+      role: 'mahasiswa',
+      lembagaId: undefined,
+    } as never);
+    const input = { ...baseInput(w), settings: {}, managers: [target.email] };
+
+    expect(await codeOf(caller.oprec.createFromSetup(input as never))).toBe(
+      'FORBIDDEN',
+    );
+    expect(await db.select().from(recruitment)).toHaveLength(0);
+    expect(
+      await codeOf(
+        caller.oprec.createFromSetup({ ...input, managers: [] } as never),
+      ),
+    ).toBe('OK');
   });
 });

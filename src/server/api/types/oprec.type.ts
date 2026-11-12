@@ -303,6 +303,11 @@ export const CreateFromSetupInputSchema = z.object({
    * Wajib bila `settings.assessorMode` bukan `ketua`.
    */
   generalAssessorUnitId: id.nullish(),
+  /**
+   * S17: email atau NIM akun yang diberi akses `oprec` pada periode ini.
+   * Semuanya harus terdaftar; bila ada yang tidak dikenal, tidak ada oprec yang dibuat.
+   */
+  managers: z.array(z.string().trim().min(1).max(320)).max(50).default([]),
   /** Kriteria awal dari wizard (S23): 'umum' atau id bagian tujuan (unitId). */
   criteria: z
     .array(

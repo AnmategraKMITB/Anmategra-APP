@@ -477,6 +477,7 @@ export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
       match: s.eligibility.match,
       rules,
     } as CreateFromSetupInput['eligibility'],
+    managers: s.managers === 'orang' ? s.managerIdentifiers : [],
     criteria: criteriaSlots(s).flatMap((scope) =>
       (s.criteria[scope] ?? []).map((k) => ({
         scope,
