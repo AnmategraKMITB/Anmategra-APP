@@ -846,6 +846,13 @@ table anmategra_recruitment {
   blind boolean [not null, default: false]
   allow_early_assessment boolean [not null, default: false]
   visibility_default boolean [not null, default: false]
+  assessor_mode varchar(16) [not null, default: 'keduanya']
+  general_assessor_unit_id varchar(255)
+  has_gugur boolean [not null, default: true]
+  head_decides boolean [not null, default: true]
+  staged_placement boolean [not null, default: true]
+  results_access varchar(16) [not null, default: 'admin_ketua']
+  closerec_enabled boolean [not null, default: true]
   eligibility_match varchar(8) [not null, default: 'all']
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
@@ -920,6 +927,21 @@ table anmategra_recruitment_section_binding {
   indexes {
     division_id [name: 'recruitment_section_binding_division_idx']
     (recruitment_id, form_section_id, division_id) [name: 'recruitment_section_binding_unique', unique]
+  }
+}
+
+table anmategra_recruitment_setup_draft {
+  id varchar(255) [pk, not null]
+  period_id varchar(255) [not null]
+  user_id varchar(255) [not null]
+  state jsonb [not null]
+  step varchar(8) [not null, default: 'S1']
+  phase varchar(16) [not null, default: 'steps']
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (period_id, user_id) [name: 'recruitment_setup_draft_period_user_unique', unique]
   }
 }
 
