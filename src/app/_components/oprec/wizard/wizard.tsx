@@ -10,12 +10,15 @@ import { type OprecBase } from '../status';
 import {
   GROUP_OF,
   type PresetId,
+  STEP_IDS,
   type SetupTree,
   type StepId,
   type WizardCtx,
   type WizardState,
   buildInput,
   defaultState,
+  firstInvalidStep,
+  restoreState,
   stepProblem,
   visibleSteps,
 } from './model';
@@ -104,6 +107,11 @@ export function SetupWizard({
   } | null>(null);
   const [grants, setGrants] = useState<GrantResult[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<
+    'idle' | 'saving' | 'saved' | 'failed'
+  >('idle');
+  const [notice, setNotice] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
   const frame = useRef<HTMLDivElement>(null);
 
   const update = (patch: Partial<WizardState>) =>
@@ -125,8 +133,12 @@ export function SetupWizard({
   const extras = api.useQueries((t) =>
     extraIds.map((id) => t.oprec.setupOptions({ eventId, sourcePeriodId: id })),
   );
+  const draft = api.oprec.setupDraftGet.useQuery(
+    { eventId },
+    { refetchOnWindowFocus: false, staleTime: Infinity },
+  );
+  const saveDraft = api.oprec.setupDraftSave.useMutation();
   const createMutation = api.oprec.createFromSetup.useMutation();
-  const grantMutation = api.adminGrant.grantEventAdmin.useMutation();
   const utils = api.useUtils();
 
   const sources = own.data?.sources ?? [];
@@ -181,6 +193,47 @@ export function SetupWizard({
   const index = Math.max(0, steps.indexOf(current));
   const problem = stepProblem(current, s, c);
 
+  // Pulihkan draf sekali saat dibuka (langkah, jawaban, dan fase).
+  useEffect(() => {
+    if (restored || draft.isLoading) return;
+    setRestored(true);
+    if (!draft.data) return;
+    const { state, remapped } = restoreState(
+      defaultState(eventName, eventId),
+      draft.data.state,
+    );
+    setS(state);
+    if ((STEP_IDS as readonly string[]).includes(draft.data.step)) {
+      setCurrent(draft.data.step as StepId);
+    }
+    setPhase(draft.data.phase === 'summary' ? 'summary' : 'steps');
+    setNotice(
+      remapped > 0
+        ? `${remapped} kriteria jenis "gugur otomatis" dari draf lama diubah menjadi "gugur manual".`
+        : 'Draf sebelumnya dipulihkan.',
+    );
+  }, [restored, draft.isLoading, draft.data, eventId, eventName]);
+
+  // Simpan otomatis tiap pindah langkah; kegagalan tidak memblokir pengguna.
+  useEffect(() => {
+    if (!restored || phase === 'preset' || phase === 'done') return;
+    setSaveStatus('saving');
+    saveDraft.mutate(
+      {
+        eventId,
+        state: JSON.parse(JSON.stringify(s)) as Record<string, unknown>,
+        step: current,
+        phase,
+      },
+      {
+        onSuccess: () => setSaveStatus('saved'),
+        onError: () => setSaveStatus('failed'),
+      },
+    );
+    // Hanya saat langkah/fase berganti, bukan tiap ketikan.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [current, phase, restored]);
+
   // Pindah langkah: fokus ke judul supaya pembaca layar dan keyboard tahu konteksnya.
   useEffect(() => {
     frame.current?.focus({ preventScroll: true });
@@ -194,7 +247,7 @@ export function SetupWizard({
   const next = () => {
     const to = steps[index + 1];
     if (to) setCurrent(to);
-    else setPhase('summary');
+    else skipRest();
   };
   const back = () => {
     if (phase === 'summary') {
@@ -203,30 +256,27 @@ export function SetupWizard({
     } else if (index > 0) setCurrent(steps[index - 1]!);
   };
 
+  // Lewati sisa dengan bawaan hanya bila semua langkah (juga yang dilewati) lolos.
+  const skipRest = () => {
+    const bad = firstInvalidStep(steps, s, c);
+    if (bad) {
+      setCurrent(bad.id);
+      setNotice(`Langkah ini perlu dilengkapi dulu: ${bad.problem}`);
+      return;
+    }
+    setNotice(null);
+    setPhase('summary');
+  };
+
   const create = async () => {
     setError(null);
     try {
       const res = await createMutation.mutateAsync(buildInput(s, c));
-      const results: GrantResult[] = [];
-      if (s.managers === 'orang' && lembagaId) {
-        for (const identifier of s.managerIdentifiers) {
-          try {
-            await grantMutation.mutateAsync({
-              lembagaId,
-              eventId,
-              identifier,
-              features: ['oprec'],
-            });
-            results.push({ identifier, ok: true });
-          } catch (e) {
-            results.push({
-              identifier,
-              ok: false,
-              message: e instanceof Error ? e.message : undefined,
-            });
-          }
-        }
-      }
+      // Akses pengelola diberikan server dalam transaksi yang sama dengan oprec.
+      const results: GrantResult[] = res.managers.map((m) => ({
+        identifier: m.name ? `${m.name} (${m.email})` : m.email,
+        ok: true,
+      }));
       await utils.oprec.list.invalidate();
       setGrants(results);
       setCreated(res);
@@ -298,6 +348,24 @@ export function SetupWizard({
         </header>
       ) : null}
 
+      {notice && phase !== 'done' && phase !== 'preset' ? (
+        <p role="status" className="mb-4 text-sm text-neutral-700">
+          {notice}
+        </p>
+      ) : null}
+      {phase !== 'done' && phase !== 'preset' && saveStatus !== 'idle' ? (
+        <p
+          role="status"
+          className={`mb-4 text-xs ${saveStatus === 'failed' ? 'text-danger-dark' : 'text-neutral-600'}`}
+        >
+          {saveStatus === 'saving'
+            ? 'Menyimpan draf…'
+            : saveStatus === 'saved'
+              ? 'Draf tersimpan'
+              : 'Draf gagal tersimpan. Isian tetap aman di layar ini; coba pindah langkah lagi.'}
+        </p>
+      ) : null}
+
       <div ref={frame} tabIndex={-1} className="outline-none">
         {phase === 'preset' ? (
           <PresetScreen
@@ -321,7 +389,7 @@ export function SetupWizard({
             c={c}
             onEdit={goto}
             onCreate={create}
-            creating={createMutation.isPending || grantMutation.isPending}
+            creating={createMutation.isPending}
             error={error}
           />
         ) : created ? (
@@ -365,7 +433,7 @@ export function SetupWizard({
                   type="button"
                   variant="ghost"
                   disabled={!!problem}
-                  onClick={() => setPhase('summary')}
+                  onClick={skipRest}
                   title="Lewati sisa pertanyaan dengan jawaban bawaan dan periksa ringkasan"
                 >
                   <FastForward /> Pakai bawaan untuk sisanya

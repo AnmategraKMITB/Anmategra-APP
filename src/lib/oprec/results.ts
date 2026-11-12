@@ -6,11 +6,14 @@ import { type ComputedStatus } from '~/lib/oprec/scoring';
 
 export type ResultsMode = 'admin' | 'admin_ketua' | 'semua';
 
-/** Nilai tak dikenal atau kosong dianggap `admin_ketua` (bawaan wizard). */
+/**
+ * Mode akses menu Hasil dari kolom `recruitment.results_access`. Nilai tak
+ * dikenal dianggap `admin_ketua` (bawaan wizard).
+ */
 export function resultsMode(
-  setupAnswers: Record<string, unknown> | null | undefined,
+  recruitment: { resultsAccess: string } | null | undefined,
 ): ResultsMode {
-  const value = setupAnswers?.resultsAccess;
+  const value = recruitment?.resultsAccess;
   return value === 'admin' || value === 'semua' ? value : 'admin_ketua';
 }
 

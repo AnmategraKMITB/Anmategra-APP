@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import {
   APPLICATION_SOURCES,
+  ASSESSOR_MODES,
   ELIGIBILITY_ATTRIBUTES,
   ELIGIBILITY_MATCHES,
   ELIGIBILITY_OPERATORS,
   PLACEMENT_STATES,
   RECRUITMENT_STATUSES,
+  RESULTS_ACCESS_MODES,
   SCORE_SOURCES,
   SCORING_MODES,
   STATUS_METHODS,
@@ -40,6 +42,13 @@ const RecruitmentSettingsShape = {
   allowEarlyAssessment: z.boolean(),
   visibilityDefault: z.boolean(),
   resultsVisibleToApplicants: z.boolean(),
+  /** Jawaban lanjutan wizard yang berlaku di server (#354). */
+  assessorMode: z.enum(ASSESSOR_MODES),
+  hasGugur: z.boolean(),
+  headDecides: z.boolean(),
+  stagedPlacement: z.boolean(),
+  resultsAccess: z.enum(RESULTS_ACCESS_MODES),
+  closerecEnabled: z.boolean(),
 };
 
 export const RecruitmentSettingsPatchSchema = z
@@ -255,6 +264,14 @@ export const SetupOptionsInputSchema = z.object({
   sourcePeriodId: id.optional(),
 });
 
+export const SetupDraftGetInputSchema = z.object({ eventId: id });
+export const SetupDraftSaveInputSchema = z.object({
+  eventId: id,
+  state: z.record(z.string(), z.unknown()),
+  step: z.string().min(1).max(8),
+  phase: z.enum(['steps', 'summary']),
+});
+
 export const SetupFormChoiceSchema = z.discriminatedUnion('mode', [
   z.object({
     mode: z.literal('template'),
@@ -289,6 +306,16 @@ export const CreateFromSetupInputSchema = z.object({
     .default({ match: 'all', rules: [] }),
   /** Pengaturan penilaian dan hasil yang sudah punya kolom; lainnya cukup di `answers`. */
   settings: RecruitmentSettingsPatchSchema.default({}),
+  /**
+   * S14: bagian organogram yang pemegang jabatannya menjadi penilai umum.
+   * Wajib bila `settings.assessorMode` bukan `ketua`.
+   */
+  generalAssessorUnitId: id.nullish(),
+  /**
+   * S17: email atau NIM akun yang diberi akses `oprec` pada periode ini.
+   * Semuanya harus terdaftar; bila ada yang tidak dikenal, tidak ada oprec yang dibuat.
+   */
+  managers: z.array(z.string().trim().min(1).max(320)).max(50).default([]),
   /** Kriteria awal dari wizard (S23): 'umum' atau id bagian tujuan (unitId). */
   criteria: z
     .array(

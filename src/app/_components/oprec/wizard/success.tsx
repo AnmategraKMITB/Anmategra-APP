@@ -8,6 +8,7 @@ import { api } from '~/trpc/react';
 
 import { type OprecBase, pendaftarHref } from '../status';
 
+/** Hasil pemberian akses pengelola yang dikembalikan server (semua berhasil atau oprec tidak dibuat). */
 export type GrantResult = { identifier: string; ok: boolean; message?: string };
 
 /** Layar sukses: langkah berikutnya sampai pendaftaran dibuka. */

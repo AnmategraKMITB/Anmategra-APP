@@ -122,15 +122,27 @@ export async function assertDivisionTarget(
       message: 'Organogram tujuan tidak aktif atau bukan milik sebuah periode.',
     });
   }
-  if (row.structurePeriodId === rec.periodId) return;
+  await assertPeriodInScope(db, rec.periodId, row.structurePeriodId);
+}
+
+/**
+ * Organogram sumber harus milik periode oprec ini atau periode lembaga di
+ * bawahnya.
+ */
+export async function assertPeriodInScope(
+  db: Queryable,
+  ownPeriodId: string,
+  structurePeriodId: string,
+) {
+  if (structurePeriodId === ownPeriodId) return;
 
   const [own, target] = await Promise.all([
     db.query.events.findFirst({
-      where: eq(events.id, rec.periodId),
+      where: eq(events.id, ownPeriodId),
       columns: { org_id: true },
     }),
     db.query.events.findFirst({
-      where: eq(events.id, row.structurePeriodId),
+      where: eq(events.id, structurePeriodId),
       columns: { org_id: true },
     }),
   ]);
@@ -147,6 +159,32 @@ export async function assertDivisionTarget(
         'Tujuan harus berada di organogram periode ini atau lembaga di bawahnya.',
     });
   }
+}
+
+/** Bagian penilai umum harus ada di organogram aktif dalam lingkup periode ini. */
+export async function assertSourceUnit(
+  db: Queryable,
+  periodId: string,
+  unitId: string,
+) {
+  const [row] = await db
+    .select({
+      structurePeriodId: organizationStructure.eventId,
+      structureActive: organizationStructure.is_active,
+    })
+    .from(organizationUnit)
+    .innerJoin(
+      organizationStructure,
+      eq(organizationStructure.id, organizationUnit.structure_id),
+    )
+    .where(eq(organizationUnit.id, unitId));
+  if (!row?.structurePeriodId || !row.structureActive) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Bagian penilai umum tidak ada di organogram yang aktif.',
+    });
+  }
+  await assertPeriodInScope(db, periodId, row.structurePeriodId);
 }
 
 /** Seluruh isi oprec yang dibutuhkan layar pengaturan. */
