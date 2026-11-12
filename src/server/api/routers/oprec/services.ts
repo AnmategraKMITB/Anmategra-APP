@@ -10,6 +10,7 @@ import {
   organizationPosition,
   organizationStructure,
   organizationUnit,
+  placement,
   recruitment,
   recruitmentDivision,
   recruitmentEligibilityRule,
@@ -193,6 +194,57 @@ export async function assertSourceUnit(
     });
   }
   await assertPeriodInScope(db, periodId, row.structurePeriodId);
+}
+
+/** Bagian penilai umum harus punya orang; bila kosong, tidak ada yang bisa menilai. */
+export async function assertUnitHasPeople(db: Queryable, unitId: string) {
+  const [row] = await db
+    .select({ name: organizationUnit.name, n: count(placement.id) })
+    .from(organizationUnit)
+    .leftJoin(
+      organizationPosition,
+      eq(organizationPosition.unitId, organizationUnit.id),
+    )
+    .leftJoin(placement, eq(placement.positionId, organizationPosition.id))
+    .where(eq(organizationUnit.id, unitId))
+    .groupBy(organizationUnit.id);
+  if (row?.n === 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Bagian "${row.name}" belum punya anggota, jadi tidak bisa menjadi penilai umum. Isi bagian itu di organogram atau pilih bagian lain.`,
+    });
+  }
+}
+
+/** Tiap divisi yang dibuka harus punya pemegang posisi ketua (rank `head`). */
+export async function assertDivisionsHaveHead(
+  db: Queryable,
+  unitIds: string[],
+) {
+  if (unitIds.length === 0) return;
+  const rows = await db
+    .select({ id: organizationUnit.id, name: organizationUnit.name })
+    .from(organizationUnit)
+    .where(inArray(organizationUnit.id, unitIds));
+  const withHead = await db
+    .select({ unitId: organizationPosition.unitId })
+    .from(organizationPosition)
+    .innerJoin(placement, eq(placement.positionId, organizationPosition.id))
+    .where(
+      and(
+        inArray(organizationPosition.unitId, unitIds),
+        eq(organizationPosition.rank, 'head'),
+      ),
+    )
+    .groupBy(organizationPosition.unitId);
+  const ok = new Set(withHead.map((r) => r.unitId));
+  const missing = rows.filter((r) => !ok.has(r.id)).map((r) => `"${r.name}"`);
+  if (missing.length > 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Divisi ${missing.join(', ')} belum punya ketua. Isi ketua di organogram, atau pilih penilai umum dan matikan veto ketua.`,
+    });
+  }
 }
 
 /** Seluruh isi oprec yang dibutuhkan layar pengaturan. */

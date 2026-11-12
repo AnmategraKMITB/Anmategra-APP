@@ -20,6 +20,19 @@ export function StepNama({ s, update, c }: StepProps) {
       hint="Oprec dimiliki satu periode. Pemilihan periode dilakukan sebelum wizard dibuka; beri nama supaya mudah dikenali."
     >
       <div className="grid max-w-md gap-4">
+        {c.hasOrganogram ? null : (
+          <Note tone="warn">
+            Periode ini belum punya organogram. Tujuan, ketua, dan penilai umum
+            diambil dari organogram, jadi susun dulu sebelum melanjutkan.{' '}
+            <Link
+              href={`/lembaga/kegiatan/${c.eventId}/organogram`}
+              className="font-semibold text-primary-400 underline underline-offset-2"
+            >
+              Susun organogram
+            </Link>
+            .
+          </Note>
+        )}
         <div className="rounded-xl bg-neutral-200 px-4 py-3 text-sm">
           <span className="text-neutral-700">Periode: </span>
           <span className="font-semibold text-neutral-1000">{c.eventName}</span>
