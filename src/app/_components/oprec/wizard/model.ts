@@ -512,17 +512,32 @@ export function firstInvalidStep(
 }
 
 /** Memulihkan state dari draf server di atas bawaan; kriteria dinormalkan. */
+/** Opsi pengelola yang belum berlaku di server; tidak boleh dipilih. */
+export const UNAVAILABLE_MANAGERS: readonly WizardState['managers'][] = [
+  'level',
+  'ketua',
+];
+
+/** Jepit jumlah pilihan ke jumlah divisi terpilih (minimal 1). */
+export function clampChoices(s: WizardState): WizardState {
+  const cap = Math.max(1, Object.keys(s.divisions).length);
+  const max = Math.min(s.maxChoices, cap);
+  const min = Math.min(s.minChoices, max);
+  return max === s.maxChoices && min === s.minChoices
+    ? s
+    : { ...s, minChoices: min, maxChoices: max };
+}
+
 export function restoreState(
   base: WizardState,
   saved: Record<string, unknown>,
 ): { state: WizardState; remapped: number } {
   const { criteria, remapped } = normalizeCriteria(saved.criteria);
+  const merged = { ...base, ...(saved as Partial<WizardState>), criteria };
+  // Draf lama bisa memuat opsi yang kini tak berlaku.
+  if (UNAVAILABLE_MANAGERS.includes(merged.managers)) merged.managers = 'saya';
   return {
-    state: {
-      ...base,
-      ...(saved as Partial<WizardState>),
-      criteria,
-    },
+    state: merged,
     remapped,
   };
 }

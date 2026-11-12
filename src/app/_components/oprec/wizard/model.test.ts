@@ -4,6 +4,7 @@ import {
   type StepId,
   type WizardCtx,
   buildInput,
+  clampChoices,
   defaultState,
   firstInvalidStep,
   normalizeCriteria,
@@ -183,6 +184,29 @@ describe('validasi ulang langkah yang dilewati (H-08, K-04)', () => {
     expect(state.name).toBe('Draf');
     expect(state.criteria.umum?.[0]?.kind).toBe('gugur_manual');
     expect(remapped).toBe(1);
+  });
+});
+
+describe('jumlah pilihan dan opsi belum berlaku (#384)', () => {
+  it('menjepit jumlah pilihan ke jumlah divisi tanpa galat', () => {
+    const s = stateWithDivisions();
+    s.minChoices = 2;
+    s.maxChoices = 5;
+    expect(clampChoices(s)).toMatchObject({ minChoices: 2, maxChoices: 2 });
+    s.divisions = { u1: s.divisions.u1! };
+    expect(clampChoices(s)).toMatchObject({ minChoices: 1, maxChoices: 1 });
+    s.divisions = {};
+    expect(clampChoices(s).maxChoices).toBe(1);
+  });
+
+  it('draf lama dengan opsi pengelola belum berlaku dikembalikan ke "saya"', () => {
+    const base = defaultState('Kegiatan', 'ev-1');
+    expect(restoreState(base, { managers: 'ketua' }).state.managers).toBe(
+      'saya',
+    );
+    expect(restoreState(base, { managers: 'orang' }).state.managers).toBe(
+      'orang',
+    );
   });
 });
 

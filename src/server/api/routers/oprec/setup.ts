@@ -389,9 +389,21 @@ export const setupProcedures = {
         await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
         await assertUnitHasPeople(ctx.db, generalUnitId);
       }
+      // Opsi pengelola 'level' dan 'ketua' belum berlaku; jangan simpan seolah aktif.
+      const managersAnswer = (input.answers as { managers?: unknown }).managers;
+      if (managersAnswer === 'level' || managersAnswer === 'ketua') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Opsi pengelola per bagian atau hanya ketua belum tersedia. Pilih "Saya saja" atau "Saya dan orang tertentu".',
+        });
+      }
       // Ketua menilai (mode bukan `umum`) atau memutuskan (veto): tiap divisi
       // yang dibuka harus punya ketua.
-      if (input.settings.assessorMode !== 'umum' || input.settings.headDecides) {
+      if (
+        input.settings.assessorMode !== 'umum' ||
+        input.settings.headDecides
+      ) {
         await assertDivisionsHaveHead(
           ctx.db,
           input.divisions.map((d) => d.unitId),
