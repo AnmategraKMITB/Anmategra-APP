@@ -42,6 +42,14 @@ export async function PenempatanPage({
           showPendaftar={isAdmin}
           showPenempatan
           showHasil={showHasil}
+          manage={
+            isAdmin
+              ? {
+                  formId: found.recruitment.formId,
+                  status: found.recruitment.status,
+                }
+              : undefined
+          }
         />
       }
     />

@@ -1,5 +1,6 @@
 'use client';
 
+import { WEIGHT_MAX, clampWeight } from './helpers';
 import { Plus, Trash2, X } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
 import { Button } from '~/components/ui/button';
@@ -119,12 +120,13 @@ export function StepMetode({ s, update }: StepProps) {
           value: 'peringkat_kuota_minimum',
           label: 'Peringkat dalam kuota dengan nilai minimum',
           description:
-            'Yang teratas sebanyak kuota dan tidak di bawah nilai minimum lolos.',
+            'Yang teratas sebanyak kuota dan tidak di bawah nilai minimum lolos. Divisi berkuota 0 berarti tanpa batas: semua kandidat yang tidak di bawah nilai minimum lolos.',
         },
         {
           value: 'peringkat_kuota',
           label: 'Peringkat dalam kuota',
-          description: 'Yang teratas sebanyak kuota lolos.',
+          description:
+            'Yang teratas sebanyak kuota lolos. Divisi berkuota 0 berarti tanpa batas: semua kandidat yang tidak gugur lolos tanpa penyaringan.',
         },
         {
           value: 'ambang',
@@ -349,11 +351,14 @@ function Slot({
                 type="number"
                 min={0}
                 max={100}
+                step={1}
                 className={fieldClass}
                 disabled={k.kind !== 'skor'}
                 value={k.kind === 'skor' ? k.weight : ''}
                 placeholder="Bobot"
-                onChange={(e) => set(i, { weight: Number(e.target.value) })}
+                onChange={(e) =>
+                  set(i, { weight: clampWeight(e.target.value) })
+                }
               />
               <Button
                 type="button"
@@ -368,6 +373,11 @@ function Slot({
           ))}
         </ul>
       )}
+      {list.some((k) => k.kind === 'skor' && k.weight >= WEIGHT_MAX) ? (
+        <p className="mt-2 text-sm text-neutral-700">
+          Bobot tiap kriteria 0 sampai {WEIGHT_MAX} (persen, bilangan bulat).
+        </p>
+      ) : null}
       {hasScore && total !== 100 ? (
         <p className="mt-2 text-sm text-neutral-700">
           Total bobot {total}%. Idealnya 100%, tetapi tidak menghalangi.

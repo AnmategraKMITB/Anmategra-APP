@@ -12,9 +12,14 @@ type ViewMode = 'berkas' | 'sheet';
 export function NilaiView({
   recruitmentId,
   basePath,
+  periodName,
+  tabs,
 }: {
   recruitmentId: string;
   basePath?: string;
+  periodName?: string;
+  /** Sub-navigasi oprec, dirender setelah header seperti tab lain. */
+  tabs?: React.ReactNode;
 }) {
   const scopes = api.oprec.assessScopes.useQuery({ recruitmentId });
   const [scope, setScope] = useState<string | null>(null);
@@ -37,13 +42,16 @@ export function NilaiView({
             ← Kembali ke oprec
           </Link>
         ) : null}
-        <h1 className="mt-2 text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
+        <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
           Nilai
         </h1>
         <p className="mt-1 break-words text-sm text-neutral-700">
           {data ? data.name : 'Memuat oprec…'}
+          {periodName ? ` · ${periodName}` : ''}.
         </p>
       </header>
+
+      {tabs}
 
       {scopes.isError ? (
         <p

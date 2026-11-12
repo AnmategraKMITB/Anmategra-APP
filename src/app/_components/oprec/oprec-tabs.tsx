@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { cn } from '~/lib/utils';
 
+import { OprecManageBar } from './manage-bar';
 import { type OprecBase } from './status';
 
 const TABS = [
@@ -19,6 +20,7 @@ export function OprecTabs({
   showPendaftar,
   showPenempatan = false,
   showHasil = false,
+  manage,
 }: {
   basePath: OprecBase;
   kegiatanId: string;
@@ -27,6 +29,8 @@ export function OprecTabs({
   showPendaftar: boolean;
   showPenempatan?: boolean;
   showHasil?: boolean;
+  /** Aksi pengelola (Formulir, Buka pendaftaran); hanya untuk pengelola oprec. */
+  manage?: { formId: string; status: 'draft' | 'open' | 'closed' };
 }) {
   const tabs = TABS.filter(
     ([id]) =>
@@ -34,8 +38,8 @@ export function OprecTabs({
       (id !== 'penempatan' || showPenempatan) &&
       (id !== 'hasil' || showHasil),
   );
-  if (tabs.length < 2) return null;
-  return (
+  const nav =
+    tabs.length < 2 ? null : (
     <nav
       aria-label="Bagian oprec"
       className="mt-6 flex flex-wrap gap-1 border-b border-neutral-400"
@@ -56,5 +60,17 @@ export function OprecTabs({
         </Link>
       ))}
     </nav>
+    );
+  return (
+    <>
+      {manage ? (
+        <OprecManageBar
+          basePath={basePath}
+          recruitmentId={recruitmentId}
+          {...manage}
+        />
+      ) : null}
+      {nav}
+    </>
   );
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { DATETIME_MAX, DATETIME_MIN, isValidDateInput } from '~/lib/date-input';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -103,9 +104,12 @@ export function SettingsSheet({
                   key={String(detail.closesAt)}
                   id="closes-at"
                   type="datetime-local"
+                  min={DATETIME_MIN}
+                  max={DATETIME_MAX}
                   defaultValue={toLocalInput(detail.closesAt)}
                   onBlur={(e) => {
                     const value = e.currentTarget.value;
+                    if (!isValidDateInput(value)) return;
                     const next = value ? new Date(value) : null;
                     if (
                       (next?.getTime() ?? null) !==

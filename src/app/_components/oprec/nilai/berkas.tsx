@@ -16,6 +16,7 @@ import { CriterionCard } from './criterion-card';
 import { FlagsBar } from './flags-bar';
 import { OverridePanel } from './override-panel';
 import { StatusBadge } from './status';
+import { waveTitle } from '../status';
 
 const PAGE_SIZE = 25;
 
@@ -328,7 +329,7 @@ export function BerkasView({
                           {row.name ?? row.code}
                         </span>
                         <span className="mt-0.5 block text-sm text-neutral-700">
-                          {row.waveLabel ? `Gelombang ${row.waveLabel}` : '—'}
+                          {row.waveLabel ? waveTitle(row.waveLabel) : '—'}
                         </span>
                       </span>
                       <span className="flex shrink-0 items-center gap-1 text-xs text-neutral-700">
@@ -447,7 +448,7 @@ export function BerkasView({
               <p className="mt-0.5 text-sm text-neutral-700">
                 {[
                   data.application.waveLabel
-                    ? `Gelombang ${data.application.waveLabel}`
+                    ? waveTitle(data.application.waveLabel)
                     : null,
                   data.application.willingToMove
                     ? 'Bersedia dipindahkan'

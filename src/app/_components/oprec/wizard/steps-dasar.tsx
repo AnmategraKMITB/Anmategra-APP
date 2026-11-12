@@ -1,5 +1,6 @@
 'use client';
 
+import { DATETIME_MAX, DATETIME_MIN } from '~/lib/date-input';
 import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -7,6 +8,7 @@ import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
 
 import { TimelineArt, TreeArt } from './illustrations';
+import { allTargetUnits, defaultPositionId } from './helpers';
 import { type SetupTree } from './model';
 import { type StepProps } from './steps-types';
 import { Labeled, Note, OptionCards, StepFrame, fieldClass } from './ui';
@@ -114,8 +116,7 @@ function buildForest(tree: SetupTree): Node[] {
   return roots;
 }
 
-const defaultPosition = (positions: SetupTree['positions']) =>
-  (positions.find((p) => p.rank === 'staff') ?? positions[0])?.id;
+const defaultPosition = defaultPositionId;
 
 function UnitRow({
   node,
@@ -181,6 +182,15 @@ function UnitRow({
         ) : (
           <span className="flex-1 text-sm font-semibold text-neutral-700">
             {node.name}
+            {node.children.length === 0 ? (
+              <span className="ml-2 text-xs font-normal">
+                Belum punya jabatan di organogram, jadi tidak bisa dipilih.
+              </span>
+            ) : (
+              <span className="ml-2 text-xs font-normal">
+                Tidak punya jabatan sendiri; pilih unit di bawahnya.
+              </span>
+            )}
           </span>
         )}
         {picked && positions.length > 1 ? (
@@ -270,7 +280,8 @@ export function StepTujuan(p: StepProps) {
     const next: typeof s.divisions = {};
     for (const t of trees) {
       if (!t.tree) continue;
-      for (const u of t.tree.units.filter((x) => x.level === 2)) {
+      const target = allTargetUnits(t.tree.units, t.tree.positions);
+      for (const u of target.units) {
         const pos = defaultPosition(
           t.tree.positions.filter((x) => x.unitId === u.id),
         );
@@ -422,6 +433,8 @@ export function StepGelombang({ s, update }: StepProps) {
                   <input
                     id={id}
                     type="datetime-local"
+                    min={DATETIME_MIN}
+                    max={DATETIME_MAX}
                     className={fieldClass}
                     value={w.startsAt}
                     onChange={(e) => setWave(i, { startsAt: e.target.value })}
@@ -433,6 +446,8 @@ export function StepGelombang({ s, update }: StepProps) {
                   <input
                     id={id}
                     type="datetime-local"
+                    min={DATETIME_MIN}
+                    max={DATETIME_MAX}
                     className={fieldClass}
                     value={w.endsAt}
                     onChange={(e) => setWave(i, { endsAt: e.target.value })}

@@ -104,8 +104,10 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
         : 'Langsung diputuskan';
     case 'S12a':
       return {
-        peringkat_kuota_minimum: 'Peringkat dalam kuota dengan nilai minimum',
-        peringkat_kuota: 'Peringkat dalam kuota',
+        peringkat_kuota_minimum:
+          'Peringkat dalam kuota dengan nilai minimum (kuota 0 = tanpa batas, semua yang memenuhi nilai minimum lolos)',
+        peringkat_kuota:
+          'Peringkat dalam kuota (kuota 0 = tanpa batas, semua yang tidak gugur lolos)',
         ambang: 'Ambang nilai',
       }[s.statusMethod];
     case 'S12b':
