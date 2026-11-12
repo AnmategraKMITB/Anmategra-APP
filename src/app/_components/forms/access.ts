@@ -19,9 +19,16 @@ export async function loadManagedForm(formId: string) {
 
   const { id: userId, role, lembagaId } = session.user;
   const access = row.lembagaId
-    ? await canManageLembaga(db, userId, role, lembagaId, row.lembagaId)
+    ? await canManageLembaga(
+        db,
+        userId,
+        role,
+        lembagaId,
+        row.lembagaId,
+        'forms',
+      )
     : row.eventId
-      ? await canManageEvent(db, userId, role, lembagaId, row.eventId)
+      ? await canManageEvent(db, userId, role, lembagaId, row.eventId, 'forms')
       : null;
   if (!access) return null;
 
@@ -33,5 +40,12 @@ export async function canManageEventForms(eventId: string) {
   const session = await getServerAuthSession();
   if (!session) return false;
   const { id: userId, role, lembagaId } = session.user;
-  return !!(await canManageEvent(db, userId, role, lembagaId, eventId));
+  return !!(await canManageEvent(
+    db,
+    userId,
+    role,
+    lembagaId,
+    eventId,
+    'forms',
+  ));
 }

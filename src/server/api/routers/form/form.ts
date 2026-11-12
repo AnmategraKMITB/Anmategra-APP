@@ -1,10 +1,11 @@
 import { TRPCError } from '@trpc/server';
 import { desc, eq, sql } from 'drizzle-orm';
+import { isReservedFormSlug } from '~/lib/forms/slug';
 import {
   createTRPCRouter,
-  eventScopedProcedure,
+  eventFormsProcedure,
   formScopedProcedure,
-  lembagaScopedProcedure,
+  lembagaFormsProcedure,
 } from '~/server/api/trpc';
 import {
   type FormStatus,
@@ -14,7 +15,6 @@ import {
   formSubmission,
 } from '~/server/db/schema';
 import { deleteUploadedFiles, keyFromUploadUrl } from '~/server/uploads';
-import { isReservedFormSlug } from '~/lib/forms/slug';
 
 import {
   CreateFormForEventInputSchema,
@@ -102,7 +102,7 @@ function readThemeImages(theme: unknown): string[] {
 }
 
 export const formFormRouter = createTRPCRouter({
-  createForLembaga: lembagaScopedProcedure
+  createForLembaga: lembagaFormsProcedure
     .input(CreateFormForLembagaInputSchema)
     .output(CreateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -137,7 +137,7 @@ export const formFormRouter = createTRPCRouter({
       }
     }),
 
-  createForEvent: eventScopedProcedure
+  createForEvent: eventFormsProcedure
     .input(CreateFormForEventInputSchema)
     .output(CreateFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -172,7 +172,7 @@ export const formFormRouter = createTRPCRouter({
       }
     }),
 
-  listByLembaga: lembagaScopedProcedure
+  listByLembaga: lembagaFormsProcedure
     .input(ListFormsByLembagaInputSchema)
     .output(ListFormsOutputSchema)
     .query(async ({ ctx }) => {
@@ -184,7 +184,7 @@ export const formFormRouter = createTRPCRouter({
       return listWithCounts(ctx.db, rows);
     }),
 
-  listByEvent: eventScopedProcedure
+  listByEvent: eventFormsProcedure
     .input(ListFormsByEventInputSchema)
     .output(ListFormsOutputSchema)
     .query(async ({ ctx }) => {
@@ -290,7 +290,8 @@ export const formFormRouter = createTRPCRouter({
             if (isReservedFormSlug(input.slug)) {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
-                message: 'Slug tersebut dipakai oleh jalur lain. Pilih slug lain.',
+                message:
+                  'Slug tersebut dipakai oleh jalur lain. Pilih slug lain.',
               });
             }
             const [clash] = await tx

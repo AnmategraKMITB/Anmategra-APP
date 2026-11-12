@@ -7742,7 +7742,7 @@
           "form"
         ],
         "summary": "Tambah pertanyaan",
-        "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Untuk teks, `config.pattern` dipilih dari preset `email`, `nomor_hp`, atau `nim` — regex bebas tidak diterima. Maksimal 100 pertanyaan per formulir.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
+        "description": "Ditambahkan di urutan terakhir. `config` bergantung pada `type`; pertanyaan pilihan wajib menyertakan `options`. Untuk teks, `config.pattern` dipilih dari preset `email`, `nomor_hp`, atau `nim` — regex bebas tidak diterima. Maksimal 500 pertanyaan per formulir.\n\n**Akses:** Pengelola Formulir — Butuh `formId` di input. Akses mengikuti pemilik formulir: Owner/Admin Lembaga untuk formulir lembaga, atau Owner/Admin Kepanitiaan untuk formulir kegiatan.",
         "security": [
           {
             "sessionCookie": []
@@ -38358,7 +38358,7 @@
           "toIndex": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 100
+            "maximum": 500
           },
           "clearDependents": {
             "type": "boolean"
@@ -38407,7 +38407,7 @@
           },
           "fieldIds": {
             "minItems": 1,
-            "maxItems": 100,
+            "maxItems": 500,
             "type": "array",
             "items": {
               "type": "string",
@@ -45965,7 +45965,7 @@
             "pattern": "^[^\\u0000]*$"
           },
           "answers": {
-            "maxItems": 100,
+            "maxItems": 500,
             "type": "array",
             "items": {
               "type": "object",
@@ -46504,7 +46504,7 @@
             "pattern": "^[^\\u0000]*$"
           },
           "answers": {
-            "maxItems": 100,
+            "maxItems": 500,
             "type": "array",
             "items": {
               "type": "object",
