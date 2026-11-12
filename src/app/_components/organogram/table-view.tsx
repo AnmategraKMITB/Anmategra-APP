@@ -261,7 +261,10 @@ export function TableView(props: {
         hidden: position.hidden,
         peopleLabel,
         depth: unit === null ? 0 : levelOf(draft.units, unit.id),
-        tier: unit?.layout.tier === 'manual' ? 'Manual' : 'Ikut kedalaman',
+        tier:
+          unit?.layout.tier === undefined
+            ? 'Ikut kedalaman'
+            : `Tier ${unit.layout.tier}`,
         visibility:
           position.hidden || unit?.layout.hidden === true
             ? 'Disembunyikan'

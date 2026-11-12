@@ -11,6 +11,7 @@ import {
   type StepId,
   type WizardCtx,
   type WizardState,
+  criteriaSlots,
   stepProblem,
 } from './model';
 import { presetLabel } from './presets';
@@ -103,8 +104,10 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
         : 'Langsung diputuskan';
     case 'S12a':
       return {
-        peringkat_kuota_minimum: 'Peringkat dalam kuota dengan nilai minimum',
-        peringkat_kuota: 'Peringkat dalam kuota',
+        peringkat_kuota_minimum:
+          'Peringkat dalam kuota dengan nilai minimum (kuota 0 = tanpa batas, semua yang memenuhi nilai minimum lolos)',
+        peringkat_kuota:
+          'Peringkat dalam kuota (kuota 0 = tanpa batas, semua yang tidak gugur lolos)',
         ambang: 'Ambang nilai',
       }[s.statusMethod];
     case 'S12b':
@@ -151,11 +154,19 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
     case 'S22':
       return YES(s.closerec);
     case 'S23': {
-      const n = Object.values(s.criteria).reduce(
-        (a, l) => a + l.filter((k) => k.name.trim()).length,
-        0,
-      );
-      return n === 0 ? 'Belum ada kriteria' : `${n} kriteria`;
+      const parts = criteriaSlots(s).flatMap((slot) => {
+        const list = (s.criteria[slot] ?? []).filter((k) => k.name.trim());
+        if (list.length === 0) return [];
+        const items = list
+          .map((k) =>
+            k.kind === 'skor'
+              ? `${k.name.trim()} (skor ${k.weight}%)`
+              : `${k.name.trim()} (gugur manual)`,
+          )
+          .join(', ');
+        return [`${slot === 'umum' ? 'Umum' : c.unitName(slot)}: ${items}`];
+      });
+      return parts.length === 0 ? 'Belum ada kriteria' : parts.join('; ');
     }
   }
 }

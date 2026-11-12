@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
 import { type RouterOutputs } from '~/trpc/react';
+import { waveTitle } from './status';
 
 type Summary = RouterOutputs['oprec']['applicantSummary'];
 type Progress = RouterOutputs['oprec']['assessProgress'];
@@ -55,7 +56,7 @@ export function ApplicantsSummary({
                   key={w.waveId ?? 'none'}
                   className="flex items-center justify-between gap-3 text-sm"
                 >
-                  <span className="text-neutral-700">Gelombang {w.label}</span>
+                  <span className="text-neutral-700">{waveTitle(w.label)}</span>
                   <span className="font-semibold tabular-nums text-neutral-1000">
                     {w.count}
                   </span>

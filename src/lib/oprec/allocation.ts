@@ -50,9 +50,15 @@ function ordered(choices: readonly StageInput[]): StageInput[] {
   });
 }
 
+/**
+ * `staged: false` (S18 "semua pilihan sekaligus"): semua pilihan yang belum
+ * ditolak atau gagal langsung aktif, tanpa menunggu pilihan sebelumnya.
+ */
 export function deriveChoiceStage(
   choices: readonly StageInput[],
+  options: { staged?: boolean } = {},
 ): Map<string, StageResult> {
+  const staged = options.staged ?? true;
   const sorted = ordered(choices);
   const result = new Map<string, StageResult>();
   const accepted = sorted.find((choice) => choice.decision === 'terima');
@@ -69,14 +75,15 @@ export function deriveChoiceStage(
     return result;
   }
 
-  // Belum ada penerimaan: pilihan pertama yang tidak ditolak/tidak lolos aktif.
+  // Belum ada penerimaan: pilihan pertama yang tidak ditolak/tidak lolos aktif
+  // (bertahap), atau semuanya yang tidak ditolak/tidak lolos (sekaligus).
   let open = true;
   for (const choice of sorted) {
     const rejected = choice.decision === 'tolak';
     const failed = choice.status === 'tidak_lolos';
     if (open && !rejected && !failed) {
       result.set(choice.id, { stage: 'aktif', reason: 'siap' });
-      open = false;
+      open = !staged;
     } else if (open) {
       result.set(choice.id, {
         stage: 'tertutup',
@@ -162,6 +169,8 @@ export function planAutofill(input: {
   acceptedByDivision: ReadonlyMap<string, number>;
   existing?: ReadonlyMap<string, Decision>;
   overQuota?: 'masukkan' | 'tolak';
+  /** Mengikuti `recruitment.stagedPlacement`; bawaan bertahap. */
+  staged?: boolean;
 }): AutofillPlan {
   const overQuota = input.overQuota ?? 'tolak';
   const existing = input.existing ?? new Map<string, Decision>();
@@ -179,7 +188,7 @@ export function planAutofill(input: {
   const dilewati: AutofillChoice[] = [];
 
   for (const choices of byApplication.values()) {
-    const stages = deriveChoiceStage(choices);
+    const stages = deriveChoiceStage(choices, { staged: input.staged });
     for (const choice of choices) {
       const stage = stages.get(choice.id);
       if (existing.has(choice.id)) {

@@ -12,6 +12,8 @@ function defaultRoute(permissions: string[]): string {
   if (can('lembaga.read')) return '/admin/lembaga';
   if (can('access.read')) return '/admin/akses';
   if (can('audit.read')) return '/admin/audit';
+  if (can('accounts.write')) return '/admin/email-terverifikasi';
+  if (can('alumni.write')) return '/admin/alumni';
   return '/';
 }
 

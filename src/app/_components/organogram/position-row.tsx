@@ -276,7 +276,12 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
             size="icon"
             onClick={onToggle}
             aria-expanded={expanded}
-            aria-label={expanded ? 'Tutup jabatan' : 'Buka jabatan'}
+            title={expanded ? 'Tutup pengaturan' : 'Pengaturan lanjut'}
+            aria-label={
+              expanded
+                ? `Tutup pengaturan jabatan ${position.title}`
+                : `Pengaturan lanjut jabatan ${position.title}`
+            }
           >
             {expanded ? (
               <ChevronDown className="size-4" />
@@ -285,9 +290,10 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
             )}
           </Button>
           {editable ? (
-            <div className="flex-1">
+            <div className="min-w-0 flex-1">
               <Input
                 value={position.title}
+                title={position.title}
                 onChange={(event) =>
                   dispatch({
                     type: 'updatePosition',
@@ -300,7 +306,7 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
               />
             </div>
           ) : (
-            <span className="flex-1 text-sm font-semibold text-neutral-1000">
+            <span className="min-w-0 flex-1 break-words text-sm font-semibold text-neutral-1000">
               {position.title}
             </span>
           )}

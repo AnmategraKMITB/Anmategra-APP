@@ -1938,6 +1938,14 @@ export type StatusMethod = (typeof STATUS_METHODS)[number];
 export const SCORE_SOURCES = ['umum', 'divisi', 'gabungan'] as const;
 export type ScoreSource = (typeof SCORE_SOURCES)[number];
 
+/** S13: siapa yang menilai pendaftar. `ketua` = Kadiv masing-masing, `umum` = hanya penilai umum. */
+export const ASSESSOR_MODES = ['ketua', 'umum', 'keduanya'] as const;
+export type AssessorMode = (typeof ASSESSOR_MODES)[number];
+
+/** S20: siapa yang boleh membuka menu Hasil. */
+export const RESULTS_ACCESS_MODES = ['admin', 'admin_ketua', 'semua'] as const;
+export type ResultsAccessMode = (typeof RESULTS_ACCESS_MODES)[number];
+
 export const ELIGIBILITY_MATCHES = ['all', 'any'] as const;
 export type EligibilityMatch = (typeof ELIGIBILITY_MATCHES)[number];
 
@@ -2043,6 +2051,29 @@ export const recruitment = createTable(
       .notNull()
       .default(false),
     visibilityDefault: boolean('visibility_default').notNull().default(false),
+    // CHECK: assessor_mode dan results_access hanya bernilai konstanta di atas.
+    /** S13: `umum` mencabut hak menilai Kadiv; penilai umum berasal dari S14. */
+    assessorMode: varchar('assessor_mode', { length: 16 })
+      .$type<AssessorMode>()
+      .notNull()
+      .default('keduanya'),
+    /** S14: bagian organogram yang pemegang jabatannya menjadi penilai umum. */
+    generalAssessorUnitId: varchar('general_assessor_unit_id', {
+      length: 255,
+    }).references(() => organizationUnit.id, { onDelete: 'set null' }),
+    /** S15: false = kriteria gugur ditolak. */
+    hasGugur: boolean('has_gugur').notNull().default(true),
+    /** S16: true = Kadiv memutuskan dan bisa memveto; false = hanya admin. */
+    headDecides: boolean('head_decides').notNull().default(true),
+    /** S18: false = semua pilihan diproses sekaligus, bukan bertahap per urutan. */
+    stagedPlacement: boolean('staged_placement').notNull().default(true),
+    /** S20 */
+    resultsAccess: varchar('results_access', { length: 16 })
+      .$type<ResultsAccessMode>()
+      .notNull()
+      .default('admin_ketua'),
+    /** S22: false = jalur closerec ditutup. */
+    closerecEnabled: boolean('closerec_enabled').notNull().default(true),
     eligibilityMatch: varchar('eligibility_match', { length: 8 })
       .$type<EligibilityMatch>()
       .notNull()
@@ -2052,6 +2083,40 @@ export const recruitment = createTable(
   (table) => ({
     periodIdx: index('recruitment_period_idx').on(table.periodId),
     formUnique: uniqueIndex('recruitment_form_unique').on(table.formId),
+  }),
+);
+
+/**
+ * Draf wizard setup sebelum oprec ada: satu draf per (periode, pengguna).
+ * `saveSetup` butuh `recruitment` yang sudah ada, jadi draf tahap awal
+ * disimpan di sini dan dihapus saat `createFromSetup` berhasil.
+ */
+export const recruitmentSetupDraft = createTable(
+  'recruitment_setup_draft',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    periodId: varchar('period_id', { length: 255 })
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Jawaban wizard (`WizardState`), bentuknya dijaga klien. */
+    state: jsonb('state').$type<Record<string, unknown>>().notNull(),
+    /** Langkah terakhir yang dibuka, mis. 'S12a'. */
+    step: varchar('step', { length: 8 }).notNull().default('S1'),
+    /** 'steps' atau 'summary'. */
+    phase: varchar('phase', { length: 16 }).notNull().default('steps'),
+    ...timestamps,
+  },
+  (table) => ({
+    periodUserUnique: uniqueIndex('recruitment_setup_draft_period_user_unique').on(
+      table.periodId,
+      table.userId,
+    ),
   }),
 );
 

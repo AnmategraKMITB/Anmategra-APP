@@ -1,11 +1,13 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import { canManageLembaga } from '~/server/api/access';
 import { oprecPeriodProcedure } from '~/server/api/trpc';
 import {
   MAX_FIELDS_PER_FORM,
   MAX_SECTIONS_PER_FORM,
 } from '~/server/api/types/form.constants';
 import {
+  accessGrant,
   criterion,
   events,
   form,
@@ -13,24 +15,33 @@ import {
   formSection,
   formSubmission,
   lembaga,
+  mahasiswa,
   organizationPosition,
   organizationStructure,
   organizationUnit,
+  placement,
   recruitment,
+  recruitmentAssessor,
   recruitmentDivision,
   recruitmentEligibilityRule,
+  recruitmentSetupDraft,
   recruitmentWave,
+  users,
 } from '~/server/db/schema';
 
 import {
   CreateFromSetupInputSchema,
+  SetupDraftGetInputSchema,
+  SetupDraftSaveInputSchema,
   SetupOptionsInputSchema,
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
+import { logAction } from './log';
 import {
   type Queryable,
   applySectionBinding,
   assertDivisionTarget,
+  assertSourceUnit,
   conflict,
   notFound,
   pgCode,
@@ -212,6 +223,67 @@ export const setupProcedures = {
       return { sources, sourcePeriodId, tree, forms: usable };
     }),
 
+  /** Draf wizard milik pengguna ini pada periode ini, atau null. */
+  setupDraftGet: oprecPeriodProcedure
+    .input(SetupDraftGetInputSchema)
+    .query(async ({ ctx, input }) => {
+      const [row] = await ctx.db
+        .select({
+          state: recruitmentSetupDraft.state,
+          step: recruitmentSetupDraft.step,
+          phase: recruitmentSetupDraft.phase,
+          updatedAt: recruitmentSetupDraft.updated_at,
+        })
+        .from(recruitmentSetupDraft)
+        .where(
+          and(
+            eq(recruitmentSetupDraft.periodId, input.eventId),
+            eq(recruitmentSetupDraft.userId, ctx.session.user.id),
+          ),
+        );
+      return row ?? null;
+    }),
+
+  /** Simpan draf (upsert per periode + pengguna) tiap pindah langkah. */
+  setupDraftSave: oprecPeriodProcedure
+    .input(SetupDraftSaveInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const values = {
+        state: input.state,
+        step: input.step,
+        phase: input.phase,
+      };
+      await ctx.db
+        .insert(recruitmentSetupDraft)
+        .values({
+          periodId: input.eventId,
+          userId: ctx.session.user.id,
+          ...values,
+        })
+        .onConflictDoUpdate({
+          target: [
+            recruitmentSetupDraft.periodId,
+            recruitmentSetupDraft.userId,
+          ],
+          set: { ...values, updated_at: new Date() },
+        });
+      return { ok: true as const };
+    }),
+
+  setupDraftDiscard: oprecPeriodProcedure
+    .input(SetupDraftGetInputSchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(recruitmentSetupDraft)
+        .where(
+          and(
+            eq(recruitmentSetupDraft.periodId, input.eventId),
+            eq(recruitmentSetupDraft.userId, ctx.session.user.id),
+          ),
+        );
+      return { ok: true as const };
+    }),
+
   /**
    * Menerapkan hasil wizard dalam satu transaksi: membuat oprec, tujuan,
    * gelombang, syarat, dan (bila diminta) formulir dari templat. Oprec
@@ -255,9 +327,50 @@ export const setupProcedures = {
           d.positionId,
         );
       }
+      // S13/S14: penilai umum berasal dari satu bagian organogram. Bagian itu
+      // disimpan hanya bila ada penilai umum.
+      const needsGeneral =
+        input.settings.assessorMode === 'umum' ||
+        input.settings.assessorMode === 'keduanya';
+      const generalUnitId = needsGeneral
+        ? (input.generalAssessorUnitId ?? null)
+        : null;
+      if (needsGeneral) {
+        if (!generalUnitId) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Pilih bagian penilai umum.',
+          });
+        }
+        await assertSourceUnit(ctx.db, input.eventId, generalUnitId);
+      }
+      // S15: tanpa syarat gugur, kriteria gugur tidak boleh ada.
+      if (
+        input.settings.hasGugur === false &&
+        input.criteria.some((c) => c.kind === 'gugur_manual')
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Syarat gugur dimatikan, tetapi ada kriteria jenis gugur. Hapus kriteria itu atau aktifkan syarat gugur.',
+        });
+      }
+
+      // S17: pengelola divalidasi seluruhnya sebelum ada yang ditulis.
+      const managers = await resolveManagers(
+        ctx,
+        input.eventId,
+        input.managers,
+      );
 
       try {
         return await ctx.db.transaction(async (tx) => {
+          await grantOprecAccess(tx, {
+            periodId: input.eventId,
+            grantedBy: ctx.session.user.id,
+            userIds: managers.map((m) => m.userId),
+          });
+
           // Formulir: dari templat atau yang sudah ada.
           let formId: string;
           if (input.form.mode === 'existing') {
@@ -309,6 +422,7 @@ export const setupProcedures = {
             .insert(recruitment)
             .values({
               ...input.settings,
+              generalAssessorUnitId: generalUnitId,
               periodId: input.eventId,
               formId,
               name: input.name,
@@ -339,6 +453,48 @@ export const setupProcedures = {
           const divisionByUnit = new Map(
             divisionRows.map((d) => [d.unitId, d.id]),
           );
+
+          if (generalUnitId) {
+            // Penilai umum: pemegang jabatan di bagian itu saat oprec dibuat.
+            const holders = await tx
+              .selectDistinct({ userId: placement.userId })
+              .from(placement)
+              .innerJoin(
+                organizationPosition,
+                eq(organizationPosition.id, placement.positionId),
+              )
+              .where(eq(organizationPosition.unitId, generalUnitId));
+            if (holders.length > 0) {
+              const assessorRows = await tx
+                .insert(recruitmentAssessor)
+                .values(
+                  holders.map((h) => ({
+                    recruitmentId,
+                    userId: h.userId,
+                    divisionId: null,
+                  })),
+                )
+                .returning({
+                  id: recruitmentAssessor.id,
+                  userId: recruitmentAssessor.userId,
+                });
+              for (const row of assessorRows) {
+                await logAction(tx, {
+                  recruitmentId,
+                  actorId: ctx.session.user.id,
+                  action: 'penilai_ditambah',
+                  entityType: 'recruitment_assessor',
+                  entityId: row.id,
+                  detail: {
+                    userId: row.userId,
+                    divisionId: null,
+                    unitId: generalUnitId,
+                    via: 'wizard',
+                  },
+                });
+              }
+            }
+          }
 
           if (input.criteria.length > 0) {
             const perSlot = new Map<string, number>();
@@ -397,7 +553,26 @@ export const setupProcedures = {
               unitNames: await unitNames(tx, unitIds),
             });
           }
-          return { recruitmentId, formId };
+
+          await tx
+            .delete(recruitmentSetupDraft)
+            .where(
+              and(
+                eq(recruitmentSetupDraft.periodId, input.eventId),
+                eq(recruitmentSetupDraft.userId, ctx.session.user.id),
+              ),
+            );
+
+          return {
+            recruitmentId,
+            formId,
+            managers: managers.map(({ identifier, userId, name, email }) => ({
+              identifier,
+              userId,
+              name,
+              email,
+            })),
+          };
         });
       } catch (error) {
         if (pgCode(error) === '23505') {
@@ -407,6 +582,137 @@ export const setupProcedures = {
       }
     }),
 };
+
+type ResolvedManager = {
+  identifier: string;
+  userId: string;
+  name: string | null;
+  email: string;
+};
+
+/**
+ * Akun pengelola dari email atau NIM. Hanya Owner/Admin Lembaga yang boleh
+ * memberi akses (sama dengan `grantEventAdmin`); akun yang tak dikenal
+ * menggagalkan seluruh permintaan dengan menyebut identifiernya.
+ */
+async function resolveManagers(
+  ctx: {
+    db: Queryable;
+    session: { user: { id: string; role: string; lembagaId?: string | null } };
+  },
+  eventId: string,
+  identifiers: string[],
+): Promise<ResolvedManager[]> {
+  if (identifiers.length === 0) return [];
+  const event = await ctx.db.query.events.findFirst({
+    where: eq(events.id, eventId),
+    columns: { org_id: true },
+  });
+  const allowed =
+    event?.org_id != null &&
+    (await canManageLembaga(
+      ctx.db as Parameters<typeof canManageLembaga>[0],
+      ctx.session.user.id,
+      ctx.session.user.role,
+      ctx.session.user.lembagaId,
+      event.org_id,
+    ));
+  if (!allowed) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message:
+        'Hanya Owner atau Admin lembaga yang boleh memberi akses pengelola oprec.',
+    });
+  }
+
+  const resolved: ResolvedManager[] = [];
+  const missing: string[] = [];
+  const seenUsers = new Set<string>();
+  for (const identifier of identifiers) {
+    const user = await findAccount(ctx.db, identifier);
+    if (!user) {
+      missing.push(identifier);
+      continue;
+    }
+    if (seenUsers.has(user.id)) continue;
+    seenUsers.add(user.id);
+    resolved.push({
+      identifier,
+      userId: user.id,
+      name: user.name,
+      email: user.email,
+    });
+  }
+  if (missing.length > 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Akun belum terdaftar di sistem: ${missing.join(', ')}. Oprec tidak dibuat.`,
+    });
+  }
+  return resolved;
+}
+
+async function findAccount(db: Queryable, identifier: string) {
+  const value = identifier.trim();
+  const [row] = /^\d+$/.test(value)
+    ? await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(mahasiswa)
+        .innerJoin(users, eq(users.id, mahasiswa.userId))
+        .where(eq(mahasiswa.nim, Number(value)))
+    : await db
+        .select({ id: users.id, name: users.name, email: users.email })
+        .from(users)
+        .where(sql`lower(${users.email}) = ${value.toLowerCase()}`);
+  return row ?? null;
+}
+
+/**
+ * Memberi fitur `oprec` pada periode. Fitur yang sudah dimiliki digabung
+ * (keputusan #355), kecuali hibah lama yang sudah dicabut: yang itu dimulai
+ * ulang dari `['oprec']`.
+ */
+async function grantOprecAccess(
+  tx: Parameters<typeof lockForm>[0],
+  args: { periodId: string; grantedBy: string; userIds: string[] },
+) {
+  for (const userId of args.userIds) {
+    const [existing] = await tx
+      .select({
+        id: accessGrant.id,
+        features: accessGrant.features,
+        status: accessGrant.status,
+      })
+      .from(accessGrant)
+      .where(
+        and(
+          eq(accessGrant.periodId, args.periodId),
+          eq(accessGrant.userId, userId),
+        ),
+      )
+      .for('update');
+    if (existing) {
+      const kept = existing.status === 'active' ? existing.features : [];
+      await tx
+        .update(accessGrant)
+        .set({
+          status: 'active',
+          features: [...new Set([...kept, 'oprec'])],
+          grantedBy: args.grantedBy,
+          revokedAt: null,
+          revokedBy: null,
+        })
+        .where(eq(accessGrant.id, existing.id));
+    } else {
+      await tx.insert(accessGrant).values({
+        periodId: args.periodId,
+        userId,
+        features: ['oprec'],
+        grantedBy: args.grantedBy,
+      });
+    }
+  }
+}
 
 async function unitNames(db: Queryable, unitIds: string[]) {
   const rows = await db

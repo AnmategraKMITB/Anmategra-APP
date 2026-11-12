@@ -134,7 +134,11 @@ async function getSilentToken(clientId: string): Promise<string | null> {
         client_id: clientId,
         scope: SCOPE,
         callback: (response) =>
-          resolve(response.error || !response.access_token ? null : response.access_token),
+          resolve(
+            response.error || !response.access_token
+              ? null
+              : response.access_token,
+          ),
       });
       client.requestAccessToken({ prompt: 'none' });
     });
@@ -166,13 +170,16 @@ async function assertDriveSpace(size: number, token: string): Promise<void> {
       );
     }
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Penyimpanan')) throw error;
+    if (error instanceof Error && error.message.includes('Penyimpanan'))
+      throw error;
   }
 }
 
 /**
- * Upload jawaban berkas ke Drive pengisi, lalu jadikan public-read.
- * Catatan: permission `anyone` tetap bisa diblokir oleh kebijakan Workspace.
+ * Upload jawaban berkas ke Drive pengisi, lalu buka akses "siapa saja yang
+ * memiliki link" (Viewer) otomatis. Aplikasi hanya menyimpan tautannya.
+ * Bila kebijakan Workspace menolak, berkas tetap dipakai dan pengisi
+ * diingatkan mengatur akses sendiri.
  */
 export async function uploadToGoogleDrive(
   file: File,
@@ -226,9 +233,12 @@ export async function uploadToGoogleDrive(
     mimeType?: string;
     webViewLink?: string;
   };
-  if (!uploaded.id) throw new Error('Google Drive tidak mengembalikan file ID.');
+  if (!uploaded.id)
+    throw new Error('Google Drive tidak mengembalikan file ID.');
 
-  const permission = await fetch(
+  // ponytail: kegagalan izin (mis. dibatasi Workspace) diabaikan; pengisi
+  // diingatkan di form dan pengelola mendapat petunjuk di tabel respons.
+  await fetch(
     `${DRIVE_API}/files/${encodeURIComponent(uploaded.id)}/permissions?fields=id`,
     {
       method: 'POST',
@@ -238,15 +248,7 @@ export async function uploadToGoogleDrive(
       },
       body: JSON.stringify({ role: 'reader', type: 'anyone' }),
     },
-  );
-  if (!permission.ok) {
-    // Berkas sudah ada di Drive tetapi tidak bisa dibuka publik. Jangan
-    // tinggalkan file yatim: coba hapus diam-diam.
-    void deleteFromGoogleDrive(uploaded.id);
-    throw new Error(
-      'Berkas terunggah, tetapi izin “siapa saja yang punya tautan” gagal. Hubungi admin Google Workspace.',
-    );
-  }
+  ).catch(() => undefined);
 
   return {
     itemId: uploaded.id,

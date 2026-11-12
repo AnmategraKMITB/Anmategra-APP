@@ -99,6 +99,14 @@ export async function HasilPage({
           showPendaftar={isAdmin}
           showPenempatan={canPlacement}
           showHasil
+          manage={
+            isAdmin
+              ? {
+                  formId: found.recruitment.formId,
+                  status: found.recruitment.status,
+                }
+              : undefined
+          }
         />
       }
     />

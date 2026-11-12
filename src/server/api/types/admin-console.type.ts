@@ -107,12 +107,14 @@ export const AdminUserUpdateInputSchema = z
     image: z.string().url().max(255).nullable().optional(),
     emailVerified: z.boolean().optional(),
     role: z.enum(['admin', 'lembaga', 'mahasiswa']).optional(),
+    /** Wajib saat `role` berubah: email akun yang diketik ulang. */
+    confirmEmail: z.string().trim().max(255).optional(),
     hidden: z.boolean().optional(),
     isDemo: z.boolean().optional(),
     mahasiswa: AdminMahasiswaUpdateSchema.optional(),
   })
   .superRefine((value, ctx) => {
-    const { userId: _userId, ...fields } = value;
+    const { userId: _userId, confirmEmail: _confirm, ...fields } = value;
     const hasField =
       Object.values(fields).some((field) => field !== undefined) ||
       Object.keys(fields.mahasiswa ?? {}).length > 0;

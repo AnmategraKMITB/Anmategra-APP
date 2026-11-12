@@ -49,6 +49,7 @@ import {
   hasSubmitted,
   isAcceptingResponses,
   loadActiveFields,
+  loadBoundOprec,
   loadEndings,
   loadSections,
   lockForm,
@@ -815,6 +816,15 @@ export const formSubmissionRouter = createTRPCRouter({
             throw new TRPCError({
               code: 'NOT_FOUND',
               message: 'Formulir tidak ditemukan.',
+            });
+          }
+          // Pertahanan berlapis: form oprec tidak pernah boleh disunting,
+          // apa pun nilai saklar `allowEditAfterSubmit` di basis data.
+          if (await loadBoundOprec(tx, current.id)) {
+            throw new TRPCError({
+              code: 'FORBIDDEN',
+              message:
+                'Jawaban formulir open recruitment tidak bisa diubah setelah dikirim.',
             });
           }
           if (!isAcceptingResponses(current)) {

@@ -1,5 +1,6 @@
 import { and, asc, eq } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
+import { isWithinDeadline } from '~/lib/forms/grace';
 import {
   type ApplicantProfile,
   type EligibilityRule,
@@ -118,7 +119,10 @@ export function currentWave<T extends { startsAt: Date; endsAt: Date }>(
   waves: T[],
   now: Date,
 ): T | null {
-  return waves.find((w) => w.startsAt <= now && now <= w.endsAt) ?? null;
+  return (
+    waves.find((w) => w.startsAt <= now && isWithinDeadline(w.endsAt, now)) ??
+    null
+  );
 }
 
 export type ApplyGate = {

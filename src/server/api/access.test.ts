@@ -310,17 +310,19 @@ describe('canManageLembaga', () => {
       expect(await check('admin')).toBeNull();
     });
 
-    it('izin "*" hanya mencakup fitur organization dan events', async () => {
+    it('izin "*" mencakup fitur organization, events, oprec, dan forms, tetapi bukan admin', async () => {
       const { lembaga: l } = await makeLembaga(db);
       const op = await createUser(db);
       await createOperator(db, op.id, ['*']);
-      const check = (feature: 'organization' | 'events' | 'oprec' | 'forms') =>
-        canManageLembaga(database, op.id, 'mahasiswa', null, l.id, feature);
+      const check = (
+        feature: 'organization' | 'events' | 'oprec' | 'forms' | 'admin',
+      ) => canManageLembaga(database, op.id, 'mahasiswa', null, l.id, feature);
       expect(await check('organization')).toBe('admin');
       expect(await check('events')).toBe('admin');
-      // Perilaku saat ini: fitur lain tidak punya izin operator yang terpetakan.
-      expect(await check('oprec')).toBeNull();
-      expect(await check('forms')).toBeNull();
+      expect(await check('oprec')).toBe('admin');
+      expect(await check('forms')).toBe('admin');
+      // Fitur `admin` (profil, anggota, inbox) tidak punya izin operator yang terpetakan.
+      expect(await check('admin')).toBeNull();
     });
 
     it('izin yang kedaluwarsa atau dicabut tidak berlaku', async () => {
@@ -535,5 +537,29 @@ describe('canManageEvent', () => {
     expect(
       await canManageEvent(database, op.id, 'mahasiswa', null, e.id, 'oprec'),
     ).toBeNull();
+  });
+
+  it('Operator dengan izin lembaga.forms dan lembaga.oprec hanya membuka fitur masing-masing', async () => {
+    const { lembaga: l } = await makeLembaga(db);
+    const e = await createEvent(db, l.id);
+    const forms = await createUser(db);
+    const oprec = await createUser(db);
+    await createOperator(db, forms.id, ['lembaga.forms']);
+    await createOperator(db, oprec.id, ['lembaga.oprec']);
+    const event = (id: string, feature?: 'forms' | 'oprec') =>
+      canManageEvent(database, id, 'mahasiswa', null, e.id, feature);
+
+    expect(await event(forms.id, 'forms')).toBe('admin');
+    expect(await event(forms.id, 'oprec')).toBeNull();
+    expect(await event(forms.id)).toBeNull();
+    expect(
+      await canManageLembaga(database, forms.id, 'mahasiswa', null, l.id, 'forms'),
+    ).toBe('admin');
+    expect(
+      await canManageLembaga(database, forms.id, 'mahasiswa', null, l.id),
+    ).toBeNull();
+
+    expect(await event(oprec.id, 'oprec')).toBe('admin');
+    expect(await event(oprec.id, 'forms')).toBeNull();
   });
 });
