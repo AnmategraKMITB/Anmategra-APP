@@ -595,10 +595,11 @@ export function OrganogramWorkspace(
                   <Redo2 className="size-4" />
                 </Button>
               </div>
+              {/* Lebar tetap: teks status dan tombol Batal tidak boleh mengubah tinggi toolbar (M-12). */}
               <span
                 aria-live="polite"
                 className={cn(
-                  'text-sm',
+                  'inline-block min-w-[15rem] text-right text-sm',
                   dirty
                     ? 'font-semibold text-neutral-1000'
                     : 'text-neutral-700',
@@ -608,16 +609,17 @@ export function OrganogramWorkspace(
                   ? 'Ada perubahan belum disimpan'
                   : 'Semua perubahan tersimpan'}
               </span>
-              {dirty ? (
-                <Button
-                  variant="dark_blue_outline"
-                  size="sm"
-                  disabled={ed.saving}
-                  onClick={() => dispatch({ type: 'revert' })}
-                >
-                  Batal
-                </Button>
-              ) : null}
+              <Button
+                variant="dark_blue_outline"
+                size="sm"
+                disabled={!dirty || ed.saving}
+                className={dirty ? undefined : 'invisible'}
+                aria-hidden={dirty ? undefined : true}
+                tabIndex={dirty ? undefined : -1}
+                onClick={() => dispatch({ type: 'revert' })}
+              >
+                Batal
+              </Button>
               <Button
                 variant="light_blue"
                 size="sm"

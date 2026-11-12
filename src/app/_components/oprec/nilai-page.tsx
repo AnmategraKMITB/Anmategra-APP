@@ -1,5 +1,5 @@
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { api } from '~/trpc/server';
 
 import { canOpenResults, loadAssessableOprec } from './access';
 import { NilaiView } from './nilai/nilai-view';
@@ -20,30 +20,35 @@ export async function NilaiPage({
   if (found?.recruitment.periodId !== kegiatanId) notFound();
   const showHasil = await canOpenResults(recruitmentId);
 
+  const event = await api.event.getByID({ id: kegiatanId });
+  const { isAdmin } = found.access;
+
   return (
-    <div className="py-6 sm:py-8">
-      {found.access.isAdmin ? (
-        <Link
-          href={`${basePath}/kegiatan/${kegiatanId}/oprec`}
-          className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-        >
-          ← Kembali ke oprec
-        </Link>
-      ) : null}
-      <OprecTabs
-        basePath={basePath}
-        kegiatanId={kegiatanId}
-        recruitmentId={recruitmentId}
-        current="nilai"
-        showPendaftar={found.access.isAdmin}
-        showPenempatan={
-          found.access.isAdmin || found.access.deciderDivisionIds.size > 0
-        }
-        showHasil={showHasil}
-      />
-      <div className="mt-6">
-        <NilaiView recruitmentId={recruitmentId} />
-      </div>
-    </div>
+    <NilaiView
+      recruitmentId={recruitmentId}
+      periodName={event?.name ?? ''}
+      basePath={
+        isAdmin ? `${basePath}/kegiatan/${kegiatanId}/oprec` : undefined
+      }
+      tabs={
+        <OprecTabs
+          basePath={basePath}
+          kegiatanId={kegiatanId}
+          recruitmentId={recruitmentId}
+          current="nilai"
+          showPendaftar={isAdmin}
+          showPenempatan={isAdmin || found.access.deciderDivisionIds.size > 0}
+          showHasil={showHasil}
+          manage={
+            isAdmin
+              ? {
+                  formId: found.recruitment.formId,
+                  status: found.recruitment.status,
+                }
+              : undefined
+          }
+        />
+      }
+    />
   );
 }
