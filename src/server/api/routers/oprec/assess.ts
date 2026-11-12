@@ -10,6 +10,7 @@ import {
   or,
   sql,
 } from 'drizzle-orm';
+import { lastAcceptedAt } from '~/lib/forms/grace';
 import {
   assessmentOpen,
   autoGateTriggered,
@@ -116,7 +117,8 @@ async function loadWindow(db: Queryable, recruitmentId: string) {
     .select({ id: recruitmentWave.id, endsAt: recruitmentWave.endsAt })
     .from(recruitmentWave)
     .where(eq(recruitmentWave.recruitmentId, recruitmentId));
-  return new Map(waves.map((w) => [w.id, w.endsAt]));
+  // Penilaian baru dibuka setelah masa tambahan submisi lewat.
+  return new Map(waves.map((w) => [w.id, lastAcceptedAt(w.endsAt)]));
 }
 
 export const assessProcedures = {
