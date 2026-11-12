@@ -1,5 +1,6 @@
 'use client';
 
+import { Upload } from 'lucide-react';
 import { useId, useState } from 'react';
 import type { JSX } from 'react';
 import { toast } from 'sonner';
@@ -781,5 +782,36 @@ export function ImportEntry(props: {
         onImported={onImported}
       />
     </div>
+  );
+}
+
+/**
+ * Tombol Impor untuk header editor. Selalu dapat dibuka; lembar impor sendiri
+ * yang menjelaskan bila periode ini belum punya data lama atau organogramnya
+ * sudah berisi.
+ */
+export function ImportButton(props: {
+  periodId: string;
+  onImported: () => void | Promise<void>;
+}): JSX.Element {
+  const { periodId, onImported } = props;
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button
+        variant="dark_blue_outline"
+        size="sm"
+        onClick={() => setOpen(true)}
+      >
+        <Upload className="size-4" />
+        Impor
+      </Button>
+      <ImportSheet
+        periodId={periodId}
+        open={open}
+        onOpenChange={setOpen}
+        onImported={onImported}
+      />
+    </>
   );
 }
