@@ -330,7 +330,7 @@ export default function RaporTable({
             title: 'Profil berhasil dihapus',
           });
         },
-        onError: (error) => {
+        onError: (error: { message: string }) => {
           toast({
             title: 'Gagal menghapus profil',
             description: error.message,
@@ -479,7 +479,7 @@ export default function RaporTable({
           description: `Profil "${profil}" telah diperbarui di database`,
         });
       },
-      onError: (error) => {
+      onError: (error: { message: string }) => {
         toast({
           title: 'Gagal memperbarui profil',
           description: error.message,
