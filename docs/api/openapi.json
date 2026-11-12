@@ -34,6 +34,10 @@
       "description": "Grant dan revoke Owner/Admin Lembaga & Kepanitiaan (RO-03)."
     },
     {
+      "name": "adminOps",
+      "description": "Procedure di router `adminOps`."
+    },
+    {
       "name": "event",
       "description": "CRUD kepanitiaan/kegiatan beserta anggotanya."
     },
@@ -87,248 +91,6 @@
     }
   ],
   "paths": {
-    "/api/trpc/admin.addVerifiedEmail": {
-      "post": {
-        "operationId": "admin_addVerifiedEmail",
-        "tags": [
-          "admin"
-        ],
-        "summary": "admin.addVerifiedEmail",
-        "description": "Menambahkan email ke whitelist `verified_user` agar email tsb diizinkan mendaftar di sistem.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/admin_addVerifiedEmail_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Admin (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/admin_addVerifiedEmail_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/trpc/admin.deleteVerifiedEmail": {
-      "post": {
-        "operationId": "admin_deleteVerifiedEmail",
-        "tags": [
-          "admin"
-        ],
-        "summary": "admin.deleteVerifiedEmail",
-        "description": "Menghapus email dari whitelist `verified_user`. Jika email tsb sudah terhubung ke akun aktif, seluruh akun `users` ikut dihapus (hard delete — cascade ke semua tabel berelasi FK `ON DELETE CASCADE`: account, mahasiswa, lembaga, dst). - ⚠️ perlu konfirmasi: bentuk output tidak konsisten antar 3 skenario di atas dan tidak divalidasi `.output()` — client harus menangani union type secara manual.\n\n**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
-        "security": [
-          {
-            "sessionCookie": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "object",
-                      "properties": {
-                        "data": {
-                          "type": "object",
-                          "required": [
-                            "json"
-                          ],
-                          "properties": {
-                            "json": {
-                              "$ref": "#/components/schemas/admin_deleteVerifiedEmail_output"
-                            },
-                            "meta": {
-                              "type": "object",
-                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Admin (`FORBIDDEN`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/TRPCError"
-                }
-              }
-            }
-          }
-        },
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "required": [
-                  "json"
-                ],
-                "properties": {
-                  "json": {
-                    "$ref": "#/components/schemas/admin_deleteVerifiedEmail_input"
-                  },
-                  "meta": {
-                    "type": "object",
-                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/trpc/admin.getAllReportsAdmin": {
       "get": {
         "operationId": "admin_getAllReportsAdmin",
@@ -583,7 +345,7 @@
           "admin"
         ],
         "summary": "admin.uploadAlumniCsv",
-        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.",
+        "description": "**Akses:** Operator admin — Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.",
         "security": [
           {
             "sessionCookie": []
@@ -643,7 +405,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Admin (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Operator admin (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -5535,6 +5297,809 @@
                 "properties": {
                   "json": {
                     "$ref": "#/components/schemas/adminGrant_revokeLembagaAdmin_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.lembagaCreate": {
+      "post": {
+        "operationId": "adminOps_lembagaCreate",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.lembagaCreate",
+        "description": "**Akses:** Operator admin — Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Operator admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/adminOps_lembagaCreate_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.superadminAdd": {
+      "post": {
+        "operationId": "adminOps_superadminAdd",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.superadminAdd",
+        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/adminOps_superadminAdd_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.superadminList": {
+      "get": {
+        "operationId": "adminOps_superadminList",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.superadminList",
+        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.superadminRemove": {
+      "post": {
+        "operationId": "adminOps_superadminRemove",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.superadminRemove",
+        "description": "**Akses:** Admin — Hanya untuk akun dengan `role = admin`. Belum login ditolak 401; sudah login tetapi bukan admin ditolak 403.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/adminOps_superadminRemove_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.verifiedEmailAdd": {
+      "post": {
+        "operationId": "adminOps_verifiedEmailAdd",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.verifiedEmailAdd",
+        "description": "**Akses:** Operator admin — Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Operator admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/adminOps_verifiedEmailAdd_input"
+                  },
+                  "meta": {
+                    "type": "object",
+                    "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.verifiedEmailList": {
+      "get": {
+        "operationId": "adminOps_verifiedEmailList",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.verifiedEmailList",
+        "description": "**Akses:** Operator admin — Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Operator admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/trpc/adminOps.verifiedEmailRemove": {
+      "post": {
+        "operationId": "adminOps_verifiedEmailRemove",
+        "tags": [
+          "adminOps"
+        ],
+        "summary": "adminOps.verifiedEmailRemove",
+        "description": "**Akses:** Operator admin — Butuh izin operator admin console yang sesuai; akun dengan `role = admin` otomatis lolos.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Operator admin (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "json"
+                ],
+                "properties": {
+                  "json": {
+                    "$ref": "#/components/schemas/adminOps_verifiedEmailRemove_input"
                   },
                   "meta": {
                     "type": "object",
@@ -32050,121 +32615,6 @@
           }
         }
       },
-      "admin_addVerifiedEmail_input": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email"
-        ]
-      },
-      "admin_addVerifiedEmail_output": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "properties": {
-            "id": {
-              "type": "string"
-            },
-            "email": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "id",
-            "email"
-          ],
-          "additionalProperties": false
-        }
-      },
-      "admin_deleteVerifiedEmail_input": {
-        "type": "object",
-        "properties": {
-          "email": {
-            "type": "string"
-          }
-        },
-        "required": [
-          "email"
-        ]
-      },
-      "admin_deleteVerifiedEmail_output": {
-        "anyOf": [
-          {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "name": {
-                "nullable": true,
-                "type": "string"
-              },
-              "email": {
-                "type": "string"
-              },
-              "emailVerified": {
-                "nullable": true,
-                "type": "string",
-                "format": "date-time"
-              },
-              "image": {
-                "nullable": true,
-                "type": "string"
-              },
-              "role": {
-                "type": "string",
-                "enum": [
-                  "admin",
-                  "lembaga",
-                  "mahasiswa"
-                ]
-              },
-              "created_at": {
-                "type": "string",
-                "format": "date-time"
-              },
-              "updated_at": {
-                "type": "string",
-                "format": "date-time"
-              }
-            },
-            "required": [
-              "id",
-              "name",
-              "email",
-              "emailVerified",
-              "image",
-              "role",
-              "created_at",
-              "updated_at"
-            ],
-            "additionalProperties": false
-          },
-          {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "id": {
-                  "type": "string"
-                },
-                "email": {
-                  "type": "string"
-                }
-              },
-              "required": [
-                "id",
-                "email"
-              ],
-              "additionalProperties": false
-            }
-          }
-        ]
-      },
       "admin_getAllReportsAdmin_input": {
         "type": "object",
         "properties": {
@@ -32295,16 +32745,17 @@
         "properties": {
           "nims": {
             "minItems": 1,
+            "maxItems": 20000,
             "type": "array",
             "items": {
               "type": "integer",
-              "minimum": 0,
-              "exclusiveMinimum": true,
-              "maximum": 9007199254740991
+              "minimum": 10000000,
+              "maximum": 99999999
             }
           },
           "wisudaBatch": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 100
           }
         },
         "required": [
@@ -33321,6 +33772,10 @@
               "mahasiswa"
             ]
           },
+          "confirmEmail": {
+            "type": "string",
+            "maxLength": 255
+          },
           "hidden": {
             "type": "boolean"
           },
@@ -33729,6 +34184,113 @@
           "success"
         ],
         "additionalProperties": false
+      },
+      "adminOps_lembagaCreate_input": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "Himpunan",
+              "UKM",
+              "Kepanitiaan",
+              "BSO",
+              "Badan",
+              "Pusat",
+              "Organisasi"
+            ]
+          },
+          "acronym": {
+            "type": "string",
+            "maxLength": 50
+          },
+          "parentId": {
+            "nullable": true,
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": [
+          "name",
+          "type",
+          "email"
+        ]
+      },
+      "adminOps_superadminAdd_input": {
+        "type": "object",
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "confirmEmail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "identifier",
+          "confirmEmail"
+        ]
+      },
+      "adminOps_superadminRemove_input": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "confirmEmail": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "userId",
+          "confirmEmail"
+        ]
+      },
+      "adminOps_verifiedEmailAdd_input": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "adminOps_verifiedEmailRemove_input": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "maxLength": 255,
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          }
+        },
+        "required": [
+          "email"
+        ]
       },
       "event_addNewPanitia_input": {
         "type": "object",
