@@ -19,3 +19,7 @@ export const pendaftarHref = (
   kegiatanId: string,
   recruitmentId: string,
 ) => `${base}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/pendaftar`;
+
+/** Tombol Buka pendaftaran hanya berlaku untuk oprec yang masih Draf. */
+export const canOpenRegistration = (status: 'draft' | 'open' | 'closed') =>
+  status === 'draft';
