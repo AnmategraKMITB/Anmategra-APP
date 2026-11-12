@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq, inArray, notInArray } from 'drizzle-orm';
+import { and, asc, count, eq, inArray, notInArray, sql } from 'drizzle-orm';
 import { oprecPeriodProcedure } from '~/server/api/trpc';
 import {
   MAX_FIELDS_PER_FORM,
@@ -16,7 +16,9 @@ import {
   organizationPosition,
   organizationStructure,
   organizationUnit,
+  placement,
   recruitment,
+  recruitmentAssessor,
   recruitmentDivision,
   recruitmentEligibilityRule,
   recruitmentWave,
@@ -26,7 +28,7 @@ import {
   CreateFromSetupInputSchema,
   SetupOptionsInputSchema,
 } from '../../types/oprec.type';
-import { lockForm } from '../form/services';
+import { type Tx, lockForm } from '../form/services';
 import {
   type Queryable,
   applySectionBinding,
@@ -141,6 +143,8 @@ async function loadTree(db: Queryable, periodId: string) {
         rank: organizationPosition.rank,
         quota: organizationPosition.quota,
         sortOrder: organizationPosition.sort_order,
+        /** Jumlah orang yang ditempatkan; dipakai wizard untuk cek penilai. */
+        holderCount: sql<number>`(select count(*)::int from ${placement} where ${placement.positionId} = ${organizationPosition.id})`,
       })
       .from(organizationPosition)
       .innerJoin(
@@ -366,6 +370,19 @@ export const setupProcedures = {
             );
           }
 
+          // S14: orang yang ditempatkan di bagian penilai umum menjadi penilai
+          // umum oprec ini (bisa diubah lagi nanti dari pengaturan penilai).
+          if (input.generalAssessorUnitId) {
+            await insertGeneralAssessors(tx, {
+              recruitmentId,
+              unitId: input.generalAssessorUnitId,
+              allowedPeriodIds: [
+                input.eventId,
+                ...(await divisionPeriodIds(tx, unitIds)),
+              ],
+            });
+          }
+
           if (input.waves.length > 0) {
             await tx.insert(recruitmentWave).values(
               input.waves.map((w, i) => ({
@@ -407,6 +424,73 @@ export const setupProcedures = {
       }
     }),
 };
+
+/** Periode pemilik organogram dari bagian-bagian tujuan yang dibuka. */
+async function divisionPeriodIds(tx: Tx, unitIds: string[]) {
+  if (unitIds.length === 0) return [];
+  const rows = await tx
+    .selectDistinct({ periodId: organizationStructure.eventId })
+    .from(organizationUnit)
+    .innerJoin(
+      organizationStructure,
+      eq(organizationStructure.id, organizationUnit.structure_id),
+    )
+    .where(inArray(organizationUnit.id, unitIds));
+  return rows.flatMap((r) => (r.periodId ? [r.periodId] : []));
+}
+
+/**
+ * Menjadikan semua orang di bagian `unitId` penilai umum. Bagian harus berasal
+ * dari organogram aktif periode oprec atau periode sumber tujuan yang dibuka.
+ */
+async function insertGeneralAssessors(
+  tx: Tx,
+  args: { recruitmentId: string; unitId: string; allowedPeriodIds: string[] },
+) {
+  const [unit] = await tx
+    .select({
+      periodId: organizationStructure.eventId,
+      active: organizationStructure.is_active,
+    })
+    .from(organizationUnit)
+    .innerJoin(
+      organizationStructure,
+      eq(organizationStructure.id, organizationUnit.structure_id),
+    )
+    .where(eq(organizationUnit.id, args.unitId));
+  if (
+    !unit?.active ||
+    !unit.periodId ||
+    !args.allowedPeriodIds.includes(unit.periodId)
+  ) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Bagian penilai umum bukan bagian dari organogram oprec ini.',
+    });
+  }
+  const holders = await tx
+    .selectDistinct({ userId: placement.userId })
+    .from(placement)
+    .innerJoin(
+      organizationPosition,
+      eq(organizationPosition.id, placement.positionId),
+    )
+    .where(eq(organizationPosition.unitId, args.unitId));
+  if (holders.length === 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message:
+        'Bagian penilai umum belum punya orang di organogram. Tempatkan orangnya dulu atau pilih bagian lain.',
+    });
+  }
+  await tx.insert(recruitmentAssessor).values(
+    holders.map((h) => ({
+      recruitmentId: args.recruitmentId,
+      userId: h.userId,
+      divisionId: null,
+    })),
+  );
+}
 
 async function unitNames(db: Queryable, unitIds: string[]) {
   const rows = await db

@@ -295,12 +295,16 @@ export const CreateFromSetupInputSchema = z.object({
       z.object({
         scope: z.string().min(1).max(255),
         name: z.string().trim().min(1).max(255),
-        kind: z.enum(['skor', 'gugur_manual']),
+        // gugur_otomatis disimpan sebagai draf aturan (tanpa aturan); aturannya
+        // dilengkapi di tab Penilaian sebelum pendaftaran dibuka.
+        kind: z.enum(['skor', 'gugur_otomatis', 'gugur_manual']),
         weight: z.number().int().min(0).max(100).nullish(),
       }),
     )
     .max(200)
     .default([]),
+  /** S14: bagian organogram yang orang-orangnya menjadi penilai umum. */
+  generalAssessorUnitId: id.nullish(),
   /** Jawaban mentah wizard S1-S23, disimpan untuk riwayat. */
   answers: z.record(z.string(), z.unknown()).default({}),
 });

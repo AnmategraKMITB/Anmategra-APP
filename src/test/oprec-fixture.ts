@@ -90,11 +90,15 @@ export async function createOprecFixture(
     criteria?: {
       scope: string;
       name: string;
-      kind: 'skor' | 'gugur_manual';
+      kind: 'skor' | 'gugur_otomatis' | 'gugur_manual';
       weight?: number;
     }[];
     /** Terbitkan form dan buka oprec (bawaan: true). */
     open?: boolean;
+    /** Nama divisi fixture yang orang-orangnya menjadi penilai umum (S14). */
+    generalAssessorUnit?: string;
+    /** Id bagian mentah untuk penilai umum, mis. dari organogram lain. */
+    generalAssessorUnitId?: string;
   } = {},
 ): Promise<OprecFixture> {
   const specs = opts.divisions ?? [
@@ -192,6 +196,9 @@ export async function createOprecFixture(
       ...c,
       scope: unitIdOf(c.scope),
     })),
+    generalAssessorUnitId:
+      opts.generalAssessorUnitId ??
+      (opts.generalAssessorUnit ? unitIdOf(opts.generalAssessorUnit) : null),
   });
 
   const rows = await db

@@ -161,6 +161,13 @@ export function SetupWizard({
       for (const u of t.tree?.units ?? []) m.set(u.id, u.name);
     return m;
   }, [trees]);
+  const positionsByUnit = useMemo(() => {
+    const m = new Map<string, { rank: string; holderCount: number }[]>();
+    for (const t of trees)
+      for (const p of t.tree?.positions ?? [])
+        m.set(p.unitId, [...(m.get(p.unitId) ?? []), p]);
+    return m;
+  }, [trees]);
 
   const labels = (own.data?.tree?.levelLabels ?? ['Bidang', 'Divisi']) as [
     string,
@@ -175,7 +182,25 @@ export function SetupWizard({
     forms: own.data?.forms ?? [],
     divisionCount: Object.keys(s.divisions).length,
     unitName: (id) => unitMap.get(id) ?? 'Bagian',
+    holdersInUnit: (id) =>
+      (positionsByUnit.get(id) ?? []).reduce((n, p) => n + p.holderCount, 0),
+    unitHasHead: (id) =>
+      (positionsByUnit.get(id) ?? []).some(
+        (p) => p.rank === 'head' && p.holderCount > 0,
+      ),
   };
+
+  // M-06: jumlah pilihan tidak boleh melebihi jumlah tujuan yang dibuka.
+  const divisionCount = c.divisionCount;
+  useEffect(() => {
+    if (divisionCount > 0 && s.maxChoices > divisionCount) {
+      setS((prev) => ({
+        ...prev,
+        maxChoices: divisionCount,
+        minChoices: Math.min(prev.minChoices, divisionCount),
+      }));
+    }
+  }, [divisionCount, s.maxChoices]);
 
   const steps = visibleSteps(s, { hasMultipleSources: sources.length > 1 });
   const index = Math.max(0, steps.indexOf(current));

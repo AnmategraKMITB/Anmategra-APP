@@ -667,32 +667,39 @@ export const criteriaProcedures = {
           let gateRule: GateRuleValue | null = input.gateRule ?? null;
           if (input.kind === 'gugur_otomatis') {
             if (!gateRule) {
-              throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'Aturan gugur otomatis wajib diisi.',
-              });
-            }
-            const field = fieldById.get(gateRule.fieldId);
-            if (!field) {
-              throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'Pertanyaan aturan gugur bukan milik form oprec ini.',
-              });
-            }
-            if (!operatorsFor(field.type).includes(gateRule.op)) {
-              throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'Operator aturan tidak cocok dengan tipe pertanyaan.',
-              });
-            }
-            if (
-              !OP_WITHOUT_VALUE.has(gateRule.op) &&
-              (gateRule.nilai === undefined || gateRule.nilai === null)
-            ) {
-              throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: 'Nilai aturan wajib diisi untuk operator itu.',
-              });
+              // Draf aturan (mis. dari wizard) boleh kosong selama oprec masih
+              // draf; pendaftaran tidak bisa dibuka sampai aturannya lengkap.
+              if (ctx.recruitment.status !== 'draft') {
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message: 'Aturan gugur otomatis wajib diisi.',
+                });
+              }
+            } else {
+              const field = fieldById.get(gateRule.fieldId);
+              if (!field) {
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message:
+                    'Pertanyaan aturan gugur bukan milik form oprec ini.',
+                });
+              }
+              if (!operatorsFor(field.type).includes(gateRule.op)) {
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message:
+                    'Operator aturan tidak cocok dengan tipe pertanyaan.',
+                });
+              }
+              if (
+                !OP_WITHOUT_VALUE.has(gateRule.op) &&
+                (gateRule.nilai === undefined || gateRule.nilai === null)
+              ) {
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message: 'Nilai aturan wajib diisi untuk operator itu.',
+                });
+              }
             }
           } else {
             if (input.gateRule !== undefined && input.gateRule !== null) {

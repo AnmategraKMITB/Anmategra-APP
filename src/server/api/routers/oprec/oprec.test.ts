@@ -77,33 +77,23 @@ describe('createFromSetup', () => {
     });
   });
 
-  // Karakterisasi K-02: server belum menerima gugur otomatis dari wizard.
-  // PR 3 mengubahnya menjadi draf aturan.
-  it('kriteria gugur otomatis belum diterima server', async () => {
-    const fx = await createOprecFixture(db, { open: false });
-    const code = await codeOf(
-      callerFor(db, fx.owner).oprec.createFromSetup({
-        eventId: fx.eventId,
-        name: 'Oprec Kedua',
-        form: { mode: 'template' },
-        divisions: [
-          {
-            unitId: fx.divisions.Acara!.unitId,
-            positionId: fx.divisions.Acara!.positionId,
-          },
-        ],
-        minChoices: 1,
-        maxChoices: 1,
-        criteria: [
-          {
-            scope: 'umum',
-            name: 'Bersedia',
-            kind: 'gugur_otomatis' as 'gugur_manual',
-          },
-        ],
-      }),
-    );
-    expect(code).toBe('BAD_REQUEST');
+  // K-02: gugur otomatis dari wizard disimpan sebagai draf aturan; aturannya
+  // dilengkapi di tab Penilaian sebelum pendaftaran dibuka.
+  it('kriteria gugur otomatis dari wizard disimpan sebagai draf aturan', async () => {
+    const fx = await createOprecFixture(db, {
+      open: false,
+      criteria: [{ scope: 'umum', name: 'Bersedia', kind: 'gugur_otomatis' }],
+    });
+    const [row] = await db
+      .select()
+      .from(schema.criterion)
+      .where(eq(schema.criterion.recruitmentId, fx.recruitmentId));
+    expect(row).toMatchObject({
+      name: 'Bersedia',
+      kind: 'gugur_otomatis',
+      gateRule: null,
+      weight: null,
+    });
   });
 
   it('hanya pengelola oprec yang bisa membuat oprec', async () => {

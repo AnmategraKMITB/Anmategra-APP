@@ -18,6 +18,7 @@ import {
 } from '~/lib/oprec/registration';
 import { canManageEvent } from '~/server/api/access';
 import {
+  criterion,
   form,
   formField,
   formSubmission,
@@ -138,6 +139,22 @@ export async function readinessProblems(
   if ((choice?.n ?? 0) === 0) {
     problems.push(
       'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
+    );
+  }
+  // Draf aturan gugur otomatis (mis. dari wizard) harus dilengkapi dulu.
+  const drafts = await db
+    .select({ name: criterion.name })
+    .from(criterion)
+    .where(
+      and(
+        eq(criterion.recruitmentId, lock.recruitment.id),
+        eq(criterion.kind, 'gugur_otomatis'),
+        isNull(criterion.gateRule),
+      ),
+    );
+  if (drafts.length > 0) {
+    problems.push(
+      `Lengkapi aturan gugur otomatis di tab Penilaian: ${drafts.map((d) => d.name).join(', ')}.`,
     );
   }
   return problems;

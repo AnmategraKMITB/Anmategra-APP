@@ -31,7 +31,7 @@ function Choice<T extends string>({
   value,
   options,
   onChange,
-  later = true,
+  later = false,
   children,
 }: {
   title: string;
@@ -217,7 +217,6 @@ export function StepPenilaiUmum({ s, update, trees, c }: StepProps) {
           )}
         </Labeled>
       </div>
-      <LaterNote />
     </StepFrame>
   );
 }
@@ -247,6 +246,7 @@ export function StepVeto({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
   return (
     <Choice
+      later
       title={`Keputusan akhir dan hak veto ada di ketua ${l2}?`}
       art={<PeopleArt />}
       label="Keputusan akhir"
@@ -282,7 +282,7 @@ export function StepKriteria({ s, update, trees, c }: StepProps) {
   return (
     <StepFrame
       title="Kriteria apa saja yang dinilai?"
-      hint="Slot dibuat otomatis: satu untuk penilaian umum dan satu per tujuan yang dibuka. Boleh dikosongkan dan diisi nanti."
+      hint="Slot dibuat otomatis: satu untuk penilaian umum dan satu per tujuan yang dibuka. Boleh dikosongkan dan diisi nanti. Aturan gugur otomatis diisi di tab Penilaian setelah formulir jadi, sebelum pendaftaran dibuka."
       illustration={<SectionsArt />}
     >
       <div className="grid gap-3">
@@ -295,7 +295,6 @@ export function StepKriteria({ s, update, trees, c }: StepProps) {
           />
         ))}
       </div>
-      <LaterNote />
     </StepFrame>
   );
 }
@@ -514,6 +513,7 @@ export function StepTahap({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
   return (
     <Choice
+      later
       title="Penempatan dikerjakan bertahap per pilihan?"
       hint={`Bila ya, pilihan 1 diproses lebih dulu, lalu pilihan 2 dan 3; tahap tiap ${l2} bergeser otomatis begitu semua pendaftarnya sudah diputuskan. Koordinasi antar ${l2} dilakukan di luar Anmategra.`}
       art={<SectionsArt />}
@@ -591,6 +591,7 @@ export function StepRilis({ s, update }: StepProps) {
 export function StepCloserec({ s, update }: StepProps) {
   return (
     <Choice
+      later
       title="Ada jalur closerec?"
       hint="Closerec: anggota diajak langsung tanpa mendaftar. Tidak memengaruhi kuota oprec."
       art={<PeopleArt />}

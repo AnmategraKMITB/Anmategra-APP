@@ -12,6 +12,7 @@ import {
   type WizardCtx,
   type WizardState,
   stepProblem,
+  summaryWarnings,
 } from './model';
 import { presetLabel } from './presets';
 
@@ -182,6 +183,7 @@ export function Summary({
     const p = stepProblem(id, s, c);
     return p ? [{ id, message: p }] : [];
   });
+  const warnings = summaryWarnings(s, c);
   const groups = [...new Set(steps.map((id) => GROUP_OF[id]))];
   return (
     <div>
@@ -195,6 +197,17 @@ export function Summary({
       <p className="mt-1 text-sm text-neutral-700">
         Preset: <strong>{presetLabel(s.preset)}</strong>.
       </p>
+
+      {warnings.length > 0 ? (
+        <div className="mt-6 rounded-xl border border-neutral-400 bg-neutral-50 px-4 py-3 text-sm text-neutral-1000">
+          <p className="font-semibold">Perlu diperhatikan</p>
+          <ul className="mt-1 list-disc pl-6">
+            {warnings.map((warning) => (
+              <li key={warning}>{warning}</li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {problems.length > 0 ? (
         <div

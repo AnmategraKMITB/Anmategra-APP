@@ -138,6 +138,10 @@ export type WizardCtx = {
   divisionCount: number;
   /** Nama bagian lintas sumber, untuk ringkasan. */
   unitName: (unitId: string) => string;
+  /** Jumlah orang yang ditempatkan di semua jabatan sebuah bagian. */
+  holdersInUnit: (unitId: string) => number;
+  /** Bagian punya jabatan ketua (`head`) yang sudah diisi orang. */
+  unitHasHead: (unitId: string) => boolean;
 };
 
 export const STEP_IDS = [
@@ -362,7 +366,18 @@ export function stepProblem(
         return 'Pilih formnya.';
       return null;
     case 'S14':
-      return s.generalAssessorUnitId ? null : 'Pilih bagian penilai umum.';
+      if (!s.generalAssessorUnitId) return 'Pilih bagian penilai umum.';
+      return c.holdersInUnit(s.generalAssessorUnitId) > 0
+        ? null
+        : 'Bagian ini belum punya orang di organogram. Tempatkan orangnya dulu atau pilih bagian lain.';
+    case 'S23': {
+      const bad = wizardCriteria(s).some(
+        (k) =>
+          k.kind === 'skor' &&
+          (!Number.isInteger(k.weight) || k.weight! < 0 || k.weight! > 100),
+      );
+      return bad ? 'Bobot kriteria skor harus bilangan bulat 0–100.' : null;
+    }
     case 'S17':
       if (s.managers === 'orang' && s.managerIdentifiers.length === 0) {
         return 'Tambahkan minimal satu orang (email atau NIM).';
@@ -372,6 +387,62 @@ export function stepProblem(
     default:
       return null;
   }
+}
+
+/** Slot kriteria yang berlaku: 'umum' dan/atau bagian tujuan yang dicentang. */
+export function activeCriterionSlots(s: WizardState): string[] {
+  return [
+    ...(s.rubrics !== 'divisi' ? ['umum'] : []),
+    ...(s.rubrics !== 'umum' ? Object.keys(s.divisions) : []),
+  ];
+}
+
+/**
+ * Kriteria yang dikirim ke server: hanya slot yang masih berlaku (kriteria
+ * untuk bagian yang batal dicentang ditinggalkan), tanpa baris kosong.
+ */
+export function wizardCriteria(s: WizardState) {
+  const slots = new Set(activeCriterionSlots(s));
+  return Object.entries(s.criteria).flatMap(([scope, list]) =>
+    slots.has(scope)
+      ? list
+          .filter((k) => k.name.trim() !== '')
+          .map((k) => ({
+            scope,
+            name: k.name.trim(),
+            kind: k.kind,
+            weight: k.kind === 'skor' ? k.weight : null,
+          }))
+      : [],
+  );
+}
+
+/** Peringatan yang tidak menghalangi pembuatan oprec, untuk layar ringkasan. */
+export function summaryWarnings(s: WizardState, c: WizardCtx): string[] {
+  const warnings: string[] = [];
+  const criteria = wizardCriteria(s);
+  if (s.assessors !== 'umum' || s.veto) {
+    const headless = Object.keys(s.divisions).filter(
+      (id) => !c.unitHasHead(id),
+    );
+    if (headless.length > 0) {
+      warnings.push(
+        `Belum ada ketua yang ditempatkan di ${headless.map(c.unitName).join(', ')}. Penilaian dan keputusan bagian itu hanya bisa dilakukan pengelola oprec sampai jabatan ketuanya diisi di organogram.`,
+      );
+    }
+  }
+  if (s.hasGugur && !criteria.some((k) => k.kind !== 'skor')) {
+    warnings.push(
+      'Syarat gugur dijawab "Ya", tetapi belum ada kriteria gugur. Tambahkan di langkah kriteria atau nanti di tab Penilaian.',
+    );
+  }
+  const drafts = criteria.filter((k) => k.kind === 'gugur_otomatis');
+  if (drafts.length > 0) {
+    warnings.push(
+      `Aturan gugur otomatis (${drafts.map((k) => k.name).join(', ')}) diisi di tab Penilaian setelah formulir jadi. Pendaftaran baru bisa dibuka setelah aturannya lengkap.`,
+    );
+  }
+  return warnings;
 }
 
 export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
@@ -415,6 +486,12 @@ export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
       match: s.eligibility.match,
       rules,
     } as CreateFromSetupInput['eligibility'],
+    criteria: wizardCriteria(s).map((k) => ({
+      ...k,
+      weight: k.weight === null ? null : Math.round(k.weight),
+    })),
+    generalAssessorUnitId:
+      s.assessors !== 'ketua' ? s.generalAssessorUnitId : null,
     settings: {
       scoringMode: s.scoringMode,
       statusMethod: s.statusMethod,

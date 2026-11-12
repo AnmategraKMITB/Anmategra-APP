@@ -95,6 +95,11 @@ function CriterionCard({
           >
             {kindLabel(criterion.kind)}
           </span>
+          {criterion.kind === 'gugur_otomatis' && !criterion.gateRule ? (
+            <span className="rounded-full bg-warning-light px-3 py-0.5 text-sm text-neutral-1000">
+              Aturan belum diisi
+            </span>
+          ) : null}
           {criterion.kind === 'skor' ? (
             <span className="rounded-full border border-neutral-400 px-3 py-0.5 text-sm text-neutral-700">
               Bobot {criterion.weight ?? 0}%
