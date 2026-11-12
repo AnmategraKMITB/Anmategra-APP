@@ -26,7 +26,7 @@ import { cn } from '~/lib/utils';
 
 import { ChartView } from './chart-view';
 import { ExportDialog } from './export-dialog';
-import { ImportEntry } from './import-sheet';
+import { ImportButton, ImportEntry } from './import-sheet';
 import { Inspector } from './inspector';
 import {
   descendantsOf,
@@ -629,6 +629,12 @@ export function OrganogramWorkspace(
             </>
           ) : null}
           {modeButtons}
+          {readOnly ? null : (
+            <ImportButton
+              periodId={props.periodId}
+              onImported={() => ed.reload()}
+            />
+          )}
           <Button
             variant="dark_blue_outline"
             size="sm"
@@ -755,6 +761,15 @@ export function OrganogramWorkspace(
                           type: 'setUnitLayout',
                           id,
                           patch: { width },
+                        })
+                }
+                onArrange={
+                  readOnly
+                    ? undefined
+                    : (arrangeMode) =>
+                        dispatch({
+                          type: 'arrangeUnits',
+                          mode: arrangeMode,
                         })
                 }
               />

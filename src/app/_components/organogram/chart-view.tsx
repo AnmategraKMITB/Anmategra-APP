@@ -32,6 +32,7 @@ import {
 } from './chart-layout';
 import type { ChartNode, SeatRow } from './chart-layout';
 import {
+  type ArrangeMode,
   type Draft,
   MAX_DEPTH,
   NODE_WIDTH_DEFAULT,
@@ -40,6 +41,7 @@ import {
   type PlacementsByPosition,
   type UnitDropPosition,
   clampNodeWidth,
+  effectiveShowLabel,
   levelLabelFor,
   planUnitsDrop,
   unitTypeLabel,
@@ -77,11 +79,33 @@ export type ChartViewProps = {
   onRequestDelete?: (unitId: string) => void;
   /** Lebar kartu diubah dengan menyeret tepi kanan node terpilih; undefined mengembalikan ke bawaan. */
   onResizeUnit?: (unitId: string, width: number | undefined) => void;
+  /** Urutkan ulang otomatis lewat menu "Tata ulang"; undefined saat hanya-baca. */
+  onArrange?: (mode: ArrangeMode) => void;
 };
 
 const DRAG_THRESHOLD = 6;
 const EDGE_ZONE = 56;
 const EDGE_MAX_SPEED = 18;
+
+/** Pilihan menu "Tata ulang"; semuanya hanya mengubah urutan data, bukan koordinat. */
+const ARRANGE_ITEMS: { mode: ArrangeMode; label: string; hint: string }[] = [
+  {
+    mode: 'balance',
+    label: 'Seimbangkan',
+    hint: 'terbesar di tengah, mengecil ke tepi',
+  },
+  {
+    mode: 'size',
+    label: 'Terbesar dulu',
+    hint: 'bagian dengan subbagian terbanyak di kiri',
+  },
+  { mode: 'alpha', label: 'Alfabetis', hint: 'urut nama A→Z' },
+  {
+    mode: 'flatten',
+    label: 'Ratakan tier',
+    hint: 'buang semua tier manual, kembali ke kedalaman',
+  },
+];
 
 /** Kecepatan gulir otomatis (piksel per bingkai) menurut jarak penunjuk dari tepi; 0 di tengah. */
 function edgeSpeed(position: number, size: number): number {
@@ -388,6 +412,8 @@ function NodeCard(props: {
   onRequestDelete?: (unitId: string) => void;
   /** Gagang lebar di tepi kanan node terpilih. */
   resizable: boolean;
+  /** Tulis jenis bagian di atas nama (sakelar bagan atau timpaan per bagian). */
+  showLabel: boolean;
   scale: number;
   onResizePreview: (width: number | null) => void;
   onResizeCommit: (width: number | undefined) => void;
@@ -410,6 +436,7 @@ function NodeCard(props: {
     onAddChild,
     onRequestDelete,
     resizable,
+    showLabel,
     scale,
     onResizePreview,
     onResizeCommit,
@@ -479,9 +506,11 @@ function NodeCard(props: {
             <span className="line-clamp-3 break-words text-sm font-semibold leading-[18px] text-neutral-1000">
               {node.unit.name}
             </span>
-            <span className="truncate text-xs leading-4 text-neutral-700">
-              {typeLabel}
-            </span>
+            {showLabel ? (
+              <span className="truncate text-xs leading-4 text-neutral-700">
+                {typeLabel}
+              </span>
+            ) : null}
           </button>
           {node.hasChildren ? (
             <button
@@ -596,6 +625,7 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     onAddChild,
     onRequestDelete,
     onResizeUnit,
+    onArrange,
   } = props;
   const markerId = useId();
   const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -658,6 +688,11 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     });
   }, []);
 
+  // Sakelar tampilan bagan; seperti prototipe, hanya berlaku di sesi ini.
+  const [showLabels, setShowLabels] = useState(true);
+  const [alignHeights, setAlignHeights] = useState(true);
+  const [arrangeOpen, setArrangeOpen] = useState(false);
+
   // Selama kartu diseret, lebarnya dipratinjau tanpa mengubah draf; baru dicatat saat dilepas.
   const [resizing, setResizing] = useState<{
     id: string;
@@ -678,8 +713,12 @@ export function ChartView(props: ChartViewProps): JSX.Element {
     [draft, resizing],
   );
   const layout = useMemo(
-    () => layoutChart(layoutDraft, placements, collapsed, expandedGroups),
-    [layoutDraft, placements, collapsed, expandedGroups],
+    () =>
+      layoutChart(layoutDraft, placements, collapsed, expandedGroups, {
+        showLabels,
+        alignHeights,
+      }),
+    [layoutDraft, placements, collapsed, expandedGroups, showLabels, alignHeights],
   );
 
   const fit = useCallback(() => {
@@ -1207,7 +1246,83 @@ export function ChartView(props: ChartViewProps): JSX.Element {
   }
 
   return (
-    <div className="relative h-full min-h-[320px] bg-neutral-100">
+    <div className="flex h-full min-h-[320px] flex-col bg-neutral-100">
+      <div className="flex shrink-0 flex-wrap items-center gap-2 border-b border-neutral-400 bg-white px-3 py-1.5">
+        <div className="relative">
+          <Button
+            variant="dark_blue_outline"
+            size="sm"
+            aria-haspopup="menu"
+            aria-expanded={arrangeOpen}
+            disabled={onArrange === undefined}
+            onClick={() => setArrangeOpen((open) => !open)}
+          >
+            Tata ulang
+            <ChevronDown className="size-4" />
+          </Button>
+          {arrangeOpen ? (
+            <>
+              <button
+                type="button"
+                aria-label="Tutup menu tata ulang"
+                className="fixed inset-0 z-20 cursor-default"
+                onClick={() => setArrangeOpen(false)}
+              />
+              <div
+                role="menu"
+                className="absolute left-0 top-full z-30 mt-1 w-64 overflow-hidden rounded-[8px] border border-neutral-400 bg-white py-1 shadow-lg"
+              >
+                {ARRANGE_ITEMS.map((item) => (
+                  <button
+                    key={item.mode}
+                    type="button"
+                    role="menuitem"
+                    className="block w-full px-3 py-2 text-left hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400"
+                    onClick={() => {
+                      setArrangeOpen(false);
+                      onArrange?.(item.mode);
+                    }}
+                  >
+                    <span className="block text-sm font-semibold text-neutral-1000">
+                      {item.label}
+                    </span>
+                    <span className="block text-xs text-neutral-700">
+                      {item.hint}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : null}
+        </div>
+        <Button
+          variant={showLabels ? 'light_blue' : 'dark_blue_outline'}
+          size="sm"
+          aria-pressed={showLabels}
+          onClick={() => setShowLabels((value) => !value)}
+          title={
+            showLabels
+              ? 'Jenis bagian ditulis di atas namanya — klik untuk menyembunyikan'
+              : 'Hanya nama bagian yang ditulis — klik untuk menampilkan jenisnya'
+          }
+        >
+          Jenis unit
+        </Button>
+        <Button
+          variant={alignHeights ? 'light_blue' : 'dark_blue_outline'}
+          size="sm"
+          aria-pressed={alignHeights}
+          onClick={() => setAlignHeights((value) => !value)}
+          title={
+            alignHeights
+              ? 'Tinggi kartu diseragamkan per pita — klik untuk mematikan'
+              : 'Tinggi kartu mengikuti isinya — klik untuk menyeragamkan'
+          }
+        >
+          Tinggi seragam
+        </Button>
+      </div>
+      <div className="relative min-h-0 flex-1">
       <div
         ref={viewportRef}
         role="group"
@@ -1288,6 +1403,7 @@ export function ChartView(props: ChartViewProps): JSX.Element {
                 selectedIds[0] === node.id &&
                 (canEditUnit?.(node.id) ?? true)
               }
+              showLabel={effectiveShowLabel(node.unit, showLabels)}
               scale={view.scale}
               onResizePreview={(width) =>
                 setResizing(width === null ? null : { id: node.id, width })
@@ -1404,6 +1520,7 @@ export function ChartView(props: ChartViewProps): JSX.Element {
           }}
         />
       ) : null}
+      </div>
       {nodeDrag ? (
         <div
           aria-hidden

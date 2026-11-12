@@ -276,7 +276,12 @@ export function PositionRow(props: PositionRowProps): JSX.Element {
             size="icon"
             onClick={onToggle}
             aria-expanded={expanded}
-            aria-label={expanded ? 'Tutup jabatan' : 'Buka jabatan'}
+            title={expanded ? 'Tutup pengaturan' : 'Pengaturan lanjut'}
+            aria-label={
+              expanded
+                ? `Tutup pengaturan jabatan ${position.title}`
+                : `Pengaturan lanjut jabatan ${position.title}`
+            }
           >
             {expanded ? (
               <ChevronDown className="size-4" />
