@@ -1,5 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, inArray, isNotNull } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
+import {
+  listManagedEvents,
+  listManagedLembaga,
+  hasManagedScope,
+} from '~/server/api/managed-scope';
 import {
   createTRPCRouter,
   eventScopedProcedure,
@@ -22,6 +27,7 @@ import {
   GrantEventAdminOutputSchema,
   GrantLembagaAdminInputSchema,
   GrantLembagaAdminOutputSchema,
+  HasManagedScopeOutputSchema,
   ListEventAdminsInputSchema,
   ListEventAdminsOutputSchema,
   ListLembagaAdminsInputSchema,
@@ -324,91 +330,13 @@ export const adminGrantRouter = createTRPCRouter({
 
   getMyManagedLembaga: protectedProcedure
     .output(GetMyManagedLembagaOutputSchema)
-    .query(async ({ ctx }) => {
-      const result: {
-        lembagaId: string;
-        lembagaNama: string;
-        access: 'owner' | 'admin';
-      }[] = [];
-
-      if (ctx.session.user.role === 'lembaga' && ctx.session.user.lembagaId) {
-        const ownedLembaga = await ctx.db.query.lembaga.findFirst({
-          where: eq(lembaga.id, ctx.session.user.lembagaId),
-          columns: { id: true, name: true },
-        });
-        if (ownedLembaga) {
-          result.push({
-            lembagaId: ownedLembaga.id,
-            lembagaNama: ownedLembaga.name,
-            access: 'owner',
-          });
-        }
-      }
-
-      const grants = await ctx.db.query.accessGrant.findMany({
-        where: and(
-          eq(accessGrant.userId, ctx.session.user.id),
-          eq(accessGrant.status, 'active'),
-          isNotNull(accessGrant.lembagaId),
-        ),
-      });
-      const grantedLembagaIds = grants.flatMap((g) =>
-        g.lembagaId ? [g.lembagaId] : [],
-      );
-
-      if (grantedLembagaIds.length > 0) {
-        const lembagaRows = await ctx.db.query.lembaga.findMany({
-          where: inArray(lembaga.id, grantedLembagaIds),
-          columns: { id: true, name: true },
-        });
-        const lembagaById = new Map(lembagaRows.map((l) => [l.id, l]));
-
-        for (const grant of grants) {
-          const lembagaRow = grant.lembagaId
-            ? lembagaById.get(grant.lembagaId)
-            : undefined;
-          if (!lembagaRow) continue;
-          result.push({
-            lembagaId: lembagaRow.id,
-            lembagaNama: lembagaRow.name,
-            access: 'admin',
-          });
-        }
-      }
-
-      return result;
-    }),
+    .query(({ ctx }) => listManagedLembaga(ctx.db, ctx.session.user)),
 
   getMyManagedEvents: protectedProcedure
     .output(GetMyManagedEventsOutputSchema)
-    .query(async ({ ctx }) => {
-      const grants = await ctx.db.query.accessGrant.findMany({
-        where: and(
-          eq(accessGrant.userId, ctx.session.user.id),
-          eq(accessGrant.status, 'active'),
-          isNotNull(accessGrant.periodId),
-        ),
-      });
-      const grantedPeriodIds = grants.flatMap((g) =>
-        g.periodId ? [g.periodId] : [],
-      );
+    .query(({ ctx }) => listManagedEvents(ctx.db, ctx.session.user)),
 
-      if (grantedPeriodIds.length === 0) return [];
-
-      const eventRows = await ctx.db.query.events.findMany({
-        where: inArray(events.id, grantedPeriodIds),
-        columns: { id: true, name: true, org_id: true },
-      });
-      const eventById = new Map(eventRows.map((e) => [e.id, e]));
-
-      return grants
-        .map((grant) => (grant.periodId ? eventById.get(grant.periodId) : undefined))
-        .filter((event): event is NonNullable<typeof event> => Boolean(event))
-        .map((event) => ({
-          eventId: event.id,
-          eventNama: event.name,
-          lembagaId: event.org_id,
-          access: 'admin' as const,
-        }));
-    }),
+  hasManagedScope: protectedProcedure
+    .output(HasManagedScopeOutputSchema)
+    .query(({ ctx }) => hasManagedScope(ctx.db, ctx.session.user)),
 });

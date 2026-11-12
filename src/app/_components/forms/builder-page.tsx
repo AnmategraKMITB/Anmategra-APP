@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { loadManagedForm } from './access';
 import { FormBuilder } from './builder-shell';
+import { type AppBase } from '~/lib/app-base';
 
 /** Halaman builder satu form; dipakai rute lembaga dan mahasiswa-admin. */
 export async function BuilderPage({
@@ -9,7 +10,7 @@ export async function BuilderPage({
   basePath,
 }: {
   formId: string;
-  basePath: '/lembaga' | '/mahasiswa';
+  basePath: AppBase;
 }) {
   const managed = await loadManagedForm(formId);
   if (!managed) notFound();
@@ -20,12 +21,16 @@ export async function BuilderPage({
     ? `${basePath}/kegiatan/${owner.id}/forms`
     : basePath === '/lembaga'
       ? '/lembaga/forms'
-      : '/mahasiswa';
+      : basePath === '/manage'
+        ? '/manage'
+        : '/mahasiswa';
   const backLabel = isEvent
     ? 'Form kegiatan'
     : basePath === '/lembaga'
       ? 'Semua form'
-      : 'Beranda';
+      : basePath === '/manage'
+        ? 'Kelola'
+        : 'Beranda';
 
   return (
     <FormBuilder

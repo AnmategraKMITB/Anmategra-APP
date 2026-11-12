@@ -4,6 +4,7 @@ import { api } from '~/trpc/server';
 
 import { canManageEventForms } from './access';
 import { FormsList } from './forms-list';
+import { type AppBase } from '~/lib/app-base';
 
 /** Daftar form satu kegiatan; dipakai rute lembaga dan mahasiswa-admin. */
 export async function EventFormsPage({
@@ -11,15 +12,24 @@ export async function EventFormsPage({
   basePath,
 }: {
   kegiatanId: string;
-  basePath: '/lembaga' | '/mahasiswa';
+  basePath: AppBase;
 }) {
   if (!(await canManageEventForms(kegiatanId))) notFound();
   const event = await api.event.getByID({ id: kegiatanId });
   if (!event) notFound();
 
   const backHref =
-    basePath === '/lembaga' ? '/lembaga/forms' : '/mahasiswa/kegiatan';
-  const backLabel = basePath === '/lembaga' ? 'Semua form' : 'Kegiatan';
+    basePath === '/lembaga'
+      ? '/lembaga/forms'
+      : basePath === '/manage'
+        ? '/manage'
+        : '/mahasiswa/kegiatan';
+  const backLabel =
+    basePath === '/lembaga'
+      ? 'Semua form'
+      : basePath === '/manage'
+        ? 'Kelola'
+        : 'Kegiatan';
 
   return (
     <main className="py-6 sm:py-8">

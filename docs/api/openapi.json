@@ -4954,6 +4954,105 @@
         }
       }
     },
+    "/api/trpc/adminGrant.hasManagedScope": {
+      "get": {
+        "operationId": "adminGrant_hasManagedScope",
+        "tags": [
+          "adminGrant"
+        ],
+        "summary": "adminGrant.hasManagedScope",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/adminGrant_hasManagedScope_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/adminGrant.listEventAdmins": {
       "get": {
         "operationId": "adminGrant_listEventAdmins",
@@ -33270,19 +33369,31 @@
               "nullable": true,
               "type": "string"
             },
+            "lembagaNama": {
+              "nullable": true,
+              "type": "string"
+            },
             "access": {
               "type": "string",
               "enum": [
                 "owner",
                 "admin"
               ]
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           "required": [
             "eventId",
             "eventNama",
             "lembagaId",
-            "access"
+            "lembagaNama",
+            "access",
+            "features"
           ],
           "additionalProperties": false
         }
@@ -33304,12 +33415,19 @@
                 "owner",
                 "admin"
               ]
+            },
+            "features": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           "required": [
             "lembagaId",
             "lembagaNama",
-            "access"
+            "access",
+            "features"
           ],
           "additionalProperties": false
         }
@@ -33412,6 +33530,9 @@
           "success"
         ],
         "additionalProperties": false
+      },
+      "adminGrant_hasManagedScope_output": {
+        "type": "boolean"
       },
       "adminGrant_listEventAdmins_input": {
         "type": "object",
