@@ -9,7 +9,7 @@ export default defineConfig({
     environment: 'node',
     // Modul yang memuat `~/env` (mis. trpc.ts) tidak memvalidasi variabel lingkungan saat tes.
     env: { SKIP_ENV_VALIDATION: '1' },
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'scripts/**/*.test.ts'],
     // Membuat database uji (bila belum ada) dan menerapkan seluruh migrasi.
     globalSetup: ['./src/test/global-setup.ts'],
     // Semua berkas tes memakai satu database uji, jadi tidak boleh paralel.
