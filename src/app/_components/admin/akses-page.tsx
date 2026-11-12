@@ -59,6 +59,10 @@ const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       ['reports.write', 'Ubah laporan'],
     ],
   },
+  {
+    label: 'Alumni',
+    permissions: [['alumni.write', 'Impor data alumni']],
+  },
 ] as const;
 
 export function AksesPage() {

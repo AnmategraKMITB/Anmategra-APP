@@ -17,7 +17,14 @@ import {
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { adminPermission, form, recruitment } from '~/server/db/schema';
+import { env } from '~/env';
+import { isEmergencySuperadmin } from '~/server/api/superadmin';
+import {
+  adminPermission,
+  form,
+  recruitment,
+  users,
+} from '~/server/db/schema';
 
 // Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
 // tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
@@ -246,6 +253,27 @@ export const adminProcedure = t.procedure
       },
     });
   });
+
+/**
+ * Khusus Superadmin, dan peran diperiksa ulang ke basis data. Token sesi
+ * berlaku hingga 30 hari, sehingga Superadmin yang sudah diturunkan tidak boleh
+ * tetap mengelola Superadmin lain hanya karena token lamanya masih berperan
+ * `admin`. Akun di `SUPERADMIN_EMAILS` selalu lolos.
+ */
+export const superadminProcedure = adminProcedure.use(async ({ ctx, next }) => {
+  const [row] = await ctx.db
+    .select({ role: users.role, email: users.email })
+    .from(users)
+    .where(eq(users.id, ctx.session.user.id))
+    .limit(1);
+  if (
+    !row ||
+    (row.role !== 'admin' && !isEmergencySuperadmin(row.email, env.SUPERADMIN_EMAILS))
+  ) {
+    throw new TRPCError({ code: 'FORBIDDEN' });
+  }
+  return next();
+});
 
 /**
  * Izin operator admin console. Superadmin (`role === 'admin'`) melewati semua
