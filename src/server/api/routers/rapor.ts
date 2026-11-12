@@ -72,7 +72,7 @@ export const raporRouter = createTRPCRouter({
           columns: { org_id: true },
         });
 
-        if (!event || event.org_id !== ctx.lembagaId) {
+        if (event?.org_id !== ctx.lembagaId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Access denied to this event.',
