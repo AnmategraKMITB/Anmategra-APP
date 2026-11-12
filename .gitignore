@@ -3,6 +3,7 @@
 # Catatan lokal tidak di-track, tapi dokumentasi API/DB yang di-generate ikut di-commit.
 docs/*
 !docs/api/
+!docs/qa-checklist.md
 
 # artefak parser @dbml/core
 dbml-error.log
