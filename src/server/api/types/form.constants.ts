@@ -60,9 +60,13 @@ export const FILE_PRESETS = {
     label: 'ZIP',
     mimes: ['application/zip', 'application/x-zip-compressed'],
   },
+  gambar: {
+    label: 'Gambar (JPG, PNG, WebP)',
+    mimes: ['image/jpeg', 'image/png', 'image/webp'],
+  },
 } as const;
 export type FilePreset = keyof typeof FILE_PRESETS;
-export const FILE_PRESET_KEYS = ['pdf', 'office', 'zip'] as const;
+export const FILE_PRESET_KEYS = ['pdf', 'office', 'zip', 'gambar'] as const;
 export const FILE_MAX_FILES = 5;
 export const FILE_MAX_SIZE_MB = 16;
 

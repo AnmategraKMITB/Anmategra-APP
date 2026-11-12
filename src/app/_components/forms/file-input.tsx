@@ -19,9 +19,8 @@ import {
 import { FILE_PRESETS } from '~/server/api/types/form.constants';
 
 import { FilePreview } from './file-preview';
-import { useFormFileUpload } from './use-file-upload';
-
 import type { RendererField } from './form-validate';
+import { useFormFileUpload } from './use-file-upload';
 
 export type UploadContext = {
   /** Pratinjau: tombol unggah dinonaktifkan. */
@@ -39,8 +38,8 @@ const fmt = (bytes: number) =>
     : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 /**
- * Jawaban berkas via UploadThing public-read. URL file dapat dibuka siapa pun
- * yang memilikinya; ini Opsi A yang disepakati untuk form.
+ * Jawaban berkas via UploadThing (public-read) atau Google Drive pengisi
+ * (aplikasi hanya menyimpan tautan; akses dibuka otomatis).
  */
 export function FileInput({
   field,
@@ -73,7 +72,12 @@ export function FileInput({
   const preset = FILE_PRESETS[c.preset ?? 'pdf'];
   const max = c.maxFiles ?? 1;
   const formId = upload?.formId;
-  const { upload: uploadFile, providerLabel, remove } = useFormFileUpload();
+  const {
+    upload: uploadFile,
+    providerId,
+    providerLabel,
+    remove,
+  } = useFormFileUpload();
   const configured = Boolean(formId);
 
   const pick = async (list: FileList | null) => {
@@ -196,8 +200,15 @@ export function FileInput({
       ) : null}
       <p className="text-sm text-neutral-700">
         {preset.label}, maksimal {max} berkas, {c.maxSizeMb ?? 10} MB per
-        berkas. Berkas diunggah ke {providerLabel} dan tautannya bersifat publik.
+        berkas. Berkas diunggah ke {providerLabel}.
       </p>
+      {providerId === 'google-drive' ? (
+        <p className="text-sm text-neutral-700">
+          Akses berkas diatur otomatis ke{' '}
+          <strong>Siapa saja yang memiliki link</strong> (Viewer). Bila panitia
+          tidak bisa membukanya, atur akses itu sendiri di Google Drive kamu.
+        </p>
+      ) : null}
       {!upload?.enabled ? (
         <p className="text-sm text-neutral-700">
           Pratinjau: unggah tidak aktif.
