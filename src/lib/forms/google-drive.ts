@@ -2,6 +2,7 @@ import { env } from '~/env';
 
 import type { FileAnswerItem } from './file-answer';
 import type { FileUploadContext } from './file-provider';
+import { googlePopupErrorMessage } from './google-popup-error';
 
 const SCOPE = 'https://www.googleapis.com/auth/drive.file';
 const SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
@@ -24,6 +25,7 @@ type GoogleOAuth2 = {
     client_id: string;
     scope: string;
     callback: (response: TokenResponse) => void;
+    error_callback?: (error: { type?: string }) => void;
   }) => TokenClient;
 };
 
@@ -61,18 +63,34 @@ function loadScript(): Promise<void> {
   return scriptPromise;
 }
 
-async function getAccessToken(clientId: string): Promise<string> {
-  if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
-    return tokenCache.value;
-  }
-  await loadScript();
+/** Muat skrip Google lebih awal supaya klik "Hubungkan" tidak perlu menunggu. */
+export function prepareGoogleDrive(): void {
+  void loadScript().catch(() => undefined);
+}
+
+export function hasGoogleDriveToken(): boolean {
+  return Boolean(tokenCache && tokenCache.expiresAt > Date.now() + 60_000);
+}
+
+/**
+ * Minta izin lewat popup. Harus dipanggil tanpa `await` sebelumnya dari
+ * penangan klik: browser HP memblokir popup yang tidak berasal langsung dari
+ * klik pengguna, dan tanpa `error_callback` unggahan akan menggantung.
+ */
+function requestToken(clientId: string): Promise<string> {
   const oauth2 = window.google?.accounts?.oauth2;
-  if (!oauth2) throw new Error('Google Identity tidak tersedia.');
+  if (!oauth2) {
+    return Promise.reject(
+      new Error('Google belum siap. Tunggu sebentar lalu coba lagi.'),
+    );
+  }
 
   return new Promise<string>((resolve, reject) => {
     const client = oauth2.initTokenClient({
       client_id: clientId,
       scope: SCOPE,
+      error_callback: (error) =>
+        reject(new Error(googlePopupErrorMessage(error.type))),
       callback: (response) => {
         if (response.error || !response.access_token) {
           reject(
@@ -95,6 +113,49 @@ async function getAccessToken(clientId: string): Promise<string> {
     // pengisi belum pernah menyetujui scope ini, bukan setiap kali unggah.
     client.requestAccessToken();
   });
+}
+
+async function getAccessToken(clientId: string): Promise<string> {
+  if (hasGoogleDriveToken()) return tokenCache!.value;
+  await loadScript();
+  return requestToken(clientId);
+}
+
+/**
+ * Hubungkan Google Drive pengisi. Panggil langsung dari penangan klik
+ * (tanpa `await` sebelumnya) agar popup izin tidak diblokir.
+ */
+export function connectGoogleDrive(): Promise<void> {
+  const clientId = env.NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID;
+  if (!clientId) {
+    return Promise.reject(
+      new Error('Google Drive Client ID belum dikonfigurasi.'),
+    );
+  }
+  if (hasGoogleDriveToken()) return Promise.resolve();
+  return requestToken(clientId).then(() => undefined);
+}
+
+const API_TIMEOUT_MS = 30_000;
+/** Unggah berkas besar lewat jaringan HP bisa lama; tetap beri batas akhir. */
+const UPLOAD_TIMEOUT_MS = 5 * 60_000;
+
+/** `fetch` dengan batas waktu, supaya unggahan tidak menggantung tanpa pesan. */
+async function fetchTimed(
+  url: string,
+  init: RequestInit,
+  ms: number = API_TIMEOUT_MS,
+): Promise<Response> {
+  try {
+    return await fetch(url, { ...init, signal: AbortSignal.timeout(ms) });
+  } catch (error) {
+    if (error instanceof DOMException && error.name === 'TimeoutError') {
+      throw new Error(
+        'Koneksi ke Google Drive terlalu lama. Periksa jaringan lalu coba lagi.',
+      );
+    }
+    throw error;
+  }
 }
 
 async function responseError(response: Response): Promise<Error> {
@@ -154,9 +215,11 @@ async function getSilentToken(clientId: string): Promise<string | null> {
  */
 async function assertDriveSpace(size: number, token: string): Promise<void> {
   try {
-    const res = await fetch(`${DRIVE_API}/about?fields=storageQuota`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await fetchTimed(
+      `${DRIVE_API}/about?fields=storageQuota`,
+      { headers: { Authorization: `Bearer ${token}` } },
+      10_000,
+    );
     if (!res.ok) return;
     const { storageQuota } = (await res.json()) as {
       storageQuota?: { limit?: string; usage?: string };
@@ -197,7 +260,7 @@ export async function uploadToGoogleDrive(
 
   await assertDriveSpace(file.size, token);
 
-  const start = await fetch(
+  const start = await fetchTimed(
     `${DRIVE_UPLOAD_API}/files?uploadType=resumable&fields=id,name,size,webViewLink,mimeType`,
     {
       method: 'POST',
@@ -219,11 +282,15 @@ export async function uploadToGoogleDrive(
   const location = start.headers.get('Location');
   if (!location) throw new Error('Google Drive tidak memberi upload URL.');
 
-  const put = await fetch(location, {
-    method: 'PUT',
-    headers: { 'Content-Type': mime },
-    body: file,
-  });
+  const put = await fetchTimed(
+    location,
+    {
+      method: 'PUT',
+      headers: { 'Content-Type': mime },
+      body: file,
+    },
+    UPLOAD_TIMEOUT_MS,
+  );
   if (!put.ok) throw await responseError(put);
 
   const uploaded = (await put.json()) as {
@@ -238,7 +305,7 @@ export async function uploadToGoogleDrive(
 
   // ponytail: kegagalan izin (mis. dibatasi Workspace) diabaikan; pengisi
   // diingatkan di form dan pengelola mendapat petunjuk di tabel respons.
-  await fetch(
+  await fetchTimed(
     `${DRIVE_API}/files/${encodeURIComponent(uploaded.id)}/permissions?fields=id`,
     {
       method: 'POST',
