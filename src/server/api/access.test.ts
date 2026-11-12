@@ -310,17 +310,19 @@ describe('canManageLembaga', () => {
       expect(await check('admin')).toBeNull();
     });
 
-    it('izin "*" hanya mencakup fitur organization dan events', async () => {
+    it('izin "*" mencakup fitur organization, events, oprec, dan forms, tetapi bukan admin', async () => {
       const { lembaga: l } = await makeLembaga(db);
       const op = await createUser(db);
       await createOperator(db, op.id, ['*']);
-      const check = (feature: 'organization' | 'events' | 'oprec' | 'forms') =>
-        canManageLembaga(database, op.id, 'mahasiswa', null, l.id, feature);
+      const check = (
+        feature: 'organization' | 'events' | 'oprec' | 'forms' | 'admin',
+      ) => canManageLembaga(database, op.id, 'mahasiswa', null, l.id, feature);
       expect(await check('organization')).toBe('admin');
       expect(await check('events')).toBe('admin');
-      // Perilaku saat ini: fitur lain tidak punya izin operator yang terpetakan.
-      expect(await check('oprec')).toBeNull();
-      expect(await check('forms')).toBeNull();
+      expect(await check('oprec')).toBe('admin');
+      expect(await check('forms')).toBe('admin');
+      // Fitur `admin` (profil, anggota, inbox) tidak punya izin operator yang terpetakan.
+      expect(await check('admin')).toBeNull();
     });
 
     it('izin yang kedaluwarsa atau dicabut tidak berlaku', async () => {
