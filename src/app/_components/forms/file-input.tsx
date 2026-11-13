@@ -242,15 +242,11 @@ export function FileInput({
       ) : null}
       <p className="text-sm text-neutral-700">
         {preset.label}, maksimal {max} berkas, {c.maxSizeMb ?? 10} MB per
-        berkas. Berkas diunggah ke {providerLabel}.
+        berkas.{' '}
+        {providerId === 'google-drive'
+          ? 'Berkas yang kamu unggah di sini akan otomatis tersimpan di Google Drive dari akun yang kamu pilih, dengan akses “Siapa saja yang memiliki link” (Viewer).'
+          : `Berkas diunggah ke ${providerLabel}.`}
       </p>
-      {providerId === 'google-drive' ? (
-        <p className="text-sm text-neutral-700">
-          Akses berkas diatur otomatis ke{' '}
-          <strong>Siapa saja yang memiliki link</strong> (Viewer). Bila panitia
-          tidak bisa membukanya, atur akses itu sendiri di Google Drive kamu.
-        </p>
-      ) : null}
       {!upload?.enabled ? (
         <p className="text-sm text-neutral-700">
           Pratinjau: unggah tidak aktif.
