@@ -13,6 +13,7 @@ import {
 } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
 import { byUserId, loadMahasiswaProfile } from '../mahasiswa-profile';
+import { listedAsKegiatan, registrationLink } from '../period-listing';
 
 import {
   lembagaMembersSq,
@@ -128,7 +129,7 @@ export const profileRouter = createTRPCRouter({
 
       const newestEvent = await ctx.db.query.events.findMany({
         where: (events, { eq }) =>
-          and(eq(events.org_id, input.lembagaId), eq(events.kind, 'kegiatan')),
+          and(eq(events.org_id, input.lembagaId), listedAsKegiatan(events)),
         orderBy: desc(events.start_date),
       });
 
@@ -278,6 +279,7 @@ export const profileRouter = createTRPCRouter({
         kegiatan: kegiatan,
         lembaga: lembagaRes[0],
         participant: formattedParticipants,
+        daftarLink: await registrationLink(ctx.db, kegiatan),
       };
     }),
 
@@ -317,7 +319,7 @@ export const profileRouter = createTRPCRouter({
 
       const newestEvent = await ctx.db.query.events.findMany({
         where: (events, { eq }) =>
-          and(eq(events.org_id, input.lembagaId), eq(events.kind, 'kegiatan')),
+          and(eq(events.org_id, input.lembagaId), listedAsKegiatan(events)),
         orderBy: desc(events.start_date),
       });
 
@@ -401,6 +403,7 @@ export const profileRouter = createTRPCRouter({
       return {
         kegiatan: kegiatan,
         lembaga: lembagaRes[0],
+        daftarLink: await registrationLink(ctx.db, kegiatan),
       };
     }),
 });

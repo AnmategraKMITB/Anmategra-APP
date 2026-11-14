@@ -74,7 +74,7 @@ const ProfileKegiatan = async ({
 }) => {
   const query = (await params).profileKegiatanId;
   try {
-    const { kegiatan, lembaga } = await getKegiatanPublic(query);
+    const { kegiatan, lembaga, daftarLink } = await getKegiatanPublic(query);
 
     const path = `/profile-kegiatan/${query}`;
     const lembagaPath = `/profile-lembaga/${lembaga.id}`;
@@ -148,7 +148,7 @@ const ProfileKegiatan = async ({
                 }
                 eventId={kegiatan?.id ?? ''}
                 ajuanAsosiasi={false}
-                linkDaftar={kegiatan?.oprec_link}
+                linkDaftar={daftarLink}
               />
               <article className="mt-6 sm:mt-8 mb-8">
                 <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600 mb-3">

@@ -18,6 +18,7 @@ import {
   protectedProcedure,
   publicProcedure,
 } from '~/server/api/trpc';
+import { listedAsKegiatan } from '~/server/api/period-listing';
 import { events, lembaga, mahasiswa, users } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
 
@@ -46,11 +47,8 @@ export const landingRouter = createTRPCRouter({
 
       const events = await ctx.db.query.events.findMany({
         orderBy: (events, { desc }) => desc(events.start_date),
-        where: (events, { and, eq, gte }) =>
-          and(
-            eq(events.kind, 'kegiatan'),
-            gte(events.start_date, sixMonthsAgo),
-          ),
+        where: (events, { and, gte }) =>
+          and(listedAsKegiatan(events), gte(events.start_date, sixMonthsAgo)),
         with: {
           lembaga: {
             with: {
@@ -116,7 +114,7 @@ export const landingRouter = createTRPCRouter({
         }
       }
 
-      const conditions: SQL<unknown>[] = [eq(events.kind, 'kegiatan')];
+      const conditions: SQL<unknown>[] = [listedAsKegiatan(events)];
       if (sort === 'newest' && cursorDate && cursorId) {
         const date = cursorDate;
         const id = cursorId;
@@ -247,11 +245,8 @@ export const landingRouter = createTRPCRouter({
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
       const events = await ctx.db.query.events.findMany({
-        where: (events, { and, eq, gte }) =>
-          and(
-            eq(events.kind, 'kegiatan'),
-            gte(events.start_date, sixMonthsAgo),
-          ),
+        where: (events, { and, gte }) =>
+          and(listedAsKegiatan(events), gte(events.start_date, sixMonthsAgo)),
         orderBy: (events, { desc }) => desc(events.participant_count),
         with: {
           lembaga: {
@@ -348,8 +343,8 @@ export const landingRouter = createTRPCRouter({
 
         // Events query
         ctx.db.query.events.findMany({
-          where: (event, { and, eq, ilike }) =>
-            and(eq(event.kind, 'kegiatan'), ilike(event.name, `%${query}%`)),
+          where: (event, { and, ilike }) =>
+            and(listedAsKegiatan(event), ilike(event.name, `%${query}%`)),
           with: {
             lembaga: {
               with: {
@@ -513,7 +508,7 @@ export const landingRouter = createTRPCRouter({
           .from(events)
           .where(
             and(
-              eq(events.kind, 'kegiatan'),
+              listedAsKegiatan(events),
               sql`${events.name} ILIKE ${'%' + q + '%'}`,
             ),
           )
@@ -540,9 +535,9 @@ export const landingRouter = createTRPCRouter({
           id: true,
         },
         where: input.cursor
-          ? (e, { and, eq, gt }) =>
-              and(eq(e.kind, 'kegiatan'), gt(e.id, input.cursor!))
-          : (e, { eq }) => eq(e.kind, 'kegiatan'),
+          ? (e, { and, gt }) =>
+              and(listedAsKegiatan(e), gt(e.id, input.cursor!))
+          : (e) => listedAsKegiatan(e),
         orderBy: (e, { asc }) => [asc(e.id)],
         limit: input.limit,
       });
