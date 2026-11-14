@@ -112,6 +112,23 @@ function assertDecider(access: AssessAccess, divisionId: string) {
 
 const NOT_FINAL = 'Penempatan sudah final.';
 
+/**
+ * Mode prioritas: selama penempatan berjalan, keputusan hanya ditulis oleh
+ * penempatan otomatis. Setelah masa banding, jalur manual dibuka lagi.
+ */
+export function assertManualPlacement(rec: {
+  placementMethod: string;
+  placementState: string;
+}) {
+  if (rec.placementMethod === 'prioritas' && rec.placementState === 'berjalan') {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message:
+        'Oprec ini memakai penempatan prioritas. Selama penempatan berjalan, keputusan diisi lewat Jalankan penempatan.',
+    });
+  }
+}
+
 /** Pilihan beserta status efektif dan keputusannya. */
 type ChoiceRow = {
   id: string;
@@ -548,6 +565,7 @@ export const placementProcedures = {
         name: ctx.recruitment.name,
         maxChoices: ctx.recruitment.maxChoices,
         isAdmin: access.isAdmin,
+        method: ctx.recruitment.placementMethod,
         state,
         canFinalize:
           access.isAdmin && state === 'masa_banding' && blockers.length === 0,
@@ -738,11 +756,16 @@ export const placementProcedures = {
       }
       return ctx.db.transaction(async (tx) => {
         const [locked] = await tx
-          .select({ id: recruitment.id })
+          .select({
+            id: recruitment.id,
+            placementMethod: recruitment.placementMethod,
+            placementState: recruitment.placementState,
+          })
           .from(recruitment)
           .where(eq(recruitment.id, ctx.recruitment.id))
           .for('update');
         if (!locked) notFound('Oprec tidak ditemukan.');
+        assertManualPlacement(locked);
 
         const loaded = await loadChoiceForDecision(tx, ctx.recruitment.id, input.choiceId);
         assertDecider(ctx.assess, loaded.division.id);
@@ -876,6 +899,7 @@ export const placementProcedures = {
   autofillPreview: oprecAssessProcedure
     .input(PlacementIdInput)
     .query(async ({ ctx }) => {
+      assertManualPlacement(ctx.recruitment);
       const [tolakPlan, masukPlan] = await Promise.all([
         buildAutofillPlan(
           ctx.db,
@@ -933,11 +957,16 @@ export const placementProcedures = {
       }
       return ctx.db.transaction(async (tx) => {
         const [locked] = await tx
-          .select({ id: recruitment.id })
+          .select({
+            id: recruitment.id,
+            placementMethod: recruitment.placementMethod,
+            placementState: recruitment.placementState,
+          })
           .from(recruitment)
           .where(eq(recruitment.id, ctx.recruitment.id))
           .for('update');
         if (!locked) notFound('Oprec tidak ditemukan.');
+        assertManualPlacement(locked);
 
         const divisions = await loadPlacementDivisions(tx, ctx.recruitment.id);
         const allowed = allowedDivisions(ctx.assess, divisions);
@@ -1287,6 +1316,7 @@ export const placementProcedures = {
       if (ctx.recruitment.placementState === 'final') {
         throw new TRPCError({ code: 'FORBIDDEN', message: NOT_FINAL });
       }
+      assertManualPlacement(ctx.recruitment);
       return ctx.db.transaction(async (tx) => {
         const [app] = await tx
           .select({

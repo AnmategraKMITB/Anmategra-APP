@@ -68,7 +68,12 @@ export async function recomputeDivisions(
       ? divisions.map((d) => d.id)
       : divisions.filter((d) => divisionIds.includes(d.id)).map((d) => d.id);
   if (targets.length === 0) return [];
-  const quotaOf = new Map(divisions.map((d) => [d.id, d.quota]));
+  // Mode prioritas: urutan diterima ditentukan daftar prioritas divisi, jadi
+  // status tidak memotong menurut kuota. Gugur dan nilai minimum tetap berlaku.
+  const rankByQuota = rec.placementMethod !== 'prioritas';
+  const quotaOf = new Map(
+    divisions.map((d) => [d.id, rankByQuota ? d.quota : 0]),
+  );
 
   const choices = await db
     .select({

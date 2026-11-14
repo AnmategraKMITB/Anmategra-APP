@@ -2003,6 +2003,14 @@ export type ScoreSource = (typeof SCORE_SOURCES)[number];
 export const ASSESSOR_MODES = ['ketua', 'umum', 'keduanya'] as const;
 export type AssessorMode = (typeof ASSESSOR_MODES)[number];
 
+/**
+ * Cara penempatan. `manual`: pengambil keputusan menerima/menolak per pilihan.
+ * `prioritas`: tiap divisi menyusun daftar prioritas, lalu sistem menempatkan
+ * pendaftar otomatis (deferred acceptance, src/lib/oprec/matching.ts).
+ */
+export const PLACEMENT_METHODS = ['manual', 'prioritas'] as const;
+export type PlacementMethod = (typeof PLACEMENT_METHODS)[number];
+
 /** S20: siapa yang boleh membuka menu Hasil. */
 export const RESULTS_ACCESS_MODES = ['admin', 'admin_ketua', 'semua'] as const;
 export type ResultsAccessMode = (typeof RESULTS_ACCESS_MODES)[number];
@@ -2128,6 +2136,11 @@ export const recruitment = createTable(
     headDecides: boolean('head_decides').notNull().default(true),
     /** S18: false = semua pilihan diproses sekaligus, bukan bertahap per urutan. */
     stagedPlacement: boolean('staged_placement').notNull().default(true),
+    // CHECK: placement_method IN PLACEMENT_METHODS.
+    placementMethod: varchar('placement_method', { length: 16 })
+      .$type<PlacementMethod>()
+      .notNull()
+      .default('manual'),
     /** S20 */
     resultsAccess: varchar('results_access', { length: 16 })
       .$type<ResultsAccessMode>()
@@ -2254,6 +2267,17 @@ export const recruitmentDivision = createTable(
       .references(() => organizationPosition.id, { onDelete: 'restrict' }),
     code: varchar('code', { length: 50 }),
     sortOrder: integer('sort_order').notNull().default(0),
+    /** Naik tiap urutan prioritas disimpan; penyunting lain yang basi ditolak. */
+    priorityVersion: integer('priority_version').notNull().default(0),
+    /** Daftar prioritas dikunci (siap dipakai penempatan otomatis). */
+    priorityLockedAt: timestamp('priority_locked_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    priorityLockedBy: varchar('priority_locked_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
   },
   (table) => ({
     unitIdx: index('recruitment_division_unit_idx').on(table.unitId),
@@ -2812,6 +2836,51 @@ export const placementDecision = createTable(
     decidedByIdx: index('placement_decision_decided_by_idx').on(
       table.decidedBy,
     ),
+  }),
+);
+
+/**
+ * Daftar prioritas satu divisi (metode `prioritas`). `rank` 1 = paling
+ * diinginkan; NULL = tidak diprioritaskan (ditolak divisi ini) tetapi
+ * penyusun menyimpan keterangan. Baris tanpa urutan dan tanpa keterangan
+ * dihapus. CHECK (rank >= 1) dan (rank IS NOT NULL OR note IS NOT NULL)
+ * ditulis tangan di migrasi.
+ */
+export const divisionPriority = createTable(
+  'division_priority',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    divisionId: varchar('division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+    applicationId: varchar('application_id', { length: 255 })
+      .notNull()
+      .references(() => application.id, { onDelete: 'cascade' }),
+    rank: integer('rank'),
+    /** Catatan penyusun (alasan urutan); tidak pernah tampil ke pendaftar. */
+    note: text('note'),
+    updatedBy: varchar('updated_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    applicationIdx: index('division_priority_application_idx').on(
+      table.applicationId,
+    ),
+    divisionApplicationUnique: uniqueIndex(
+      'division_priority_division_application_unique',
+    ).on(table.divisionId, table.applicationId),
+    divisionRankUnique: uniqueIndex('division_priority_division_rank_unique')
+      .on(table.divisionId, table.rank)
+      .where(sql`${table.rank} IS NOT NULL`),
   }),
 );
 

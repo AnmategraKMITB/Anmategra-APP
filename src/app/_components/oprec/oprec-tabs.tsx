@@ -11,6 +11,7 @@ const TABS = [
   ['pendaftar', 'Pendaftar'],
   ['penempatan', 'Penempatan'],
   ['nilai', 'Nilai'],
+  ['prioritas', 'Prioritas'],
   ['hasil', 'Hasil'],
 ] as const;
 
@@ -28,23 +29,30 @@ export async function OprecTabs({
   basePath: OprecBase;
   kegiatanId: string;
   recruitmentId: string;
-  current: 'pendaftar' | 'penempatan' | 'nilai' | 'hasil';
+  current: 'pendaftar' | 'penempatan' | 'nilai' | 'prioritas' | 'hasil';
   showPendaftar: boolean;
   showPenempatan?: boolean;
   showHasil?: boolean;
   /** Aksi pengelola (Formulir, Buka pendaftaran); hanya untuk pengelola oprec. */
   manage?: { formId: string; status: 'draft' | 'open' | 'closed' };
 }) {
+  const [row] = await db
+    .select({
+      status: recruitment.status,
+      placementMethod: recruitment.placementMethod,
+    })
+    .from(recruitment)
+    .where(eq(recruitment.id, recruitmentId));
+  // Prioritas: semua penyusun saat metodenya aktif; admin selalu (untuk
+  // menyalakannya).
+  const showPrioritas = row?.placementMethod === 'prioritas' || !!manage;
   const tabs = TABS.filter(
     ([id]) =>
       (id !== 'pendaftar' || showPendaftar) &&
       (id !== 'penempatan' || showPenempatan) &&
+      (id !== 'prioritas' || showPrioritas) &&
       (id !== 'hasil' || showHasil),
   );
-  const [row] = await db
-    .select({ status: recruitment.status })
-    .from(recruitment)
-    .where(eq(recruitment.id, recruitmentId));
   const [applicants] = await db
     .select({ n: count() })
     .from(application)

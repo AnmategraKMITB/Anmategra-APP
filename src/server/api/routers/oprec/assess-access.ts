@@ -115,6 +115,16 @@ export const canAssessScope = (a: AssessAccess, divisionId: string | null) =>
 export const canDecideDivision = (a: AssessAccess, divisionId: string) =>
   a.isAdmin || a.deciderDivisionIds.has(divisionId);
 
+/**
+ * Boleh menyusun daftar prioritas sebuah divisi (metode `prioritas`): admin,
+ * penilai umum, penilai divisi itu, dan Kadiv yang memutuskannya.
+ */
+export const canRankDivision = (a: AssessAccess, divisionId: string) =>
+  a.isAdmin ||
+  a.generalAssessor ||
+  a.divisionIds.has(divisionId) ||
+  a.deciderDivisionIds.has(divisionId);
+
 /** Melihat hal yang bertanda sensitif: admin dan Kadiv mana pun. */
 export const canSeeSensitive = (a: AssessAccess) =>
   a.isAdmin || a.deciderDivisionIds.size > 0;

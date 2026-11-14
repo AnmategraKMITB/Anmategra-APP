@@ -358,3 +358,152 @@ describe('runPriorityMatching: sifat pada 300 instance acak', () => {
     },
   );
 });
+
+// ---------------------------------------------------------------------------
+// Pembanding lengkap: semua kemungkinan penempatan pada instance kecil
+// ---------------------------------------------------------------------------
+
+/** Instance kecil agar semua kemungkinan penempatan bisa dicoba satu per satu. */
+function tinyInstance(seed: number): MatchingInput {
+  const rnd = mulberry32(seed * 7919);
+  const int = (lo: number, hi: number) =>
+    lo + Math.floor(rnd() * (hi - lo + 1));
+  const shuffle = <T>(xs: readonly T[]): T[] => {
+    const a = [...xs];
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(rnd() * (i + 1));
+      [a[i], a[j]] = [a[j]!, a[i]!];
+    }
+    return a;
+  };
+  const allowRedirect = rnd() < 0.5;
+  const divisionIds = Array.from({ length: int(1, 3) }, (_, i) => `d${i}`);
+  const applicants = Array.from({ length: int(2, 5) }, (_, i) =>
+    app(
+      `a${i}`,
+      shuffle(divisionIds).slice(0, int(0, divisionIds.length)),
+      rnd() < 0.5,
+    ),
+  );
+  const divisions = divisionIds.map((id, i) => {
+    const candidates = applicants.filter(
+      (a) => a.choices.includes(id) || (allowRedirect && a.willingToMove),
+    );
+    const ranked = shuffle(candidates).filter(() => rnd() < 0.75);
+    return div(id, rnd() < 0.2 ? 0 : int(1, 2), ranked.map((a) => a.id), i);
+  });
+  return { applicants, divisions, allowRedirect };
+}
+
+type Placement = Map<string, string | null>;
+
+/**
+ * Stabil menurut definisi, ditulis tanpa melihat implementasi: kuota
+ * dipatuhi, dan tidak ada pendaftar yang lebih menyukai divisi yang
+ * memprioritaskannya sementara divisi itu masih punya kursi atau menahan
+ * orang dengan prioritas lebih buruk.
+ */
+function isStable(input: MatchingInput, placement: Placement): boolean {
+  const holdersOf = (divisionId: string) =>
+    input.applicants.filter((a) => placement.get(a.id) === divisionId);
+  for (const d of input.divisions) {
+    if (d.quota > 0 && holdersOf(d.id).length > d.quota) return false;
+  }
+  for (const a of input.applicants) {
+    const prefs = expectedPreferences(a, input);
+    const assigned = placement.get(a.id) ?? null;
+    const limit = assigned === null ? prefs.length : prefs.indexOf(assigned);
+    for (const preferred of prefs.slice(0, limit)) {
+      const d = input.divisions.find((x) => x.id === preferred)!;
+      const myRank = d.priority.get(a.id);
+      if (myRank === undefined) continue;
+      const holders = holdersOf(d.id);
+      if (d.quota === 0 || holders.length < d.quota) return false;
+      if (holders.some((h) => d.priority.get(h.id)! > myRank)) return false;
+    }
+  }
+  return true;
+}
+
+/** Semua penempatan yang sah: tiap orang di luar, atau di divisi yang mau menerimanya. */
+function allPlacements(input: MatchingInput): Placement[] {
+  const options = input.applicants.map((a) => [
+    null,
+    ...expectedPreferences(a, input).filter((id) =>
+      input.divisions.find((d) => d.id === id)!.priority.has(a.id),
+    ),
+  ]);
+  let result: Placement[] = [new Map()];
+  input.applicants.forEach((a, i) => {
+    result = result.flatMap((partial) =>
+      options[i]!.map((choice) => new Map(partial).set(a.id, choice)),
+    );
+  });
+  return result;
+}
+
+describe('runPriorityMatching: dibandingkan dengan semua kemungkinan', () => {
+  const seeds = Array.from({ length: 500 }, (_, i) => i + 1);
+
+  it.each(seeds)(
+    'instance kecil #%i: hasil stabil dan terbaik bagi setiap pendaftar',
+    (seed) => {
+      const input = tinyInstance(seed);
+      const ours = runPriorityMatching(input).assignment;
+      const stable = allPlacements(input).filter((p) => isStable(input, p));
+
+      expect(isStable(input, ours)).toBe(true);
+      expect(stable.length).toBeGreaterThan(0);
+
+      const position = (a: MatchingApplicant, placement: Placement) => {
+        const prefs = expectedPreferences(a, input);
+        const assigned = placement.get(a.id) ?? null;
+        return assigned === null ? prefs.length : prefs.indexOf(assigned);
+      };
+      const placedSet = (p: Placement) =>
+        input.applicants
+          .filter((a) => p.get(a.id) != null)
+          .map((a) => a.id)
+          .join(',');
+
+      for (const other of stable) {
+        // Tidak ada penempatan stabil lain yang lebih baik bagi siapa pun.
+        for (const a of input.applicants) {
+          expect(position(a, ours)).toBeLessThanOrEqual(position(a, other));
+        }
+        // Orang yang tidak ditempatkan selalu sama di semua penempatan stabil.
+        expect(placedSet(other)).toBe(placedSet(ours));
+      }
+    },
+  );
+
+  it('skala besar: 1.500 pendaftar, 25 divisi, tetap stabil dan patuh kuota', () => {
+    const rnd = mulberry32(2026);
+    const divisionIds = Array.from({ length: 25 }, (_, i) => `d${i}`);
+    const applicants = Array.from({ length: 1500 }, (_, i) => {
+      const pool = [...divisionIds];
+      const choices = Array.from(
+        { length: 3 },
+        () => pool.splice(Math.floor(rnd() * pool.length), 1)[0]!,
+      );
+      return app(`a${String(i).padStart(4, '0')}`, choices, rnd() < 0.5);
+    });
+    const divisions = divisionIds.map((id, i) => {
+      const ranked = applicants
+        .filter((a) => a.choices.includes(id) || a.willingToMove)
+        .filter(() => rnd() < 0.7)
+        .map((a) => ({ id: a.id, key: rnd() }))
+        .sort((x, y) => x.key - y.key)
+        .map((x) => x.id);
+      return div(id, 20 + Math.floor(rnd() * 40), ranked, i);
+    });
+    const input = { applicants, divisions, allowRedirect: true };
+
+    const started = performance.now();
+    const r = runPriorityMatching(input);
+    const elapsed = performance.now() - started;
+
+    expect(isStable(input, r.assignment)).toBe(true);
+    expect(elapsed).toBeLessThan(5000);
+  });
+});
