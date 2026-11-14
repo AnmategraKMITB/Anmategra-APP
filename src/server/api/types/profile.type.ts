@@ -2,6 +2,7 @@ import type { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 import type { events } from '~/server/db/schema';
 import type { Kepanitiaan } from '~/types/kepanitiaan';
+
 import { MahasiswaProfileSchema } from './mahasiswa-profile.type';
 
 type Event = InferSelectModel<typeof events>;
@@ -77,6 +78,8 @@ export const GetKegiatanOutputSchema = z.object({
     type: z.string().nullable(),
   }),
   participant: z.array(PanitiaKegiatanSchema),
+  /** Tujuan tombol "Daftar": formulir oprec yang dibuka, atau `oprec_link`. */
+  daftarLink: z.string().nullable(),
 });
 
 export const GetKegiatanPublicOutputSchema = GetKegiatanOutputSchema.omit({

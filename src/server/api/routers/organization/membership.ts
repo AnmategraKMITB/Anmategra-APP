@@ -13,6 +13,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { isListedAsKegiatan } from '../../period-listing';
 import {
   DEFAULT_POSITION_TITLE,
   GENERAL_UNIT_NAME,
@@ -537,16 +538,14 @@ async function userPlacementRows(db: Db, userId: string) {
 }
 
 /**
- * Kegiatan (bukan kepengurusan) yang diikuti seorang pengguna, terbaru dulu,
- * beserta lembaga penyelenggara dan bagian/jabatannya. Pengganti join keanggotaan.
+ * Kegiatan yang diikuti seorang pengguna, terbaru dulu, beserta lembaga
+ * penyelenggara dan bagian/jabatannya. Termasuk kepengurusan lembaga
+ * Kepanitiaan (`isListedAsKegiatan`). Pengganti join keanggotaan.
  */
 export async function userKegiatanMemberships(db: Db, userId: string) {
   const rows = await userPlacementRows(db, userId);
-  const kegiatan = rows.filter((r) => r.event.kind === 'kegiatan');
   const orgIds = [
-    ...new Set(
-      kegiatan.flatMap((r) => (r.event.org_id ? [r.event.org_id] : [])),
-    ),
+    ...new Set(rows.flatMap((r) => (r.event.org_id ? [r.event.org_id] : []))),
   ];
   if (orgIds.length === 0) return [];
   const orgs = await db
@@ -555,10 +554,10 @@ export async function userKegiatanMemberships(db: Db, userId: string) {
     .innerJoin(users, eq(lembaga.userId, users.id))
     .where(inArray(lembaga.id, orgIds));
   const orgById = new Map(orgs.map((o) => [o.lembaga.id, o]));
-  return kegiatan
+  return rows
     .flatMap((r) => {
       const org = r.event.org_id ? orgById.get(r.event.org_id) : undefined;
-      return org
+      return org && isListedAsKegiatan(r.event.kind, org.lembaga.type)
         ? [
             {
               event: r.event,
