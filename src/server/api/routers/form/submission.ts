@@ -533,6 +533,7 @@ async function prepareAnswers(
 export const formSubmissionRouter = createTRPCRouter({
   /** The fill-in page: logging in is required to open it, not only to submit. */
   getPublic: protectedProcedure
+    .meta({ access: 'authenticated', alt: 'claim' })
     .input(GetPublicFormInputSchema)
     .output(GetPublicFormOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -588,6 +589,7 @@ export const formSubmissionRouter = createTRPCRouter({
 
   /** The caller's own latest submission to this form, or null. */
   getMySubmission: protectedProcedure
+    .meta({ access: 'authenticated', alt: 'claim' })
     .input(GetMySubmissionInputSchema)
     .output(GetMySubmissionOutputSchema)
     .query(async ({ ctx, input }) => {
@@ -660,6 +662,7 @@ export const formSubmissionRouter = createTRPCRouter({
     }),
 
   submit: protectedProcedure
+    .meta({ access: 'authenticated', alt: 'claim' })
     .input(SubmitFormInputSchema)
     .output(SubmitFormOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -803,6 +806,7 @@ export const formSubmissionRouter = createTRPCRouter({
    * sudah diarsipkan tidak disentuh.
    */
   updateSubmission: protectedProcedure
+    .meta({ access: 'authenticated', alt: 'claim' })
     .input(UpdateSubmissionInputSchema)
     .output(UpdateSubmissionOutputSchema)
     .mutation(async ({ ctx, input }) => {

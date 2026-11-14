@@ -162,6 +162,30 @@ table anmategra_admin_permission {
   }
 }
 
+table anmategra_alt_login_claim {
+  id varchar(255) [pk, not null]
+  user_id varchar(255) [not null]
+  nim integer [not null]
+  contact_email varchar(255) [not null]
+  secret_hash varchar(64) [not null]
+  ktm jsonb
+  ip varchar(64)
+  disputed boolean [not null, default: false]
+  approved_at "timestamp with time zone"
+  approved_by varchar(255)
+  expires_at "timestamp with time zone" [not null]
+  revoked_at "timestamp with time zone"
+  revoked_reason varchar(64)
+  revoked_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    contact_email [name: 'alt_login_claim_contact_email_idx']
+    user_id [name: 'alt_login_claim_user_idx']
+    nim [name: 'alt_login_claim_nim_idx']
+  }
+}
+
 table anmategra_alumni_pending {
   id varchar(255) [pk, not null]
   nim integer [not null]
