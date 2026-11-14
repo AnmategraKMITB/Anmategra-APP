@@ -62,7 +62,20 @@ export function AltLoginFlow() {
   useEffect(() => {
     if (alt !== 'claim') return;
     const target = pickFormsCallback(window.location.search);
-    if (target) window.location.assign(target);
+    if (!target) return;
+    // Bangun ulang dari bagian yang sudah diparse dan pastikan tetap satu
+    // origin dan di jalur /forms/, bukan meneruskan string mentah dari URL.
+    try {
+      const parsed = new URL(target, window.location.origin);
+      if (
+        parsed.origin === window.location.origin &&
+        parsed.pathname.startsWith('/forms/')
+      ) {
+        window.location.assign(parsed.pathname + parsed.search);
+      }
+    } catch {
+      // Abaikan callbackUrl yang tidak valid.
+    }
   }, [alt]);
 
   const submit = async (event: React.FormEvent) => {
