@@ -31,6 +31,7 @@
     "lint:fix": "eslint . --fix",
     "lint:prune": "eslint . --prune-suppressions",
     "typecheck": "tsc --noEmit",
+    "seed:oprec-mock": "vitest run --config scripts/oprec/vitest.seed.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "next start",

@@ -323,7 +323,8 @@ export function overrideNeedsReview(
 
 /**
  * Penilaian pendaftar dibuka setelah gelombangnya berakhir; `allowEarly`
- * membukanya lebih awal. Oprec tanpa gelombang dibuka saat oprec ditutup.
+ * membukanya lebih awal. Oprec tanpa gelombang dibuka saat oprec ditutup;
+ * begitu pula pendaftar tanpa gelombang (mendaftar sebelum gelombang dibuat).
  */
 export function assessmentOpen(input: {
   now: Date;
@@ -333,8 +334,8 @@ export function assessmentOpen(input: {
   hasWaves: boolean;
 }): boolean {
   if (input.allowEarly) return true;
-  if (input.hasWaves) {
-    return input.waveEndsAt !== null && input.waveEndsAt <= input.now;
+  if (input.hasWaves && input.waveEndsAt !== null) {
+    return input.waveEndsAt <= input.now;
   }
   return input.recruitmentStatus === 'closed';
 }
