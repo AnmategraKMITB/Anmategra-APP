@@ -9,13 +9,19 @@ import { type OprecBase, placementLockReason } from './status';
 
 const TABS = [
   ['pendaftar', 'Pendaftar'],
-  ['penempatan', 'Penempatan'],
   ['nilai', 'Nilai'],
   ['prioritas', 'Prioritas'],
+  ['penempatan', 'Penempatan'],
   ['hasil', 'Hasil'],
+  ['pengaturan', 'Pengaturan'],
 ] as const;
 
-/** Sub-navigasi satu oprec; "Pendaftar" hanya untuk pengelola oprec. */
+export type OprecTabId = (typeof TABS)[number][0];
+
+/**
+ * Sub-navigasi satu oprec, urut alur kerja: nilai dulu, baru penempatan.
+ * "Pendaftar" dan "Pengaturan" hanya untuk pengelola oprec (`manage`).
+ */
 export async function OprecTabs({
   basePath,
   kegiatanId,
@@ -29,7 +35,7 @@ export async function OprecTabs({
   basePath: OprecBase;
   kegiatanId: string;
   recruitmentId: string;
-  current: 'pendaftar' | 'penempatan' | 'nilai' | 'prioritas' | 'hasil';
+  current: OprecTabId;
   showPendaftar: boolean;
   showPenempatan?: boolean;
   showHasil?: boolean;
@@ -51,7 +57,8 @@ export async function OprecTabs({
       (id !== 'pendaftar' || showPendaftar) &&
       (id !== 'penempatan' || showPenempatan) &&
       (id !== 'prioritas' || showPrioritas) &&
-      (id !== 'hasil' || showHasil),
+      (id !== 'hasil' || showHasil) &&
+      (id !== 'pengaturan' || !!manage),
   );
   const [applicants] = await db
     .select({ n: count() })
