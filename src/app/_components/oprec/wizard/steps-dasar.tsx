@@ -428,7 +428,7 @@ export function StepGelombang({ s, update }: StepProps) {
           {s.waves.map((w, i) => (
             <div
               key={i}
-              className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[8rem_1fr_1fr_auto] sm:items-end"
+              className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[8rem_1fr_1fr_auto] sm:items-end [&>*]:min-w-0"
             >
               <Labeled label="Nama">
                 {(id) => (

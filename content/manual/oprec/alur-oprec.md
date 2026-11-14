@@ -49,6 +49,9 @@ akses khusus oprec tanpa menjadi admin penuh.
    [Penempatan](/manual/oprec/penempatan).
 7. **Tetapkan dan rilis hasil.** Lihat [Hasil dan rilis](/manual/oprec/hasil).
 
+Jadwal, status pendaftaran, dan cara penilaian bisa diubah kapan saja di bagian
+**Pengaturan**. Lihat [Pengaturan dan status oprec](/manual/oprec/pengaturan).
+
 Dari sisi pendaftar, alurnya dijelaskan di
 [Mendaftar oprec](/manual/mahasiswa/mendaftar-oprec).
 
@@ -58,12 +61,13 @@ Dari sisi pendaftar, alurnya dijelaskan di
 2. Pilih periode atau kegiatan yang ingin dilihat.
 3. Pilih oprec dari daftar, atau klik **Buat oprec** untuk membuat yang baru.
 
-Setiap oprec memiliki empat bagian:
+Setiap oprec memiliki lima bagian, berurutan sesuai alur kerja:
 
 - **Pendaftar** — daftar semua pendaftar dan berkasnya.
-- **Penempatan** — keputusan terima atau tolak per divisi.
 - **Nilai** — antrean penilaian bagi penilai.
+- **Penempatan** — keputusan terima atau tolak per divisi.
 - **Hasil** — status akhir dan rilis ke pendaftar.
+- **Pengaturan** — jadwal, status, cara penilaian, dan tim penilai.
 
 Bagian yang tampil mengikuti akses Anda. Penilai, misalnya, hanya melihat
 **Nilai**.
@@ -72,7 +76,11 @@ Bagian yang tampil mengikuti akses Anda. Penilai, misalnya, hanya melihat
 
 - **Draf** — oprec sudah dibuat, tetapi pendaftaran belum dibuka.
 - **Dibuka** — formulir sudah terbit dan menerima pendaftaran.
-- **Ditutup** — pendaftaran sudah berakhir.
+- **Ditutup** — pendaftaran sudah berakhir. Pengelola dapat membukanya lagi
+  untuk perpanjangan.
+
+Status diubah lewat tombol di bagian atas halaman oprec. Lihat
+[Pengaturan dan status oprec](/manual/oprec/pengaturan#mengubah-status-oprec).
 
 > [!NOTE]
 > Oprec selalu dimiliki satu periode atau kegiatan. Untuk rekrutmen periode
