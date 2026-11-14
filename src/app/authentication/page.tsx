@@ -3,6 +3,7 @@
 // Library Import
 import React from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 // Components Import
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card'
 import { Button } from '~/components/ui/button'
@@ -73,6 +74,23 @@ const LogInPage = () => {
               Google  |  @km.itb.ac.id
             </span>
           </Button>
+          {process.env.NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID ? (
+            <p className='text-xs text-slate-500 text-center'>
+              Akun ITB (@mahasiswa.itb.ac.id) kamu bermasalah?{' '}
+              <Link
+                href='/authentication/alternatif'
+                // Bawa callbackUrl form yang dibuka sebelum login.
+                onClick={(event) => {
+                  event.preventDefault();
+                  window.location.assign(`/authentication/alternatif${window.location.search}`);
+                }}
+                className='font-semibold text-primary-400 underline-offset-2 hover:underline'
+              >
+                Silakan klik di sini
+              </Link>
+              .
+            </p>
+          ) : null}
             </>
           )}
         </CardContent>

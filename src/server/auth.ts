@@ -15,7 +15,6 @@ import { env } from '~/env';
 import { db } from '~/server/db';
 import {
   accounts,
-  alumniPending,
   lembaga,
   mahasiswa,
   sessions,
@@ -23,6 +22,12 @@ import {
   verificationTokens,
   verifiedUsers,
 } from '~/server/db/schema';
+import {
+  resolveAltAccess,
+  revokeAltClaimsForUser,
+  verifyClaimSecret,
+} from '~/server/alt-login';
+import { insertMahasiswa, profileFromNim } from '~/server/mahasiswa-record';
 
 import {
   clearDemoLoginFailures,
@@ -30,8 +35,6 @@ import {
   recordDemoLoginFailure,
   verifyDemoPassword,
 } from './demo-auth';
-
-import daftarProdi from './db/kode-program-studi.json';
 
 export interface Prodi {
   kode: number;
@@ -51,6 +54,16 @@ declare module 'next-auth' {
       image: string;
       role: 'admin' | 'lembaga' | 'mahasiswa';
       lembagaId?: string;
+      /**
+       * Sesi akses alternatif (email + NIM + KTM). `guest` = klaim sudah habis,
+       * dicabut, atau menunggu admin; `claim` = boleh mengisi form saja.
+       */
+      alt?: 'guest' | 'claim';
+      altExpiresAt?: string;
+      /** Klaim milik sesi ini; dipakai untuk memperpanjang tanpa dianggap saingan. */
+      altClaimId?: string;
+      /** Klaim bersengketa menunggu persetujuan admin. */
+      altPending?: boolean;
     } & DefaultSession['user'];
   }
 
@@ -70,6 +83,11 @@ declare module 'next-auth/jwt' {
     picture: string;
     role: 'admin' | 'lembaga' | 'mahasiswa';
     lembagaId?: string;
+    /** Klaim akses alternatif milik sesi ini; statusnya dibaca ulang tiap request. */
+    altClaimId?: string;
+    alt?: 'guest' | 'claim';
+    altExpiresAt?: string;
+    altPending?: boolean;
   }
 }
 
@@ -94,6 +112,32 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     jwt: async ({ token, user, account }) => {
       const isDemo = env.APP_ENV === 'demo';
+
+      // Akses alternatif: identitas efektif dihitung ulang dari basis data di
+      // setiap pemanggilan, jadi klaim yang dicabut atau kedaluwarsa langsung
+      // berhenti berlaku. Allowlist superadmin sengaja tidak berlaku di sini.
+      if (account?.provider === 'alt-claim' && user) {
+        token.altClaimId = user.id;
+        token.name = user.name;
+      }
+      if (token.altClaimId) {
+        const access = await resolveAltAccess(token.altClaimId);
+        token.lembagaId = undefined;
+        token.picture = '/images/placeholder/profile-pic.png';
+        token.altPending = access.kind === 'pending';
+        token.role = 'mahasiswa';
+        if (access.kind === 'claim') {
+          token.id = access.userId;
+          token.alt = 'claim';
+          token.altExpiresAt = access.expiresAt.toISOString();
+        } else {
+          token.id = `alt-guest:${token.altClaimId}`;
+          token.alt = 'guest';
+          token.altExpiresAt = undefined;
+        }
+        return token;
+      }
+
       // Initial token on first sign in
       if (user) {
         // jwt only returns user on sign in, otherwise it's undefined
@@ -101,13 +145,7 @@ export const authOptions: NextAuthOptions = {
         // insert mahasiswa table
         if (account?.provider === 'azure-ad') {
           const nim = user.email.split('@')[0];
-          const kodeProdi = parseInt(nim!.substring(0, 3));
-          const jurusan =
-            daftarProdi.find((item: Prodi) => item.kode === kodeProdi)
-              ?.jurusan ?? 'TPB';
-
-          // asumsi cuma ada angkatan 2000-an
-          const angkatan = parseInt(nim!.substring(3, 5)) + 2000;
+          const { jurusan, angkatan } = profileFromNim(parseInt(nim!));
 
           // Check if mahasiswa record already exists (from add manual)
           const existingMahasiswa = await db.query.mahasiswa.findFirst({
@@ -118,6 +156,10 @@ export const authOptions: NextAuthOptions = {
             // Only insert if not added manually
             await insertMahasiswa(user.id, parseInt(nim!), jurusan, angkatan);
           }
+
+          // Pemilik asli berhasil masuk lewat Microsoft: akses alternatif apa
+          // pun atas akun ini langsung dicabut.
+          await revokeAltClaimsForUser(user.id, 'login-microsoft');
 
           token.role = user.role;
         }
@@ -181,6 +223,10 @@ export const authOptions: NextAuthOptions = {
       session.user.image = token.picture;
       session.user.role = token.role;
       session.user.lembagaId = token.lembagaId;
+      session.user.alt = token.alt;
+      session.user.altExpiresAt = token.altExpiresAt;
+      session.user.altPending = token.altPending;
+      session.user.altClaimId = token.altClaimId;
       return session;
     },
 
@@ -188,6 +234,9 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === 'credentials') {
         return env.APP_ENV === 'demo';
       }
+
+      // Rahasia klaim sudah diverifikasi di authorize(); statusnya diperiksa di jwt.
+      if (account?.provider === 'alt-claim') return true;
 
       // Akun demo tidak boleh masuk lewat SSO produksi.
       if (env.APP_ENV !== 'demo' && user.email) {
@@ -331,6 +380,30 @@ export const authOptions: NextAuthOptions = {
           }),
         ]
       : []),
+    // Jalur alternatif mahasiswa: masuk dengan id + rahasia klaim yang baru
+    // dibuat di server. Tidak membuat user; hak akses datang dari klaim di
+    // tabel alt_login_claim.
+    CredentialsProvider({
+      id: 'alt-claim',
+      name: 'Akses alternatif',
+      credentials: {
+        claimId: { type: 'text' },
+        secret: { type: 'text' },
+      },
+      async authorize(credentials) {
+        const claim = await verifyClaimSecret(
+          credentials?.claimId ?? '',
+          credentials?.secret ?? '',
+        );
+        if (!claim) return null;
+        return {
+          id: claim.id,
+          name: claim.contactEmail,
+          email: claim.contactEmail,
+          role: 'mahasiswa' as const,
+        };
+      },
+    }),
     Google({
       clientId: env.GOOGLE_CLIENT_ID,
       clientSecret: env.GOOGLE_CLIENT_SECRET,
@@ -374,42 +447,6 @@ const isEmailInVerifiedUsers = async (email: string) => {
   ``;
 };
 
-const insertMahasiswa = async (
-  id: string,
-  nim: number,
-  jurusan: string,
-  angkatan: number,
-) => {
-  const mahasiswaExists = await db.query.mahasiswa.findFirst({
-    where: eq(mahasiswa.userId, id),
-  });
-  if (mahasiswaExists) return mahasiswaExists;
-
-  // H-03 fallback: NIM ini sudah pernah di-upload di CSV wisuda sebelum
-  // akunnya pernah login sama sekali — langsung tandai alumni & bersihkan
-  // pending-nya.
-  const pending = await db.query.alumniPending.findFirst({
-    where: eq(alumniPending.nim, nim),
-  });
-
-  const newMahasiswa = await db
-    .insert(mahasiswa)
-    .values({
-      userId: id,
-      nim: nim,
-      jurusan: jurusan,
-      angkatan: angkatan,
-      status: pending ? 'alumni' : 'aktif',
-    })
-    .returning();
-
-  if (pending) {
-    await db.delete(alumniPending).where(eq(alumniPending.id, pending.id));
-  }
-
-  return newMahasiswa;
-};
-
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
  *
@@ -419,4 +456,20 @@ const insertMahasiswa = async (
  * dari banyak tempat (halaman, `generateMetadata`, konteks tRPC). Di luar render React
  * (misalnya route handler), `cache` tidak menyimpan apa-apa dan fungsi tetap dipanggil biasa.
  */
-export const getServerAuthSession = cache(() => getServerSession(authOptions));
+const getRawServerSession = cache(() => getServerSession(authOptions));
+
+/**
+ * Sesi mentah termasuk sesi akses alternatif (Google pribadi). Hanya untuk
+ * pemanggil yang memang melayani pengisian form: konteks tRPC (yang menolak
+ * prosedur tanpa penanda `alt`), halaman isi form, dan unggahan berkas jawaban.
+ */
+export const getServerAuthSessionWithAlt = getRawServerSession;
+
+/**
+ * Sesi untuk semua pemanggil lain. Sesi akses alternatif dianggap tidak login
+ * di sini, sehingga halaman dan route API baru tertutup secara default.
+ */
+export const getServerAuthSession = cache(async () => {
+  const session = await getRawServerSession();
+  return session?.user.alt ? null : session;
+});

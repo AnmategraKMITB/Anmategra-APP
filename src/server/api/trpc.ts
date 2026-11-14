@@ -15,7 +15,7 @@ import {
   hasAdminPermission,
 } from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
-import { getServerAuthSession } from '~/server/auth';
+import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
 
 import { env } from '~/env';
@@ -49,7 +49,7 @@ import {
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await getServerAuthSession();
+  const session = await getServerAuthSessionWithAlt();
 
   return {
     db,
@@ -83,6 +83,12 @@ export type ApiMeta = {
     | 'form-scoped'
     | 'oprec-scoped'
     | 'oprec-assess';
+  /**
+   * Sesi akses alternatif (Google pribadi) ditolak di semua prosedur kecuali
+   * yang diberi penanda ini. `claim` = hanya klaim aktif; `any` = termasuk
+   * tamu yang belum punya klaim (dipakai alur pengajuan itu sendiri).
+   */
+  alt?: 'claim' | 'any';
 };
 
 /**
@@ -203,13 +209,37 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 /**
+ * Default-deny untuk sesi akses alternatif: prosedur baru otomatis tertutup
+ * bagi mereka sampai diberi `meta.alt` secara eksplisit.
+ */
+const altGuardMiddleware = t.middleware(({ ctx, meta, next }) => {
+  const alt = ctx.session?.user?.alt;
+  if (alt) {
+    const allowed =
+      meta?.alt === 'any' || (meta?.alt === 'claim' && alt === 'claim');
+    if (!allowed) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message:
+          alt === 'claim'
+            ? 'Akses alternatif hanya untuk mengisi form.'
+            : 'Akses alternatif belum aktif. Ajukan dulu di halaman login.',
+      });
+    }
+  }
+  return next();
+});
+
+const baseProcedure = t.procedure.use(altGuardMiddleware);
+
+/**
  * Public (unauthenticated) procedure
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure
+export const publicProcedure = baseProcedure
   .meta({ access: 'public' })
   .use(timingMiddleware);
 
@@ -221,7 +251,7 @@ export const publicProcedure = t.procedure
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure
+export const protectedProcedure = baseProcedure
   .meta({ access: 'authenticated' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
@@ -278,7 +308,7 @@ export async function loadAdminAccess(database: typeof db, userId: string) {
  * Khusus Superadmin (`users.role = 'admin'` atau akun `SUPERADMIN_EMAILS`),
  * diperiksa ke basis data. Operator berizin tidak lolos di sini.
  */
-export const adminProcedure = t.procedure
+export const adminProcedure = baseProcedure
   .meta({ access: 'admin' })
   .use(timingMiddleware)
   .use(async ({ ctx, next }) => {
@@ -304,7 +334,7 @@ export const superadminProcedure = adminProcedure;
  * aktif yang memuat izin yang diminta.
  */
 export const adminPermissionProcedure = (required: AdminPermission) =>
-  t.procedure
+  baseProcedure
     .meta({ access: 'admin-permission' })
     .use(timingMiddleware)
     .use(async ({ ctx, next }) => {

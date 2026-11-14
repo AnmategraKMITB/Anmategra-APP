@@ -62,6 +62,67 @@ export const users = createTable('user', {
   ...timestamps,
 });
 
+/**
+ * Akses sementara (email kontak + NIM + KTM) untuk mahasiswa yang akun ITB-nya
+ * bermasalah. Satu baris = satu klaim NIM oleh satu Gmail, berlaku singkat
+ * (`expiresAt`) dan hanya boleh dipakai mengisi form. Login Microsoft yang
+ * berhasil mencabut semua klaim aktif milik user itu.
+ */
+export const altLoginClaim = createTable(
+  'alt_login_claim',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    nim: integer('nim').notNull(),
+    /**
+     * Email yang diketik pemohon. Tidak diverifikasi: hanya label kontak untuk
+     * admin, tidak pernah dipakai sebagai identitas sesi.
+     */
+    contactEmail: varchar('contact_email', { length: 255 }).notNull(),
+    /** SHA-256 dari rahasia acak yang hanya dipegang browser pengaju; mengikat sesi ke klaim. */
+    secretHash: varchar('secret_hash', { length: 64 }).notNull(),
+    /** Tautan KTM (`FileAnswerItem`); dikosongkan otomatis setelah 7 hari. */
+    ktm: jsonb('ktm').$type<Record<string, unknown>>(),
+    ip: varchar('ip', { length: 64 }),
+    /** Ditandai bila NIM yang sama diklaim Gmail lain pada hari yang sama. */
+    disputed: boolean('disputed').notNull().default(false),
+    /** Klaim bersengketa baru berlaku setelah admin menyetujui. */
+    approvedAt: timestamp('approved_at', { mode: 'date', withTimezone: true }),
+    approvedBy: varchar('approved_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    /** Klaim biasa: 6 jam sejak diajukan. Klaim bersengketa: 6 jam sejak disetujui. */
+    expiresAt: timestamp('expires_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    revokedAt: timestamp('revoked_at', { mode: 'date', withTimezone: true }),
+    /** 'admin' | 'login-microsoft' | 'diganti-klaim-baru' | 'sengketa-kalah' */
+    revokedReason: varchar('revoked_reason', { length: 64 }),
+    revokedBy: varchar('revoked_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    created_at: timestamp('created_at', {
+      mode: 'date',
+      withTimezone: true,
+    })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index('alt_login_claim_contact_email_idx').on(t.contactEmail),
+    index('alt_login_claim_user_idx').on(t.userId),
+    index('alt_login_claim_nim_idx').on(t.nim),
+  ],
+);
+
 /** Jejak audit tindakan backoffice; append-only dari UI. */
 export const adminAudit = createTable(
   'admin_audit',

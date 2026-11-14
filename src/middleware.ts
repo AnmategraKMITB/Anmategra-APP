@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt';
 import { type NextRequest, NextResponse } from 'next/server';
 import { decideFormsPath } from '~/lib/forms-path';
 
-const AUTH_ROUTES = ['/authentication'];
+const AUTH_ROUTES = ['/authentication', '/authentication/alternatif'];
 const STATIC = [
   '/_next',
   '/api',
@@ -59,6 +59,28 @@ export default async function middleware(req: NextRequest) {
 
   const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
+  // Sesi akses alternatif (Google pribadi) hanya boleh ke halaman pengajuannya
+  // dan, bila klaim aktif, halaman isi form. Semua rute lain dialihkan; server
+  // tetap menolak lewat tRPC dan getServerAuthSession (default-deny).
+  if (token?.alt) {
+    const isPreview = pathname === '/forms/preview' || pathname.startsWith('/forms/preview/');
+    const isFillPage = /^\/forms\/[A-Za-z0-9_-]{1,100}$/.test(pathname) && !isPreview;
+    if (
+      isPreview ||
+      pathname === '/authentication/alternatif' ||
+      pathname === '/auth-error' ||
+      (isFillPage && token.alt === 'claim')
+    ) {
+      return NextResponse.next();
+    }
+    const target = new URL('/authentication/alternatif', req.url);
+    const callback = isFillPage
+      ? pathname + req.nextUrl.search
+      : req.nextUrl.searchParams.get('callbackUrl');
+    if (callback) target.searchParams.set('callbackUrl', callback);
+    return NextResponse.redirect(target);
+  }
+
   // Form pages: the fill page is shared by every role (no role prefix) and the
   // public preview needs no login at all, even for someone who is logged in.
   const forms = decideFormsPath(pathname, req.nextUrl.search, !!token);
@@ -93,7 +115,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Redirect to authentication if not logged in (except for root and auth page)
-  if (pathname !== '/' && pathname !== '/authentication' && pathname !== '/auth-error' && !token) {
+  if (pathname !== '/' && pathname !== '/authentication' && pathname !== '/authentication/alternatif' && pathname !== '/auth-error' && !token) {
     return NextResponse.redirect(new URL('/authentication', req.url));
   }
 
