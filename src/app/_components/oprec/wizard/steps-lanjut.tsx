@@ -1,10 +1,10 @@
 'use client';
 
-import { WEIGHT_MAX, clampWeight } from './helpers';
 import { Plus, Trash2, X } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useContext, useState } from 'react';
 import { Button } from '~/components/ui/button';
 
+import { WEIGHT_MAX, clampWeight } from './helpers';
 import {
   EyeArt,
   InboxArt,
@@ -14,7 +14,14 @@ import {
 } from './illustrations';
 import { type CriterionDraft, type WizardState, criteriaSlots } from './model';
 import { type StepProps } from './steps-types';
-import { Labeled, type Option, OptionCards, StepFrame, fieldClass } from './ui';
+import {
+  CompactSteps,
+  Labeled,
+  type Option,
+  OptionCards,
+  StepFrame,
+  fieldClass,
+} from './ui';
 
 /** Satu layar pilihan tunggal. */
 function Choice<T extends string>({
@@ -107,10 +114,11 @@ export function StepKeputusan({ s, update }: StepProps) {
 }
 
 export function StepMetode({ s, update }: StepProps) {
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Status otomatis ditentukan dengan cara apa?"
-      hint="Bisa diubah lagi di pengaturan oprec."
+      hint={inSettings ? undefined : 'Bisa diubah lagi di pengaturan oprec.'}
       art={<ScoreArt />}
       label="Metode status"
       value={s.statusMethod}
@@ -140,10 +148,15 @@ export function StepMetode({ s, update }: StepProps) {
 
 export function StepSumberNilai({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Nilai mana yang dipakai untuk status?"
-      hint="Bobot gabungan diatur di langkah kriteria dan ikatan, nanti."
+      hint={
+        inSettings
+          ? undefined
+          : 'Bobot gabungan diatur di langkah kriteria dan ikatan, nanti.'
+      }
       art={<ScoreArt />}
       label="Sumber nilai"
       value={s.scoreSource}
@@ -214,6 +227,7 @@ export function StepPenilaiUmum({ s, update, trees, c }: StepProps) {
 }
 
 export function StepGugur({ s, update }: StepProps) {
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Ada syarat gugur?"
@@ -227,8 +241,9 @@ export function StepGugur({ s, update }: StepProps) {
         {
           value: 'ya',
           label: 'Ya',
-          description:
-            'Tambahkan kriteria jenis gugur manual di langkah kriteria.',
+          description: inSettings
+            ? 'Kriteria jenis gugur manual ditambahkan di panel Penilaian formulir.'
+            : 'Tambahkan kriteria jenis gugur manual di langkah kriteria.',
         },
       ]}
     />
@@ -527,6 +542,7 @@ export function StepTahap({ s, update, c }: StepProps) {
 
 export function StepVisibilitas({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title={`${c.labels[1]} boleh melihat pendaftar yang sudah diterima ${l2} lain?`}
@@ -540,7 +556,9 @@ export function StepVisibilitas({ s, update, c }: StepProps) {
         {
           value: 'ya',
           label: 'Ya untuk semua',
-          description: 'Pengecualian per bagian bisa diatur nanti.',
+          description: inSettings
+            ? 'Pengecualian per bagian diatur di tab Penempatan.'
+            : 'Pengecualian per bagian bisa diatur nanti.',
         },
       ]}
     />

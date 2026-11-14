@@ -85,7 +85,8 @@ export type WizardState = {
   divisions: Record<string, { positionId: string; sourcePeriodId: string }>;
   /** S4 */
   useWaves: boolean;
-  waves: { label: string; startsAt: string; endsAt: string }[];
+  /** `id` hanya ada saat menyunting gelombang yang sudah tersimpan (Pengaturan). */
+  waves: { id?: string; label: string; startsAt: string; endsAt: string }[];
   /** S5 */
   eligibility: { enabled: boolean; match: 'all' | 'any'; rules: RuleDraft[] };
   /** S6 */

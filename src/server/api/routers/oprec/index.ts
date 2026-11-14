@@ -40,6 +40,7 @@ import { assessorProcedures } from './assessors';
 import { criteriaProcedures } from './criteria';
 import { flagProcedures } from './flags';
 import { placementProcedures } from './placement';
+import { recomputeDivisions } from './recompute';
 import { resultsProcedures } from './results';
 import {
   applySectionBinding,
@@ -59,6 +60,16 @@ const OK = { success: true };
 
 /** Kolom yang tak boleh berubah setelah ada pendaftar (agar pilihan lama tetap sah). */
 const LOCKED_AFTER_APPLICATIONS = ['minChoices', 'maxChoices'] as const;
+
+/** Kolom yang ikut menentukan skor dan status otomatis tiap pilihan. */
+const AFFECTS_SCORING = [
+  'scoringMode',
+  'statusMethod',
+  'statusMinScore',
+  'scoreSource',
+  'weightUmum',
+  'minReviewers',
+] as const;
 
 export const oprecRouter = createTRPCRouter({
   ...applicantProcedures,
@@ -196,6 +207,11 @@ export const oprecRouter = createTRPCRouter({
             .set(patch)
             .where(eq(recruitment.id, current.id));
         }
+        // Skor dan status tersimpan sebagai cache; hitung ulang bila aturannya berubah.
+        const rescore = AFFECTS_SCORING.some(
+          (key) => patch[key] !== undefined && patch[key] !== current[key],
+        );
+        if (rescore) await recomputeDivisions(tx, current.id, 'all');
       });
       return OK;
     }),
