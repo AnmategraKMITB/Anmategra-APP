@@ -1,5 +1,4 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-
 import {
   createEvent,
   createLembaga,
@@ -137,6 +136,24 @@ describe('listManagedEvents', () => {
         features: ['admin'],
       },
     ]);
+  });
+
+  it('kepengurusan lembaga Kepanitiaan ikut tampil sebagai kegiatan', async () => {
+    const owner = await createUser(db, { role: 'lembaga' });
+    const l = await createLembaga(db, owner.id, {
+      name: 'Aku Masuk ITB',
+      type: 'Kepanitiaan',
+    });
+    const periode = await createEvent(db, l.id, {
+      name: 'Aku Masuk ITB 2027',
+      kind: 'kepengurusan',
+    });
+    const result = await listManagedEvents(database, {
+      id: owner.id,
+      role: 'lembaga',
+      lembagaId: l.id,
+    });
+    expect(result.map((r) => r.eventId)).toEqual([periode.id]);
   });
 
   it('Admin Lembaga mewarisi kegiatan lembaga dengan fitur Grant-nya', async () => {

@@ -54731,12 +54731,17 @@
               ],
               "additionalProperties": false
             }
+          },
+          "daftarLink": {
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
           "kegiatan",
           "lembaga",
-          "participant"
+          "participant",
+          "daftarLink"
         ],
         "additionalProperties": false
       },
@@ -54803,11 +54808,16 @@
               "type"
             ],
             "additionalProperties": false
+          },
+          "daftarLink": {
+            "nullable": true,
+            "type": "string"
           }
         },
         "required": [
           "kegiatan",
-          "lembaga"
+          "lembaga",
+          "daftarLink"
         ],
         "additionalProperties": false
       },

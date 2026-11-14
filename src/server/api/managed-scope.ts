@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
 
+import { listedAsKegiatan } from '~/server/api/period-listing';
 import { type db } from '~/server/db';
 import { accessGrant, events, lembaga } from '~/server/db/schema';
 
@@ -145,7 +146,8 @@ export async function listManagedEvents(
   const lembagaById = new Map(managedLembaga.map((l) => [l.lembagaId, l]));
   const byId = new Map<string, ManagedEvent>();
 
-  // Kegiatan milik lembaga yang dikelola (kepengurusan ditangani terpisah).
+  // Kegiatan milik lembaga yang dikelola, termasuk kepengurusan lembaga
+  // Kepanitiaan (lihat `listedAsKegiatan`); kepengurusan lain ditangani terpisah.
   if (managedLembaga.length > 0) {
     const rows = await database
       .select({
@@ -157,7 +159,7 @@ export async function listManagedEvents(
       .where(
         and(
           inArray(events.org_id, [...lembagaById.keys()]),
-          eq(events.kind, 'kegiatan'),
+          listedAsKegiatan(events),
         ),
       )
       .orderBy(desc(events.start_date));
