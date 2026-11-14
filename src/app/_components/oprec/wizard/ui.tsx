@@ -1,8 +1,14 @@
 'use client';
 
 import { Check } from 'lucide-react';
-import { type ReactNode, useId } from 'react';
+import { type ReactNode, createContext, useContext, useId } from 'react';
 import { cn } from '~/lib/utils';
+
+/**
+ * true = langkah tampil ringkas (judul kecil, tanpa ilustrasi), dipakai saat
+ * pertanyaan wizard ditampilkan ulang di tab Pengaturan.
+ */
+export const CompactSteps = createContext(false);
 
 /** Kerangka satu layar pertanyaan: judul, petunjuk, ilustrasi, isi. */
 export function StepFrame({
@@ -16,6 +22,18 @@ export function StepFrame({
   illustration?: ReactNode;
   children: ReactNode;
 }) {
+  const compact = useContext(CompactSteps);
+  if (compact) {
+    return (
+      <div className="min-w-0">
+        <h3 className="text-lg font-semibold text-neutral-1000">{title}</h3>
+        {hint ? (
+          <p className="mt-1 max-w-prose text-sm text-neutral-700">{hint}</p>
+        ) : null}
+        <div className="mt-4">{children}</div>
+      </div>
+    );
+  }
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,18rem)] lg:items-start">
       <div className="min-w-0">
@@ -154,15 +172,5 @@ export function Note({
     >
       {children}
     </p>
-  );
-}
-
-/** Catatan untuk langkah yang pengaruhnya baru terasa di fase berikutnya. */
-export function LaterNote() {
-  return (
-    <Note>
-      Jawaban ini disimpan bersama pengaturan oprec dan mulai berlaku saat fitur
-      penilaian, penempatan, atau hasil dibuka. Bisa diubah lagi nanti.
-    </Note>
   );
 }

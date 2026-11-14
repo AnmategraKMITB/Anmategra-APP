@@ -9,6 +9,9 @@ const LINKS = [
   ['/admin/akun', 'Akun', 'accounts.read'],
   ['/admin/lembaga', 'Lembaga', 'lembaga.read'],
   ['/admin/akses', 'Akses', 'access.read'],
+  ['/admin/email-terverifikasi', 'Email terverifikasi', 'accounts.write'],
+  ['/admin/alumni', 'Alumni', 'alumni.write'],
+  ['/admin/superadmin', 'Superadmin', 'superadmin'],
   ['/admin/audit', 'Audit', 'audit.read'],
 ] as const;
 

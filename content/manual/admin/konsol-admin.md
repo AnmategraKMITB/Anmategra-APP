@@ -18,6 +18,9 @@ memeriksa jejak tindakan.
 | **Akun**    | Mencari, membuat, dan mengubah akun mahasiswa atau lembaga.                    |
 | **Lembaga** | Mengelola profil lembaga, kegiatan, kepengurusan, dan organogramnya.           |
 | **Akses**   | Mengatur operator admin dan pengelola lembaga atau kegiatan.                   |
+| **Email terverifikasi** | Menambah atau menghapus email non-KM yang boleh masuk sebagai akun lembaga. |
+| **Alumni**  | Mengunggah CSV wisuda agar NIM terkait berstatus alumni.                       |
+| **Superadmin** | Menambah atau menurunkan Superadmin (khusus Superadmin).                    |
 | **Audit**   | Membaca jejak tindakan: akun, lembaga, pemberian akses, dan izin operator.     |
 
 ## Contoh kasus
@@ -49,6 +52,10 @@ memiliki profil lembaga.
 > Perubahan email atau role baru berlaku setelah pengguna itu login ulang.
 
 ## Mengelola lembaga
+
+Untuk membuat lembaga baru, klik **Tambah lembaga**, isi nama, jenis, singkatan,
+induk, dan email Google resmi Owner. Sistem membuat akun lembaga, profil
+lembaga, dan mendaftarkan email itu sebagai terverifikasi sekaligus.
 
 1. Buka **Lembaga**, lalu cari berdasarkan nama, singkatan, atau jenis.
 2. Klik nama lembaga.
@@ -88,3 +95,11 @@ Buka **Audit** untuk melihat siapa melakukan apa dan kapan. Gunakan kolom
 > [!NOTE]
 > Beri akses sesempit yang dibutuhkan. Akses per fitur dan per kegiatan lebih
 > aman daripada membagikan akun lembaga.
+
+## Mengelola Superadmin
+
+Menu **Superadmin** hanya terlihat oleh Superadmin. Akun dari variabel
+`SUPERADMIN_EMAILS` adalah akun darurat: selalu Superadmin dan tidak dapat
+diubah dari panel. Superadmin lain ditambah atau diturunkan di sini dengan
+mengetik ulang email akunnya. Anda tidak dapat menurunkan diri sendiri, dan
+Superadmin terakhir tidak dapat diturunkan. Setiap aksi tercatat di **Audit**.

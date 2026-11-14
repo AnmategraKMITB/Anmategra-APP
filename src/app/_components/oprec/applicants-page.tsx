@@ -36,6 +36,7 @@ export async function ApplicantsPage({
           showPendaftar
           showPenempatan
           showHasil={showHasil}
+          manage={{ formId: managed.formId, status: managed.status }}
         />
       }
     />

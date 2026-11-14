@@ -29,6 +29,8 @@ export const env = createEnv({
     AZURE_AD_TENANT_ID: z.string(),
     /** production | demo; demo mengaktifkan login kredensial dan data uji. */
     APP_ENV: z.enum(['development', 'demo', 'production']).default('development'),
+    /** Kata sandi statis untuk /prototype; kosong = hanya superadmin/operator. */
+    PROTOTYPE_PASSWORD: z.string().optional(),
     /** Email yang otomatis mendapat role admin setelah login SSO. */
     SUPERADMIN_EMAILS: z
       .string()
@@ -91,6 +93,7 @@ export const env = createEnv({
     AZURE_AD_CLIENT_SECRET: process.env.AZURE_AD_CLIENT_SECRET,
     AZURE_AD_TENANT_ID: process.env.AZURE_AD_TENANT_ID,
     APP_ENV: process.env.APP_ENV,
+    PROTOTYPE_PASSWORD: process.env.PROTOTYPE_PASSWORD,
     SUPERADMIN_EMAILS: process.env.SUPERADMIN_EMAILS,
     DEMO_PASSWORD_HASH: process.env.DEMO_PASSWORD_HASH,
     ADMIN_HOST: process.env.ADMIN_HOST,

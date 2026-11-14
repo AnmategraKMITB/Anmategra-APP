@@ -11,12 +11,15 @@ export const ADMIN_PERMISSIONS = [
   'lembaga.write',
   'lembaga.events',
   'lembaga.organization',
+  'lembaga.forms',
+  'lembaga.oprec',
   'lembaga.members',
   'access.read',
   'access.write',
   'audit.read',
   'reports.read',
   'reports.write',
+  'alumni.write',
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];
@@ -45,6 +48,8 @@ export const ADMIN_PERMISSION_GROUPS: AdminPermissionGroup[] = [
       { value: 'lembaga.write', label: 'Ubah profil lembaga' },
       { value: 'lembaga.events', label: 'Kelola kegiatan/kepengurusan' },
       { value: 'lembaga.organization', label: 'Kelola organogram' },
+      { value: 'lembaga.forms', label: 'Kelola forms' },
+      { value: 'lembaga.oprec', label: 'Kelola oprec' },
       { value: 'lembaga.members', label: 'Kelola anggota' },
     ],
   },
@@ -68,6 +73,11 @@ export const ADMIN_PERMISSION_GROUPS: AdminPermissionGroup[] = [
       { value: 'reports.read', label: 'Lihat laporan' },
       { value: 'reports.write', label: 'Ubah laporan' },
     ],
+  },
+  {
+    id: 'alumni',
+    label: 'Alumni',
+    permissions: [{ value: 'alumni.write', label: 'Impor data alumni' }],
   },
 ];
 

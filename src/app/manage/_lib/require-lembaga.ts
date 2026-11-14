@@ -1,10 +1,13 @@
 import { notFound } from 'next/navigation';
-import { canManageLembaga } from '~/server/api/access';
+import { type GrantFeature, canManageLembaga } from '~/server/api/access';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 
 /** Guard halaman /manage/[lembagaId]/...: 404 bila bukan pengelola. */
-export async function requireManagedLembaga(lembagaId: string) {
+export async function requireManagedLembaga(
+  lembagaId: string,
+  feature: GrantFeature = 'admin',
+) {
   const session = await getServerAuthSession();
   if (!session) notFound();
   const { user } = session;
@@ -14,6 +17,7 @@ export async function requireManagedLembaga(lembagaId: string) {
     user.role,
     user.lembagaId,
     lembagaId,
+    feature,
   );
   if (!access) notFound();
   return { session, access };

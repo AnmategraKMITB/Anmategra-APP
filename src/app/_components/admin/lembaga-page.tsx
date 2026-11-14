@@ -4,12 +4,14 @@ import { type ColumnDef, type SortingState } from '@tanstack/react-table';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
+import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
 import { AdminDataTable } from './admin-data-table';
 import { AdminEntitySearch } from './admin-entity-search';
 import { AdminPageHeader } from './admin-page-header';
+import { LembagaCreateForm } from './lembaga-create-form';
 
 const PAGE_SIZE = 25;
 const TYPES = [
@@ -48,6 +50,10 @@ export function LembagaPage() {
     permissions.data?.permissions.includes('*') ??
     permissions.data?.permissions.includes('lembaga.read') ??
     false;
+  const canCreate =
+    permissions.data?.permissions.includes('*') === true ||
+    permissions.data?.permissions.includes('lembaga.write') === true;
+  const [openCreate, setOpenCreate] = useState(false);
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
   const [page, setPage] = useState(1);
@@ -137,7 +143,15 @@ export function LembagaPage() {
       <AdminPageHeader
         title="Lembaga"
         description="Cari, urutkan, dan kelola profil lembaga, kegiatan, kepengurusan, dan organogram."
+        actions={
+          canCreate ? (
+            <Button type="button" onClick={() => setOpenCreate((value) => !value)}>
+              {openCreate ? 'Tutup form' : 'Tambah lembaga'}
+            </Button>
+          ) : undefined
+        }
       />
+      {canCreate && openCreate ? <LembagaCreateForm /> : null}
 
       <div className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">

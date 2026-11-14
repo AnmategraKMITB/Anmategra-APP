@@ -19,6 +19,7 @@ import {
   readCondition,
   validateConditions,
 } from '~/lib/forms/conditions';
+import { isWithinDeadline } from '~/lib/forms/grace';
 import { type createTRPCContext } from '~/server/api/trpc';
 import {
   type FormFieldType,
@@ -128,12 +129,9 @@ export function toFormOutput(row: FormRow): FormOutput {
   };
 }
 
-/** Published and not past its deadline. Quota is checked separately. */
+/** Published and not past its deadline plus grace. Quota is checked separately. */
 export function isAcceptingResponses(row: FormRow, now = new Date()): boolean {
-  return (
-    row.status === 'Published' &&
-    (row.closesAt === null || row.closesAt.getTime() > now.getTime())
-  );
+  return row.status === 'Published' && isWithinDeadline(row.closesAt, now);
 }
 
 /** Kuota respons sudah terpakai habis. */

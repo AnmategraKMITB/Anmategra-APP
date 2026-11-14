@@ -425,13 +425,15 @@ export default function EventList({
 
             {isLoading && (
               <div className="p-4 text-center text-gray-500">
-                Loading activities...
+                Memuat kegiatan…
               </div>
             )}
 
             {!isLoading && activities.length === 0 && (
               <div className="p-8 text-center text-gray-500">
-                Aktivitas tidak ditemukan
+                {searchQuery.trim() !== '' || selectedFilters.length > 0
+                  ? 'Tidak ada kegiatan yang cocok dengan pencarian atau filter.'
+                  : 'Belum ada kegiatan pada periode ini.'}
               </div>
             )}
           </div>

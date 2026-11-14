@@ -2,12 +2,8 @@ import { TRPCError } from '@trpc/server';
 import { eq, ilike, inArray } from 'drizzle-orm';
 import { and, desc, or } from 'drizzle-orm';
 import { z } from 'zod';
-import { adminPermissionProcedure, adminProcedure, createTRPCRouter } from '~/server/api/trpc';
+import { adminPermissionProcedure, createTRPCRouter } from '~/server/api/trpc';
 import {
-  AddVerifiedEmailInputSchema,
-  AddVerifiedEmailOutputSchema,
-  DeleteVerifiedEmailInputSchema,
-  DeleteVerifiedEmailOutputSchema,
   GetAllReportsAdminInputSchema,
   GetAllReportsAdminOutputSchema,
   SetReportStatusInputSchema,
@@ -15,52 +11,10 @@ import {
   UploadAlumniCsvInputSchema,
   UploadAlumniCsvOutputSchema,
 } from '~/server/api/types/admin.type';
-import {
-  alumniPending,
-  mahasiswa,
-  users,
-  verifiedUsers,
-} from '~/server/db/schema';
+import { adminAudit, alumniPending, mahasiswa } from '~/server/db/schema';
 import { support } from '~/server/db/schema';
 
 export const adminRouter = createTRPCRouter({
-  addVerifiedEmail: adminProcedure
-    .input(AddVerifiedEmailInputSchema)
-    .output(AddVerifiedEmailOutputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const user = await ctx.db
-        .insert(verifiedUsers)
-        .values({
-          email: input.email,
-        })
-        .returning();
-      return user;
-    }),
-
-  deleteVerifiedEmail: adminProcedure
-    .input(DeleteVerifiedEmailInputSchema)
-    .output(DeleteVerifiedEmailOutputSchema)
-    .mutation(async ({ ctx, input }) => {
-      const verified_user = await ctx.db.query.verifiedUsers.findFirst({
-        where: eq(verifiedUsers.email, input.email),
-      });
-      let userVer;
-      if (verified_user) {
-        userVer = await ctx.db
-          .delete(verifiedUsers)
-          .where(eq(verifiedUsers.email, input.email))
-          .returning();
-      }
-      const user = await ctx.db.query.users.findFirst({
-        where: eq(users.email, input.email),
-      });
-      if (user) {
-        await ctx.db.delete(users).where(eq(users.email, input.email));
-        return user;
-      }
-      return userVer;
-    }),
-
   getAllReportsAdmin: adminPermissionProcedure('reports.read')
     .input(GetAllReportsAdminInputSchema)
     .output(GetAllReportsAdminOutputSchema)
@@ -151,7 +105,7 @@ export const adminRouter = createTRPCRouter({
   // H-03: upload CSV wisuda. NIM yang match akun terdaftar langsung jadi
   // alumni; NIM yang belum terdaftar disimpan sebagai pending dan otomatis
   // diterapkan saat mahasiswa itu sign-in pertama kali (lihat auth.ts).
-  uploadAlumniCsv: adminProcedure
+  uploadAlumniCsv: adminPermissionProcedure('alumni.write')
     .input(UploadAlumniCsvInputSchema)
     .output(UploadAlumniCsvOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -185,6 +139,20 @@ export const adminRouter = createTRPCRouter({
             },
           });
       }
+
+      await ctx.db.insert(adminAudit).values({
+        actorId: ctx.session.user.id,
+        action: 'alumni_import',
+        entityType: 'mahasiswa',
+        entityId: null,
+        summary: `Impor alumni${input.wisudaBatch ? ` ${input.wisudaBatch}` : ''}: ${registeredNims.size} diperbarui, ${pendingNims.length} menunggu`,
+        metadata: {
+          total: input.nims.length,
+          updated: registeredNims.size,
+          pending: pendingNims.length,
+          wisudaBatch: input.wisudaBatch ?? null,
+        },
+      });
 
       return {
         success: true,

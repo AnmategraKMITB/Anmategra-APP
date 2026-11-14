@@ -19,8 +19,8 @@ export const PRESETS: Preset[] = [
     patch: {
       useWaves: true,
       waves: [
-        { label: 'Gelombang 1', startsAt: '', endsAt: '' },
-        { label: 'Gelombang 2', startsAt: '', endsAt: '' },
+        { label: '1', startsAt: '', endsAt: '' },
+        { label: '2', startsAt: '', endsAt: '' },
       ],
       minChoices: 1,
       maxChoices: 3,

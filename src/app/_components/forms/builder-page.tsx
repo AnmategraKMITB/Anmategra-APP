@@ -22,15 +22,13 @@ export async function BuilderPage({
     : basePath === '/lembaga'
       ? '/lembaga/forms'
       : basePath === '/manage'
-        ? '/manage'
+        ? `/manage/${owner.id}/forms`
         : '/mahasiswa';
   const backLabel = isEvent
     ? 'Form kegiatan'
-    : basePath === '/lembaga'
+    : basePath === '/lembaga' || basePath === '/manage'
       ? 'Semua form'
-      : basePath === '/manage'
-        ? 'Kelola'
-        : 'Beranda';
+      : 'Beranda';
 
   return (
     <FormBuilder

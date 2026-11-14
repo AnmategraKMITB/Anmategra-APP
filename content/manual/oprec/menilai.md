@@ -41,6 +41,11 @@ dibagikan pengelola oprec.
 Skor tersimpan otomatis. Tanda **Tersimpan** muncul setelah perubahan terakhir
 berhasil disimpan.
 
+> [!NOTE]
+> Berkas baru bisa dinilai setelah gelombangnya berakhir atau pendaftaran
+> ditutup, kecuali pengelola menyalakan penilaian lebih awal. Lihat
+> [Kapan berkas bisa dinilai](/manual/oprec/pengaturan#kapan-berkas-bisa-dinilai).
+
 ## Menilai lewat sheet
 
 Pilih tampilan **Sheet** untuk melihat semua pendaftar dan semua kriteria dalam
@@ -50,7 +55,8 @@ dengan cepat setelah wawancara.
 ## Bagaimana status dihitung
 
 Skor tiap kriteria dikalikan bobotnya, lalu dijumlahkan menjadi nilai 0–100.
-Status mengikuti **metode status** yang dipilih saat setup:
+Status mengikuti **metode status** yang dipilih saat setup dan bisa diubah di
+[Pengaturan](/manual/oprec/pengaturan):
 
 - **Peringkat dalam kuota** — yang teratas sebanyak kuota lolos.
 - **Peringkat dalam kuota dengan nilai minimum** — yang teratas sebanyak kuota

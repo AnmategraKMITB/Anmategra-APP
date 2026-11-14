@@ -1,9 +1,10 @@
 'use client';
 
 import { Plus, Trash2, X } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useContext, useState } from 'react';
 import { Button } from '~/components/ui/button';
 
+import { WEIGHT_MAX, clampWeight } from './helpers';
 import {
   EyeArt,
   InboxArt,
@@ -11,18 +12,18 @@ import {
   ScoreArt,
   SectionsArt,
 } from './illustrations';
-import { type CriterionDraft, type WizardState } from './model';
+import { type CriterionDraft, type WizardState, criteriaSlots } from './model';
 import { type StepProps } from './steps-types';
 import {
+  CompactSteps,
   Labeled,
-  LaterNote,
   type Option,
   OptionCards,
   StepFrame,
   fieldClass,
 } from './ui';
 
-/** Satu layar pilihan tunggal dengan catatan "berlaku di fase berikutnya". */
+/** Satu layar pilihan tunggal. */
 function Choice<T extends string>({
   title,
   hint,
@@ -31,7 +32,6 @@ function Choice<T extends string>({
   value,
   options,
   onChange,
-  later = true,
   children,
 }: {
   title: string;
@@ -41,7 +41,6 @@ function Choice<T extends string>({
   value: T;
   options: Option<T>[];
   onChange: (v: T) => void;
-  later?: boolean;
   children?: ReactNode;
 }) {
   return (
@@ -53,7 +52,6 @@ function Choice<T extends string>({
         onChange={onChange}
       />
       {children}
-      {later ? <LaterNote /> : null}
     </StepFrame>
   );
 }
@@ -116,10 +114,11 @@ export function StepKeputusan({ s, update }: StepProps) {
 }
 
 export function StepMetode({ s, update }: StepProps) {
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Status otomatis ditentukan dengan cara apa?"
-      hint="Bisa diubah lagi di pengaturan oprec."
+      hint={inSettings ? undefined : 'Bisa diubah lagi di pengaturan oprec.'}
       art={<ScoreArt />}
       label="Metode status"
       value={s.statusMethod}
@@ -129,12 +128,13 @@ export function StepMetode({ s, update }: StepProps) {
           value: 'peringkat_kuota_minimum',
           label: 'Peringkat dalam kuota dengan nilai minimum',
           description:
-            'Yang teratas sebanyak kuota dan tidak di bawah nilai minimum lolos.',
+            'Yang teratas sebanyak kuota dan tidak di bawah nilai minimum lolos. Divisi berkuota 0 berarti tanpa batas: semua kandidat yang tidak di bawah nilai minimum lolos.',
         },
         {
           value: 'peringkat_kuota',
           label: 'Peringkat dalam kuota',
-          description: 'Yang teratas sebanyak kuota lolos.',
+          description:
+            'Yang teratas sebanyak kuota lolos. Divisi berkuota 0 berarti tanpa batas: semua kandidat yang tidak gugur lolos tanpa penyaringan.',
         },
         {
           value: 'ambang',
@@ -148,10 +148,15 @@ export function StepMetode({ s, update }: StepProps) {
 
 export function StepSumberNilai({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Nilai mana yang dipakai untuk status?"
-      hint="Bobot gabungan diatur di langkah kriteria dan ikatan, nanti."
+      hint={
+        inSettings
+          ? undefined
+          : 'Bobot gabungan diatur di langkah kriteria dan ikatan, nanti.'
+      }
       art={<ScoreArt />}
       label="Sumber nilai"
       value={s.scoreSource}
@@ -217,16 +222,16 @@ export function StepPenilaiUmum({ s, update, trees, c }: StepProps) {
           )}
         </Labeled>
       </div>
-      <LaterNote />
     </StepFrame>
   );
 }
 
 export function StepGugur({ s, update }: StepProps) {
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Ada syarat gugur?"
-      hint="Contoh: “bersedia = Tidak” gugur otomatis, atau twibbon diperiksa penilai. Kriteria gugur diikat ke pertanyaan di langkah ikatan."
+      hint="Contoh: twibbon diperiksa penilai, dan yang tidak memenuhi dinyatakan gugur secara manual."
       art={<ScoreArt />}
       label="Syarat gugur"
       value={s.hasGugur ? 'ya' : 'tidak'}
@@ -236,7 +241,9 @@ export function StepGugur({ s, update }: StepProps) {
         {
           value: 'ya',
           label: 'Ya',
-          description: 'Tambahkan kriteria jenis gugur di langkah kriteria.',
+          description: inSettings
+            ? 'Kriteria jenis gugur manual ditambahkan di panel Penilaian formulir.'
+            : 'Tambahkan kriteria jenis gugur manual di langkah kriteria.',
         },
       ]}
     />
@@ -270,12 +277,10 @@ export function StepVeto({ s, update, c }: StepProps) {
 
 export function StepKriteria({ s, update, trees, c }: StepProps) {
   const unitName = c.unitName;
-  const slots: { key: string; label: string }[] = [
-    ...(s.rubrics !== 'divisi' ? [{ key: 'umum', label: 'Umum' }] : []),
-    ...(s.rubrics !== 'umum'
-      ? Object.keys(s.divisions).map((id) => ({ key: id, label: unitName(id) }))
-      : []),
-  ];
+  const slots = criteriaSlots(s).map((key) => ({
+    key,
+    label: key === 'umum' ? 'Umum' : unitName(key),
+  }));
   void trees;
   const setSlot = (key: string, list: CriterionDraft[]) =>
     update({ criteria: { ...s.criteria, [key]: list } });
@@ -295,7 +300,6 @@ export function StepKriteria({ s, update, trees, c }: StepProps) {
           />
         ))}
       </div>
-      <LaterNote />
     </StepFrame>
   );
 }
@@ -355,7 +359,6 @@ function Slot({
                 }
               >
                 <option value="skor">Skor</option>
-                <option value="gugur_otomatis">Gugur otomatis</option>
                 <option value="gugur_manual">Gugur manual</option>
               </select>
               <input
@@ -363,11 +366,14 @@ function Slot({
                 type="number"
                 min={0}
                 max={100}
+                step={1}
                 className={fieldClass}
                 disabled={k.kind !== 'skor'}
                 value={k.kind === 'skor' ? k.weight : ''}
                 placeholder="Bobot"
-                onChange={(e) => set(i, { weight: Number(e.target.value) })}
+                onChange={(e) =>
+                  set(i, { weight: clampWeight(e.target.value) })
+                }
               />
               <Button
                 type="button"
@@ -382,6 +388,11 @@ function Slot({
           ))}
         </ul>
       )}
+      {list.some((k) => k.kind === 'skor' && k.weight >= WEIGHT_MAX) ? (
+        <p className="mt-2 text-sm text-neutral-700">
+          Bobot tiap kriteria 0 sampai {WEIGHT_MAX} (persen, bilangan bulat).
+        </p>
+      ) : null}
       {hasScore && total !== 100 ? (
         <p className="mt-2 text-sm text-neutral-700">
           Total bobot {total}%. Idealnya 100%, tetapi tidak menghalangi.
@@ -423,13 +434,14 @@ export function StepAkses({ s, update, trees, c }: StepProps) {
           {
             value: 'level',
             label: `Saya dan ${l2} tertentu`,
-            description:
-              'Tersimpan sebagai jawaban; akses per bagian aktif di fase berikutnya.',
+            disabled: true,
+            description: 'Belum tersedia; dibuka di fase berikutnya.',
           },
           {
             value: 'ketua',
             label: `Hanya ketua ${l2}`,
-            description: 'Tersimpan sebagai jawaban; aktif di fase berikutnya.',
+            disabled: true,
+            description: 'Belum tersedia; dibuka di fase berikutnya.',
           },
         ]}
       />
@@ -530,6 +542,7 @@ export function StepTahap({ s, update, c }: StepProps) {
 
 export function StepVisibilitas({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title={`${c.labels[1]} boleh melihat pendaftar yang sudah diterima ${l2} lain?`}
@@ -543,7 +556,9 @@ export function StepVisibilitas({ s, update, c }: StepProps) {
         {
           value: 'ya',
           label: 'Ya untuk semua',
-          description: 'Pengecualian per bagian bisa diatur nanti.',
+          description: inSettings
+            ? 'Pengecualian per bagian diatur di tab Penempatan.'
+            : 'Pengecualian per bagian bisa diatur nanti.',
         },
       ]}
     />

@@ -1,6 +1,13 @@
 'use client';
 
-import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  ChevronUp,
+  Trash2,
+} from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 
@@ -10,6 +17,11 @@ import { ConditionEditor } from './condition-editor';
 import { FieldCard } from './field-card';
 import { type ContentGroup, conditionSources } from './model';
 import { SectionBindingEditor } from './section-binding';
+
+/** Di atas jumlah pertanyaan ini, bagian di editor dilipat kecuali yang pertama. */
+const LARGE_FORM_FIELDS = 40;
+/** Dikirim panel "Halaman" agar bagian yang memuat pertanyaan tujuan membuka dirinya. */
+export const REVEAL_FIELD_EVENT = 'form-builder:reveal-field';
 
 /**
  * Satu bagian beserta pertanyaannya. Grup tanpa bagian (`section: null`)
@@ -30,6 +42,23 @@ export function SectionCard({
   const builder = useBuilder();
   const { section, fields } = group;
   const sections = builder.detail?.sections ?? [];
+
+  // Form besar (mis. oprec dengan puluhan divisi) merender ratusan kartu sekaligus dan terasa lag
+  // setiap kali ada perubahan. Di atas ambang ini hanya bagian pertama yang terbuka dari awal.
+  const totalFields = builder.groups.reduce((n, g) => n + g.fields.length, 0);
+  const large = totalFields > LARGE_FORM_FIELDS;
+  const [open, setOpen] = useState(!large || position <= 0);
+  const folded = large && !open;
+
+  // Panel "Halaman" membuka bagian yang memuat pertanyaan tujuan sebelum melompat ke sana.
+  useEffect(() => {
+    const onReveal = (e: Event) => {
+      const fieldId = (e as CustomEvent<string>).detail;
+      if (fields.some((f) => f.id === fieldId)) setOpen(true);
+    };
+    window.addEventListener(REVEAL_FIELD_EVENT, onReveal);
+    return () => window.removeEventListener(REVEAL_FIELD_EVENT, onReveal);
+  }, [fields]);
 
   const moveSection = (delta: number) => {
     const ids = sections.map((s) => s.id);
@@ -131,6 +160,16 @@ export function SectionCard({
           </div>
       </div>
 
+      {folded ? (
+        <Button
+          variant="dark_blue_outline"
+          aria-expanded={false}
+          onClick={() => setOpen(true)}
+        >
+          <ChevronDown /> Tampilkan {fields.length} pertanyaan
+        </Button>
+      ) : (
+        <>
       <div className="grid gap-4">
         {fields.length === 0 ? (
           <p className="rounded-xl border border-dashed border-neutral-400 px-4 py-6 text-center text-sm text-neutral-700">
@@ -149,11 +188,22 @@ export function SectionCard({
         )}
       </div>
 
-      <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
         <AddMenu
           onSelect={(kind) => void builder.addField(kind, section.id)}
         />
+            {large ? (
+              <Button
+                variant="ghost"
+                aria-expanded
+                onClick={() => setOpen(false)}
+              >
+                <ChevronUp /> Ciutkan bagian
+              </Button>
+            ) : null}
       </div>
+        </>
+      )}
     </section>
   );
 }

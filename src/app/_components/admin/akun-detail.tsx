@@ -39,6 +39,7 @@ export function AkunDetail({ userId }: { userId: string }) {
   const canRoles = perms.includes('*') || perms.includes('accounts.roles');
 
   const [form, setForm] = useState<FormState | null>(null);
+  const [confirmEmail, setConfirmEmail] = useState('');
   const [membershipLembagaId, setMembershipLembagaId] = useState('');
   const [cohortYear, setCohortYear] = useState('');
   const [cohortLabel, setCohortLabel] = useState('');
@@ -71,6 +72,7 @@ export function AkunDetail({ userId }: { userId: string }) {
 
   const update = api.adminConsole.userUpdate.useMutation({
     onSuccess: () => {
+      setConfirmEmail('');
       void utils.adminConsole.userDetail.invalidate({ userId });
     },
   });
@@ -108,6 +110,7 @@ export function AkunDetail({ userId }: { userId: string }) {
         ? {
             email: form.email,
             role: form.role,
+            confirmEmail: confirmEmail || undefined,
             emailVerified: form.emailVerified,
           }
         : {}),
@@ -194,7 +197,7 @@ export function AkunDetail({ userId }: { userId: string }) {
               <Input
                 type="email"
                 value={form.email}
-                disabled={!canWrite || !canRoles}
+                disabled={!canWrite || !canRoles || data.user.role === 'admin'}
                 onChange={(event) => setForm({ ...form, email: event.target.value })}
               />
             </Field>
@@ -202,14 +205,28 @@ export function AkunDetail({ userId }: { userId: string }) {
               <select
                 className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
                 value={form.role}
-                disabled={!canWrite || !canRoles}
+                disabled={!canWrite || !canRoles || data.user.role === 'admin'}
                 onChange={(event) => setForm({ ...form, role: event.target.value as FormState['role'] })}
               >
                 <option value="mahasiswa">mahasiswa</option>
                 <option value="lembaga">lembaga</option>
-                <option value="admin">admin</option>
+                {data.user.role === 'admin' ? <option value="admin">admin</option> : null}
               </select>
             </Field>
+            {data.user.role === 'admin' ? (
+              <p className="sm:col-span-2 text-xs text-neutral-700">
+                Akun ini Superadmin. Email dan role-nya hanya dapat diubah lewat menu Superadmin.
+              </p>
+            ) : null}
+            {form.role !== data.user.role ? (
+              <Field label="Konfirmasi: ketik ulang email akun ini">
+                <Input
+                  value={confirmEmail}
+                  placeholder={data.user.email}
+                  onChange={(event) => setConfirmEmail(event.target.value)}
+                />
+              </Field>
+            ) : null}
             <div className="flex flex-wrap items-end gap-4 text-sm">
               <label className="flex items-center gap-2">
                 <input

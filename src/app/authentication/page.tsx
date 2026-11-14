@@ -13,13 +13,13 @@ import Microsoft from 'public/icons/microsoft-icon.webp'
 
 import { signIn } from "next-auth/react";
 import { DemoLoginForm } from "~/app/_components/auth/demo-login-form";
-import { isSafeFormsCallback } from "~/lib/forms-path";
+import { pickFormsCallback } from "~/lib/forms-path";
 
 // Tautan form yang dibuka sebelum login: kembali ke sana setelah masuk (hanya
 // jalur /forms/..., supaya tidak bisa dipakai sebagai pengalihan terbuka).
 const signInTo = (provider: "azure-ad" | "google") => {
-  const callbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
-  return signIn(provider, isSafeFormsCallback(callbackUrl) ? { callbackUrl: callbackUrl! } : undefined);
+  const callbackUrl = pickFormsCallback(window.location.search);
+  return signIn(provider, callbackUrl ? { callbackUrl } : undefined);
 };
 
 const LogInPage = () => {
@@ -49,7 +49,7 @@ const LogInPage = () => {
             <DemoLoginForm />
           ) : (
             <>
-          <Button onClick={() => signIn("azure-ad")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
+          <Button onClick={() => signInTo("azure-ad")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
             <Image
               src={Microsoft}
               alt='Logo Microsoft'
@@ -61,7 +61,7 @@ const LogInPage = () => {
               Microsoft  |  @mahasiswa.itb.ac.id
             </span>
           </Button>
-          <Button onClick={() => signIn("google")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
+          <Button onClick={() => signInTo("google")} variant={"outline"} className='flex items-center justify-center gap-x-2 transition-all hover:gap-x-3 h-auto py-3 px-3 sm:px-4'>
             <Image 
               src={Google}
               alt='Logo Google'

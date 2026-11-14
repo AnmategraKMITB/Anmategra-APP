@@ -1,7 +1,7 @@
 'use client';
 
 import { Eye, Paperclip, X } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -19,9 +19,8 @@ import {
 import { FILE_PRESETS } from '~/server/api/types/form.constants';
 
 import { FilePreview } from './file-preview';
-import { useFormFileUpload } from './use-file-upload';
-
 import type { RendererField } from './form-validate';
+import { useFormFileUpload } from './use-file-upload';
 
 export type UploadContext = {
   /** Pratinjau: tombol unggah dinonaktifkan. */
@@ -39,8 +38,8 @@ const fmt = (bytes: number) =>
     : `${Math.max(1, Math.round(bytes / 1024))} KB`;
 
 /**
- * Jawaban berkas via UploadThing public-read. URL file dapat dibuka siapa pun
- * yang memilikinya; ini Opsi A yang disepakati untuk form.
+ * Jawaban berkas via UploadThing (public-read) atau Google Drive pengisi
+ * (aplikasi hanya menyimpan tautan; akses dibuka otomatis).
  */
 export function FileInput({
   field,
@@ -73,8 +72,42 @@ export function FileInput({
   const preset = FILE_PRESETS[c.preset ?? 'pdf'];
   const max = c.maxFiles ?? 1;
   const formId = upload?.formId;
-  const { upload: uploadFile, providerLabel, remove } = useFormFileUpload();
+  const {
+    upload: uploadFile,
+    providerId,
+    providerLabel,
+    remove,
+    needsConnect,
+    isConnected,
+    prepare,
+    connect,
+  } = useFormFileUpload();
   const configured = Boolean(formId);
+  const [connecting, setConnecting] = useState(false);
+  const [connected, setConnected] = useState(isConnected);
+
+  // Muat skrip Google sedini mungkin supaya popup izin bisa dibuka langsung
+  // dari klik tanpa menunggu unduhan skrip.
+  useEffect(() => {
+    prepare();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /** Dipanggil langsung dari klik: popup izin Google hanya lolos dari sini. */
+  const connectNow = () => {
+    setProblem(null);
+    setConnecting(true);
+    connect()
+      .then(() => setConnected(true))
+      .catch((error: unknown) =>
+        setProblem(
+          error instanceof Error
+            ? error.message
+            : 'Belum bisa terhubung ke Google Drive. Coba lagi.',
+        ),
+      )
+      .finally(() => setConnecting(false));
+  };
 
   const pick = async (list: FileList | null) => {
     const file = list?.[0];
@@ -121,6 +154,7 @@ export function FileInput({
       );
     } finally {
       setBusy(false);
+      setConnected(isConnected());
       if (input.current) input.current.value = '';
     }
   };
@@ -179,24 +213,39 @@ export function FileInput({
             tabIndex={-1}
             aria-hidden
             accept={preset.mimes.join(',')}
-            disabled={!upload?.enabled || !configured || busy}
+            disabled={!upload?.enabled || !configured || busy || connecting}
             onChange={(e) => void pick(e.target.files)}
           />
           <Button
             type="button"
             variant="dark_blue_outline"
-            disabled={!upload?.enabled || !configured || busy}
+            disabled={!upload?.enabled || !configured || busy || connecting}
             aria-invalid={invalid}
             aria-describedby={describedBy}
-            onClick={() => input.current?.click()}
+            onClick={() => {
+              // Google Drive: izin diminta di klik ini, bukan setelah berkas
+              // dipilih, karena browser HP memblokir popup dari `onChange`.
+              if (needsConnect && !isConnected()) return connectNow();
+              input.current?.click();
+            }}
           >
-            <Paperclip /> {busy ? 'Mengunggah…' : 'Pilih berkas'}
+            <Paperclip />{' '}
+            {connecting
+              ? 'Menghubungkan…'
+              : busy
+                ? 'Mengunggah…'
+                : needsConnect && !connected
+                  ? 'Hubungkan Google Drive'
+                  : 'Pilih berkas'}
           </Button>
         </div>
       ) : null}
       <p className="text-sm text-neutral-700">
         {preset.label}, maksimal {max} berkas, {c.maxSizeMb ?? 10} MB per
-        berkas. Berkas diunggah ke {providerLabel} dan tautannya bersifat publik.
+        berkas.{' '}
+        {providerId === 'google-drive'
+          ? 'Berkas yang kamu unggah di sini akan otomatis tersimpan di Google Drive dari akun yang kamu pilih, dengan akses “Siapa saja yang memiliki link” (Viewer).'
+          : `Berkas diunggah ke ${providerLabel}.`}
       </p>
       {!upload?.enabled ? (
         <p className="text-sm text-neutral-700">

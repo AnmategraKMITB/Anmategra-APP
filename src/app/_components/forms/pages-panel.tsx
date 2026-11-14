@@ -25,14 +25,23 @@ import { KindIcon } from './add-menu';
 import { useBuilder } from './builder-context';
 import { type ContentGroup, type FieldOut, containerId, kindOf } from './model';
 import { richTextToPlain } from './rich-text';
+import { REVEAL_FIELD_EVENT } from './section-card';
 
 const SECTION_PREFIX = 'section:';
 
 function jumpTo(fieldId: string) {
+  const go = () => {
   document
     .getElementById(`field-${fieldId}`)
     ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   document.getElementById(`label-${fieldId}`)?.focus({ preventScroll: true });
+  };
+  if (document.getElementById(`field-${fieldId}`)) return go();
+  // Bagian yang terlipat belum merender pertanyaannya: minta dibuka, lalu lompat setelah dirender.
+  window.dispatchEvent(
+    new CustomEvent<string>(REVEAL_FIELD_EVENT, { detail: fieldId }),
+  );
+  requestAnimationFrame(() => requestAnimationFrame(go));
 }
 
 function FieldItem({

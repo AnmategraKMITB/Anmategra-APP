@@ -19,6 +19,7 @@ import {
   type Draft,
   type EditorAction,
   MAX_DEPTH,
+  MAX_TIER,
   NODE_WIDTH_DEFAULT,
   NODE_WIDTH_MAX,
   NODE_WIDTH_MIN,
@@ -329,12 +330,19 @@ export function Inspector(props: InspectorProps): JSX.Element {
                 <div className="space-y-1">
                   <Label htmlFor={`unit-${unit.id}-tier`}>Tier</Label>
                   <Select
-                    value={unit.layout.tier ?? 'depth'}
+                    value={
+                      unit.layout.tier === undefined
+                        ? 'depth'
+                        : String(unit.layout.tier)
+                    }
                     onValueChange={(value) =>
                       dispatch({
                         type: 'setUnitLayout',
                         id: unit.id,
-                        patch: { tier: value as 'depth' | 'manual' },
+                        patch: {
+                          tier:
+                            value === 'depth' ? undefined : Number(value),
+                        },
                       })
                     }
                     disabled={!unitEditable}
@@ -346,8 +354,16 @@ export function Inspector(props: InspectorProps): JSX.Element {
                       <SelectValue placeholder="Pilih tier" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="depth">Ikut kedalaman</SelectItem>
-                      <SelectItem value="manual">Atur sendiri</SelectItem>
+                      <SelectItem value="depth">
+                        Ikut kedalaman ({unitDepth})
+                      </SelectItem>
+                      {Array.from({ length: MAX_TIER }, (_, index) => index + 1).map(
+                        (tier) => (
+                          <SelectItem key={tier} value={String(tier)}>
+                            Tier {tier}
+                          </SelectItem>
+                        ),
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -375,6 +391,124 @@ export function Inspector(props: InspectorProps): JSX.Element {
                     <SelectContent>
                       <SelectItem value="hanging">Menggantung</SelectItem>
                       <SelectItem value="side">Berjajar</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1">
+                  <Label htmlFor={`unit-${unit.id}-label`}>
+                    Jenis unit di depan nama
+                  </Label>
+                  <Select
+                    value={
+                      unit.layout.showLabel === undefined
+                        ? 'inherit'
+                        : String(unit.layout.showLabel)
+                    }
+                    onValueChange={(value) =>
+                      dispatch({
+                        type: 'setUnitLayout',
+                        id: unit.id,
+                        patch: {
+                          showLabel:
+                            value === 'inherit' ? undefined : value === 'true',
+                        },
+                      })
+                    }
+                    disabled={!unitEditable}
+                  >
+                    <SelectTrigger
+                      id={`unit-${unit.id}-label`}
+                      className="rounded-[8px] border-neutral-400"
+                    >
+                      <SelectValue placeholder="Ikut sakelar bagan" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="inherit">
+                        Ikut sakelar bagan
+                      </SelectItem>
+                      <SelectItem value="true">Tulis jenisnya</SelectItem>
+                      <SelectItem value="false">Jangan tulis</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {(unit.layout.childrenMode ?? 'hanging') === 'side' ? (
+                  <div className="space-y-1">
+                    <Label htmlFor={`unit-${unit.id}-even`}>
+                      Tinggi kotak anak
+                    </Label>
+                    <Select
+                      value={
+                        unit.layout.evenRows === undefined
+                          ? 'inherit'
+                          : String(unit.layout.evenRows)
+                      }
+                      onValueChange={(value) =>
+                        dispatch({
+                          type: 'setUnitLayout',
+                          id: unit.id,
+                          patch: {
+                            evenRows:
+                              value === 'inherit'
+                                ? undefined
+                                : value === 'true',
+                          },
+                        })
+                      }
+                      disabled={!unitEditable}
+                    >
+                      <SelectTrigger
+                        id={`unit-${unit.id}-even`}
+                        className="rounded-[8px] border-neutral-400"
+                      >
+                        <SelectValue placeholder="Ikut sakelar bagan" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="inherit">
+                          Ikut sakelar bagan
+                        </SelectItem>
+                        <SelectItem value="true">
+                          Selalu samakan
+                        </SelectItem>
+                        <SelectItem value="false">
+                          Ikuti isinya
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : null}
+                <div className="space-y-1">
+                  <Label htmlFor={`unit-${unit.id}-side`}>
+                    Posisi terhadap sumbu
+                  </Label>
+                  <Select
+                    value={unit.layout.side ?? 'auto'}
+                    onValueChange={(value) =>
+                      dispatch({
+                        type: 'setUnitLayout',
+                        id: unit.id,
+                        patch: {
+                          side:
+                            value === 'auto'
+                              ? undefined
+                              : (value as 'left' | 'right' | 'center'),
+                        },
+                      })
+                    }
+                    disabled={!unitEditable}
+                  >
+                    <SelectTrigger
+                      id={`unit-${unit.id}-side`}
+                      className="rounded-[8px] border-neutral-400"
+                    >
+                      <SelectValue placeholder="Otomatis" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">
+                        Otomatis — kiri dan kanan bergantian
+                      </SelectItem>
+                      <SelectItem value="left">Kiri sumbu</SelectItem>
+                      <SelectItem value="right">Kanan sumbu</SelectItem>
+                      <SelectItem value="center">Tengah sumbu</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

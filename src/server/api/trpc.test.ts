@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+
+vi.mock('~/env', () => ({ env: { SUPERADMIN_EMAILS: [] } }));
 
 import {
   adminProcedure,
@@ -17,6 +19,15 @@ const router = createTRPCRouter({
 type Role = 'mahasiswa' | 'lembaga' | 'admin';
 type Anyone = Role | 'anonim';
 
+// adminProcedure membaca peran dari basis data lewat satu query berantai.
+function fakeDb(role: Anyone) {
+  const rows = role === 'anonim' ? [] : [{ role, email: 'u@x.id', permissions: null, expiresAt: null }];
+  const chain: Record<string, unknown> = {};
+  for (const name of ['select', 'from', 'leftJoin', 'where']) chain[name] = () => chain;
+  chain.limit = () => Promise.resolve(rows);
+  return chain;
+}
+
 function callerFor(role: Anyone) {
   const session =
     role === 'anonim'
@@ -24,7 +35,7 @@ function callerFor(role: Anyone) {
       : { user: { id: 'u1', role, lembagaId: 'l1' }, expires: '' };
   // Guard hanya membaca `ctx.session`; basis data tidak tersentuh.
   return createCallerFactory(router)({
-    db: {},
+    db: fakeDb(role),
     session,
     headers: new Headers(),
   } as never);

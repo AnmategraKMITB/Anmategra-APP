@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { computeVisibility, pickEnding } from '~/lib/forms/conditions';
@@ -246,6 +246,15 @@ export function FormRenderer({
 
   const dirty = Object.keys(answers).length > 0 && !done;
 
+  // Pindah halaman: gulir ke atas form (M-13), kecuali pada render pertama.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const shownPage = useRef(0);
+  useEffect(() => {
+    if (shownPage.current === pageIndex) return;
+    shownPage.current = pageIndex;
+    rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [pageIndex]);
+
   useEffect(() => {
     if (draftKey && !done) writeDraft(draftKey, answers);
   }, [draftKey, answers, done]);
@@ -436,8 +445,9 @@ export function FormRenderer({
 
   return (
     <div
+      ref={rootRef}
       style={style}
-      className="overflow-hidden rounded-[24px] border border-neutral-400 p-5 sm:p-8"
+      className="scroll-mt-4 overflow-hidden rounded-[24px] border border-neutral-400 p-5 sm:p-8"
     >
       <Decor
         url={form.theme.banner}
@@ -584,15 +594,14 @@ export function FormRenderer({
                       );
                   }}
                 />
-                {error ? (
-                  <p
-                    id={`err-${field.id}`}
-                    role="alert"
-                    className="text-sm text-danger-dark"
-                  >
-                    {error}
-                  </p>
-                ) : null}
+                {/* Ruang pesan galat dipesan agar tata letak tidak bergeser saat pesan hilang (M-13). */}
+                <p
+                  id={`err-${field.id}`}
+                  role={error ? 'alert' : undefined}
+                  className="min-h-5 text-sm text-danger-dark"
+                >
+                  {error}
+                </p>
               </div>
             );
           })}
@@ -619,11 +628,12 @@ export function FormRenderer({
         </div>
       ) : null}
 
-      {formError ? (
-        <p role="alert" className="mt-6 text-sm text-danger-dark">
-          {formError}
-        </p>
-      ) : null}
+      <p
+        role={formError ? 'alert' : undefined}
+        className="mt-6 min-h-5 text-sm text-danger-dark"
+      >
+        {formError}
+      </p>
 
       <div className="mt-8 flex flex-wrap justify-between gap-3">
         <Button

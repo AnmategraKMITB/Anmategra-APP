@@ -106,6 +106,9 @@ export const ourFileRouter = {
         maxFileCount: 5,
       },
       'application/zip': { maxFileSize: '16MB', maxFileCount: 5 },
+      'image/jpeg': { maxFileSize: '16MB', maxFileCount: 5 },
+      'image/png': { maxFileSize: '16MB', maxFileCount: 5 },
+      'image/webp': { maxFileSize: '16MB', maxFileCount: 5 },
     },
   )
     .input(z.object({ formId: z.string().min(1).max(255) }))

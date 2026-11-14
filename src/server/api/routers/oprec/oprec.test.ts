@@ -153,10 +153,12 @@ describe('pendaftaran lewat form oprec', () => {
 
   it('oprec draf menolak pendaftaran walau formnya sudah terbit (H-01)', async () => {
     const fx = await createOprecFixture(db, { open: false });
-    await callerFor(db, fx.owner).form.setStatus({
-      formId: fx.formId,
-      status: 'Published',
-    });
+    // Sejak #395 menerbitkan form ikut membuka oprec, jadi keadaan tidak
+    // sinkron (data lama) dibuat langsung di basis data.
+    await db
+      .update(schema.form)
+      .set({ status: 'Published', publishedAt: new Date() })
+      .where(eq(schema.form.id, fx.formId));
 
     expect(await codeOf(applyToOprec(db, fx, ['Acara']))).toBe('FORBIDDEN');
     expect(
@@ -310,9 +312,24 @@ describe('decide', () => {
     });
   });
 
-  it.todo(
-    'veto "tidak": Kadiv tetap menilai tetapi tidak bisa memutuskan (PR 4)',
-  );
+  it('veto "tidak": Kadiv tidak bisa memutuskan, admin tetap bisa (S16)', async () => {
+    const fx = await createOprecFixture(db, {
+      settings: { headDecides: false },
+    });
+    const a = await applyToOprec(db, fx, ['Acara']);
+    const [first] = await choicesOf(db, a.applicationId);
+    const args = {
+      recruitmentId: fx.recruitmentId,
+      choiceId: first!.id,
+      decision: 'terima' as const,
+    };
+    expect(
+      await codeOf(callerFor(db, fx.divisions.Acara!.kadiv).oprec.decide(args)),
+    ).toBe('FORBIDDEN');
+    await expect(
+      callerFor(db, fx.owner).oprec.decide(args),
+    ).resolves.toMatchObject({ success: true });
+  });
 });
 
 describe('penilaian', () => {
