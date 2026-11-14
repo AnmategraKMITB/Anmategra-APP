@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
 import type { GetPublicFormOutput } from '~/server/api/types/form.type';
-import { getServerAuthSession } from '~/server/auth';
+import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
 import { mahasiswa, recruitment } from '~/server/db/schema';
 import { api } from '~/trpc/server';
@@ -19,8 +19,11 @@ import { SubmittedFill } from './submitted-fill';
  * mengirim, atau terbuka.
  */
 export async function FillPage({ formId }: { formId: string }) {
-  const session = await getServerAuthSession();
-  if (!session) redirect(`/authentication?callbackUrl=/forms/${formId}`);
+  // Akses alternatif (klaim aktif) boleh mengisi form; tamu tanpa klaim tidak.
+  const session = await getServerAuthSessionWithAlt();
+  if (!session || session.user.alt === 'guest') {
+    redirect(`/authentication?callbackUrl=/forms/${formId}`);
+  }
 
   let form: GetPublicFormOutput;
   try {

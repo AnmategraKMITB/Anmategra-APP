@@ -386,6 +386,13 @@
       "when": 1794461938892,
       "tag": "0054_oprec_setup_draft",
       "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794640393997,
+      "tag": "0055_narrow_slapstick",
+      "breakpoints": true
     }
   ]
 }
