@@ -104,6 +104,9 @@ export function PlacementView({
   const isAdmin = overview.data?.isAdmin ?? false;
   const state = overview.data?.state ?? 'berjalan';
   const isFinal = state === 'final';
+  // Mode prioritas: selama berjalan, keputusan diisi lewat tab Prioritas.
+  const manualLocked =
+    overview.data?.method === 'prioritas' && state === 'berjalan';
 
   const decide = api.oprec.decide.useMutation();
   const [quotaDecide, setQuotaDecide] = useState<{
@@ -320,15 +323,28 @@ export function PlacementView({
                     );
                   })}
                 </nav>
-                <Button
-                  size="sm"
-                  variant="dark_blue_outline"
-                  disabled={isFinal}
-                  onClick={() => setAutofillOpen(true)}
-                >
-                  <Sparkles /> Isi dari penilaian
-                </Button>
+                {manualLocked ? null : (
+                  <Button
+                    size="sm"
+                    variant="dark_blue_outline"
+                    disabled={isFinal}
+                    onClick={() => setAutofillOpen(true)}
+                  >
+                    <Sparkles /> Isi dari penilaian
+                  </Button>
+                )}
               </div>
+
+              {manualLocked ? (
+                <div className="mt-4">
+                  <Notice>
+                    Oprec ini memakai penempatan prioritas. Selama penempatan
+                    berjalan, keputusan terima/tolak diisi otomatis dari daftar
+                    prioritas tiap divisi lewat tab Prioritas. Setelah masuk
+                    masa banding, banding dan pindah bisa dilakukan di sini.
+                  </Notice>
+                </div>
+              ) : null}
 
               <div className="mt-4 grid gap-2 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-3">
                 <div>
@@ -448,6 +464,7 @@ export function PlacementView({
                     }}
                     state={state}
                     isAdmin={isAdmin}
+                    manualLocked={manualLocked}
                     page={page}
                     onPage={(next) => setPageState({ key: filterKey, page: next })}
                     loading={rows.isFetching}

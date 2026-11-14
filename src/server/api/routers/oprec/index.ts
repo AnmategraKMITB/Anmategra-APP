@@ -40,6 +40,7 @@ import { assessorProcedures } from './assessors';
 import { criteriaProcedures } from './criteria';
 import { flagProcedures } from './flags';
 import { placementProcedures } from './placement';
+import { priorityProcedures } from './priority';
 import { recomputeDivisions } from './recompute';
 import { resultsProcedures } from './results';
 import {
@@ -79,6 +80,7 @@ export const oprecRouter = createTRPCRouter({
   ...flagProcedures,
   ...assessorProcedures,
   ...placementProcedures,
+  ...priorityProcedures,
   ...resultsProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)

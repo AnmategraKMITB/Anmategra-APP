@@ -10,6 +10,7 @@ import { type OprecBase, placementLockReason } from './status';
 const TABS = [
   ['pendaftar', 'Pendaftar'],
   ['nilai', 'Nilai'],
+  ['prioritas', 'Prioritas'],
   ['penempatan', 'Penempatan'],
   ['hasil', 'Hasil'],
   ['pengaturan', 'Pengaturan'],
@@ -41,17 +42,24 @@ export async function OprecTabs({
   /** Aksi pengelola (Formulir, Buka pendaftaran); hanya untuk pengelola oprec. */
   manage?: { formId: string; status: 'draft' | 'open' | 'closed' };
 }) {
+  const [row] = await db
+    .select({
+      status: recruitment.status,
+      placementMethod: recruitment.placementMethod,
+    })
+    .from(recruitment)
+    .where(eq(recruitment.id, recruitmentId));
+  // Prioritas: semua penyusun saat metodenya aktif; admin selalu (untuk
+  // menyalakannya).
+  const showPrioritas = row?.placementMethod === 'prioritas' || !!manage;
   const tabs = TABS.filter(
     ([id]) =>
       (id !== 'pendaftar' || showPendaftar) &&
       (id !== 'penempatan' || showPenempatan) &&
+      (id !== 'prioritas' || showPrioritas) &&
       (id !== 'hasil' || showHasil) &&
       (id !== 'pengaturan' || !!manage),
   );
-  const [row] = await db
-    .select({ status: recruitment.status })
-    .from(recruitment)
-    .where(eq(recruitment.id, recruitmentId));
   const [applicants] = await db
     .select({ n: count() })
     .from(application)

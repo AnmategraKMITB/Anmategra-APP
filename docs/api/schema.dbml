@@ -366,6 +366,22 @@ table anmategra_criterion_field {
   }
 }
 
+table anmategra_division_priority {
+  id varchar(255) [pk, not null]
+  division_id varchar(255) [not null]
+  application_id varchar(255) [not null]
+  rank integer
+  note text
+  updated_by varchar(255)
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    application_id [name: 'division_priority_application_idx']
+    (division_id, application_id) [name: 'division_priority_division_application_unique', unique]
+    (division_id, rank) [name: 'division_priority_division_rank_unique', unique]
+  }
+}
+
 table anmategra_lembaga_period {
   id varchar(255) [pk, not null]
   lembaga_id varchar(255)
@@ -875,6 +891,7 @@ table anmategra_recruitment {
   has_gugur boolean [not null, default: true]
   head_decides boolean [not null, default: true]
   staged_placement boolean [not null, default: true]
+  placement_method varchar(16) [not null, default: 'manual']
   results_access varchar(16) [not null, default: 'admin_ketua']
   closerec_enabled boolean [not null, default: true]
   eligibility_match varchar(8) [not null, default: 'all']
@@ -906,6 +923,9 @@ table anmategra_recruitment_division {
   position_id varchar(255) [not null]
   code varchar(50)
   sort_order integer [not null, default: 0]
+  priority_version integer [not null, default: 0]
+  priority_locked_at "timestamp with time zone"
+  priority_locked_by varchar(255)
 
   indexes {
     unit_id [name: 'recruitment_division_unit_idx']
