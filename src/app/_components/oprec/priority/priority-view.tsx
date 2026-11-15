@@ -1,6 +1,5 @@
 'use client';
 
-import { Lock } from 'lucide-react';
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
 import { Button } from '~/components/ui/button';
@@ -8,6 +7,7 @@ import { api } from '~/trpc/react';
 
 import { ErrorNote, Loading, Modal, Notice } from '../placement/shared';
 import { MatchingPanel } from './matching-panel';
+import { DivisionPicker } from './division-picker';
 import { PriorityBoard } from './priority-board';
 
 /** Layar Prioritas: daftar prioritas per divisi dan penempatan otomatis. */
@@ -172,35 +172,11 @@ export function PriorityView({
             </div>
           ) : (
             <>
-              <nav
-                aria-label="Divisi"
-                className="mt-6 flex flex-wrap gap-1"
-              >
-                {divisions.map((division) => {
-                  const selected = division.id === active.id;
-                  return (
-                    <button
-                      key={division.id}
-                      type="button"
-                      aria-pressed={selected}
-                      onClick={() => setPicked(division.id)}
-                      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
-                        selected
-                          ? 'bg-primary-200 text-primary-400'
-                          : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
-                      }`}
-                    >
-                      {division.lockedAt ? (
-                        <Lock aria-label="terkunci" className="size-3.5" />
-                      ) : null}
-                      {division.label}
-                      <span className="font-normal">
-                        {division.ranked}/{division.rankable}
-                      </span>
-                    </button>
-                  );
-                })}
-              </nav>
+              <DivisionPicker
+                divisions={divisions}
+                activeId={active.id}
+                onPick={setPicked}
+              />
               <PriorityBoard
                 key={active.id}
                 recruitmentId={recruitmentId}

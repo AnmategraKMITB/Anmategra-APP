@@ -11,12 +11,12 @@ import {
 import { Button } from '~/components/ui/button';
 import { type RouterOutputs, api } from '~/trpc/react';
 
+import { waveTitle } from '../status';
 import { AnswerList } from './answers';
 import { CriterionCard } from './criterion-card';
 import { FlagsBar } from './flags-bar';
 import { OverridePanel } from './override-panel';
 import { StatusBadge } from './status';
-import { waveTitle } from '../status';
 
 const PAGE_SIZE = 25;
 
@@ -569,7 +569,19 @@ export function BerkasView({
                 Jawaban
               </h3>
               <div className="mt-2">
-                <AnswerList columns={data.columns} answers={data.answers} />
+                <AnswerList
+                  columns={data.columns}
+                  answers={data.answers}
+                  linkedLabel={
+                    <>
+                      Untuk kriteria{' '}
+                      <span className="font-semibold text-neutral-1000">
+                        {activeCriterion?.name}
+                      </span>
+                    </>
+                  }
+                  linkedFieldIds={activeCriterion?.fieldIds}
+                />
               </div>
             </section>
           </div>

@@ -39,6 +39,7 @@ const TITLES: Record<StepId, (c: WizardCtx) => string> = {
   S15: () => 'Syarat gugur',
   S16: () => 'Keputusan akhir dan veto',
   S17: () => 'Pengelola oprec',
+  S18a: () => 'Metode penempatan',
   S18: () => 'Tahap penempatan',
   S19: () => 'Visibilitas antar tujuan',
   S20: () => 'Akses menu Hasil',
@@ -153,6 +154,10 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
           : 'Saya dan bagian tertentu',
         ketua: `Hanya ketua ${l2}`,
       }[s.managers];
+    case 'S18a':
+      return s.placementMethod === 'prioritas'
+        ? 'Prioritas per divisi'
+        : 'Manual';
     case 'S18':
       return s.staged ? 'Bertahap per pilihan' : 'Semua pilihan sekaligus';
     case 'S19':

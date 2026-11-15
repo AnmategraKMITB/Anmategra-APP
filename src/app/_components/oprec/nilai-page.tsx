@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { api } from '~/trpc/server';
 
 import { canOpenResults, loadAssessableOprec } from './access';
@@ -18,6 +18,12 @@ export async function NilaiPage({
 }) {
   const found = await loadAssessableOprec(recruitmentId);
   if (found?.recruitment.periodId !== kegiatanId) notFound();
+  // Metode prioritas menggantikan tab Nilai dengan Prioritas.
+  if (found.recruitment.placementMethod === 'prioritas') {
+    redirect(
+      `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/prioritas`,
+    );
+  }
   const showHasil = await canOpenResults(recruitmentId);
 
   const event = await api.event.getByID({ id: kegiatanId });

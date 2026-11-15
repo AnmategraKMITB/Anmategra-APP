@@ -20,10 +20,27 @@ import {
   Modal,
   inputClass,
 } from '../placement/shared';
+import { type FilterGroup, MultiFilter } from './multi-filter';
 
 type Overview = RouterOutputs['oprec']['priorityOverview'];
 type Preview = RouterOutputs['oprec']['matchingPreview'];
 type Step = Preview['rows'][number]['steps'][number];
+
+const NONE = '__none__';
+
+/** Divisi dikelompokkan per bidang untuk saringan bertingkat. */
+function groupDivisions(
+  divisions: { id: string; label: string; groupLabel: string | null }[],
+): FilterGroup[] {
+  const groups = new Map<string, FilterGroup>();
+  for (const d of divisions) {
+    const key = d.groupLabel ?? '';
+    const group = groups.get(key) ?? { label: d.groupLabel, options: [] };
+    group.options.push({ value: d.id, label: d.label });
+    groups.set(key, group);
+  }
+  return [...groups.values()];
+}
 
 const OUTCOME_LABEL: Record<Step['outcome'], string> = {
   diterima: 'diterima',
@@ -37,7 +54,8 @@ const OUTCOME_LABEL: Record<Step['outcome'], string> = {
 export function stepText(step: Step) {
   const via =
     step.choiceRank === null ? 'dipindahkan' : `pilihan ${step.choiceRank}`;
-  const rank = step.priorityRank === null ? '' : `, urutan ${step.priorityRank}`;
+  const rank =
+    step.priorityRank === null ? '' : `, urutan ${step.priorityRank}`;
   return `${step.label} (${via}${rank}): ${OUTCOME_LABEL[step.outcome]}`;
 }
 
@@ -58,6 +76,9 @@ export function MatchingPanel({
   const utils = api.useUtils();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [fakultasFilter, setFakultasFilter] = useState<string[]>([]);
+  /** id divisi hasil penempatan; NONE = tidak ditempatkan. */
+  const [divisionFilter, setDivisionFilter] = useState<string[]>([]);
   const [onlyChanged, setOnlyChanged] = useState(false);
   const preview = api.oprec.matchingPreview.useQuery(
     { recruitmentId },
@@ -109,8 +130,29 @@ export function MatchingPanel({
       (!onlyChanged || row.changed) &&
       (!needle ||
         (row.name ?? '').toLowerCase().includes(needle) ||
-        String(row.nim ?? '').includes(needle)),
+        String(row.nim ?? '').includes(needle)) &&
+      (fakultasFilter.length === 0 ||
+        fakultasFilter.includes(row.fakultas ?? NONE)) &&
+      (divisionFilter.length === 0 ||
+        divisionFilter.includes(row.after?.divisionId ?? NONE)),
   );
+  const fakultasGroups: FilterGroup[] = [
+    {
+      label: null,
+      options: [
+        ...[...new Set((data?.rows ?? []).map((r) => r.fakultas ?? NONE))]
+          .sort()
+          .map((f) => ({
+            value: f,
+            label: f === NONE ? 'Tidak diketahui' : f,
+          })),
+      ],
+    },
+  ];
+  const divisionGroups: FilterGroup[] = [
+    ...groupDivisions(data?.divisions ?? []),
+    { label: null, options: [{ value: NONE, label: 'Tidak ditempatkan' }] },
+  ];
 
   return (
     <section
@@ -271,6 +313,20 @@ export function MatchingPanel({
                   className={`${inputClass} pl-9`}
                 />
               </div>
+              <MultiFilter
+                label="Fakultas"
+                allLabel="Semua fakultas"
+                groups={fakultasGroups}
+                selected={fakultasFilter}
+                onChange={setFakultasFilter}
+              />
+              <MultiFilter
+                label="Bidang/divisi hasil"
+                allLabel="Semua divisi"
+                groups={divisionGroups}
+                selected={divisionFilter}
+                onChange={setDivisionFilter}
+              />
               <label className="flex items-center gap-2 text-sm text-neutral-700">
                 <input
                   type="checkbox"

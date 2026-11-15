@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { formatCsvAnswer } from '~/server/api/routers/form/csv';
 import { type RouterOutputs } from '~/trpc/react';
 
@@ -8,7 +8,7 @@ import { FileAnswer } from '../../forms/responses-table';
 import { richTextToPlain } from '../../forms/rich-text';
 
 type AssessGet = RouterOutputs['oprec']['assessGet'];
-type Column = AssessGet['columns'][number];
+type Column = Pick<AssessGet['columns'][number], 'fieldId' | 'type' | 'label'>;
 
 const LONG_TEXT = 240;
 const isLong = (text: string) =>
@@ -40,12 +40,22 @@ function ClampedText({ text }: { text: string }) {
   );
 }
 
+/**
+ * Jawaban pendaftar. Pertanyaan di `linkedFieldIds` (mis. yang tertaut ke
+ * kriteria aktif, atau bagian divisi di papan prioritas) tampil dulu dan
+ * disorot; sisanya dilipat di "Jawaban lainnya".
+ */
 export function AnswerList({
   columns,
   answers,
+  linkedLabel,
+  linkedFieldIds = [],
 }: {
   columns: Column[];
   answers: AssessGet['answers'];
+  /** Judul kelompok jawaban yang disorot, mis. "Untuk kriteria X". */
+  linkedLabel?: ReactNode;
+  linkedFieldIds?: string[];
 }) {
   if (columns.length === 0) {
     return (
@@ -55,6 +65,40 @@ export function AnswerList({
     );
   }
 
+  const linked = new Set(linkedFieldIds);
+  const related = columns.filter((c) => linked.has(c.fieldId));
+  if (related.length === 0) {
+    return <AnswerItems columns={columns} answers={answers} />;
+  }
+  const others = columns.filter((c) => !linked.has(c.fieldId));
+
+  return (
+    <div className="grid gap-3">
+      <p className="text-sm text-neutral-700">{linkedLabel}</p>
+      <AnswerItems columns={related} answers={answers} highlight />
+      {others.length > 0 ? (
+        <details className="group">
+          <summary className="cursor-pointer text-sm font-semibold text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
+            Jawaban lainnya ({others.length})
+          </summary>
+          <div className="mt-3">
+            <AnswerItems columns={others} answers={answers} />
+          </div>
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function AnswerItems({
+  columns,
+  answers,
+  highlight = false,
+}: {
+  columns: Column[];
+  answers: AssessGet['answers'];
+  highlight?: boolean;
+}) {
   return (
     <dl className="grid gap-3">
       {columns.map((column) => {
@@ -64,7 +108,11 @@ export function AnswerList({
         return (
           <div
             key={column.fieldId}
-            className="rounded-xl bg-neutral-100 px-3 py-2"
+            className={
+              highlight
+                ? 'rounded-xl border-l-4 border-primary-400 bg-primary-100 px-3 py-2'
+                : 'rounded-xl bg-neutral-100 px-3 py-2'
+            }
           >
             <dt className="text-sm text-neutral-700">
               {richTextToPlain(column.label)}

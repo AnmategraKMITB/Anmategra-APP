@@ -61,7 +61,8 @@ Pengaturan dikelompokkan menjadi:
   sumber nilai dan bobotnya, jumlah penilai minimum per berkas, siapa penilai,
   syarat gugur, hak veto ketua, dan penyembunyian identitas pendaftar.
 - **Tim penilai** — ketua divisi dari organogram dan penilai tambahan.
-- **Penempatan dan hasil** — penempatan bertahap, visibilitas antar divisi,
+- **Penempatan dan hasil** — metode penempatan (**Manual** atau **Prioritas**,
+  langsung tersimpan), penempatan bertahap, visibilitas antar divisi,
   akses menu Hasil, rilis hasil ke pendaftar, dan closerec.
 
 > [!WARNING]

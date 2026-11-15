@@ -118,6 +118,8 @@ export type WizardState = {
   managers: 'saya' | 'orang' | 'level' | 'ketua';
   managerIdentifiers: string[];
   managerUnitId: string | null;
+  /** S18a */
+  placementMethod: 'manual' | 'prioritas';
   /** S18, S19 */
   staged: boolean;
   visibility: 'tidak' | 'ya';
@@ -169,6 +171,7 @@ export function defaultState(
     managers: 'saya',
     managerIdentifiers: [],
     managerUnitId: null,
+    placementMethod: 'manual',
     staged: true,
     visibility: 'tidak',
     resultsAccess: 'admin_ketua',
@@ -215,6 +218,7 @@ export const STEP_IDS = [
   'S23',
   'S16',
   'S17',
+  'S18a',
   'S18',
   'S19',
   'S20',
@@ -244,6 +248,7 @@ export const GROUP_OF: Record<StepId, string> = {
   S23: 'Penilaian',
   S16: 'Keputusan dan akses',
   S17: 'Keputusan dan akses',
+  S18a: 'Penempatan',
   S18: 'Penempatan',
   S19: 'Penempatan',
   S20: 'Hasil',
@@ -266,6 +271,9 @@ export function visibleSteps(
         return s.scoringMode === 'skor' && s.rubrics === 'keduanya';
       case 'S14':
         return s.assessors !== 'ketua';
+      // Tahap per pilihan hanya berlaku untuk penempatan manual.
+      case 'S18':
+        return s.placementMethod === 'manual';
       default:
         return true;
     }
@@ -585,6 +593,7 @@ export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
       rules,
     } as CreateFromSetupInput['eligibility'],
     managers: s.managers === 'orang' ? s.managerIdentifiers : [],
+    placementMethod: s.placementMethod,
     criteria: criteriaSlots(s).flatMap((scope) =>
       (s.criteria[scope] ?? []).map((k) => ({
         scope,

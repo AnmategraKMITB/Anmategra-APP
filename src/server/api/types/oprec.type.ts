@@ -5,6 +5,7 @@ import {
   ELIGIBILITY_ATTRIBUTES,
   ELIGIBILITY_MATCHES,
   ELIGIBILITY_OPERATORS,
+  PLACEMENT_METHODS,
   PLACEMENT_STATES,
   RECRUITMENT_STATUSES,
   RESULTS_ACCESS_MODES,
@@ -328,6 +329,8 @@ export const CreateFromSetupInputSchema = z.object({
     )
     .max(200)
     .default([]),
+  /** S18a: metode penempatan; diganti kemudian lewat `prioritySetMethod`. */
+  placementMethod: z.enum(PLACEMENT_METHODS).default('manual'),
   /** Jawaban mentah wizard S1-S23, disimpan untuk riwayat. */
   answers: z.record(z.string(), z.unknown()).default({}),
 });

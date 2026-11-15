@@ -522,6 +522,32 @@ export function StepAkses({ s, update, trees, c }: StepProps) {
   );
 }
 
+export function StepMetodePenempatan({ s, update, c }: StepProps) {
+  const l2 = c.labels[1].toLowerCase();
+  return (
+    <Choice
+      title="Penempatan memakai cara apa?"
+      hint="Bisa diganti lagi di Pengaturan selama penempatan berjalan."
+      art={<SectionsArt />}
+      label="Metode penempatan"
+      value={s.placementMethod}
+      onChange={(v) => update({ placementMethod: v })}
+      options={[
+        {
+          value: 'manual',
+          label: 'Manual',
+          description: `Penilai memberi nilai per kriteria, lalu pengambil keputusan menerima atau menolak tiap pilihan.`,
+        },
+        {
+          value: 'prioritas',
+          label: 'Prioritas',
+          description: `Tiap ${l2} mengurutkan pendaftar yang diinginkan, lalu sistem menempatkan setiap pendaftar di pilihan tertinggi yang mengurutkannya, mengikuti kuota. Tab Prioritas menggantikan tab Nilai.`,
+        },
+      ]}
+    />
+  );
+}
+
 export function StepTahap({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
   return (
