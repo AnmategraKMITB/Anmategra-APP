@@ -132,9 +132,9 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
       }[s.scoreSource];
     case 'S13':
       return {
-        ketua: `Ketua ${l2}`,
+        ketua: `Pengurus ${l2}`,
         umum: 'Penilai umum',
-        keduanya: `Penilai umum dan ketua ${l2}`,
+        keduanya: `Penilai umum dan pengurus ${l2}`,
       }[s.assessors];
     case 'S14':
       return s.generalAssessorUnitId
@@ -160,7 +160,7 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
     case 'S20':
       return {
         admin: 'Admin oprec saja',
-        admin_ketua: `Admin dan ketua ${l2}`,
+        admin_ketua: `Admin dan pengurus ${l2}`,
         semua: 'Semua pengelola',
       }[s.resultsAccess];
     case 'S21':

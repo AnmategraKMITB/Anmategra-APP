@@ -1,8 +1,19 @@
-import { and, desc, eq, inArray, isNotNull } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, ne } from 'drizzle-orm';
 
 import { listedAsKegiatan } from '~/server/api/period-listing';
+import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { type db } from '~/server/db';
-import { accessGrant, events, lembaga } from '~/server/db/schema';
+import {
+  accessGrant,
+  events,
+  lembaga,
+  organizationPosition,
+  organizationUnit,
+  placement,
+  recruitment,
+  recruitmentAssessor,
+  recruitmentDivision,
+} from '~/server/db/schema';
 
 /**
  * Lembaga dan kegiatan yang boleh dikelola seorang pengguna. Dipakai menu
@@ -222,7 +233,10 @@ export async function listManagedEvents(
   return [...byId.values()];
 }
 
-/** Ringkas dan murah: dipakai sidebar untuk memutuskan apakah menu "Kelola" tampil. */
+/**
+ * Dipakai sidebar untuk memutuskan apakah menu "Kelola" tampil: Owner, pemegang
+ * Grant aktif, atau penangan oprec (`listHandledOprecs`).
+ */
 export async function hasManagedScope(
   database: Database,
   user: ManagedUser,
@@ -235,5 +249,112 @@ export async function hasManagedScope(
     ),
     columns: { id: true },
   });
-  return grant !== undefined;
+  if (grant) return true;
+  return (await listHandledOprecs(database, user)).length > 0;
+}
+
+export type HandledOprec = {
+  recruitmentId: string;
+  recruitmentName: string;
+  status: string;
+  periodId: string;
+  periodName: string;
+  lembagaNama: string | null;
+  /** Tab tujuan: `prioritas` untuk metode prioritas, selain itu `nilai`. */
+  tab: 'nilai' | 'prioritas';
+  /** Jumlah divisi yang boleh dinilai atau diputuskan. */
+  divisionCount: number;
+  canDecide: boolean;
+};
+
+/**
+ * Oprec yang ditangani seseorang tanpa menjadi pengelolanya: sebagai pengurus
+ * di organogram (Kadiv, Kabid, Ketua, lihat `oprec/pengurus.ts`) atau penilai
+ * tambahan. Oprec draf tidak ikut. Hak tiap baris diperiksa ulang dengan
+ * `resolveAssessAccess`, jadi daftar ini sama dengan yang bisa dibuka.
+ */
+export async function listHandledOprecs(
+  database: Database,
+  user: ManagedUser,
+): Promise<HandledOprec[]> {
+  const myStructures = await database
+    .select({ id: organizationUnit.structure_id })
+    .from(placement)
+    .innerJoin(
+      organizationPosition,
+      eq(organizationPosition.id, placement.positionId),
+    )
+    .innerJoin(
+      organizationUnit,
+      eq(organizationUnit.id, organizationPosition.unitId),
+    )
+    .where(eq(placement.userId, user.id));
+  const structureIds = [...new Set(myStructures.map((r) => r.id))];
+
+  const [viaOrganogram, viaAssessor] = await Promise.all([
+    structureIds.length === 0
+      ? []
+      : database
+          .select({ id: recruitmentDivision.recruitmentId })
+          .from(recruitmentDivision)
+          .innerJoin(
+            organizationUnit,
+            eq(organizationUnit.id, recruitmentDivision.unitId),
+          )
+          .where(inArray(organizationUnit.structure_id, structureIds)),
+    database
+      .select({ id: recruitmentAssessor.recruitmentId })
+      .from(recruitmentAssessor)
+      .where(eq(recruitmentAssessor.userId, user.id)),
+  ]);
+  const candidates = [
+    ...new Set([...viaOrganogram, ...viaAssessor].map((r) => r.id)),
+  ];
+  if (candidates.length === 0) return [];
+
+  const rows = await database
+    .select({
+      recruitment,
+      periodName: events.name,
+      lembagaNama: lembaga.name,
+    })
+    .from(recruitment)
+    .innerJoin(events, eq(events.id, recruitment.periodId))
+    .leftJoin(lembaga, eq(lembaga.id, events.org_id))
+    .where(
+      and(
+        inArray(recruitment.id, candidates),
+        ne(recruitment.status, 'draft'),
+      ),
+    )
+    .orderBy(desc(recruitment.created_at));
+
+  const actor = {
+    id: user.id,
+    role: user.role,
+    lembagaId: user.lembagaId ?? null,
+  };
+  const out: HandledOprec[] = [];
+  for (const row of rows) {
+    const access = await resolveAssessAccess(database, actor, row.recruitment);
+    // Pengelola sudah melihat oprec ini lewat kegiatannya di Kelola.
+    if (!access || access.isAdmin) continue;
+    const divisions = new Set([
+      ...access.divisionIds,
+      ...access.deciderDivisionIds,
+    ]);
+    out.push({
+      recruitmentId: row.recruitment.id,
+      recruitmentName: row.recruitment.name,
+      status: row.recruitment.status,
+      periodId: row.recruitment.periodId,
+      periodName: row.periodName,
+      lembagaNama: row.lembagaNama,
+      tab:
+        row.recruitment.placementMethod === 'prioritas' ? 'prioritas' : 'nilai',
+      divisionCount: divisions.size,
+      canDecide: access.deciderDivisionIds.size > 0,
+    });
+  }
+  return out;
 }

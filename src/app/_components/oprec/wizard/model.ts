@@ -479,7 +479,7 @@ export function openWarnings(
     if (names.length > 0) {
       out.push({
         id: 'S3',
-        message: `${names.join(', ')} belum punya ketua. Isi ketua di organogram, atau pilih penilai umum dan matikan veto ketua.`,
+        message: `${names.join(', ')} belum punya pengurus (Kadiv, Kabid, atau jabatan lain di atas Staf). Isi di organogram, atau pilih penilai umum dan matikan veto ketua.`,
       });
     }
   }

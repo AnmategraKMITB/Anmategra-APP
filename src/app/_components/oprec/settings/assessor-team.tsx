@@ -36,15 +36,28 @@ export function AssessorTeam({
   const [identifier, setIdentifier] = useState('');
   const [scope, setScope] = useState('');
 
-  const heads = derived.data ?? [];
+  // Satu kartu per pengurus; Ketua atau Kabid bisa mengurus banyak divisi.
+  const heads = [
+    ...(derived.data ?? [])
+      .reduce((byUser, h) => {
+        const entry = byUser.get(h.userId) ?? { ...h, divisions: [] };
+        entry.divisions.push(h.divisionLabel);
+        return byUser.set(h.userId, entry);
+      }, new Map<string, { userId: string; name: string | null; divisions: string[] }>())
+      .values(),
+  ];
   const extras = list.data ?? [];
 
   return (
     <div className="grid gap-6">
       <div>
         <h3 className="text-lg font-semibold text-neutral-1000">
-          Ketua dari organogram
+          Pengurus dari organogram
         </h3>
+        <p className="mt-1 text-sm text-neutral-700">
+          Jabatan di atas Staf pada bagian yang dibuka atau bagian di atasnya
+          (mis. Kadiv, Kabid, Ketua).
+        </p>
         {!headsAssess ? (
           <p className="mt-1 text-sm text-neutral-700">
             Tidak ikut menilai karena oprec ini hanya memakai penilai umum.
@@ -53,19 +66,21 @@ export function AssessorTeam({
           <p className="mt-1 text-sm text-neutral-700">
             {derived.isLoading
               ? 'Memuat…'
-              : 'Belum ada ketua yang terisi di organogram.'}
+              : 'Belum ada pengurus yang terisi di organogram.'}
           </p>
         ) : (
           <ul className="mt-3 grid gap-2 sm:grid-cols-2">
             {heads.map((h) => (
               <li
-                key={`${h.divisionId}-${h.userId}`}
+                key={h.userId}
                 className="rounded-xl border border-neutral-400 px-4 py-3 text-sm"
               >
                 <span className="block font-semibold text-neutral-1000">
                   {h.name ?? 'Tanpa nama'}
                 </span>
-                <span className="text-neutral-700">{h.divisionLabel}</span>
+                <span className="text-neutral-700">
+                  {h.divisions.join(', ')}
+                </span>
               </li>
             ))}
           </ul>

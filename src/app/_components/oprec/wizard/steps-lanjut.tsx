@@ -185,7 +185,12 @@ export function StepPenilai({ s, update, c }: StepProps) {
       value={s.assessors}
       onChange={(v) => update({ assessors: v })}
       options={[
-        { value: 'ketua', label: `Ketua ${l2} masing-masing` },
+        {
+          value: 'ketua',
+          label: `Pengurus ${l2} masing-masing`,
+          description:
+            'Jabatan di atas Staf di bagian itu atau di atasnya, mis. Kadiv dan Kabid.',
+        },
         { value: 'umum', label: 'Penilai umum' },
         { value: 'keduanya', label: 'Keduanya' },
       ]}
@@ -254,7 +259,7 @@ export function StepVeto({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
   return (
     <Choice
-      title={`Keputusan akhir dan hak veto ada di ketua ${l2}?`}
+      title={`Keputusan akhir dan hak veto ada di pengurus ${l2}?`}
       art={<PeopleArt />}
       label="Keputusan akhir"
       value={s.veto ? 'ya' : 'tidak'}
@@ -263,7 +268,7 @@ export function StepVeto({ s, update, c }: StepProps) {
         {
           value: 'ya',
           label: 'Ya',
-          description: `Ketua ${l2} memutuskan dan bisa memveto penempatan.`,
+          description: `Pengurus ${l2} (Kadiv, Kabid, dan jabatan di atasnya) memutuskan dan bisa memveto penempatan.`,
         },
         {
           value: 'tidak',
@@ -578,7 +583,7 @@ export function StepAksesHasil({ s, update, c }: StepProps) {
         update({ resultsAccess: v })
       }
       options={[
-        { value: 'admin_ketua', label: `Admin dan ketua ${l2}` },
+        { value: 'admin_ketua', label: `Admin dan pengurus ${l2}` },
         { value: 'admin', label: 'Admin oprec saja' },
         { value: 'semua', label: 'Semua yang bisa mengatur oprec' },
       ]}

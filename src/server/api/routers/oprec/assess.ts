@@ -874,7 +874,7 @@ export const assessProcedures = {
         if (!ch) notFound('Pilihan tidak ditemukan.');
         if (!canDecideDivision(ctx.assess, ch.divisionId)) {
           forbidden(
-            'Hanya Kadiv divisi ini dan admin oprec yang boleh mengubah status.',
+            'Hanya pengurus divisi ini (Kadiv, Kabid, atau jabatan di atasnya) dan admin oprec yang boleh mengubah status.',
           );
         }
         await tx
@@ -935,7 +935,7 @@ export const assessProcedures = {
         if (!ch) notFound('Pilihan tidak ditemukan.');
         if (!canDecideDivision(ctx.assess, ch.divisionId)) {
           forbidden(
-            'Hanya Kadiv divisi ini dan admin oprec yang boleh mengubah status.',
+            'Hanya pengurus divisi ini (Kadiv, Kabid, atau jabatan di atasnya) dan admin oprec yang boleh mengubah status.',
           );
         }
         await tx
