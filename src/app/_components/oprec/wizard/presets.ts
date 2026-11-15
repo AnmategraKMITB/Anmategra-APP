@@ -129,6 +129,8 @@ export function presetHighlights(preset: Preset): string[] {
       : p.rubrics === 'divisi'
         ? 'rubrik divisi'
         : 'rubrik umum',
-    p.assessors === 'keduanya' ? 'ketua divisi + penilai umum' : 'ketua divisi',
+    p.assessors === 'keduanya'
+      ? 'pengurus divisi + penilai umum'
+      : 'pengurus divisi',
   ];
 }

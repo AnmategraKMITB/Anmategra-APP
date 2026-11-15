@@ -4280,6 +4280,105 @@
         }
       }
     },
+    "/api/trpc/adminGrant.getMyHandledOprecs": {
+      "get": {
+        "operationId": "adminGrant_getMyHandledOprecs",
+        "tags": [
+          "adminGrant"
+        ],
+        "summary": "adminGrant.getMyHandledOprecs",
+        "description": "**Akses:** Authenticated — Butuh sesi login yang valid (role apa pun).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "$ref": "#/components/schemas/adminGrant_getMyHandledOprecs_output"
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Authenticated (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/trpc/adminGrant.getMyManagedEvents": {
       "get": {
         "operationId": "adminGrant_getMyManagedEvents",
@@ -35880,6 +35979,58 @@
         "required": [
           "userId"
         ]
+      },
+      "adminGrant_getMyHandledOprecs_output": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "recruitmentId": {
+              "type": "string"
+            },
+            "recruitmentName": {
+              "type": "string"
+            },
+            "status": {
+              "type": "string"
+            },
+            "periodId": {
+              "type": "string"
+            },
+            "periodName": {
+              "type": "string"
+            },
+            "lembagaNama": {
+              "nullable": true,
+              "type": "string"
+            },
+            "tab": {
+              "type": "string",
+              "enum": [
+                "nilai",
+                "prioritas"
+              ]
+            },
+            "divisionCount": {
+              "type": "number"
+            },
+            "canDecide": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "recruitmentId",
+            "recruitmentName",
+            "status",
+            "periodId",
+            "periodName",
+            "lembagaNama",
+            "tab",
+            "divisionCount",
+            "canDecide"
+          ],
+          "additionalProperties": false
+        }
       },
       "adminGrant_getMyManagedEvents_output": {
         "type": "array",

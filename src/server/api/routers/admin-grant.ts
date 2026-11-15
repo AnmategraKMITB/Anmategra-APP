@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq, inArray } from 'drizzle-orm';
 import {
+  listHandledOprecs,
   listManagedEvents,
   listManagedLembaga,
   hasManagedScope,
@@ -21,6 +22,7 @@ import {
 } from '~/server/db/schema';
 
 import {
+  GetMyHandledOprecsOutputSchema,
   GetMyManagedEventsOutputSchema,
   GetMyManagedLembagaOutputSchema,
   GrantEventAdminInputSchema,
@@ -339,4 +341,8 @@ export const adminGrantRouter = createTRPCRouter({
   hasManagedScope: protectedProcedure
     .output(HasManagedScopeOutputSchema)
     .query(({ ctx }) => hasManagedScope(ctx.db, ctx.session.user)),
+
+  getMyHandledOprecs: protectedProcedure
+    .output(GetMyHandledOprecsOutputSchema)
+    .query(({ ctx }) => listHandledOprecs(ctx.db, ctx.session.user)),
 });

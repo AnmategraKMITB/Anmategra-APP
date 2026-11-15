@@ -453,7 +453,7 @@ export function SettingsView({
 
             <Section
               title="Tim penilai"
-              hint={`Ketua ${l2} ikut menilai sesuai jawaban "Siapa yang menilai pendaftar?". Tambahkan penilai lain dengan email atau NIM; tiap penilai masuk dengan akunnya sendiri.`}
+              hint={`Pengurus ${l2} (Kadiv, Kabid, dan jabatan di atasnya) ikut menilai sesuai jawaban "Siapa yang menilai pendaftar?". Tambahkan penilai lain dengan email atau NIM; tiap penilai masuk dengan akunnya sendiri.`}
             >
               <AssessorTeam
                 recruitmentId={recruitmentId}
