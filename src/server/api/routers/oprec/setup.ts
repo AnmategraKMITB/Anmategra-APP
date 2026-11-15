@@ -497,6 +497,7 @@ export const setupProcedures = {
               minChoices: input.minChoices,
               maxChoices: input.maxChoices,
               allowRedirect: input.allowRedirect,
+              placementMethod: input.placementMethod,
               eligibilityMatch: input.eligibility.match,
               setupAnswers: input.answers,
               setupCompletedAt: new Date(),

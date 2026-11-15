@@ -293,3 +293,22 @@ describe('openWarnings: organogram (#385)', () => {
     expect(openWarnings(['S3'] as StepId[], s, c2(['hr'], []))).toEqual([]);
   });
 });
+
+describe('metode penempatan (S18a)', () => {
+  it('tahap per pilihan (S18) hanya untuk penempatan manual', () => {
+    const s = defaultState('Kegiatan', 'ev-1');
+    const opts = { hasMultipleSources: false };
+    expect(visibleSteps(s, opts)).toContain('S18');
+    expect(
+      visibleSteps({ ...s, placementMethod: 'prioritas' }, opts),
+    ).not.toContain('S18');
+  });
+
+  it('buildInput membawa metode penempatan', () => {
+    const s = {
+      ...defaultState('Kegiatan', 'ev-1'),
+      placementMethod: 'prioritas' as const,
+    };
+    expect(buildInput(s, ctx).placementMethod).toBe('prioritas');
+  });
+});

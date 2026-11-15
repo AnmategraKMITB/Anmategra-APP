@@ -24,6 +24,7 @@ import {
   ownChoices,
   planWrites,
 } from '~/lib/oprec/priority';
+import { fakultasOfNim } from '~/lib/itb/fakultas';
 import { registrationEnded } from '~/lib/oprec/registration';
 import { blindCode, effectiveStatus } from '~/lib/oprec/scoring';
 import { oprecAssessProcedure } from '~/server/api/trpc';
@@ -42,6 +43,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { loadApplicantAnswers } from './applicant-answers';
 import { type AssessAccess, canRankDivision } from './assess-access';
 import { type Tx } from '../form/services';
 import { logAction } from './log';
@@ -720,6 +722,32 @@ export const priorityProcedures = {
     }),
 
   /** Simpan seluruh urutan prioritas satu divisi (indeks 0 = urutan 1). */
+  /**
+   * Jawaban satu pendaftar untuk papan prioritas: pertanyaan bagian divisi ini
+   * plus pertanyaan umum. Aksesnya sama dengan papan divisi itu.
+   */
+  priorityAnswers: oprecAssessProcedure
+    .input(DivisionInput.extend({ applicationId: id }))
+    .query(async ({ ctx, input }) => {
+      assertRanker(ctx.assess, input.divisionId);
+      const [app] = await ctx.db
+        .select({ formSubmissionId: application.formSubmissionId })
+        .from(application)
+        .where(
+          and(
+            eq(application.id, input.applicationId),
+            eq(application.recruitmentId, ctx.recruitment.id),
+          ),
+        );
+      if (!app) notFound('Pendaftar tidak ditemukan.');
+      return loadApplicantAnswers(
+        ctx.db,
+        ctx.recruitment,
+        app.formSubmissionId,
+        input.divisionId,
+      );
+    }),
+
   prioritySave: oprecAssessProcedure
     .input(
       DivisionInput.extend({
@@ -989,6 +1017,7 @@ export const priorityProcedures = {
             applicationId: app.id,
             name: app.name,
             nim: app.nim,
+            fakultas: fakultasOfNim(app.nim),
             before: before
               ? { divisionId: before, label: labelOf.get(before) ?? '' }
               : null,

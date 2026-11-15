@@ -49,14 +49,15 @@ export async function OprecTabs({
     })
     .from(recruitment)
     .where(eq(recruitment.id, recruitmentId));
-  // Prioritas: semua penyusun saat metodenya aktif; admin selalu (untuk
-  // menyalakannya).
-  const showPrioritas = row?.placementMethod === 'prioritas' || !!manage;
+  // Metode prioritas menggantikan Nilai dengan Prioritas; metodenya diganti
+  // di Pengaturan.
+  const prioritas = row?.placementMethod === 'prioritas';
   const tabs = TABS.filter(
     ([id]) =>
       (id !== 'pendaftar' || showPendaftar) &&
+      (id !== 'nilai' || !prioritas) &&
       (id !== 'penempatan' || showPenempatan) &&
-      (id !== 'prioritas' || showPrioritas) &&
+      (id !== 'prioritas' || prioritas) &&
       (id !== 'hasil' || showHasil) &&
       (id !== 'pengaturan' || !!manage),
   );

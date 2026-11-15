@@ -35,6 +35,7 @@ export const PRESETS: Preset[] = [
       generalAssessorUnitId: null,
       hasGugur: true,
       veto: true,
+      placementMethod: 'manual',
       staged: true,
       visibility: 'tidak',
       resultsAccess: 'admin_ketua',
@@ -48,7 +49,7 @@ export const PRESETS: Preset[] = [
     title: 'Acara dengan penilai ketua divisi',
     example: 'AMI',
     blurb:
-      'Satu hingga dua pilihan divisi, rubrik per divisi, tanpa gelombang pendaftaran.',
+      'Satu hingga dua pilihan divisi, rubrik per divisi, penempatan prioritas, tanpa gelombang pendaftaran.',
     patch: {
       useWaves: false,
       waves: [],
@@ -65,6 +66,7 @@ export const PRESETS: Preset[] = [
       generalAssessorUnitId: null,
       hasGugur: false,
       veto: true,
+      placementMethod: 'prioritas',
       staged: true,
       visibility: 'tidak',
       resultsAccess: 'admin_ketua',
@@ -94,6 +96,7 @@ export const PRESETS: Preset[] = [
       generalAssessorUnitId: null,
       hasGugur: false,
       veto: true,
+      placementMethod: 'manual',
       staged: true,
       visibility: 'tidak',
       resultsAccess: 'admin_ketua',

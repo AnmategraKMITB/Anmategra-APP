@@ -39,6 +39,7 @@ import {
   draftFromDetail,
   draftProblem,
 } from './model';
+import { PlacementMethod } from './placement-method';
 
 function Section({
   title,
@@ -462,6 +463,10 @@ export function SettingsView({
             </Section>
 
             <Section title="Penempatan dan hasil">
+              <PlacementMethod
+                detail={d}
+                prioritasHref={`${backHref}/${recruitmentId}/prioritas`}
+              />
               <Steps
                 s={draft.s}
                 update={patchS}

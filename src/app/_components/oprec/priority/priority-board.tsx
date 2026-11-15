@@ -32,6 +32,7 @@ import {
   inputClass,
   when,
 } from '../placement/shared';
+import { PriorityAnswersSheet } from './answers-sheet';
 import { moveTo, parsePosition, remove, shift } from './order';
 
 type Board = RouterOutputs['oprec']['priorityBoard'];
@@ -192,6 +193,13 @@ export function PriorityBoard({
   const [local, setLocal] = useState<Local | null>(null);
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const [search, setSearch] = useState('');
+  /** 'semua', nomor pilihan (1, 2, …), atau 'dipindahkan'. */
+  const [rankFilter, setRankFilter] = useState<
+    'semua' | 'dipindahkan' | number
+  >('semua');
+  const [openRow, setOpenRow] = useState<Row | null>(null);
+  /** Baris yang dicentang untuk aksi massal (id pendaftar). */
+  const [picked, setPicked] = useState<string[]>([]);
   const [confirmScore, setConfirmScore] = useState(false);
   const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
   /** Baris yang menerima fokus setelah urutan berikutnya dirender. */
@@ -207,12 +215,20 @@ export function PriorityBoard({
     [data],
   );
   // Suntingan lokal dipakai selama tidak lebih tua dari versi server.
-  const useLocal = local !== null && data !== undefined && local.base >= data.version;
+  const useLocal =
+    local !== null && data !== undefined && local.base >= data.version;
   const order = useLocal ? local.order : serverOrder;
   const version = useLocal ? local.base : (data?.version ?? 0);
   const canEdit = data?.canEdit ?? false;
   const query = search.trim();
-  const searching = query.length > 0;
+  // Pencarian atau saringan pilihan: geser urutan hanya lewat isian angka.
+  const searching = query.length > 0 || rankFilter !== 'semua';
+  const shows = (row: Row) =>
+    matches(row, query) &&
+    (rankFilter === 'semua' ||
+      (rankFilter === 'dipindahkan'
+        ? row.kind === 'dipindahkan'
+        : row.kind === 'pilihan' && row.choiceRank === rankFilter));
 
   const invalidateBoard = () =>
     void utils.oprec.priorityBoard.invalidate({ recruitmentId, divisionId });
@@ -252,7 +268,9 @@ export function PriorityBoard({
             onChanged();
           },
           onError: (error) => {
-            setSaveState(error.data?.code === 'CONFLICT' ? 'conflict' : 'error');
+            setSaveState(
+              error.data?.code === 'CONFLICT' ? 'conflict' : 'error',
+            );
             onError(error.message);
           },
         },
@@ -292,10 +310,35 @@ export function PriorityBoard({
     (row) => !row.blocked && !ordered.has(row.applicationId),
   );
   const blocked = data.rows.filter((row) => row.blocked);
-  const visible = [...ranked, ...unranked, ...blocked].filter((row) =>
-    matches(row, query),
-  );
+  const visible = [...ranked, ...unranked, ...blocked].filter(shows);
+  const pickedSet = new Set(picked);
+  const selectableVisible = visible
+    .filter((row) => !row.blocked)
+    .map((row) => row.applicationId);
+  const pickedUnranked = unranked
+    .filter((row) => pickedSet.has(row.applicationId))
+    .map((row) => row.applicationId);
+  const pickedRanked = order.filter((id) => pickedSet.has(id));
   const hasScores = data.rows.some((row) => row.score !== null);
+  // Tanpa nilai (mis. tab Nilai digantikan Prioritas), kolom status hanya
+  // tampil bila ada status yang bermakna, seperti ubah status manual.
+  const showStatus =
+    hasScores ||
+    data.rows.some(
+      (row) =>
+        row.blocked === 'closerec' ||
+        (row.status !== null && row.status !== 'belum_lengkap'),
+    );
+  const rankOptions = [
+    ...new Set(
+      data.rows.flatMap((row) =>
+        row.kind === 'pilihan' && row.choiceRank !== null
+          ? [row.choiceRank]
+          : [],
+      ),
+    ),
+  ].sort((a, b) => a - b);
+  const hasMoved = data.rows.some((row) => row.kind === 'dipindahkan');
   const quota = data.division.quota;
   const locked = data.lockedAt !== null;
   const noteDisabled = data.method !== 'prioritas' || data.state === 'final';
@@ -388,8 +431,34 @@ export function PriorityBoard({
           position ? `${name}, urutan ${position}` : `${name}, belum diurutkan`
         }
         onKeyDown={(event) => onRowKey(event, row, isRanked)}
-        className="align-top focus-visible:bg-primary-100 focus-visible:outline-none"
+        onClick={(event) => {
+          // Klik pada input, tombol, atau catatan tetap untuk mengurutkan.
+          const target = event.target as HTMLElement;
+          if (target.closest('input, button, textarea, a, select, label'))
+            return;
+          setOpenRow(row);
+        }}
+        className="cursor-pointer align-top hover:bg-neutral-100 focus-visible:bg-primary-100 focus-visible:outline-none"
       >
+        {canEdit ? (
+          <TableCell className="w-10">
+            {row.blocked ? null : (
+              <input
+                type="checkbox"
+                aria-label={`Pilih ${name}`}
+                checked={pickedSet.has(row.applicationId)}
+                onChange={(event) =>
+                  setPicked((prev) =>
+                    event.target.checked
+                      ? [...prev, row.applicationId]
+                      : prev.filter((id) => id !== row.applicationId),
+                  )
+                }
+                className="mt-1 size-4"
+              />
+            )}
+          </TableCell>
+        ) : null}
         <TableCell>
           {row.blocked ? (
             <span className="text-sm text-neutral-500">—</span>
@@ -409,7 +478,13 @@ export function PriorityBoard({
           )}
         </TableCell>
         <TableCell>
-          <span className="font-semibold text-neutral-1000">{name}</span>
+          <button
+            type="button"
+            onClick={() => setOpenRow(row)}
+            className="text-left font-semibold text-neutral-1000 underline-offset-2 hover:text-primary-400 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          >
+            {name}
+          </button>
           {data.blind ? null : (
             <span className="block text-xs text-neutral-700">
               {[row.nim, row.prodi, row.angkatan].filter(Boolean).join(' · ') ||
@@ -434,20 +509,22 @@ export function PriorityBoard({
             </span>
           ) : null}
         </TableCell>
-        <TableCell>
-          <div className="flex flex-wrap items-center gap-1.5">
-            {row.score !== null ? (
-              <span className="text-sm font-semibold text-neutral-1000">
-                {row.score.toFixed(1)}
-              </span>
-            ) : null}
-            {row.blocked === 'closerec' ? (
-              <Chip tone="muted">Sudah masuk lewat closerec</Chip>
-            ) : row.status ? (
-              <StatusBadge status={row.status} />
-            ) : null}
-          </div>
-        </TableCell>
+        {showStatus ? (
+          <TableCell>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {row.score !== null ? (
+                <span className="text-sm font-semibold text-neutral-1000">
+                  {row.score.toFixed(1)}
+                </span>
+              ) : null}
+              {row.blocked === 'closerec' ? (
+                <Chip tone="muted">Sudah masuk lewat closerec</Chip>
+              ) : row.status ? (
+                <StatusBadge status={row.status} />
+              ) : null}
+            </div>
+          </TableCell>
+        ) : null}
         <TableCell>
           <NoteCell
             recruitmentId={recruitmentId}
@@ -507,19 +584,41 @@ export function PriorityBoard({
   const header = (
     <TableHeader>
       <TableRow>
+        {canEdit ? (
+          <TableHead className="w-10">
+            <input
+              type="checkbox"
+              aria-label="Pilih semua yang tampil"
+              checked={
+                selectableVisible.length > 0 &&
+                selectableVisible.every((id) => pickedSet.has(id))
+              }
+              onChange={(event) =>
+                setPicked((prev) =>
+                  event.target.checked
+                    ? [...new Set([...prev, ...selectableVisible])]
+                    : prev.filter((id) => !selectableVisible.includes(id)),
+                )
+              }
+              className="size-4"
+            />
+          </TableHead>
+        ) : null}
         <TableHead className="w-20">Urutan</TableHead>
         <TableHead className="min-w-48">Pendaftar</TableHead>
         <TableHead className="min-w-40">Pilihan</TableHead>
-        <TableHead className="min-w-32">Nilai &amp; status</TableHead>
+        {showStatus ? (
+          <TableHead className="min-w-32">Nilai &amp; status</TableHead>
+        ) : null}
         <TableHead className="min-w-56">Keterangan</TableHead>
         <TableHead className="min-w-28">Aksi</TableHead>
       </TableRow>
     </TableHeader>
   );
 
-  const shownRanked = ranked.filter((row) => matches(row, query));
-  const shownUnranked = unranked.filter((row) => matches(row, query));
-  const shownBlocked = blocked.filter((row) => matches(row, query));
+  const shownRanked = ranked.filter(shows);
+  const shownUnranked = unranked.filter(shows);
+  const shownBlocked = blocked.filter(shows);
   const cutLineAfter =
     quota > 0 && !searching && ranked.length > quota ? quota : null;
 
@@ -624,17 +723,17 @@ export function PriorityBoard({
             tidak diterima divisi ini.
           </li>
           <li>
-            Di baris yang terpilih: PgUp/PgDn naik-turun 1 (Shift: 10),
-            Home/End ke paling atas/bawah, Delete mengeluarkan, Enter
-            memasukkan ke urutan, ↑/↓ pindah baris.
+            Di baris yang terpilih: PgUp/PgDn naik-turun 1 (Shift: 10), Home/End
+            ke paling atas/bawah, Delete mengeluarkan, Enter memasukkan ke
+            urutan, ↑/↓ pindah baris.
           </li>
           <li>
             Garis kuota bukan batas mati: orang di bawahnya tetap bisa masuk
             bila orang di atasnya diterima di pilihan yang lebih tinggi.
           </li>
           <li>
-            Keterangan hanya terlihat penyusun daftar dan pengelola oprec,
-            tidak pernah oleh pendaftar.
+            Keterangan hanya terlihat penyusun daftar dan pengelola oprec, tidak
+            pernah oleh pendaftar.
           </li>
         </ul>
       </details>
@@ -653,10 +752,75 @@ export function PriorityBoard({
           className={`${inputClass} pl-9`}
         />
       </div>
+      {rankOptions.length > 1 || hasMoved ? (
+        <div
+          role="group"
+          aria-label="Saring menurut pilihan"
+          className="flex flex-wrap gap-1"
+        >
+          {(
+            [
+              ['semua', 'Semua'],
+              ...rankOptions.map((n) => [n, `Pilihan ${n}`] as const),
+              ...(hasMoved ? [['dipindahkan', 'Dipindahkan'] as const] : []),
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={String(value)}
+              type="button"
+              aria-pressed={rankFilter === value}
+              onClick={() => setRankFilter(value)}
+              className={`rounded-full px-3 py-1 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
+                rankFilter === value
+                  ? 'bg-primary-200 text-primary-400'
+                  : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      ) : null}
       {searching ? (
         <p className="text-xs text-neutral-700">
-          Pencarian aktif: geser urutan dengan isian angka.
+          Saringan aktif: geser urutan dengan isian angka.
         </p>
+      ) : null}
+      {canEdit && picked.length > 0 ? (
+        <div
+          role="region"
+          aria-label="Aksi untuk baris terpilih"
+          className="flex flex-wrap items-center gap-2 rounded-xl bg-primary-100 px-3 py-2"
+        >
+          <span className="text-sm font-semibold text-neutral-1000">
+            {picked.length} dipilih
+          </span>
+          <Button
+            size="sm"
+            variant="dark_blue"
+            disabled={pickedUnranked.length === 0}
+            onClick={() => {
+              update([...order, ...pickedUnranked]);
+              setPicked([]);
+            }}
+          >
+            Tambahkan ke urutan ({pickedUnranked.length})
+          </Button>
+          <Button
+            size="sm"
+            variant="dark_blue_outline"
+            disabled={pickedRanked.length === 0}
+            onClick={() => {
+              update(order.filter((id) => !pickedSet.has(id)));
+              setPicked([]);
+            }}
+          >
+            Keluarkan dari urutan ({pickedRanked.length})
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setPicked([])}>
+            Batal pilih
+          </Button>
+        </div>
       ) : null}
 
       {data.method !== 'prioritas' ? (
@@ -669,7 +833,10 @@ export function PriorityBoard({
           <TableBody>
             {shownRanked.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-sm text-neutral-700">
+                <TableCell
+                  colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
+                  className="text-sm text-neutral-700"
+                >
                   {searching
                     ? 'Tidak ada yang cocok di urutan.'
                     : 'Belum ada yang diurutkan. Mulai dari daftar di bawah.'}
@@ -682,7 +849,7 @@ export function PriorityBoard({
                   out.push(
                     <TableRow key="batas-kuota" aria-hidden>
                       <TableCell
-                        colSpan={6}
+                        colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
                         className="border-y-2 border-dashed border-warning-dark bg-warning-light py-1.5 text-xs font-semibold text-neutral-1000"
                       >
                         Batas kuota ({quota}). Yang di bawah garis masih bisa
@@ -763,6 +930,26 @@ export function PriorityBoard({
           {order.length} orang sudah diurutkan saat ini.
         </p>
       </Modal>
+
+      <PriorityAnswersSheet
+        recruitmentId={recruitmentId}
+        divisionId={divisionId}
+        divisionLabel={data.division.label}
+        applicant={
+          openRow
+            ? {
+                applicationId: openRow.applicationId,
+                name: openRow.name ?? openRow.code,
+                meta: data.blind
+                  ? null
+                  : [openRow.nim, openRow.prodi, openRow.angkatan]
+                      .filter(Boolean)
+                      .join(' · ') || null,
+              }
+            : null
+        }
+        onClose={() => setOpenRow(null)}
+      />
     </section>
   );
 }
