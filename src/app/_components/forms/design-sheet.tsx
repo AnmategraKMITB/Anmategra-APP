@@ -1,6 +1,7 @@
 'use client';
 
-import { Check } from 'lucide-react';
+import { Check, Pipette } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -20,6 +21,7 @@ import {
 } from '~/components/ui/sheet';
 import { Textarea } from '~/components/ui/textarea';
 import { cn } from '~/lib/utils';
+import { DESCRIPTION_MAX_LENGTH } from '~/server/api/types/form.constants';
 import type { FormTheme, FormWelcome } from '~/server/api/types/form.type';
 
 import { useBuilder } from './builder-context';
@@ -57,24 +59,49 @@ function ColorPicker({
   options: { name: string; hex: string }[];
   onChange: (hex: string | undefined) => void;
 }) {
+  // Warna dari pemilih bebas dipratinjau seketika di sini, lalu disimpan
+  // sesudah pengguna berhenti menggeser, supaya tidak mengirim puluhan simpanan.
+  const [draft, setDraft] = useState(value);
+  const [seen, setSeen] = useState(value);
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Nilai tersimpan berubah (mis. setel ulang): pratinjau ikut nilai baru.
+  if (seen !== value) {
+    setSeen(value);
+    setDraft(value);
+  }
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const current = draft ?? value;
+  const custom =
+    !!current &&
+    !options.some((o) => o.hex.toLowerCase() === current.toLowerCase());
+
   return (
     <fieldset className="grid gap-2">
-      <legend className="text-sm font-semibold text-neutral-1000">
+      <legend className="flex w-full items-center justify-between text-sm font-semibold text-neutral-1000">
         {label}
+        <span className="flex items-center gap-2 text-xs font-normal text-neutral-700">
+          <span
+            aria-hidden
+            className="size-4 rounded-full border border-neutral-400"
+            style={{ backgroundColor: current ?? 'transparent' }}
+          />
+          {current ? current.toUpperCase() : 'Bawaan'}
+        </span>
       </legend>
       <div className="flex flex-wrap gap-2">
         {options.map((o) => {
-          const selected = value?.toLowerCase() === o.hex.toLowerCase();
+          const selected = current?.toLowerCase() === o.hex.toLowerCase();
           return (
             <button
               key={o.hex}
               type="button"
               aria-label={`${label}: ${o.name}`}
+              title={o.name}
               aria-pressed={selected}
               onClick={() => onChange(o.hex)}
               style={{ backgroundColor: o.hex }}
               className={cn(
-                'flex size-9 items-center justify-center rounded-full border border-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
+                'flex size-9 items-center justify-center rounded-full border border-neutral-400 transition-transform duration-150 hover:scale-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2',
                 selected && 'ring-2 ring-primary-400 ring-offset-2',
               )}
             >
@@ -91,6 +118,38 @@ function ColorPicker({
             </button>
           );
         })}
+        <label
+          title="Warna lain"
+          style={custom ? { backgroundColor: current } : undefined}
+          className={cn(
+            'relative flex size-9 cursor-pointer items-center justify-center rounded-full border border-dashed border-neutral-700 text-neutral-700 transition-transform duration-150 hover:scale-110 focus-within:ring-2 focus-within:ring-primary-400 focus-within:ring-offset-2',
+            custom && 'border-solid ring-2 ring-primary-400 ring-offset-2',
+          )}
+        >
+          <Pipette
+            aria-hidden
+            className={cn(
+              'size-4',
+              custom &&
+                current &&
+                (contrastWithWhite(current) >= 3
+                  ? 'text-white'
+                  : 'text-neutral-1000'),
+            )}
+          />
+          <input
+            type="color"
+            aria-label={`${label}: pilih warna lain`}
+            value={current ?? '#ffffff'}
+            onChange={(e) => {
+              const hex = e.currentTarget.value.toUpperCase();
+              setDraft(hex);
+              clearTimeout(timer.current);
+              timer.current = setTimeout(() => onChange(hex), 400);
+            }}
+            className="absolute inset-0 size-full cursor-pointer opacity-0"
+          />
+        </label>
       </div>
       <div className="flex gap-2">
         <Input
@@ -99,12 +158,15 @@ function ColorPicker({
           placeholder="#RRGGBB"
           aria-label={`${label}, kode warna`}
           maxLength={7}
+          className="font-mono"
           onBlur={(e) => {
             const v = e.currentTarget.value.trim();
             if (v === '') return onChange(undefined);
-            if (HEX_COLOR.test(v)) return onChange(v.toUpperCase());
+            const hex = v.startsWith('#') ? v : `#${v}`;
+            if (HEX_COLOR.test(hex)) return onChange(hex.toUpperCase());
             e.currentTarget.value = value ?? '';
           }}
+          onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
         />
         {value ? (
           <Button
@@ -201,7 +263,7 @@ export function DesignSheet({
 
           <ImageUpload
             formId={detail.id}
-            label="Banner"
+            label="Banner (disarankan 1600 × 400 piksel)"
             url={detail.theme.banner}
             onUploaded={({ url }) => saveTheme({ banner: url })}
             onRemove={() => saveTheme({ banner: null })}
@@ -244,7 +306,7 @@ export function DesignSheet({
                 id="welcome-isi"
                 rows={3}
                 defaultValue={detail.welcome.description ?? ''}
-                maxLength={2000}
+                maxLength={DESCRIPTION_MAX_LENGTH}
                 onBlur={(e) =>
                   e.currentTarget.value !==
                     (detail.welcome.description ?? '') &&

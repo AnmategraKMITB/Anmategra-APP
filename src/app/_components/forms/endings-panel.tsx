@@ -4,6 +4,7 @@ import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
+import { DESCRIPTION_MAX_LENGTH } from '~/server/api/types/form.constants';
 
 import { useBuilder } from './builder-context';
 import { ConditionEditor } from './condition-editor';
@@ -70,7 +71,7 @@ export function EndingsPanel() {
               defaultValue={ending.description ?? ''}
               aria-label={`Isi ending ${index + 1}`}
               placeholder="Pesan untuk pengisi (opsional)"
-              maxLength={2000}
+              maxLength={DESCRIPTION_MAX_LENGTH}
               rows={2}
               onBlur={(e) => {
                 const value = e.currentTarget.value.trim();

@@ -84,16 +84,36 @@ export function AnswerInput({
           onChange={(e) => onChange(e.target.value)}
         />
       );
-    case 'long_text':
+    case 'long_text': {
+      const text = typeof value === 'string' ? value : '';
+      const max = c.maxLength ?? 5000;
+      // Penghitung baru muncul menjelang batas, supaya tidak mengganggu sejak awal.
+      const near = text.length >= max * 0.8;
       return (
-        <Textarea
-          {...common}
-          rows={4}
-          value={typeof value === 'string' ? value : ''}
-          maxLength={c.maxLength ?? 5000}
-          onChange={(e) => onChange(e.target.value)}
-        />
+        <div className="grid gap-1">
+          <Textarea
+            {...common}
+            rows={4}
+            value={text}
+            maxLength={max}
+            onChange={(e) => onChange(e.target.value)}
+          />
+          {near ? (
+            <p
+              aria-live="polite"
+              className={
+                text.length >= max
+                  ? 'text-right text-xs font-semibold tabular-nums text-danger-dark'
+                  : 'text-right text-xs tabular-nums text-neutral-700'
+              }
+            >
+              {text.length.toLocaleString('id-ID')}/
+              {max.toLocaleString('id-ID')} karakter
+            </p>
+          ) : null}
+        </div>
       );
+    }
     case 'number':
       return (
         <Input
@@ -140,9 +160,7 @@ export function AnswerInput({
               checked={value === true}
               aria-invalid={invalid}
               aria-describedby={describedBy}
-              onChange={(e) =>
-                onChange(e.target.checked ? true : undefined)
-              }
+              onChange={(e) => onChange(e.target.checked ? true : undefined)}
             />
             Ya
           </label>

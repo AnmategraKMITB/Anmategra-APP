@@ -1,6 +1,6 @@
 'use client';
 
-import { useReducer, useRef, useState } from 'react';
+import { useMemo, useReducer, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import type {
   ConditionInput,
@@ -76,17 +76,18 @@ export function useFormBuilder(formId: string) {
   const rotateMutation = api.form.rotatePreviewToken.useMutation();
 
   const [saveState, setSaveState] = useState<SaveState>('idle');
-  const [drafts, setDrafts] = useState<Record<string, UpdateFieldInput>>({});
+  const [hasDrafts, setHasDrafts] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [publishProblem, setPublishProblem] = useState<{
     fieldId: string | null;
     message: string;
   } | null>(null);
   const draftsRef = useRef<Record<string, UpdateFieldInput>>({});
+  const draftListeners = useRef(new Map<string, Set<() => void>>());
   const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
   const queues = useRef(new Map<string, Promise<void>>());
   const [stack] = useState(() => new UndoStack());
-  const [, rerender] = useReducer((n: number) => n + 1, 0);
+  const [tick, rerender] = useReducer((n: number) => n + 1, 0);
 
   const refresh = () => utils.form.getById.invalidate({ formId });
   const latest = () => utils.form.getById.getData({ formId });
@@ -127,15 +128,33 @@ export function useFormBuilder(formId: string) {
     }
   }
 
-  const groups = detail ? groupContent(detail) : [];
-  const numbers = numberQuestions(groups);
+  const groups = useMemo(() => (detail ? groupContent(detail) : []), [detail]);
+  const numbers = useMemo(() => numberQuestions(groups), [groups]);
 
   // -------------------------------------------------------------------------
   // Teks pertanyaan: draf lokal + simpan otomatis
   // -------------------------------------------------------------------------
 
   const draftOf = (field: FieldOut): UpdateFieldInput =>
-    drafts[field.id] ?? fieldToUpdateInput(field, formId);
+    draftsRef.current[field.id] ?? fieldToUpdateInput(field, formId);
+
+  // Draf disimpan di ref dan dipantau per pertanyaan, sehingga mengetik di satu
+  // kartu hanya merender kartu itu, bukan seluruh builder.
+  const subscribeDraft = (fieldId: string, listener: () => void) => {
+    const map = draftListeners.current;
+    const set = map.get(fieldId) ?? new Set();
+    set.add(listener);
+    map.set(fieldId, set);
+    return () => {
+      set.delete(listener);
+      if (set.size === 0) map.delete(fieldId);
+    };
+  };
+  const draftSnapshot = (fieldId: string) => draftsRef.current[fieldId];
+  const syncDrafts = (fieldId: string) => {
+    setHasDrafts(Object.keys(draftsRef.current).length > 0);
+    draftListeners.current.get(fieldId)?.forEach((listener) => listener());
+  };
 
   function flush(fieldId: string): Promise<void> {
     const timer = timers.current.get(fieldId);
@@ -155,7 +174,7 @@ export function useFormBuilder(formId: string) {
           // Hanya bila tidak ada ketikan yang lebih baru sejak dikirim.
           if (draftsRef.current[fieldId] === input) {
             draftsRef.current = without(draftsRef.current, fieldId);
-            setDrafts(draftsRef.current);
+            syncDrafts(fieldId);
           }
           setFieldErrors((prev) => without(prev, fieldId));
           setSaveState('saved');
@@ -176,7 +195,7 @@ export function useFormBuilder(formId: string) {
                     });
                     if (draftsRef.current[fieldId] === input) {
                       draftsRef.current = without(draftsRef.current, fieldId);
-                      setDrafts(draftsRef.current);
+                      syncDrafts(fieldId);
                     }
                     setFieldErrors((prev) => without(prev, fieldId));
                   }),
@@ -203,7 +222,7 @@ export function useFormBuilder(formId: string) {
     options: { immediate?: boolean } = {},
   ) {
     draftsRef.current = { ...draftsRef.current, [input.fieldId]: input };
-    setDrafts(draftsRef.current);
+    syncDrafts(input.fieldId);
     const pending = timers.current.get(input.fieldId);
     if (pending) clearTimeout(pending);
     if (options.immediate) {
@@ -216,7 +235,7 @@ export function useFormBuilder(formId: string) {
     }
   }
 
-  const hasUnsaved = Object.keys(drafts).length > 0 || saveState === 'saving';
+  const hasUnsaved = hasDrafts || saveState === 'saving';
 
   // -------------------------------------------------------------------------
   // Undo / redo
@@ -265,14 +284,33 @@ export function useFormBuilder(formId: string) {
     return { sectionId: fallback, index: 0 };
   };
 
-  async function addField(kind: FieldKind, sectionId: string) {
-    const base = defaultFieldInput(kind, formId, sectionId);
+  /** Pertanyaan baru selalu masuk di akhir; `atIndex` memindahkannya ke posisi itu. */
+  async function addField(
+    kind: FieldKind,
+    sectionId: string,
+    atIndex?: number,
+    extra?: { label?: string; condition?: ConditionInput | null },
+  ) {
+    const base = { ...defaultFieldInput(kind, formId, sectionId), ...extra };
     // "Pertanyaan baru wajib diisi" di pengaturan berlaku untuk jenis yang bisa dijawab.
     const input =
       detail?.settings.requiredByDefault && kind !== 'text_block'
         ? { ...base, required: true }
         : base;
-    const created = await run(() => createField.mutateAsync(input));
+    const place = async (fieldId: string) => {
+      if (atIndex === undefined) return;
+      await moveField.mutateAsync({
+        formId,
+        fieldId,
+        toSectionId: sectionId,
+        toIndex: atIndex,
+      });
+    };
+    const created = await run(async () => {
+      const made = await createField.mutateAsync(input);
+      await place(made.id);
+      return made;
+    });
     if (!created) return undefined;
     let currentId = created.id;
     // Isi terakhir pertanyaan, diambil saat undo, supaya redo mengembalikan
@@ -290,12 +328,12 @@ export function useFormBuilder(formId: string) {
           ? recreateInput(snapshot, formId, sectionId)
           : input;
         currentId = (await createField.mutateAsync(again)).id;
+        await place(currentId);
         await refresh();
       },
     });
     return created.id;
   }
-
 
   /** Ganti jenis pertanyaan dari kartunya; isi teks dan pengaturan dasar dipertahankan. */
   async function changeFieldType(field: FieldOut, kind: FieldKind) {
@@ -471,12 +509,23 @@ export function useFormBuilder(formId: string) {
   // Bagian (section)
   // -------------------------------------------------------------------------
 
-  async function addSection() {
+  /** Bagian baru masuk di akhir; `atIndex` menyisipkannya di urutan itu di antara bagian lain. */
+  async function addSection(atIndex?: number) {
     const count = detail?.sections.length ?? 0;
     const title = `Bagian ${count + 1}`;
-    const created = await run(() =>
-      createSection.mutateAsync({ formId, title }),
-    );
+    const place = async (sectionId: string) => {
+      if (atIndex === undefined || atIndex >= count) return;
+      const ids = (latest()?.sections ?? detail?.sections ?? [])
+        .map((s) => s.id)
+        .filter((id) => id !== sectionId);
+      ids.splice(Math.max(0, atIndex), 0, sectionId);
+      await reorderSections.mutateAsync({ formId, sectionIds: ids });
+    };
+    const created = await run(async () => {
+      const made = await createSection.mutateAsync({ formId, title });
+      await place(made.id);
+      return made;
+    });
     if (!created) return undefined;
     let currentId = created.id;
     record({
@@ -488,9 +537,37 @@ export function useFormBuilder(formId: string) {
       redo: async () => {
         currentId = (await createSection.mutateAsync({ formId, title })).id;
         await refresh();
+        await place(currentId);
+        await refresh();
       },
     });
     return created.id;
+  }
+
+  /**
+   * Memecah bagian di sini: bagian baru dibuat tepat setelah bagian asal dan
+   * menampung pertanyaan ini beserta semua pertanyaan sesudahnya.
+   */
+  async function splitSectionAt(fieldId: string) {
+    await flushAll();
+    const where = locate(fieldId);
+    const group = groups.find((g) => g.section.id === where.sectionId);
+    if (!group) return;
+    const moving = group.fields.slice(where.index).map((f) => f.id);
+    const sectionIndex =
+      (detail?.sections.findIndex((s) => s.id === group.section.id) ?? 0) + 1;
+    const newId = await addSection(sectionIndex);
+    if (!newId) return;
+    await run(async () => {
+      for (const [i, id] of moving.entries()) {
+        await moveField.mutateAsync({
+          formId,
+          fieldId: id,
+          toSectionId: newId,
+          toIndex: i,
+        });
+      }
+    });
   }
 
   async function editSection(
@@ -697,7 +774,7 @@ export function useFormBuilder(formId: string) {
   const rotatePreviewToken = () =>
     run(() => rotateMutation.mutateAsync({ formId }));
 
-  return {
+  const builderApi = {
     formId,
     detail,
     isLoading: query.isLoading,
@@ -710,6 +787,8 @@ export function useFormBuilder(formId: string) {
     fieldErrors,
     publishProblem,
     draftOf,
+    subscribeDraft,
+    draftSnapshot,
     edit,
     flushAll,
     addField,
@@ -720,6 +799,7 @@ export function useFormBuilder(formId: string) {
     drop,
     setRequired,
     addSection,
+    splitSectionAt,
     editSection,
     addEnding,
     editEnding,
@@ -739,6 +819,19 @@ export function useFormBuilder(formId: string) {
     canUndo: stack.canUndo,
     canRedo: stack.canRedo,
   };
+
+  // Nilai konteks sengaja tidak berubah saat mengetik atau saat status simpan
+  // berganti; hanya data struktur yang memicu render ulang kartu. Karena itu
+  // `saveState`, `hasUnsaved`, dan `canUndo`/`canRedo` di dalamnya bisa basi:
+  // FormBuilder membacanya langsung dari hasil hook ini, bukan dari konteks.
+  const shared = useMemo(
+    () => builderApi,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [detail, groups, numbers, fieldErrors, publishProblem, tick],
+  );
+  return { ...builderApi, shared };
 }
 
 export type FormBuilderApi = ReturnType<typeof useFormBuilder>;
+
+export type SharedBuilderApi = FormBuilderApi['shared'];
