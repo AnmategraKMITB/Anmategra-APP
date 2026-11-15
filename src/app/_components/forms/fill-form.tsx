@@ -15,9 +15,12 @@ import { buildSubmitPayload, extractFieldErrors } from './submit-payload';
 export function FillForm({
   form,
   userId,
+  onSubmitted,
 }: {
   form: GetPublicFormOutput;
   userId: string;
+  /** Dipanggil sesudah jawaban berhasil terkirim. */
+  onSubmitted?: () => void;
 }) {
   const submit = api.form.submit.useMutation();
 
@@ -31,6 +34,7 @@ export function FillForm({
           typeof submit.mutateAsync
         >[0],
       );
+      onSubmitted?.();
       return { ending: saved.ending };
     } catch (err) {
       const fieldErrors = extractFieldErrors(err);

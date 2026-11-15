@@ -1,7 +1,13 @@
 'use client';
 
-import { ArrowDown, ArrowUp, Copy, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import {
+  ArrowDown,
+  ArrowUp,
+  Copy,
+  SplitSquareVertical,
+  Trash2,
+} from 'lucide-react';
+import { memo, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -21,9 +27,10 @@ import {
 } from '~/components/ui/select';
 import { Switch } from '~/components/ui/switch';
 import { cn } from '~/lib/utils';
+import { DESCRIPTION_MAX_LENGTH } from '~/server/api/types/form.constants';
 
-import { KindIcon } from './add-menu';
-import { useBuilder } from './builder-context';
+import { AddAroundMenu, KindIcon } from './add-menu';
+import { useBuilder, useFieldDraft } from './builder-context';
 import { ConditionEditor } from './condition-editor';
 import { ImageUpload } from './image-upload';
 import {
@@ -37,7 +44,7 @@ import { RichTextEditor } from './rich-text-editor';
 import { TypeEditor } from './type-editors';
 
 /** Satu kartu pertanyaan. Perubahan teks disimpan otomatis; operasi struktur seketika. */
-export function FieldCard({
+export const FieldCard = memo(function FieldCard({
   field,
   sectionId,
   index,
@@ -51,7 +58,7 @@ export function FieldCard({
 }) {
   const builder = useBuilder();
   const [confirmDelete, setConfirmDelete] = useState(false);
-  const draft = builder.draftOf(field);
+  const draft = useFieldDraft(field);
   const kind = kindOf(field);
   const kindLabel = FIELD_KINDS.find((k) => k.kind === kind)?.label ?? '';
   const isBlock = field.type === 'text_block';
@@ -141,7 +148,7 @@ export function FieldCard({
           label={isBlock ? 'Isi penjelasan' : 'Keterangan (opsional)'}
           value={draft.description ?? ''}
           rows={isBlock ? 4 : 2}
-          maxLength={2000}
+          maxLength={DESCRIPTION_MAX_LENGTH}
           onChange={(description) => builder.edit({ ...draft, description })}
         />
         <TypeEditor draft={draft} onChange={(next) => builder.edit(next)} />
@@ -184,7 +191,19 @@ export function FieldCard({
         </p>
       ) : null}
 
-      <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-400 pt-3">
+      <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-neutral-400 pt-3">
+        <AddAroundMenu
+          onSelect={(kind, where) =>
+            void builder.addField(
+              kind,
+              sectionId,
+              where === 'before' ? index : index + 1,
+            )
+          }
+        />
+      </div>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
         {isBlock ? null : (
           <div className="flex items-center gap-2">
             <Switch
@@ -204,9 +223,7 @@ export function FieldCard({
             value={sectionId}
             onValueChange={(value) => {
               if (value === sectionId) return;
-              const group = builder.groups.find(
-                (g) => g.section.id === value,
-              );
+              const group = builder.groups.find((g) => g.section.id === value);
               void builder.move(field.id, value, group?.fields.length ?? 0);
             }}
           >
@@ -241,6 +258,15 @@ export function FieldCard({
             onClick={() => void builder.move(field.id, sectionId, index + 1)}
           >
             <ArrowDown />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Mulai bagian baru dari pertanyaan ini"
+            title="Mulai bagian baru dari pertanyaan ini"
+            onClick={() => void builder.splitSectionAt(field.id)}
+          >
+            <SplitSquareVertical />
           </Button>
           <Button
             variant="ghost"
@@ -297,4 +323,4 @@ export function FieldCard({
       </Dialog>
     </article>
   );
-}
+});

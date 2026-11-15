@@ -7,14 +7,16 @@ import {
   ChevronUp,
   Trash2,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Fragment, memo, useEffect, useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
+import { DESCRIPTION_MAX_LENGTH } from '~/server/api/types/form.constants';
 
 import { AddMenu } from './add-menu';
 import { useBuilder } from './builder-context';
+import { SectionFields, SortableFieldCard } from './canvas-dnd';
 import { ConditionEditor } from './condition-editor';
-import { FieldCard } from './field-card';
+import { InsertQuestion } from './insert-section';
 import { type ContentGroup, conditionSources } from './model';
 import { SectionBindingEditor } from './section-binding';
 
@@ -27,7 +29,7 @@ export const REVEAL_FIELD_EVENT = 'form-builder:reveal-field';
  * Satu bagian beserta pertanyaannya. Grup tanpa bagian (`section: null`)
  * memakai pembungkus yang sama tanpa judul yang bisa diubah.
  */
-export function SectionCard({
+export const SectionCard = memo(function SectionCard({
   group,
   position,
   sectionCount,
@@ -37,7 +39,7 @@ export function SectionCard({
   /** Urutan bagian ini di antara bagian lain (dari 0); -1 untuk grup tanpa bagian. */
   position: number;
   sectionCount: number;
-  onDelete: () => void;
+  onDelete: (group: ContentGroup) => void;
 }) {
   const builder = useBuilder();
   const { section, fields } = group;
@@ -71,93 +73,94 @@ export function SectionCard({
 
   return (
     <section
+      id={`section-${section.id}`}
       aria-label={section.title}
       className="rounded-[24px] border border-neutral-400 bg-neutral-100 p-3 sm:p-5"
     >
       <div className="mb-4 flex flex-wrap items-start gap-3">
-          <div className="grid min-w-0 flex-1 gap-2">
-              <Input
-                key={`${section.id}:${section.title}`}
-                defaultValue={section.title}
-                aria-label="Judul bagian"
-                maxLength={255}
-                className="text-lg font-semibold"
-                onBlur={(e) => {
-                  const value = e.currentTarget.value.trim();
-                  if (value && value !== section.title) {
-                    void builder.editSection(section.id, { title: value });
-                  } else {
-                    e.currentTarget.value = section.title;
-                  }
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+        <div className="grid min-w-0 flex-1 gap-2">
+          <Input
+            key={`${section.id}:${section.title}`}
+            defaultValue={section.title}
+            aria-label="Judul bagian"
+            maxLength={255}
+            className="text-lg font-semibold"
+            onBlur={(e) => {
+              const value = e.currentTarget.value.trim();
+              if (value && value !== section.title) {
+                void builder.editSection(section.id, { title: value });
+              } else {
+                e.currentTarget.value = section.title;
+              }
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+          />
+          <Input
+            key={`${section.id}:d:${section.description ?? ''}`}
+            defaultValue={section.description ?? ''}
+            aria-label="Deskripsi bagian"
+            placeholder="Deskripsi bagian (opsional)"
+            maxLength={DESCRIPTION_MAX_LENGTH}
+            onBlur={(e) => {
+              const value = e.currentTarget.value.trim();
+              if (value !== (section.description ?? '')) {
+                void builder.editSection(section.id, {
+                  description: value || null,
+                });
+              }
+            }}
+            onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+          />
+          <div>
+            {builder.detail?.oprec ? (
+              <SectionBindingEditor
+                sectionId={section.id}
+                recruitmentId={builder.detail.oprec.recruitmentId}
               />
-              <Input
-                key={`${section.id}:d:${section.description ?? ''}`}
-                defaultValue={section.description ?? ''}
-                aria-label="Deskripsi bagian"
-                placeholder="Deskripsi bagian (opsional)"
-                maxLength={2000}
-                onBlur={(e) => {
-                  const value = e.currentTarget.value.trim();
-                  if (value !== (section.description ?? '')) {
-                    void builder.editSection(section.id, {
-                      description: value || null,
-                    });
-                  }
-                }}
-                onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+            ) : (
+              <ConditionEditor
+                title={section.title}
+                value={section.condition}
+                sources={conditionSources(builder.groups, {
+                  sectionId: section.id,
+                })}
+                onSave={(condition) =>
+                  void builder.editSection(section.id, { condition })
+                }
               />
-              <div>
-                {builder.detail?.oprec ? (
-                  <SectionBindingEditor
-                    sectionId={section.id}
-                    recruitmentId={builder.detail.oprec.recruitmentId}
-                  />
-                ) : (
-                  <ConditionEditor
-                    title={section.title}
-                    value={section.condition}
-                    sources={conditionSources(builder.groups, {
-                      sectionId: section.id,
-                    })}
-                    onSave={(condition) =>
-                      void builder.editSection(section.id, { condition })
-                    }
-                  />
-                )}
-              </div>
-            </div>
-          <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Naikkan bagian"
-                disabled={position <= 0}
-                onClick={() => moveSection(-1)}
-              >
-                <ArrowUp />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Turunkan bagian"
-                disabled={position >= sectionCount - 1}
-                onClick={() => moveSection(1)}
-              >
-                <ArrowDown />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Hapus bagian"
-                className="text-danger-dark hover:text-danger-dark"
-                disabled={sectionCount <= 1}
-                onClick={onDelete}
-              >
-                <Trash2 />
-              </Button>
+            )}
           </div>
+        </div>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Naikkan bagian"
+            disabled={position <= 0}
+            onClick={() => moveSection(-1)}
+          >
+            <ArrowUp />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Turunkan bagian"
+            disabled={position >= sectionCount - 1}
+            onClick={() => moveSection(1)}
+          >
+            <ArrowDown />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Hapus bagian"
+            className="text-danger-dark hover:text-danger-dark"
+            disabled={sectionCount <= 1}
+            onClick={() => onDelete(group)}
+          >
+            <Trash2 />
+          </Button>
+        </div>
       </div>
 
       {folded ? (
@@ -170,28 +173,36 @@ export function SectionCard({
         </Button>
       ) : (
         <>
-      <div className="grid gap-4">
-        {fields.length === 0 ? (
-          <p className="rounded-xl border border-dashed border-neutral-400 px-4 py-6 text-center text-sm text-neutral-700">
-            Bagian ini belum berisi pertanyaan.
-          </p>
-        ) : (
-          fields.map((field, index) => (
-            <FieldCard
-              key={field.id}
-              field={field}
-              sectionId={section?.id ?? null}
-              index={index}
-              size={fields.length}
-            />
-          ))
-        )}
-      </div>
+          <SectionFields sectionId={section.id} fields={fields}>
+            {fields.length === 0 ? (
+              <p className="rounded-xl border border-dashed border-neutral-400 px-4 py-6 text-center text-sm text-neutral-700">
+                Bagian ini belum berisi pertanyaan.
+              </p>
+            ) : (
+              <>
+                <InsertQuestion sectionId={section.id} atIndex={0} />
+                {fields.map((field, index) => (
+                  <Fragment key={field.id}>
+                    <SortableFieldCard
+                      field={field}
+                      sectionId={section.id}
+                      index={index}
+                      size={fields.length}
+                    />
+                    <InsertQuestion
+                      sectionId={section.id}
+                      atIndex={index + 1}
+                    />
+                  </Fragment>
+                ))}
+              </>
+            )}
+          </SectionFields>
 
           <div className="mt-4 flex flex-wrap items-center gap-3">
-        <AddMenu
-          onSelect={(kind) => void builder.addField(kind, section.id)}
-        />
+            <AddMenu
+              onSelect={(kind) => void builder.addField(kind, section.id)}
+            />
             {large ? (
               <Button
                 variant="ghost"
@@ -201,9 +212,9 @@ export function SectionCard({
                 <ChevronUp /> Ciutkan bagian
               </Button>
             ) : null}
-      </div>
+          </div>
         </>
       )}
     </section>
   );
-}
+});

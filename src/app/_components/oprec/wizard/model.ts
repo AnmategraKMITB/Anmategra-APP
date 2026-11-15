@@ -85,7 +85,8 @@ export type WizardState = {
   divisions: Record<string, { positionId: string; sourcePeriodId: string }>;
   /** S4 */
   useWaves: boolean;
-  waves: { label: string; startsAt: string; endsAt: string }[];
+  /** `id` hanya ada saat menyunting gelombang yang sudah tersimpan (Pengaturan). */
+  waves: { id?: string; label: string; startsAt: string; endsAt: string }[];
   /** S5 */
   eligibility: { enabled: boolean; match: 'all' | 'any'; rules: RuleDraft[] };
   /** S6 */
@@ -117,6 +118,8 @@ export type WizardState = {
   managers: 'saya' | 'orang' | 'level' | 'ketua';
   managerIdentifiers: string[];
   managerUnitId: string | null;
+  /** S18a */
+  placementMethod: 'manual' | 'prioritas';
   /** S18, S19 */
   staged: boolean;
   visibility: 'tidak' | 'ya';
@@ -168,6 +171,7 @@ export function defaultState(
     managers: 'saya',
     managerIdentifiers: [],
     managerUnitId: null,
+    placementMethod: 'manual',
     staged: true,
     visibility: 'tidak',
     resultsAccess: 'admin_ketua',
@@ -214,6 +218,7 @@ export const STEP_IDS = [
   'S23',
   'S16',
   'S17',
+  'S18a',
   'S18',
   'S19',
   'S20',
@@ -243,6 +248,7 @@ export const GROUP_OF: Record<StepId, string> = {
   S23: 'Penilaian',
   S16: 'Keputusan dan akses',
   S17: 'Keputusan dan akses',
+  S18a: 'Penempatan',
   S18: 'Penempatan',
   S19: 'Penempatan',
   S20: 'Hasil',
@@ -265,6 +271,9 @@ export function visibleSteps(
         return s.scoringMode === 'skor' && s.rubrics === 'keduanya';
       case 'S14':
         return s.assessors !== 'ketua';
+      // Tahap per pilihan hanya berlaku untuk penempatan manual.
+      case 'S18':
+        return s.placementMethod === 'manual';
       default:
         return true;
     }
@@ -478,7 +487,7 @@ export function openWarnings(
     if (names.length > 0) {
       out.push({
         id: 'S3',
-        message: `${names.join(', ')} belum punya ketua. Isi ketua di organogram, atau pilih penilai umum dan matikan veto ketua.`,
+        message: `${names.join(', ')} belum punya pengurus (Kadiv, Kabid, atau jabatan lain di atas Staf). Isi di organogram, atau pilih penilai umum dan matikan veto ketua.`,
       });
     }
   }
@@ -584,6 +593,7 @@ export function buildInput(s: WizardState, c: WizardCtx): CreateFromSetupInput {
       rules,
     } as CreateFromSetupInput['eligibility'],
     managers: s.managers === 'orang' ? s.managerIdentifiers : [],
+    placementMethod: s.placementMethod,
     criteria: criteriaSlots(s).flatMap((scope) =>
       (s.criteria[scope] ?? []).map((k) => ({
         scope,

@@ -65,7 +65,7 @@ function assertResultsAccess(access: AssessAccess, mode: ResultsMode) {
     if (access.deciderDivisionIds.size === 0) {
       throw new TRPCError({
         code: 'FORBIDDEN',
-        message: 'Menu Hasil hanya bisa dibuka admin dan Kadiv.',
+        message: 'Menu Hasil hanya bisa dibuka admin dan pengurus divisi.',
       });
     }
     return;

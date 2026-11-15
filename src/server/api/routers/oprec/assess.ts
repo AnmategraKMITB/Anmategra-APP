@@ -26,11 +26,9 @@ import {
   choiceStatusOverride,
   criterion,
   criterionField,
-  formSubmission,
   mahasiswa,
   organizationUnit,
   recruitmentDivision,
-  recruitmentSectionBinding,
   recruitmentWave,
   users,
 } from '~/server/db/schema';
@@ -46,12 +44,7 @@ import {
   OverrideSetInputSchema,
   RecruitmentIdInputSchema,
 } from '../../types/oprec.type';
-import { loadResponseFields } from '../form/responses';
-import {
-  attachAnswers,
-  submissionQuery,
-  toRespondent,
-} from '../form/responses';
+import { loadApplicantAnswers } from './applicant-answers';
 import {
   type AssessAccess,
   canAssessScope,
@@ -489,48 +482,12 @@ export const assessProcedures = {
         : [];
       const me = ctx.session.user.id;
 
-      // Jawaban yang relevan dengan lingkup: bagian tanpa ikatan, plus bagian terikat ke divisi ini.
-      const bindings = await ctx.db
-        .select()
-        .from(recruitmentSectionBinding)
-        .where(eq(recruitmentSectionBinding.recruitmentId, rec.id));
-      const boundTo = new Map<string, Set<string>>();
-      for (const b of bindings) {
-        boundTo.set(
-          b.formSectionId,
-          new Set([...(boundTo.get(b.formSectionId) ?? []), b.divisionId]),
-        );
-      }
-      let columns: {
-        fieldId: string;
-        type: string;
-        label: string;
-        sectionId: string | null;
-      }[] = [];
-      let answers: Record<string, unknown> = {};
-      if (app.formSubmissionId) {
-        const fields = await loadResponseFields(ctx.db, rec.formId);
-        columns = fields
-          .filter((f) => {
-            const sec = f.sectionId ? boundTo.get(f.sectionId) : undefined;
-            if (!sec) return true;
-            return divisionId !== null && sec.has(divisionId);
-          })
-          .filter((f) => f.type !== 'unit_choice')
-          .map((f) => ({
-            fieldId: f.id,
-            type: f.type,
-            label: f.label,
-            sectionId: f.sectionId,
-          }));
-        const [found] = await submissionQuery(ctx.db).where(
-          eq(formSubmission.id, app.formSubmissionId),
-        );
-        if (found) {
-          const [row] = await attachAnswers(ctx.db, [toRespondent(found)]);
-          answers = row?.answers ?? {};
-        }
-      }
+      const { columns, answers } = await loadApplicantAnswers(
+        ctx.db,
+        rec,
+        app.formSubmissionId,
+        divisionId,
+      );
 
       const gate = await loadGateAnswers(
         ctx.db,
@@ -874,7 +831,7 @@ export const assessProcedures = {
         if (!ch) notFound('Pilihan tidak ditemukan.');
         if (!canDecideDivision(ctx.assess, ch.divisionId)) {
           forbidden(
-            'Hanya Kadiv divisi ini dan admin oprec yang boleh mengubah status.',
+            'Hanya pengurus divisi ini (Kadiv, Kabid, atau jabatan di atasnya) dan admin oprec yang boleh mengubah status.',
           );
         }
         await tx
@@ -935,7 +892,7 @@ export const assessProcedures = {
         if (!ch) notFound('Pilihan tidak ditemukan.');
         if (!canDecideDivision(ctx.assess, ch.divisionId)) {
           forbidden(
-            'Hanya Kadiv divisi ini dan admin oprec yang boleh mengubah status.',
+            'Hanya pengurus divisi ini (Kadiv, Kabid, atau jabatan di atasnya) dan admin oprec yang boleh mengubah status.',
           );
         }
         await tx

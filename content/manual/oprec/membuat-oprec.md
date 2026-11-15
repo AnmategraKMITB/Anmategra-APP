@@ -84,7 +84,8 @@ Beberapa hal yang sering ditanyakan:
   OneDrive, dan sejenisnya), bukan unggahan ke server.
 - **Metode status.** Pilih **Peringkat dalam kuota**, **Peringkat dalam kuota
   dengan nilai minimum**, atau **Ambang nilai**. Pilihan ini dapat diubah lagi
-  di pengaturan oprec.
+  di [Pengaturan](/manual/oprec/pengaturan), begitu pula sebagian besar jawaban
+  setup lainnya.
 
 ## Membuka pendaftaran
 

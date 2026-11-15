@@ -26,6 +26,7 @@ import {
   loadActiveFields,
   lockForm,
 } from '../form/services';
+import { loadPengurus } from './pengurus';
 
 export type Database = typeof Db;
 export type Queryable = Pick<Database, 'select' | 'query'>;
@@ -216,7 +217,10 @@ export async function assertUnitHasPeople(db: Queryable, unitId: string) {
   }
 }
 
-/** Tiap divisi yang dibuka harus punya pemegang posisi ketua (rank `head`). */
+/**
+ * Tiap divisi yang dibuka harus punya pengurus: jabatan di atas Staf di
+ * bagian itu atau bagian di atasnya (lihat `pengurus.ts`).
+ */
 export async function assertDivisionsHaveHead(
   db: Queryable,
   unitIds: string[],
@@ -226,23 +230,12 @@ export async function assertDivisionsHaveHead(
     .select({ id: organizationUnit.id, name: organizationUnit.name })
     .from(organizationUnit)
     .where(inArray(organizationUnit.id, unitIds));
-  const withHead = await db
-    .select({ unitId: organizationPosition.unitId })
-    .from(organizationPosition)
-    .innerJoin(placement, eq(placement.positionId, organizationPosition.id))
-    .where(
-      and(
-        inArray(organizationPosition.unitId, unitIds),
-        eq(organizationPosition.rank, 'head'),
-      ),
-    )
-    .groupBy(organizationPosition.unitId);
-  const ok = new Set(withHead.map((r) => r.unitId));
+  const ok = new Set((await loadPengurus(db, unitIds)).map((r) => r.unitId));
   const missing = rows.filter((r) => !ok.has(r.id)).map((r) => `"${r.name}"`);
   if (missing.length > 0) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
-      message: `Divisi ${missing.join(', ')} belum punya ketua. Isi ketua di organogram, atau pilih penilai umum dan matikan veto ketua.`,
+      message: `Divisi ${missing.join(', ')} belum punya pengurus (Kadiv, Kabid, atau jabatan lain di atas Staf). Isi di organogram, atau pilih penilai umum dan matikan veto ketua.`,
     });
   }
 }

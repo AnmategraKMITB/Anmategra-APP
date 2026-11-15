@@ -1,18 +1,17 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { oprecScopedProcedure } from '~/server/api/trpc';
 import {
   mahasiswa,
-  organizationPosition,
   organizationUnit,
-  placement,
   recruitmentAssessor,
   recruitmentDivision,
   users,
 } from '~/server/db/schema';
 
 import { logAction } from './log';
+import { loadDivisionPengurus } from './pengurus';
 import { conflict, notFound, pgCode } from './services';
 
 const AssessorAddInput = z.object({
@@ -194,34 +193,44 @@ export const assessorProcedures = {
   assessorDerived: oprecScopedProcedure
     .input(z.object({ recruitmentId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
-      return ctx.db
-        .select({
-          divisionId: recruitmentDivision.id,
-          divisionLabel: organizationUnit.name,
-          userId: users.id,
-          name: users.name,
-        })
-        .from(recruitmentDivision)
-        .innerJoin(
-          organizationUnit,
-          eq(organizationUnit.id, recruitmentDivision.unitId),
-        )
-        .innerJoin(
-          organizationPosition,
-          eq(organizationPosition.unitId, recruitmentDivision.unitId),
-        )
-        .innerJoin(placement, eq(placement.positionId, organizationPosition.id))
-        .innerJoin(users, eq(users.id, placement.userId))
-        .where(
-          and(
-            eq(recruitmentDivision.recruitmentId, input.recruitmentId),
-            eq(organizationPosition.rank, 'head'),
+      // Pengurus (jabatan di atas Staf di bagian itu atau di atasnya), lihat `pengurus.ts`.
+      const pairs = await loadDivisionPengurus(ctx.db, input.recruitmentId);
+      if (pairs.length === 0) return [];
+      const [divisions, people] = await Promise.all([
+        ctx.db
+          .select({
+            id: recruitmentDivision.id,
+            label: organizationUnit.name,
+          })
+          .from(recruitmentDivision)
+          .innerJoin(
+            organizationUnit,
+            eq(organizationUnit.id, recruitmentDivision.unitId),
+          )
+          .where(eq(recruitmentDivision.recruitmentId, input.recruitmentId))
+          .orderBy(
+            asc(recruitmentDivision.sortOrder),
+            asc(organizationUnit.name),
           ),
-        )
-        .orderBy(
-          asc(recruitmentDivision.sortOrder),
-          asc(organizationUnit.name),
-          asc(users.name),
+        ctx.db
+          .select({ id: users.id, name: users.name })
+          .from(users)
+          .where(inArray(users.id, [...new Set(pairs.map((p) => p.userId))])),
+      ]);
+      const nameOf = new Map(people.map((u) => [u.id, u.name]));
+      const order = new Map(divisions.map((d, i) => [d.id, i]));
+      const labelOf = new Map(divisions.map((d) => [d.id, d.label]));
+      return pairs
+        .map((p) => ({
+          divisionId: p.divisionId,
+          divisionLabel: labelOf.get(p.divisionId) ?? '',
+          userId: p.userId,
+          name: nameOf.get(p.userId) ?? null,
+        }))
+        .sort(
+          (a, b) =>
+            (order.get(a.divisionId) ?? 0) - (order.get(b.divisionId) ?? 0) ||
+            (a.name ?? '').localeCompare(b.name ?? '', 'id'),
         );
     }),
 };

@@ -15,12 +15,14 @@ const allows = (features: string[], key: ToolKey) =>
   features.includes('admin') || features.includes(key);
 
 const ManageIndexPage = async () => {
-  const [lembaga, kegiatan] = await Promise.all([
+  const [lembaga, kegiatan, oprec] = await Promise.all([
     api.adminGrant.getMyManagedLembaga(),
     api.adminGrant.getMyManagedEvents(),
+    api.adminGrant.getMyHandledOprecs(),
   ]);
 
-  const empty = lembaga.length === 0 && kegiatan.length === 0;
+  const empty =
+    lembaga.length === 0 && kegiatan.length === 0 && oprec.length === 0;
 
   // Kegiatan dikelompokkan per lembaga; kegiatan tanpa lembaga masuk "Lainnya".
   const groups = new Map<string, { name: string; items: typeof kegiatan }>();
@@ -39,8 +41,8 @@ const ManageIndexPage = async () => {
       <div>
         <h1 className="text-2xl font-semibold text-neutral-1000">Kelola</h1>
         <p className="text-sm text-neutral-600">
-          Lembaga dan kegiatan yang kamu kelola, beserta alat yang boleh kamu
-          pakai.
+          Lembaga, kegiatan, dan open recruitment yang kamu kelola, beserta alat
+          yang boleh kamu pakai.
         </p>
       </div>
 
@@ -49,6 +51,52 @@ const ManageIndexPage = async () => {
           Kamu belum mengelola lembaga atau kegiatan apa pun. Minta Owner
           lembaga untuk mengundangmu sebagai admin.
         </p>
+      )}
+
+      {oprec.length > 0 && (
+        <section aria-labelledby="manage-oprec" className="space-y-3">
+          <div>
+            <h2
+              id="manage-oprec"
+              className="text-lg font-semibold text-neutral-1000"
+            >
+              Open Recruitment yang kamu tangani
+            </h2>
+            <p className="text-sm text-neutral-600">
+              Dari jabatanmu di organogram (di atas Staf) atau sebagai penilai
+              tambahan.
+            </p>
+          </div>
+          <ul className="grid gap-3">
+            {oprec.map((o) => (
+              <li
+                key={o.recruitmentId}
+                className="flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div>
+                  <p className="font-medium">{o.recruitmentName}</p>
+                  <p className="text-sm text-neutral-600">
+                    {[
+                      o.lembagaNama ?? o.periodName,
+                      `${o.divisionCount} divisi`,
+                      o.canDecide ? 'menilai dan memutuskan' : 'menilai',
+                      o.status === 'closed' ? 'ditutup' : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                </div>
+                <Button asChild variant="outline" size="sm">
+                  <Link
+                    href={`/manage/kegiatan/${o.periodId}/oprec/${o.recruitmentId}/${o.tab}`}
+                  >
+                    Buka
+                  </Link>
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {lembaga.length > 0 && (

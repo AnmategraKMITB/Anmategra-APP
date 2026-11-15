@@ -47,6 +47,7 @@ import {
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
 import { logAction } from './log';
+import { pengurusOfUnits } from './pengurus';
 import {
   type Queryable,
   applySectionBinding,
@@ -180,6 +181,7 @@ async function loadTree(db: Queryable, periodId: string) {
   ]);
   const placed = await db
     .select({
+      userId: placement.userId,
       unitId: organizationPosition.unitId,
       rank: organizationPosition.rank,
     })
@@ -199,10 +201,17 @@ async function loadTree(db: Queryable, periodId: string) {
     levelLabels: resolveLevelLabels(structure.levelLabels, units),
     units,
     positions,
-    /** Bagian yang punya penempat, dan yang penempatnya mengisi posisi ketua. */
+    /** Bagian yang punya penempat, dan yang punya pengurus (lihat `pengurus.ts`). */
     staffedUnitIds: [...new Set(placed.map((r) => r.unitId))],
     headedUnitIds: [
-      ...new Set(placed.filter((r) => r.rank === 'head').map((r) => r.unitId)),
+      ...new Set(
+        pengurusOfUnits(
+          units.map((u) => u.id),
+          units,
+          placed,
+          () => structure.ranks,
+        ).map((r) => r.unitId),
+      ),
     ],
   };
 }
@@ -497,6 +506,7 @@ export const setupProcedures = {
               minChoices: input.minChoices,
               maxChoices: input.maxChoices,
               allowRedirect: input.allowRedirect,
+              placementMethod: input.placementMethod,
               eligibilityMatch: input.eligibility.match,
               setupAnswers: input.answers,
               setupCompletedAt: new Date(),

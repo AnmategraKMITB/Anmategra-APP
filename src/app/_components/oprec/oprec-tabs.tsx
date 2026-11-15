@@ -9,12 +9,19 @@ import { type OprecBase, placementLockReason } from './status';
 
 const TABS = [
   ['pendaftar', 'Pendaftar'],
-  ['penempatan', 'Penempatan'],
   ['nilai', 'Nilai'],
+  ['prioritas', 'Prioritas'],
+  ['penempatan', 'Penempatan'],
   ['hasil', 'Hasil'],
+  ['pengaturan', 'Pengaturan'],
 ] as const;
 
-/** Sub-navigasi satu oprec; "Pendaftar" hanya untuk pengelola oprec. */
+export type OprecTabId = (typeof TABS)[number][0];
+
+/**
+ * Sub-navigasi satu oprec, urut alur kerja: nilai dulu, baru penempatan.
+ * "Pendaftar" dan "Pengaturan" hanya untuk pengelola oprec (`manage`).
+ */
 export async function OprecTabs({
   basePath,
   kegiatanId,
@@ -28,23 +35,32 @@ export async function OprecTabs({
   basePath: OprecBase;
   kegiatanId: string;
   recruitmentId: string;
-  current: 'pendaftar' | 'penempatan' | 'nilai' | 'hasil';
+  current: OprecTabId;
   showPendaftar: boolean;
   showPenempatan?: boolean;
   showHasil?: boolean;
   /** Aksi pengelola (Formulir, Buka pendaftaran); hanya untuk pengelola oprec. */
   manage?: { formId: string; status: 'draft' | 'open' | 'closed' };
 }) {
+  const [row] = await db
+    .select({
+      status: recruitment.status,
+      placementMethod: recruitment.placementMethod,
+    })
+    .from(recruitment)
+    .where(eq(recruitment.id, recruitmentId));
+  // Metode prioritas menggantikan Nilai dengan Prioritas; metodenya diganti
+  // di Pengaturan.
+  const prioritas = row?.placementMethod === 'prioritas';
   const tabs = TABS.filter(
     ([id]) =>
       (id !== 'pendaftar' || showPendaftar) &&
+      (id !== 'nilai' || !prioritas) &&
       (id !== 'penempatan' || showPenempatan) &&
-      (id !== 'hasil' || showHasil),
+      (id !== 'prioritas' || prioritas) &&
+      (id !== 'hasil' || showHasil) &&
+      (id !== 'pengaturan' || !!manage),
   );
-  const [row] = await db
-    .select({ status: recruitment.status })
-    .from(recruitment)
-    .where(eq(recruitment.id, recruitmentId));
   const [applicants] = await db
     .select({ n: count() })
     .from(application)

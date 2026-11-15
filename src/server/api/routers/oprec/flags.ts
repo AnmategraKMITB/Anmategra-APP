@@ -56,7 +56,7 @@ function assertLabelManager(assess: AssessAccess) {
   if (!assess.isAdmin && assess.deciderDivisionIds.size === 0) {
     throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Hanya admin atau Kadiv yang boleh mengelola label.',
+      message: 'Hanya admin atau pengurus divisi yang boleh mengelola label.',
     });
   }
 }

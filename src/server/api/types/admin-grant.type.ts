@@ -93,3 +93,18 @@ export const ManagedEventEntrySchema = z.object({
 export const GetMyManagedEventsOutputSchema = z.array(ManagedEventEntrySchema);
 
 export const HasManagedScopeOutputSchema = z.boolean();
+
+/** Oprec yang ditangani sebagai pengurus organogram atau penilai tambahan. */
+export const GetMyHandledOprecsOutputSchema = z.array(
+  z.object({
+    recruitmentId: z.string(),
+    recruitmentName: z.string(),
+    status: z.string(),
+    periodId: z.string(),
+    periodName: z.string(),
+    lembagaNama: z.string().nullable(),
+    tab: z.enum(['nilai', 'prioritas']),
+    divisionCount: z.number(),
+    canDecide: z.boolean(),
+  }),
+);

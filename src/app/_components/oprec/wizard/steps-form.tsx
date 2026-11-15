@@ -118,7 +118,7 @@ export function StepSyarat({ s, update, c }: StepProps) {
             return (
               <div
                 key={i}
-                className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[1fr_1fr_1.2fr_auto] sm:items-end"
+                className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[1fr_1fr_1.2fr_auto] sm:items-end [&>*]:min-w-0"
               >
                 <Labeled label="Atribut">
                   {(id) => (

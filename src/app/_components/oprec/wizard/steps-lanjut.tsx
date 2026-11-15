@@ -1,10 +1,10 @@
 'use client';
 
-import { WEIGHT_MAX, clampWeight } from './helpers';
 import { Plus, Trash2, X } from 'lucide-react';
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useContext, useState } from 'react';
 import { Button } from '~/components/ui/button';
 
+import { WEIGHT_MAX, clampWeight } from './helpers';
 import {
   EyeArt,
   InboxArt,
@@ -14,7 +14,14 @@ import {
 } from './illustrations';
 import { type CriterionDraft, type WizardState, criteriaSlots } from './model';
 import { type StepProps } from './steps-types';
-import { Labeled, type Option, OptionCards, StepFrame, fieldClass } from './ui';
+import {
+  CompactSteps,
+  Labeled,
+  type Option,
+  OptionCards,
+  StepFrame,
+  fieldClass,
+} from './ui';
 
 /** Satu layar pilihan tunggal. */
 function Choice<T extends string>({
@@ -107,10 +114,11 @@ export function StepKeputusan({ s, update }: StepProps) {
 }
 
 export function StepMetode({ s, update }: StepProps) {
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Status otomatis ditentukan dengan cara apa?"
-      hint="Bisa diubah lagi di pengaturan oprec."
+      hint={inSettings ? undefined : 'Bisa diubah lagi di pengaturan oprec.'}
       art={<ScoreArt />}
       label="Metode status"
       value={s.statusMethod}
@@ -140,10 +148,15 @@ export function StepMetode({ s, update }: StepProps) {
 
 export function StepSumberNilai({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Nilai mana yang dipakai untuk status?"
-      hint="Bobot gabungan diatur di langkah kriteria dan ikatan, nanti."
+      hint={
+        inSettings
+          ? undefined
+          : 'Bobot gabungan diatur di langkah kriteria dan ikatan, nanti.'
+      }
       art={<ScoreArt />}
       label="Sumber nilai"
       value={s.scoreSource}
@@ -172,7 +185,12 @@ export function StepPenilai({ s, update, c }: StepProps) {
       value={s.assessors}
       onChange={(v) => update({ assessors: v })}
       options={[
-        { value: 'ketua', label: `Ketua ${l2} masing-masing` },
+        {
+          value: 'ketua',
+          label: `Pengurus ${l2} masing-masing`,
+          description:
+            'Jabatan di atas Staf di bagian itu atau di atasnya, mis. Kadiv dan Kabid.',
+        },
         { value: 'umum', label: 'Penilai umum' },
         { value: 'keduanya', label: 'Keduanya' },
       ]}
@@ -214,6 +232,7 @@ export function StepPenilaiUmum({ s, update, trees, c }: StepProps) {
 }
 
 export function StepGugur({ s, update }: StepProps) {
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title="Ada syarat gugur?"
@@ -227,8 +246,9 @@ export function StepGugur({ s, update }: StepProps) {
         {
           value: 'ya',
           label: 'Ya',
-          description:
-            'Tambahkan kriteria jenis gugur manual di langkah kriteria.',
+          description: inSettings
+            ? 'Kriteria jenis gugur manual ditambahkan di panel Penilaian formulir.'
+            : 'Tambahkan kriteria jenis gugur manual di langkah kriteria.',
         },
       ]}
     />
@@ -239,7 +259,7 @@ export function StepVeto({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
   return (
     <Choice
-      title={`Keputusan akhir dan hak veto ada di ketua ${l2}?`}
+      title={`Keputusan akhir dan hak veto ada di pengurus ${l2}?`}
       art={<PeopleArt />}
       label="Keputusan akhir"
       value={s.veto ? 'ya' : 'tidak'}
@@ -248,7 +268,7 @@ export function StepVeto({ s, update, c }: StepProps) {
         {
           value: 'ya',
           label: 'Ya',
-          description: `Ketua ${l2} memutuskan dan bisa memveto penempatan.`,
+          description: `Pengurus ${l2} (Kadiv, Kabid, dan jabatan di atasnya) memutuskan dan bisa memveto penempatan.`,
         },
         {
           value: 'tidak',
@@ -507,6 +527,32 @@ export function StepAkses({ s, update, trees, c }: StepProps) {
   );
 }
 
+export function StepMetodePenempatan({ s, update, c }: StepProps) {
+  const l2 = c.labels[1].toLowerCase();
+  return (
+    <Choice
+      title="Penempatan memakai cara apa?"
+      hint="Bisa diganti lagi di Pengaturan selama penempatan berjalan."
+      art={<SectionsArt />}
+      label="Metode penempatan"
+      value={s.placementMethod}
+      onChange={(v) => update({ placementMethod: v })}
+      options={[
+        {
+          value: 'manual',
+          label: 'Manual',
+          description: `Penilai memberi nilai per kriteria, lalu pengambil keputusan menerima atau menolak tiap pilihan.`,
+        },
+        {
+          value: 'prioritas',
+          label: 'Prioritas',
+          description: `Tiap ${l2} mengurutkan pendaftar yang diinginkan, lalu sistem menempatkan setiap pendaftar di pilihan tertinggi yang mengurutkannya, mengikuti kuota. Tab Prioritas menggantikan tab Nilai.`,
+        },
+      ]}
+    />
+  );
+}
+
 export function StepTahap({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
   return (
@@ -527,6 +573,7 @@ export function StepTahap({ s, update, c }: StepProps) {
 
 export function StepVisibilitas({ s, update, c }: StepProps) {
   const l2 = c.labels[1].toLowerCase();
+  const inSettings = useContext(CompactSteps);
   return (
     <Choice
       title={`${c.labels[1]} boleh melihat pendaftar yang sudah diterima ${l2} lain?`}
@@ -540,7 +587,9 @@ export function StepVisibilitas({ s, update, c }: StepProps) {
         {
           value: 'ya',
           label: 'Ya untuk semua',
-          description: 'Pengecualian per bagian bisa diatur nanti.',
+          description: inSettings
+            ? 'Pengecualian per bagian diatur di tab Penempatan.'
+            : 'Pengecualian per bagian bisa diatur nanti.',
         },
       ]}
     />
@@ -560,7 +609,7 @@ export function StepAksesHasil({ s, update, c }: StepProps) {
         update({ resultsAccess: v })
       }
       options={[
-        { value: 'admin_ketua', label: `Admin dan ketua ${l2}` },
+        { value: 'admin_ketua', label: `Admin dan pengurus ${l2}` },
         { value: 'admin', label: 'Admin oprec saja' },
         { value: 'semua', label: 'Semua yang bisa mengatur oprec' },
       ]}
