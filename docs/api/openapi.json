@@ -37269,7 +37269,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -37513,7 +37513,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -37608,7 +37608,7 @@
           "description": {
             "nullable": true,
             "type": "string",
-            "maxLength": 2000,
+            "maxLength": 10000,
             "pattern": "^[^\\u0000]*$"
           },
           "condition": {
@@ -37928,7 +37928,7 @@
           "description": {
             "nullable": true,
             "type": "string",
-            "maxLength": 2000,
+            "maxLength": 10000,
             "pattern": "^[^\\u0000]*$"
           },
           "condition": {
@@ -38298,7 +38298,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -38482,7 +38482,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -38654,7 +38654,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -38819,7 +38819,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -39020,7 +39020,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -39222,7 +39222,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -39388,7 +39388,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -39553,7 +39553,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -39725,7 +39725,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -39926,7 +39926,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -40149,7 +40149,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -40349,7 +40349,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -40521,7 +40521,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -41208,7 +41208,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -41392,7 +41392,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -41564,7 +41564,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -41729,7 +41729,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -41930,7 +41930,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -42132,7 +42132,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -42298,7 +42298,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -42463,7 +42463,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -42635,7 +42635,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -42836,7 +42836,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -43059,7 +43059,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -43259,7 +43259,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -43431,7 +43431,7 @@
               "description": {
                 "nullable": true,
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "required": {
@@ -43967,7 +43967,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -45076,7 +45076,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -45850,7 +45850,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -46515,7 +46515,7 @@
                 },
                 "description": {
                   "type": "string",
-                  "maxLength": 2000,
+                  "maxLength": 10000,
                   "pattern": "^[^\\u0000]*$"
                 },
                 "buttonLabel": {
@@ -46738,7 +46738,7 @@
                 },
                 "description": {
                   "type": "string",
-                  "maxLength": 2000,
+                  "maxLength": 10000,
                   "pattern": "^[^\\u0000]*$"
                 },
                 "buttonLabel": {
@@ -47589,7 +47589,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -47651,7 +47651,7 @@
           "description": {
             "nullable": true,
             "type": "string",
-            "maxLength": 2000,
+            "maxLength": 10000,
             "pattern": "^[^\\u0000]*$"
           }
         },
@@ -47899,7 +47899,7 @@
           "description": {
             "nullable": true,
             "type": "string",
-            "maxLength": 2000,
+            "maxLength": 10000,
             "pattern": "^[^\\u0000]*$"
           },
           "condition": {
@@ -48297,7 +48297,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -48520,7 +48520,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -48886,7 +48886,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {
@@ -49059,7 +49059,7 @@
               },
               "description": {
                 "type": "string",
-                "maxLength": 2000,
+                "maxLength": 10000,
                 "pattern": "^[^\\u0000]*$"
               },
               "buttonLabel": {

@@ -43,16 +43,16 @@ export type ConditionSource = {
   options: { id: string; label: string }[];
 };
 
-type Rule = ConditionInput['aturan'][number];
+export type Rule = ConditionInput['aturan'][number];
 
-const emptyRuleFor = (source: ConditionSource): Rule => ({
+export const emptyRuleFor = (source: ConditionSource): Rule => ({
   jenis: 'jawaban',
   fieldId: source.id,
   op: OPERATORS_BY_TYPE[source.type]![0]!,
 });
 
 /** Aturan yang belum lengkap tidak boleh disimpan. */
-function ruleComplete(rule: Rule): boolean {
+export function ruleComplete(rule: Rule): boolean {
   if (!operatorNeedsValue(rule.op)) return true;
   if (operatorIsSet(rule.op)) {
     return Array.isArray(rule.nilai) && rule.nilai.length > 0;
@@ -65,7 +65,7 @@ function ruleComplete(rule: Rule): boolean {
   );
 }
 
-function ValueInput({
+export function ValueInput({
   rule,
   source,
   onChange,

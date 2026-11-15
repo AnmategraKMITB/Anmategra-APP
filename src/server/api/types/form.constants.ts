@@ -5,6 +5,8 @@
 
 export const SHORT_TEXT_MAX_LENGTH = 500;
 export const LONG_TEXT_MAX_LENGTH = 5000;
+/** Deskripsi pertanyaan (termasuk isi blok teks), bagian, sambutan, dan ending. */
+export const DESCRIPTION_MAX_LENGTH = 10000;
 export const MAX_FIELDS_PER_FORM = 500;
 export const MAX_OPTIONS_PER_FIELD = 100;
 export const MAX_SECTIONS_PER_FORM = 50;
