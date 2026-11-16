@@ -105,7 +105,10 @@ export function DecisionTable({
                 state === 'masa_banding' &&
                 (target.decision === 'tolak' ||
                   target.stageReason === 'tidak_lolos');
-              const canMove = isAdmin && accepted !== undefined && state !== 'final';
+              const canMove =
+                isAdmin &&
+                accepted !== undefined &&
+                state !== 'final';
               const canRequest =
                 !isAdmin &&
                 state === 'masa_banding' &&

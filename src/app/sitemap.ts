@@ -1,4 +1,4 @@
-import { MetadataRoute } from 'next';
+import { type MetadataRoute } from 'next';
 import { BASE_URL, absoluteUrl } from '~/lib/seo';
 import { api } from '~/trpc/server';
 

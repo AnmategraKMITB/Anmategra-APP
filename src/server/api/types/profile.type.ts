@@ -1,19 +1,16 @@
 import type { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
-import type { events, mahasiswa, users } from '~/server/db/schema';
+import type { events } from '~/server/db/schema';
 import type { Kepanitiaan } from '~/types/kepanitiaan';
 
-type User = InferSelectModel<typeof users>;
-type Mahasiswa = InferSelectModel<typeof mahasiswa>;
+import { MahasiswaProfileSchema } from './mahasiswa-profile.type';
+
 type Event = InferSelectModel<typeof events>;
 
 export const GetMahasiswaInputSchema = z.object({ mahasiswaId: z.string() });
 
 export const GetMahasiswaOutputSchema = z.object({
-  mahasiswaData: z.object({
-    mahasiswa: z.custom<Mahasiswa>(),
-    user: z.custom<User>(),
-  }),
+  mahasiswaData: MahasiswaProfileSchema,
   newestEvent: z.array(z.custom<Kepanitiaan>()),
   memberLembaga: z.array(
     z.object({
@@ -81,6 +78,8 @@ export const GetKegiatanOutputSchema = z.object({
     type: z.string().nullable(),
   }),
   participant: z.array(PanitiaKegiatanSchema),
+  /** Tujuan tombol "Daftar": formulir oprec yang dibuka, atau `oprec_link`. */
+  daftarLink: z.string().nullable(),
 });
 
 export const GetKegiatanPublicOutputSchema = GetKegiatanOutputSchema.omit({

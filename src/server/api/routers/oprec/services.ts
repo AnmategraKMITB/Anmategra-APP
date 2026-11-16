@@ -4,11 +4,13 @@ import { type db as Db } from '~/server/db';
 import {
   application,
   events,
+  form,
   formField,
   formSection,
   organizationPosition,
   organizationStructure,
   organizationUnit,
+  placement,
   recruitment,
   recruitmentDivision,
   recruitmentEligibilityRule,
@@ -16,7 +18,15 @@ import {
   recruitmentWave,
 } from '~/server/db/schema';
 
-import { type Tx, enforceConditions } from '../form/services';
+import {
+  type Tx,
+  assertPublishable,
+  countSubmissions,
+  enforceConditions,
+  loadActiveFields,
+  lockForm,
+} from '../form/services';
+import { loadPengurus } from './pengurus';
 
 export type Database = typeof Db;
 export type Queryable = Pick<Database, 'select' | 'query'>;
@@ -122,15 +132,27 @@ export async function assertDivisionTarget(
       message: 'Organogram tujuan tidak aktif atau bukan milik sebuah periode.',
     });
   }
-  if (row.structurePeriodId === rec.periodId) return;
+  await assertPeriodInScope(db, rec.periodId, row.structurePeriodId);
+}
+
+/**
+ * Organogram sumber harus milik periode oprec ini atau periode lembaga di
+ * bawahnya.
+ */
+export async function assertPeriodInScope(
+  db: Queryable,
+  ownPeriodId: string,
+  structurePeriodId: string,
+) {
+  if (structurePeriodId === ownPeriodId) return;
 
   const [own, target] = await Promise.all([
     db.query.events.findFirst({
-      where: eq(events.id, rec.periodId),
+      where: eq(events.id, ownPeriodId),
       columns: { org_id: true },
     }),
     db.query.events.findFirst({
-      where: eq(events.id, row.structurePeriodId),
+      where: eq(events.id, structurePeriodId),
       columns: { org_id: true },
     }),
   ]);
@@ -145,6 +167,75 @@ export async function assertDivisionTarget(
       code: 'BAD_REQUEST',
       message:
         'Tujuan harus berada di organogram periode ini atau lembaga di bawahnya.',
+    });
+  }
+}
+
+/** Bagian penilai umum harus ada di organogram aktif dalam lingkup periode ini. */
+export async function assertSourceUnit(
+  db: Queryable,
+  periodId: string,
+  unitId: string,
+) {
+  const [row] = await db
+    .select({
+      structurePeriodId: organizationStructure.eventId,
+      structureActive: organizationStructure.is_active,
+    })
+    .from(organizationUnit)
+    .innerJoin(
+      organizationStructure,
+      eq(organizationStructure.id, organizationUnit.structure_id),
+    )
+    .where(eq(organizationUnit.id, unitId));
+  if (!row?.structurePeriodId || !row.structureActive) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Bagian penilai umum tidak ada di organogram yang aktif.',
+    });
+  }
+  await assertPeriodInScope(db, periodId, row.structurePeriodId);
+}
+
+/** Bagian penilai umum harus punya orang; bila kosong, tidak ada yang bisa menilai. */
+export async function assertUnitHasPeople(db: Queryable, unitId: string) {
+  const [row] = await db
+    .select({ name: organizationUnit.name, n: count(placement.id) })
+    .from(organizationUnit)
+    .leftJoin(
+      organizationPosition,
+      eq(organizationPosition.unitId, organizationUnit.id),
+    )
+    .leftJoin(placement, eq(placement.positionId, organizationPosition.id))
+    .where(eq(organizationUnit.id, unitId))
+    .groupBy(organizationUnit.id);
+  if (row?.n === 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Bagian "${row.name}" belum punya anggota, jadi tidak bisa menjadi penilai umum. Isi bagian itu di organogram atau pilih bagian lain.`,
+    });
+  }
+}
+
+/**
+ * Tiap divisi yang dibuka harus punya pengurus: jabatan di atas Staf di
+ * bagian itu atau bagian di atasnya (lihat `pengurus.ts`).
+ */
+export async function assertDivisionsHaveHead(
+  db: Queryable,
+  unitIds: string[],
+) {
+  if (unitIds.length === 0) return;
+  const rows = await db
+    .select({ id: organizationUnit.id, name: organizationUnit.name })
+    .from(organizationUnit)
+    .where(inArray(organizationUnit.id, unitIds));
+  const ok = new Set((await loadPengurus(db, unitIds)).map((r) => r.unitId));
+  const missing = rows.filter((r) => !ok.has(r.id)).map((r) => `"${r.name}"`);
+  if (missing.length > 0) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Divisi ${missing.join(', ')} belum punya pengurus (Kadiv, Kabid, atau jabatan lain di atas Staf). Isi di organogram, atau pilih penilai umum dan matikan veto ketua.`,
     });
   }
 }
@@ -331,4 +422,74 @@ export async function applySectionBinding(
   await enforceConditions(tx, args.formId, {
     edited: [args.formSectionId],
   });
+}
+
+
+type RecruitmentRow = typeof recruitment.$inferSelect;
+
+/**
+ * Syarat yang masih kurang agar oprec boleh dibuka. Kosong = siap. Dipakai
+ * `oprec.setStatus` dan `form.setStatus` supaya keduanya menolak hal yang sama.
+ */
+export async function oprecOpenProblems(
+  tx: Tx,
+  rec: Pick<RecruitmentRow, 'id' | 'formId' | 'setupCompletedAt'>,
+): Promise<string[]> {
+  const problems: string[] = [];
+  if (!rec.setupCompletedAt) {
+    problems.push('Selesaikan pengaturan oprec sebelum membukanya.');
+  }
+  const [choice] = await tx
+    .select({ n: count() })
+    .from(formField)
+    .where(
+      and(
+        eq(formField.formId, rec.formId),
+        eq(formField.type, 'unit_choice'),
+        isNull(formField.archivedAt),
+      ),
+    );
+  if ((choice?.n ?? 0) === 0) {
+    problems.push(
+      'Tambahkan blok Pilihan tujuan ke formulir sebelum membuka oprec.',
+    );
+  }
+  const [divs] = await tx
+    .select({ n: count() })
+    .from(recruitmentDivision)
+    .where(eq(recruitmentDivision.recruitmentId, rec.id));
+  if ((divs?.n ?? 0) === 0) {
+    problems.push('Pilih minimal satu tujuan penempatan sebelum membuka oprec.');
+  }
+  return problems;
+}
+
+/**
+ * Samakan status form terikat dengan status oprec (oprec = sumber kebenaran).
+ * Memanggil `lockForm`, jadi pemanggil harus sudah mengunci baris oprec lebih
+ * dulu; urutan kunci yang sama dipakai `form.setStatus`.
+ */
+export async function syncFormToOprec(
+  tx: Tx,
+  formId: string,
+  status: 'draft' | 'open' | 'closed',
+) {
+  const current = await lockForm(tx, formId);
+  if (status === 'open' && current.status !== 'Published') {
+    assertPublishable(current, await loadActiveFields(tx, formId));
+    await tx
+      .update(form)
+      .set({
+        status: 'Published',
+        ...(current.publishedAt === null && { publishedAt: new Date() }),
+      })
+      .where(eq(form.id, formId));
+  } else if (status === 'closed' && current.status === 'Published') {
+    await tx.update(form).set({ status: 'Closed' }).where(eq(form.id, formId));
+  } else if (status === 'draft' && current.status !== 'Draft') {
+    if (((await countSubmissions(tx, [formId])).get(formId) ?? 0) > 0) {
+      conflict('Formulir sudah punya jawaban, tidak bisa kembali ke draf.');
+    }
+    await tx.update(form).set({ status: 'Draft' }).where(eq(form.id, formId));
+  }
 }

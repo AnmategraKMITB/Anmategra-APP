@@ -39,6 +39,8 @@ const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       ['lembaga.write', 'Ubah profil lembaga'],
       ['lembaga.events', 'Kelola kegiatan/kepengurusan'],
       ['lembaga.organization', 'Kelola organogram'],
+      ['lembaga.forms', 'Kelola forms'],
+      ['lembaga.oprec', 'Kelola oprec'],
       ['lembaga.members', 'Kelola anggota'],
     ],
   },
@@ -56,6 +58,10 @@ const PERMISSION_GROUPS: readonly PermissionGroup[] = [
       ['reports.read', 'Lihat laporan'],
       ['reports.write', 'Ubah laporan'],
     ],
+  },
+  {
+    label: 'Alumni',
+    permissions: [['alumni.write', 'Impor data alumni']],
   },
 ] as const;
 

@@ -35,12 +35,15 @@ interface TambahAnggotaDialogProps {
     bidang: comboboxDataType[];
   };
   pageAnggota?: boolean;
+  /** Lembaga yang dikelola; bila kosong dipakai lembaga dari sesi (Owner). */
+  lembagaId?: string;
 }
 
 export function TambahAnggotaDialog({
   session,
   dataPosisiBidang,
   pageAnggota,
+  lembagaId,
 }: TambahAnggotaDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [manualMode, setManualMode] = useState(false);
@@ -49,6 +52,7 @@ export function TambahAnggotaDialog({
   const isAnggota = pageAnggota ?? false;
   const eventId = !isAnggota ? pathname.split('/')[3] : undefined;
   const utils = api.useUtils();
+  const activeLembagaId = lembagaId ?? session?.user.lembagaId ?? undefined;
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -129,6 +133,7 @@ export function TambahAnggotaDialog({
                 setManualMode={setManualMode}
                 isKegiatan={!isAnggota}
                 eventId={eventId}
+                lembagaId={activeLembagaId}
               />
             </div>
           ) : (
@@ -136,7 +141,7 @@ export function TambahAnggotaDialog({
               <CsvFormContent
                 importType={isAnggota ? 'lembaga-anggota' : 'kegiatan-anggota'}
                 entityId={
-                  isAnggota ? (session?.user.lembagaId ?? '') : (eventId ?? '')
+                  isAnggota ? (activeLembagaId ?? '') : (eventId ?? '')
                 }
                 onImportSuccess={() => {
                   toast({

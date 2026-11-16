@@ -1,5 +1,6 @@
 'use client';
 
+import { DATETIME_MAX, DATETIME_MIN } from '~/lib/date-input';
 import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
@@ -7,6 +8,7 @@ import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
 
 import { TimelineArt, TreeArt } from './illustrations';
+import { allTargetUnits, defaultPositionId } from './helpers';
 import { type SetupTree } from './model';
 import { type StepProps } from './steps-types';
 import { Labeled, Note, OptionCards, StepFrame, fieldClass } from './ui';
@@ -18,6 +20,19 @@ export function StepNama({ s, update, c }: StepProps) {
       hint="Oprec dimiliki satu periode. Pemilihan periode dilakukan sebelum wizard dibuka; beri nama supaya mudah dikenali."
     >
       <div className="grid max-w-md gap-4">
+        {c.hasOrganogram ? null : (
+          <Note tone="warn">
+            Periode ini belum punya organogram. Tujuan, ketua, dan penilai umum
+            diambil dari organogram, jadi susun dulu sebelum melanjutkan.{' '}
+            <Link
+              href={`/lembaga/kegiatan/${c.eventId}/organogram`}
+              className="font-semibold text-primary-400 underline underline-offset-2"
+            >
+              Susun organogram
+            </Link>
+            .
+          </Note>
+        )}
         <div className="rounded-xl bg-neutral-200 px-4 py-3 text-sm">
           <span className="text-neutral-700">Periode: </span>
           <span className="font-semibold text-neutral-1000">{c.eventName}</span>
@@ -114,8 +129,7 @@ function buildForest(tree: SetupTree): Node[] {
   return roots;
 }
 
-const defaultPosition = (positions: SetupTree['positions']) =>
-  (positions.find((p) => p.rank === 'staff') ?? positions[0])?.id;
+const defaultPosition = defaultPositionId;
 
 function UnitRow({
   node,
@@ -181,6 +195,15 @@ function UnitRow({
         ) : (
           <span className="flex-1 text-sm font-semibold text-neutral-700">
             {node.name}
+            {node.children.length === 0 ? (
+              <span className="ml-2 text-xs font-normal">
+                Belum punya jabatan di organogram, jadi tidak bisa dipilih.
+              </span>
+            ) : (
+              <span className="ml-2 text-xs font-normal">
+                Tidak punya jabatan sendiri; pilih unit di bawahnya.
+              </span>
+            )}
           </span>
         )}
         {picked && positions.length > 1 ? (
@@ -270,7 +293,8 @@ export function StepTujuan(p: StepProps) {
     const next: typeof s.divisions = {};
     for (const t of trees) {
       if (!t.tree) continue;
-      for (const u of t.tree.units.filter((x) => x.level === 2)) {
+      const target = allTargetUnits(t.tree.units, t.tree.positions);
+      for (const u of target.units) {
         const pos = defaultPosition(
           t.tree.positions.filter((x) => x.unitId === u.id),
         );
@@ -404,7 +428,7 @@ export function StepGelombang({ s, update }: StepProps) {
           {s.waves.map((w, i) => (
             <div
               key={i}
-              className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[8rem_1fr_1fr_auto] sm:items-end"
+              className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[8rem_1fr_1fr_auto] sm:items-end [&>*]:min-w-0"
             >
               <Labeled label="Nama">
                 {(id) => (
@@ -422,6 +446,8 @@ export function StepGelombang({ s, update }: StepProps) {
                   <input
                     id={id}
                     type="datetime-local"
+                    min={DATETIME_MIN}
+                    max={DATETIME_MAX}
                     className={fieldClass}
                     value={w.startsAt}
                     onChange={(e) => setWave(i, { startsAt: e.target.value })}
@@ -433,6 +459,8 @@ export function StepGelombang({ s, update }: StepProps) {
                   <input
                     id={id}
                     type="datetime-local"
+                    min={DATETIME_MIN}
+                    max={DATETIME_MAX}
                     className={fieldClass}
                     value={w.endsAt}
                     onChange={(e) => setWave(i, { endsAt: e.target.value })}

@@ -13,6 +13,10 @@ Lembaga dapat mengelola dua jenis daftar:
 
 Langkah di bawah berlaku untuk keduanya, kecuali jika disebutkan secara khusus.
 
+## Coba di sini
+
+::demo[anggota]
+
 ## Menambahkan anggota secara manual
 
 1. Buka menu **Anggota**, atau buka **Panitia** pada kegiatan.

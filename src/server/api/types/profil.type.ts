@@ -51,7 +51,7 @@ export const CreateProfilKegiatanOutputSchema = z.object({
 });
 
 export const CreateProfilLembagaInputSchema = z.object({
-  lembaga_id: z.string().min(1),
+  lembagaId: z.string().min(1),
   name: z.string().min(1, 'Nama profil harus diisi'),
   description: z.string().min(1, 'Deskripsi profil harus diisi'),
   profil_km_id: z

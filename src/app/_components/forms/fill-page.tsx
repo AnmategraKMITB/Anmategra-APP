@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
 import type { GetPublicFormOutput } from '~/server/api/types/form.type';
-import { getServerAuthSession } from '~/server/auth';
+import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
 import { mahasiswa, recruitment } from '~/server/db/schema';
 import { api } from '~/trpc/server';
@@ -19,8 +19,11 @@ import { SubmittedFill } from './submitted-fill';
  * mengirim, atau terbuka.
  */
 export async function FillPage({ formId }: { formId: string }) {
-  const session = await getServerAuthSession();
-  if (!session) redirect(`/authentication?callbackUrl=/forms/${formId}`);
+  // Akses alternatif (klaim aktif) boleh mengisi form; tamu tanpa klaim tidak.
+  const session = await getServerAuthSessionWithAlt();
+  if (!session || session.user.alt === 'guest') {
+    redirect(`/authentication?callbackUrl=/forms/${formId}`);
+  }
 
   let form: GetPublicFormOutput;
   try {
@@ -52,34 +55,28 @@ export async function FillPage({ formId }: { formId: string }) {
     );
   }
 
-  if (form.hasSubmitted && !form.allowMultipleSubmissions) {
+  // Yang sudah mengirim selalu bisa melihat jawabannya; ubah dan kirim ulang
+  // muncul sebagai pilihan bila form mengizinkannya.
+  if (form.hasSubmitted) {
     const mine = await api.form.getMySubmission({ formId: form.id });
-    // Kuota hanya membatasi kiriman baru; menyunting jawaban sendiri tetap
-    // boleh selama form masih terbuka dan saklar edit menyala.
-    if (form.isOpen && form.allowEditAfterSubmit && mine) {
+    if (mine) {
       return (
         <SubmittedFill
           form={form}
           submission={mine}
+          userId={userId}
           recruitmentId={recruitmentId}
         />
       );
     }
-    const when = mine?.submittedAt.toLocaleString('id-ID', {
-      dateStyle: 'long',
-      timeStyle: 'short',
-      timeZone: 'Asia/Jakarta',
-    });
-    return (
-      <div className="grid gap-3">
-        <Notice title="Kamu sudah mengirim jawaban">
-          {when
-            ? `Jawabanmu untuk “${form.title}” terkirim pada ${when} WIB.`
-            : null}
-        </Notice>
-        <ApplicantResultCard recruitmentId={recruitmentId} />
-      </div>
-    );
+    if (!form.allowMultipleSubmissions) {
+      return (
+        <div className="grid gap-3">
+          <Notice title="Kamu sudah mengirim jawaban">{null}</Notice>
+          <ApplicantResultCard recruitmentId={recruitmentId} />
+        </div>
+      );
+    }
   }
 
   // Form oprec: yang belum memenuhi syarat atau di luar jadwal melihat

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 
 import { loadManagedForm } from './access';
 import { ResponsesView } from './responses-view';
+import { type AppBase } from '~/lib/app-base';
 
 /** Halaman respons satu form; dipakai rute lembaga dan mahasiswa-admin. */
 export async function ResponsesPage({
@@ -9,7 +10,7 @@ export async function ResponsesPage({
   basePath,
 }: {
   formId: string;
-  basePath: '/lembaga' | '/mahasiswa';
+  basePath: AppBase;
 }) {
   const managed = await loadManagedForm(formId);
   if (!managed) notFound();

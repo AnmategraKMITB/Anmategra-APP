@@ -14,8 +14,9 @@ peran akun yang digunakan.
 
 | Peran         | Akses utama                                                                                                                                                               |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Mahasiswa** | Menelusuri kegiatan, membuka tautan pendaftaran panitia, mengajukan asosiasi, mengelola profil, melihat rapor yang dibuka, dan mengirim laporan masalah.                  |
-| **Lembaga**   | Mengelola profil lembaga, membuat kegiatan, mengelola anggota dan panitia, mengisi rapor, memilih Best Staff, memproses pengajuan asosiasi, dan mengirim laporan masalah. |
+| **Mahasiswa** | Menelusuri kegiatan, mendaftar oprec, mengisi form, mengajukan asosiasi, mengelola profil, melihat rapor yang dibuka, dan mengirim laporan masalah.                       |
+| **Lembaga**   | Mengelola profil lembaga, membuat kegiatan, mengelola anggota dan panitia, menyusun organogram, membuat form, menjalankan oprec, mengisi rapor, dan memilih Best Staff.   |
+| **Admin**     | Menangani laporan, mengelola akun dan lembaga, memberi akses pengelola, dan membaca audit.                                                                               |
 
 Mahasiswa masuk dengan akun Microsoft ITB, sedangkan lembaga masuk dengan akun
 Google KM ITB. Lihat [Masuk ke Anmategra](/manual/getting-started/masuk) untuk
@@ -43,6 +44,18 @@ lembaga, tetapi belum tercatat di Anmategra. Pengajuan ini berbeda dari
 pendaftaran panitia melalui tautan eksternal. Lihat [Pengajuan asosiasi mahasiswa](/manual/mahasiswa/kegiatan)
 dan [Memproses Inbox lembaga](/manual/lembaga/inbox).
 
+### Organogram, Forms, dan Oprec
+
+- **Organogram** adalah susunan bagian dan jabatan sebuah periode atau
+  kegiatan. Lihat [Menyusun organogram](/manual/organogram/menyusun-organogram).
+- **Forms** adalah form buatan lembaga yang diisi mahasiswa dengan akunnya.
+  Lihat [Membuat form](/manual/forms/membuat-form).
+- **Oprec** adalah rekrutmen yang dijalankan di Anmategra: pendaftaran,
+  penilaian, penempatan, dan hasil. Lihat [Alur oprec](/manual/oprec/alur-oprec).
+
+Mahasiswa yang diberi akses, misalnya sebagai penilai atau pengelola oprec,
+dapat mengerjakan bagiannya dari akun mahasiswanya sendiri.
+
 ### Rapor dan Laporan
 
 - **Rapor** berisi penilaian kinerja anggota atau panitia.
@@ -57,7 +70,8 @@ rapor lembaga](/manual/lembaga/rapor) dan [Melaporkan bug](/manual/getting-start
 
 1. Masuk dengan akun Microsoft.
 2. Buka **Kegiatan** dan gunakan filter atau pengurutan.
-3. Daftar melalui tautan eksternal jika tersedia, atau ajukan asosiasi.
+3. Daftar melalui formulir oprec atau tautan pendaftaran jika tersedia, atau
+   ajukan asosiasi.
 4. Pantau status permintaan di **Inbox**.
 5. Buka profil untuk melihat kontak, kegiatan, dan rapor yang tersedia.
 
@@ -65,9 +79,10 @@ rapor lembaga](/manual/lembaga/rapor) dan [Melaporkan bug](/manual/getting-start
 
 1. Masuk dengan akun Google KM ITB.
 2. Buat kegiatan dan lengkapi informasinya.
-3. Tambahkan anggota atau panitia.
-4. Buat profil rapor lalu isi nilai.
-5. Proses permintaan asosiasi dan kelola Best Staff.
+3. Susun organogram, lalu buka oprec jika perlu merekrut.
+4. Tambahkan anggota atau panitia.
+5. Buat profil rapor lalu isi nilai.
+6. Proses permintaan asosiasi dan kelola Best Staff.
 
 Lanjutkan ke [Navigasi dan pencarian](/manual/getting-started/navigasi) atau
 [Masuk ke Anmategra](/manual/getting-started/masuk).

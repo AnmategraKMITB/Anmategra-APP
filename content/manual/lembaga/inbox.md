@@ -9,6 +9,10 @@ description: Meninjau, menerima, atau menolak pengajuan asosiasi mahasiswa.
 Inbox lembaga berisi pengajuan asosiasi dari mahasiswa yang ingin dicatat sebagai
 anggota lembaga atau panitia kegiatan.
 
+## Coba di sini
+
+::demo[inbox-lembaga]
+
 ## Membuka daftar pengajuan
 
 1. Buka menu **Inbox**.

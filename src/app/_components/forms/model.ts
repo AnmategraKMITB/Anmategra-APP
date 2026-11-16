@@ -54,7 +54,7 @@ export const FIELD_KINDS: { kind: FieldKind; label: string; hint: string }[] = [
   {
     kind: 'file',
     label: 'Unggah berkas',
-    hint: 'Pengisi mengunggah berkas lewat OneDrive',
+    hint: 'Pengisi mengunggah ke Drive sendiri; akses dibuka otomatis, hanya tautan yang disimpan',
   },
   {
     kind: 'text_block',

@@ -1,5 +1,6 @@
 'use client';
 
+import { findAttachment } from './helpers';
 import { Plus, Trash2, X } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '~/components/ui/button';
@@ -117,7 +118,7 @@ export function StepSyarat({ s, update, c }: StepProps) {
             return (
               <div
                 key={i}
-                className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[1fr_1fr_1.2fr_auto] sm:items-end"
+                className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-[1fr_1fr_1.2fr_auto] sm:items-end [&>*]:min-w-0"
               >
                 <Labeled label="Atribut">
                   {(id) => (
@@ -399,10 +400,17 @@ export function StepLampiran({ s, update }: StepProps) {
         ? s.attachments.filter((a) => a !== name)
         : [...s.attachments, name],
     });
+  const [dupe, setDupe] = useState(false);
   const add = () => {
     const name = draft.trim();
-    if (name && !s.attachments.includes(name) && s.attachments.length < 10) {
-      update({ attachments: [...s.attachments, name] });
+    const existing = findAttachment(s.attachments, name);
+    const preset = findAttachment(ATTACHMENT_PRESETS, name);
+    setDupe(false);
+    if (existing) {
+      setDupe(true);
+    } else if (name && s.attachments.length < 10) {
+      // Samakan dengan preset bila hanya beda huruf besar/kecil.
+      update({ attachments: [...s.attachments, preset ?? name] });
     }
     setDraft('');
   };
@@ -463,6 +471,11 @@ export function StepLampiran({ s, update }: StepProps) {
           Tambah
         </Button>
       </form>
+      {dupe ? (
+        <p role="alert" className="mt-3 text-sm text-danger-dark">
+          Lampiran itu sudah ada (huruf besar/kecil dianggap sama).
+        </p>
+      ) : null}
       {s.attachments.length === 0 ? (
         <p className="mt-4 text-sm text-neutral-700">
           Tanpa lampiran bila tidak ada yang dipilih.

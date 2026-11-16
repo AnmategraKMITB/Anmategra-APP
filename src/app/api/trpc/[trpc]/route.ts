@@ -3,6 +3,7 @@ import { type NextRequest } from "next/server";
 
 import { env } from "~/env";
 import { appRouter } from "~/server/api/root";
+import { buildTrpcErrorLog, logTrpcError } from "~/server/api/log-error";
 import { createTRPCContext } from "~/server/api/trpc";
 
 /**
@@ -15,20 +16,24 @@ const createContext = async (req: NextRequest) => {
   });
 };
 
-const handler = (req: NextRequest) =>
-  fetchRequestHandler({
+const handler = (req: NextRequest) => {
+  const startedAt = Date.now();
+  return fetchRequestHandler({
     endpoint: "/api/trpc",
     req,
     router: appRouter,
     createContext: () => createContext(req),
-    onError:
-      env.NODE_ENV === "development"
-        ? ({ path, error }) => {
-            console.error(
-              `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
-            );
-          }
-        : undefined,
+    onError: ({ path, type, error }) => {
+      if (env.NODE_ENV === "development") {
+        console.error(
+          `❌ tRPC failed on ${path ?? "<no-path>"}: ${error.message}`
+        );
+        return;
+      }
+      // Produksi: hanya metadata (tanpa pesan, input, atau token).
+      logTrpcError(buildTrpcErrorLog({ path, type, error, startedAt }));
+    },
   });
+};
 
 export { handler as GET, handler as POST };

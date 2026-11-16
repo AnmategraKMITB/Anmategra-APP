@@ -14,6 +14,7 @@ import { api } from '~/trpc/react';
 import { FileAnswer } from '../forms/responses-table';
 import { richTextToPlain } from '../forms/rich-text';
 import { FLAG_STYLE, StatusBadge } from './nilai/status';
+import { waveTitle } from './status';
 
 const GATE_LABEL: Record<string, string> = {
   memenuhi: 'Memenuhi',
@@ -106,7 +107,7 @@ export function ApplicantSheet({
         {d ? (
           <div className="mt-6 grid gap-6">
             <p className="text-sm text-neutral-700">
-              {d.waveLabel ? `Gelombang ${d.waveLabel} · ` : ''}
+              {d.waveLabel ? `${waveTitle(d.waveLabel)} · ` : ''}
               Dikirim {when(d.submittedAt)}
               {d.willingToMove ? ' · Bersedia dipindahkan' : ''}
             </p>

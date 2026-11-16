@@ -27,7 +27,7 @@ export default async function RaporIndividuLembagaPage(
   try {
     const [raporData, profilData, profilKMData] = await Promise.all([
       api.rapor.getNilaiLembagaIndividu({
-        lembaga_id: session?.user.lembagaId ?? '',
+        lembagaId: session?.user.lembagaId ?? '',
         mahasiswa_id: raporId,
       }),
       api.profil.getAllProfilLembaga({

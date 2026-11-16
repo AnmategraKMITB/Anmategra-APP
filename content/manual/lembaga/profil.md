@@ -9,6 +9,10 @@ description: Melihat dan memperbarui informasi profil lembaga.
 Profil lembaga menampilkan identitas organisasi, deskripsi, foto, kegiatan
 utama, kegiatan terbaru, anggota, dan Best Staff yang tersedia.
 
+## Coba di sini
+
+::demo[profil-lembaga]
+
 ## Membuka profil
 
 1. Buka sidebar.

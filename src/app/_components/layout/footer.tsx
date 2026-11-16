@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import InstagramLogo from 'public/icons/instagram-icon.png';
 import LineLogo from 'public/icons/line-icon.png';
-import TwitterLogo from 'public/icons/twitter-icon.png';
+import XLogo from 'public/icons/x-icon.svg';
 import AnmategraLogo from 'public/images/logo/anmategra-logo.svg';
 // Assets Import
 import KMLogo from 'public/images/logo/kmitb-logo.jpeg';
@@ -113,8 +113,8 @@ const Footer = () => {
               className="flex items-center gap-x-2"
             >
               <Image
-                src={TwitterLogo}
-                alt="Logo Twitter"
+                src={XLogo}
+                alt="Logo X"
                 width={16}
                 height={16}
                 style={{ width: 'auto', height: 'auto' }}

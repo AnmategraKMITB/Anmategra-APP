@@ -1,16 +1,9 @@
-import { redirect } from 'next/navigation';
 import { type Metadata } from 'next';
 
 import { DocsPage } from '~/app/_components/manual/docs-page';
-import { getServerAuthSession } from '~/server/auth';
 import { getDocPage } from '~/server/manual/docs';
 
 type Props = { params: Promise<{ slug?: string[] }> };
-
-// Authentication is request-specific, so keep the manual out of the public
-// static cache. Middleware performs the first access check; this is defense in
-// depth for direct server-component renders.
-export const dynamic = 'force-dynamic';
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params;
@@ -28,8 +21,6 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function ManualPage(props: Props) {
   const params = await props.params;
-  const session = await getServerAuthSession();
-  if (!session) redirect('/authentication');
-
+  // Manual terbuka untuk publik; isinya dokumen statis tanpa data pengguna.
   return <DocsPage slug={params.slug ?? []} basePath="/manual" />;
 }

@@ -80,22 +80,25 @@ const EditProfileLembaga = ({
   });
 
   function onSubmit(values: profileLembagaSchemaType) {
-    mutation.mutate(values, {
-      onSuccess: () => {
-        toast.toast({
-          variant: 'default',
-          title: 'Berhasil mengubah profil',
-        });
-        window.location.reload();
+    mutation.mutate(
+      { ...values, lembagaId: lembagaData.id },
+      {
+        onSuccess: () => {
+          toast.toast({
+            variant: 'default',
+            title: 'Berhasil mengubah profil',
+          });
+          window.location.reload();
+        },
+        onError: (error) => {
+          toast.toast({
+            variant: 'destructive',
+            title: 'Gagal mengubah profil',
+            description: error.message,
+          });
+        },
       },
-      onError: (error) => {
-        toast.toast({
-          variant: 'destructive',
-          title: 'Gagal mengubah profil',
-          description: error.message,
-        });
-      },
-    });
+    );
   }
 
   return (

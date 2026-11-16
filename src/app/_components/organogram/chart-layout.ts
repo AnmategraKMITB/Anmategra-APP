@@ -1,4 +1,4 @@
-import { NODE_WIDTH_DEFAULT, rankIndexOf } from './model';
+import { NODE_WIDTH_DEFAULT, effectiveEvenRows, effectiveTier, rankIndexOf } from './model';
 import type { Draft, Person, PlacementsByPosition, Rank, Unit } from './model';
 
 export const NODE_W = NODE_WIDTH_DEFAULT;
@@ -30,6 +30,23 @@ export const HANG_INDENT = 32;
 /** Jarak antar saudara yang disusun menggantung. */
 export const HANG_GAP = 16;
 export const CANVAS_PAD = 32;
+/** Ruang kosong di kiri-kanan sumbu agar garis tidak menembus simpul leher. */
+const CORRIDOR = 30;
+/** Jarak antar baris simpul leher. */
+const NECK_GAP = 20;
+
+/** Pilihan tampilan bagan yang bisa dimatikan pengguna. */
+export type ChartLayoutOptions = {
+  /** Tulis jenis bagian di atas nama. */
+  showLabels: boolean;
+  /** Samakan tinggi kartu dalam satu pita. */
+  alignHeights: boolean;
+};
+
+export const DEFAULT_CHART_OPTIONS: ChartLayoutOptions = {
+  showLabels: true,
+  alignHeights: true,
+};
 
 export type SeatRow =
   | {
@@ -136,11 +153,12 @@ export function headerHeight(
   name: string,
   hasToggle: boolean,
   width: number = NODE_W,
+  showLabel = true,
 ): number {
   const lines = titleLines(name, hasToggle, width);
   return Math.max(
     HEADER_H,
-    HEADER_PAD_Y * 2 + lines * TITLE_LINE_H + TYPE_LINE_H,
+    HEADER_PAD_Y * 2 + lines * TITLE_LINE_H + (showLabel ? TYPE_LINE_H : 0),
   );
 }
 
@@ -199,6 +217,7 @@ export function layoutChart(
   placements: PlacementsByPosition,
   collapsed: ReadonlySet<string>,
   expandedGroups: ReadonlySet<string> = new Set(),
+  options: ChartLayoutOptions = DEFAULT_CHART_OPTIONS,
 ): ChartLayout {
   const empty: ChartLayout = {
     nodes: [],
@@ -284,7 +303,12 @@ export function layoutChart(
     const nsRows = positions
       .filter((position) => position.kind === 'nonstruktural')
       .map(toRow);
-    const headerH = headerHeight(unit.name, hasToggle, nodeWidthOf(unit));
+    const headerH = headerHeight(
+      unit.name,
+      hasToggle,
+      nodeWidthOf(unit),
+      unit.layout.showLabel ?? options.showLabels,
+    );
     const body = rows.reduce((sum, row) => sum + rowHeight(row), 0);
     const mainH = headerH + body + NODE_PAD;
     const nsBody = nsRows.reduce((sum, row) => sum + rowHeight(row), 0);
@@ -357,37 +381,151 @@ export function layoutChart(
     };
 
     if (childrenModeOf(unit) === 'side') {
-      const lefts: number[] = [];
-      let cursor = 0;
-      for (const sub of childSubs) {
-        lefts.push(cursor);
-        cursor += sub.width + H_GAP;
+      type Entry = { unit: Unit; sub: Subtree; tier: number; index: number };
+      const entries: Entry[] = visibleChildren.map((child, index) => ({
+        unit: child,
+        sub: childSubs[index]!,
+        tier: effectiveTier(child, depth + 1),
+        index,
+      }));
+
+      // Bagian dengan tier paling dalam membentuk pita utama. Bagian yang tier-nya
+      // lebih dangkal menjadi "simpul leher": digeser ke kiri/kanan sumbu supaya
+      // koridor dari induk ke pita utama tetap kosong.
+      const maxTier = Math.max(...entries.map((entry) => entry.tier));
+      const mainEntries = entries.filter((entry) => entry.tier === maxTier);
+      const neckEntries = entries
+        .filter((entry) => entry.tier < maxTier)
+        .sort((a, b) => a.tier - b.tier || a.index - b.index);
+
+      // Satu baris leher memuat paling banyak dua simpul pada tier yang sama;
+      // sisanya turun ke baris berikutnya agar jalurnya tidak bertabrakan.
+      const neckRows: Entry[][] = [];
+      for (const entry of neckEntries) {
+        const last = neckRows[neckRows.length - 1];
+        if (
+          !last ||
+          last[0]?.tier !== entry.tier ||
+          last.length >= 2
+        ) {
+          neckRows.push([entry]);
+        } else {
+          last.push(entry);
+        }
       }
-      const firstSub = childSubs[0];
-      const lastSub = childSubs[childSubs.length - 1];
-      const firstLeft = lefts[0];
-      const lastLeft = lefts[lefts.length - 1];
-      if (
-        firstSub === undefined ||
-        lastSub === undefined ||
-        firstLeft === undefined ||
-        lastLeft === undefined
-      ) {
-        return {
-          width: ownW,
-          height: nodeH,
-          minX: 0,
-          rootW: ownW,
-          nodes: [own],
-        };
-      }
-      const firstCenter = firstLeft - firstSub.minX + firstSub.rootW / 2;
-      const lastCenter = lastLeft - lastSub.minX + lastSub.rootW / 2;
-      // Induk berada di tengah rentang pusat anak pertama dan terakhir.
-      const shift = ownW / 2 - (firstCenter + lastCenter) / 2;
-      childSubs.forEach((sub, index) => {
-        place(sub, (lefts[index] ?? 0) + shift, nodeH + V_GAP);
+
+      // Tinggi seragam: kartu terpendek dalam satu pita dinaikkan agar sebaris.
+      const even = effectiveEvenRows(unit, options.alignHeights);
+      const evenRow = (list: Entry[]): Entry[] => {
+        if (!even || list.length < 2) return list;
+        const tallest = Math.max(
+          ...list.map((entry) => entry.sub.nodes[0]?.h ?? 0),
+        );
+        return list.map((entry) => {
+          const ownH = entry.sub.nodes[0]?.h ?? 0;
+          const delta = tallest - ownH;
+          if (delta <= 0) return entry;
+          const nodes = entry.sub.nodes.map((node, index) =>
+            index === 0
+              ? { ...node, h: node.h + delta, mainH: node.mainH + delta }
+              : { ...node, y: node.y + delta },
+          );
+          return {
+            ...entry,
+            sub: { ...entry.sub, height: entry.sub.height + delta, nodes },
+          };
+        });
+      };
+
+      const mainBand = evenRow(mainEntries);
+      const neckBands = neckRows.map(evenRow);
+
+      let mainCursor = 0;
+      const mainLefts = mainBand.map((entry) => {
+        const left = mainCursor;
+        mainCursor += entry.sub.width + H_GAP;
+        return left;
       });
+      const mainWidth = mainBand.length > 0 ? mainCursor - H_GAP : 0;
+      const spine = Math.max(ownW, mainWidth) / 2;
+
+      const nodesOut: ChartNode[] = [{ ...own, x: spine - ownW / 2, y: 0 }];
+      const addSubtree = (
+        sub: Subtree,
+        boundLeft: number,
+        nodeY: number,
+      ) => {
+        const nodeX = boundLeft - sub.minX;
+        for (const childNode of sub.nodes) {
+          nodesOut.push({
+            ...childNode,
+            x: childNode.x + nodeX,
+            y: childNode.y + nodeY,
+          });
+        }
+      };
+
+      let cursorY = nodeH + V_GAP;
+      let leftCount = 0;
+      let rightCount = 0;
+      for (const band of neckBands) {
+        const bandHeight = Math.max(
+          ...band.map((entry) => entry.sub.height),
+        );
+        let leftX = spine - CORRIDOR;
+        let rightX = spine + CORRIDOR;
+        const taken = new Set<'left' | 'right' | 'center'>();
+        band.forEach((entry, index) => {
+          let side = entry.unit.layout.side;
+          side ??=
+            band.length === 2
+              ? index === 0
+                ? 'left'
+                : 'right'
+              : leftCount <= rightCount
+                ? 'left'
+                : 'right';
+          if (side !== 'center' && taken.has(side)) {
+            side = side === 'left' ? 'right' : 'left';
+          }
+          taken.add(side);
+          if (side === 'left') {
+            leftCount += 1;
+            const left = leftX - entry.sub.width;
+            leftX = left - H_GAP;
+            addSubtree(entry.sub, left, cursorY);
+          } else if (side === 'right') {
+            rightCount += 1;
+            addSubtree(entry.sub, rightX, cursorY);
+            rightX += entry.sub.width + H_GAP;
+          } else {
+            addSubtree(entry.sub, spine - entry.sub.width / 2, cursorY);
+          }
+        });
+        cursorY += bandHeight + NECK_GAP;
+      }
+
+      const mainY =
+        neckBands.length > 0 ? cursorY - NECK_GAP + V_GAP : nodeH + V_GAP;
+      mainBand.forEach((entry, index) => {
+        addSubtree(entry.sub, mainLefts[index] ?? 0, mainY);
+      });
+
+      let lo = Infinity;
+      let hi = -Infinity;
+      let bottom = 0;
+      for (const node of nodesOut) {
+        lo = Math.min(lo, node.x);
+        hi = Math.max(hi, node.x + node.w);
+        bottom = Math.max(bottom, node.y + node.h);
+      }
+      return {
+        width: hi - lo,
+        height: bottom,
+        minX: lo,
+        rootW: ownW,
+        nodes: nodesOut,
+      };
     } else {
       let cursorY = nodeH + HANG_GAP;
       for (const sub of childSubs) {
@@ -444,7 +582,9 @@ export function layoutChart(
             node.y + node.h,
             childNode.x + childNode.w / 2,
             childNode.y,
-            node.y + node.h + V_GAP / 2,
+            // Belokan mendatar diletakkan tepat di atas anak, sedangkan ruas
+            // tegaknya turun di koridor sumbu sehingga tidak menembus simpul leher.
+            Math.max(node.y + node.h + V_GAP / 2, childNode.y - 12),
           )
         : pathHanging(
             node.x + 16,

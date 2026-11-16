@@ -1,6 +1,7 @@
 'use client';
 
 // Library Import
+import { Mail } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 // Asset Import
@@ -13,6 +14,7 @@ import BestStaffCard from '~/app/_components/card/best-staff-card';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import LembagaCard from '~/app/_components/card/lembaga-card';
 import CariKepanitiaanButton from '~/app/_components/profile-mahasiswa/cari-kepanitiaan-button';
+import { ContactVisibilityNotice } from '~/app/_components/profile-mahasiswa/contact-visibility-notice';
 import EditProfileDialog from '~/app/_components/profile-mahasiswa/edit-profile-dialog';
 import RaporVisibilitySwitch from '~/app/_components/rapor/rapor-visibility-switch';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
@@ -115,6 +117,13 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                     <p>-</p>
                   )}
                 </div>
+
+                {mahasiswaData?.user.email && (
+                  <div className="flex items-center gap-x-2">
+                    <Mail className="h-[18px] w-[18px]" aria-label="Email" />
+                    <p>{mahasiswaData.user.email}</p>
+                  </div>
+                )}
               </div>
               {session?.user.id === userId && (
                 <div className="pt-4">
@@ -127,6 +136,16 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
               )}
             </div>
           </div>
+        )}
+        {session?.user.id === userId && !isEdit && (
+          <ContactVisibilityNotice
+            anyShown={
+              mahasiswaData.mahasiswa.showWhatsapp ||
+              mahasiswaData.mahasiswa.showLine ||
+              mahasiswaData.mahasiswa.showEmail
+            }
+            onConfigure={() => setIsEdit(true)}
+          />
         )}
         <div
           className={cn(
@@ -150,6 +169,9 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                 angkatan={mahasiswaData?.mahasiswa.angkatan.toString() ?? ''}
                 line={mahasiswaData?.mahasiswa.lineId ?? ''}
                 whatsapp={mahasiswaData?.mahasiswa.whatsapp ?? ''}
+                showWhatsapp={mahasiswaData.mahasiswa.showWhatsapp}
+                showLine={mahasiswaData.mahasiswa.showLine}
+                showEmail={mahasiswaData.mahasiswa.showEmail}
                 isEdit={isEdit}
                 setIsEdit={setIsEdit}
               />

@@ -58,13 +58,51 @@ export function clampNodeWidth(value: number): number {
   return Math.min(NODE_WIDTH_MAX, Math.max(NODE_WIDTH_MIN, Math.round(value)));
 }
 
+/** Tier manual tertinggi yang boleh dipilih per bagian (1 = paling atas). */
+export const MAX_TIER = 6;
+
+/** Urutan otomatis dari menu "Tata ulang"; semua hanya mengubah `sortOrder`/`tier`. */
+export type ArrangeMode = 'balance' | 'size' | 'alpha' | 'flatten';
+
 export type UnitLayout = {
-  tier?: 'depth' | 'manual';
+  /**
+   * Tier manual: pita tempat bagian digambar. Kosong berarti mengikuti
+   * kedalamannya. Bagian yang tier-nya lebih dangkal dari pita utama induk
+   * digambar sebagai "simpul leher" di kiri/kanan sumbu.
+   */
+  tier?: number;
   childrenMode?: 'hanging' | 'side';
   hidden?: boolean;
   /** Lebar kartu; tanpa nilai berarti bawaan. */
   width?: number;
+  /** Tulis jenis bagian di atas nama; kosong = ikut sakelar bagan. */
+  showLabel?: boolean;
+  /** Samakan tinggi kartu dalam satu pita; kosong = ikut sakelar bagan. */
+  evenRows?: boolean;
+  /** Sisi terhadap sumbu induk; kosong = otomatis (kiri/kanan bergantian). */
+  side?: 'left' | 'right' | 'center';
 };
+
+/** Tier efektif sebuah bagian: pilihan manual, atau kedalamannya. */
+export function effectiveTier(unit: Unit, depth: number): number {
+  return unit.layout.tier ?? depth;
+}
+
+/** Apakah jenis bagian ditulis di kartu bagan. */
+export function effectiveShowLabel(
+  unit: Unit,
+  defaultValue: boolean,
+): boolean {
+  return unit.layout.showLabel ?? defaultValue;
+}
+
+/** Apakah tinggi kartu diseragamkan per pita. */
+export function effectiveEvenRows(
+  unit: Unit,
+  defaultValue: boolean,
+): boolean {
+  return unit.layout.evenRows ?? defaultValue;
+}
 
 export type Unit = Omit<UnitNode, 'layout'> & { layout: UnitLayout };
 export type Position = PositionNode;
@@ -167,7 +205,15 @@ function normalizeLayout(
 ): UnitLayout {
   if (!raw) return {};
   const layout: UnitLayout = {};
-  if (raw.tier === 'depth' || raw.tier === 'manual') layout.tier = raw.tier;
+  // Nilai lama ('depth'/'manual') tidak membawa nomor pita, jadi dibuang.
+  if (
+    typeof raw.tier === 'number' &&
+    Number.isInteger(raw.tier) &&
+    raw.tier >= 1 &&
+    raw.tier <= MAX_TIER
+  ) {
+    layout.tier = raw.tier;
+  }
   if (raw.childrenMode === 'hanging' || raw.childrenMode === 'side') {
     layout.childrenMode = raw.childrenMode;
   }
@@ -175,6 +221,11 @@ function normalizeLayout(
   if (typeof raw.width === 'number' && Number.isFinite(raw.width)) {
     const width = clampNodeWidth(raw.width);
     if (width !== NODE_WIDTH_DEFAULT) layout.width = width;
+  }
+  if (typeof raw.showLabel === 'boolean') layout.showLabel = raw.showLabel;
+  if (typeof raw.evenRows === 'boolean') layout.evenRows = raw.evenRows;
+  if (raw.side === 'left' || raw.side === 'right' || raw.side === 'center') {
+    layout.side = raw.side;
   }
   return layout;
 }
@@ -187,6 +238,11 @@ function layoutToRecord(layout: UnitLayout): Record<string, unknown> | null {
   }
   if (layout.hidden !== undefined) entries.push(['hidden', layout.hidden]);
   if (layout.width !== undefined) entries.push(['width', layout.width]);
+  if (layout.showLabel !== undefined) {
+    entries.push(['showLabel', layout.showLabel]);
+  }
+  if (layout.evenRows !== undefined) entries.push(['evenRows', layout.evenRows]);
+  if (layout.side !== undefined) entries.push(['side', layout.side]);
   if (entries.length === 0) return null;
   return Object.fromEntries(entries);
 }
@@ -221,6 +277,9 @@ function draftKey(draft: Draft): string {
       unit.layout.childrenMode ?? null,
       unit.layout.hidden ?? null,
       unit.layout.width ?? null,
+      unit.layout.showLabel ?? null,
+      unit.layout.evenRows ?? null,
+      unit.layout.side ?? null,
     ]),
     draft.positions.map((position) => [
       position.id,
@@ -473,6 +532,7 @@ export type EditorAction =
   | { type: 'moveUnits'; ids: string[]; parentId: string | null; index: number }
   | { type: 'deleteUnits'; ids: string[] }
   | { type: 'setUnitsLayout'; ids: string[]; patch: Partial<UnitLayout> }
+  | { type: 'arrangeUnits'; mode: ArrangeMode }
   | { type: 'deleteUnit'; id: string }
   | {
       type: 'addPosition';
@@ -684,7 +744,10 @@ export function editorReducer(
         layout.tier === target.layout.tier &&
         layout.childrenMode === target.layout.childrenMode &&
         layout.hidden === target.layout.hidden &&
-        layout.width === target.layout.width
+        layout.width === target.layout.width &&
+        layout.showLabel === target.layout.showLabel &&
+        layout.evenRows === target.layout.evenRows &&
+        layout.side === target.layout.side
       ) {
         return h;
       }
@@ -762,6 +825,67 @@ export function editorReducer(
           patch: a.patch,
         })),
       );
+    }
+    case 'arrangeUnits': {
+      const units = h.present.units;
+      if (units.length === 0) return h;
+      if (a.mode === 'flatten') {
+        const next = units.map((unit) => {
+          if (unit.layout.tier === undefined) return unit;
+          const rest: UnitLayout = { ...unit.layout };
+          delete rest.tier;
+          return { ...unit, layout: rest };
+        });
+        return commit(h, { ...h.present, units: next }, null);
+      }
+      const parentById = new Map(
+        units.map((unit) => [unit.id, unit.parentId] as const),
+      );
+      // Jumlah keturunan tiap bagian, dipakai "Terbesar dulu" dan "Seimbangkan".
+      const size = new Map<string, number>();
+      for (const unit of units) {
+        const seen = new Set<string>();
+        let cursor = parentById.get(unit.id) ?? null;
+        while (cursor !== null && !seen.has(cursor)) {
+          seen.add(cursor);
+          size.set(cursor, (size.get(cursor) ?? 0) + 1);
+          cursor = parentById.get(cursor) ?? null;
+        }
+      }
+      const groups = new Map<string | null, Unit[]>();
+      for (const unit of units) {
+        const list = groups.get(unit.parentId);
+        if (list) list.push(unit);
+        else groups.set(unit.parentId, [unit]);
+      }
+      const byName = (x: Unit, y: Unit) => x.name.localeCompare(y.name, 'id');
+      const bySize = (x: Unit, y: Unit) =>
+        (size.get(y.id) ?? 0) - (size.get(x.id) ?? 0) || byName(x, y);
+      const orderById = new Map<string, number>();
+      for (const list of groups.values()) {
+        const seq = [...list].sort(
+          (x, y) => x.sortOrder - y.sortOrder || byName(x, y),
+        );
+        let next: Unit[];
+        if (a.mode === 'alpha') next = [...seq].sort(byName);
+        else if (a.mode === 'size') next = [...seq].sort(bySize);
+        else {
+          // Terbesar di tengah, mengecil ke tepi: pita lebih simetris.
+          next = [];
+          for (const [index, unit] of [...seq].sort(bySize).entries()) {
+            if (index % 2 === 1) next.unshift(unit);
+            else next.push(unit);
+          }
+        }
+        next.forEach((unit, index) => orderById.set(unit.id, index));
+      }
+      const nextUnits = units.map((unit) => {
+        const sortOrder = orderById.get(unit.id);
+        return sortOrder === undefined || sortOrder === unit.sortOrder
+          ? unit
+          : { ...unit, sortOrder };
+      });
+      return commit(h, { ...h.present, units: orderUnits(nextUnits) }, null);
     }
     case 'deleteUnit': {
       const units = h.present.units;

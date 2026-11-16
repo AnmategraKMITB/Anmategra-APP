@@ -1,7 +1,7 @@
 'use client';
 
 // Library Import
-import { ChevronLeft, ChevronRight, Download, Menu } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
@@ -50,12 +50,10 @@ export function DocsShell({
   nav,
   page,
   basePath,
-  pdfHref,
 }: {
   nav: DocNav;
   page: DocPage;
   basePath: string;
-  pdfHref: string;
 }) {
   const articleRef = useRef<HTMLElement>(null);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -79,7 +77,7 @@ export function DocsShell({
   return (
     <div className="py-8">
       {/* Top action row */}
-      <div className="mb-6 flex items-center justify-between gap-3">
+      <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
         <Button
           variant="dark_blue_outline"
           size="sm"
@@ -91,19 +89,6 @@ export function DocsShell({
           <Menu className="h-4 w-4" />
           Daftar isi
         </Button>
-        <div className="ml-auto">
-          <Button
-            variant="dark_blue_outline"
-            size="sm"
-            className={`gap-2 ${manualOutlineButton}`}
-            asChild
-          >
-            <a href={pdfHref} target="_blank" rel="noopener noreferrer">
-              <Download className="h-4 w-4" />
-              Unduh PDF
-            </a>
-          </Button>
-        </div>
       </div>
 
       <div className="flex gap-8">

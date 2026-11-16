@@ -8,6 +8,10 @@ description: Mencari kegiatan, mendaftar sebagai panitia, dan mengajukan asosias
 
 Menu **Kegiatan** menampilkan kegiatan yang tersedia bagi mahasiswa.
 
+## Coba di sini
+
+::demo[kegiatan-mahasiswa]
+
 ## Mencari dan memfilter kegiatan
 
 1. Buka menu **Kegiatan**.
@@ -29,8 +33,9 @@ Jika kegiatan sedang membuka pendaftaran, detail kegiatan menampilkan tombol
 2. Klik **Daftar menjadi Panitia**.
 3. Ikuti proses pada tautan pendaftaran yang disediakan oleh lembaga.
 
-Pendaftaran ini dapat membuka situs lain. Anmategra tidak menggantikan formulir
-pendaftaran eksternal tersebut.
+Tautan ini dapat mengarah ke formulir oprec di Anmategra atau ke situs lain,
+tergantung cara lembaga menjalankan rekrutmennya. Untuk formulir di Anmategra,
+lihat [Mendaftar oprec](/manual/mahasiswa/mendaftar-oprec).
 
 ## Mengajukan asosiasi
 

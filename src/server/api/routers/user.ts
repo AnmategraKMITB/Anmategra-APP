@@ -1,10 +1,12 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
   createTRPCRouter,
-  lembagaProcedure,
+  lembagaScopedProcedure,
+  mahasiswaProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
 import {
@@ -63,14 +65,15 @@ import {
   SubmitReportInputSchema,
   SubmitReportOutputSchema,
 } from '../types/user.type';
+import { byNim, byUserId, loadMahasiswaProfile } from '../mahasiswa-profile';
 import { toggleRaporVisibility } from './event/update';
 
 export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk mengambil data pilihan untuk tambah anggota pada suatu lembaga
    */
-  getTambahAnggotaLembagaOptions: lembagaProcedure
-    .input(GetTambahAnggotaLembagaOptionsInputSchema)
+  getTambahAnggotaLembagaOptions: lembagaScopedProcedure
+    .input(GetTambahAnggotaLembagaOptionsInputSchema.and(LembagaScopeInput))
     .output(GetTambahAnggotaLembagaOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
       const [mahasiswa_hide_list, lembaga_list] = await Promise.all([
@@ -140,8 +143,8 @@ export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk mengambil data pilihan untuk tambah anggota pada suatu kegiatan
    */
-  getTambahAnggotaKegiatanOptions: lembagaProcedure
-    .input(GetTambahAnggotaKegiatanOptionsInputSchema)
+  getTambahAnggotaKegiatanOptions: lembagaScopedProcedure
+    .input(GetTambahAnggotaKegiatanOptionsInputSchema.and(LembagaScopeInput))
     .output(GetTambahAnggotaKegiatanOptionsOutputSchema)
     .query(async ({ ctx, input }) => {
       const kegiatan = await ctx.db.query.events.findFirst({
@@ -153,7 +156,7 @@ export const userRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Kegiatan tidak ditemukan' });
       }
 
-      if (kegiatan.org_id !== ctx.session.user.lembagaId) {
+      if (kegiatan.org_id !== ctx.lembagaId) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
 
@@ -245,7 +248,7 @@ export const userRouter = createTRPCRouter({
   /*
    * Endpoint untuk edit profil mahasiswa
    */
-  editProfilMahasiswa: protectedProcedure
+  editProfilMahasiswa: mahasiswaProcedure
     .input(EditProfilMahasiswaInputSchema)
     .output(z.void())
     .mutation(async ({ ctx, input }) => {
@@ -262,6 +265,9 @@ export const userRouter = createTRPCRouter({
         .set({
           lineId: input.idLine,
           whatsapp: input.noWhatsapp,
+          showWhatsapp: input.showWhatsapp,
+          showLine: input.showLine,
+          showEmail: input.showEmail,
         })
         .where(eq(mahasiswa.userId, ctx.session.user.id));
     }),
@@ -270,7 +276,7 @@ export const userRouter = createTRPCRouter({
    * Endpoint untuk request association ke suatu lembaga
    */
 
-  requestAssociation: protectedProcedure
+  requestAssociation: mahasiswaProcedure
     .input(RequestAssociationInputSchema)
     .output(RequestAssociationOutputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -560,46 +566,36 @@ export const userRouter = createTRPCRouter({
     .input(GetMahasiswaByIdInputSchema)
     .output(GetMahasiswaOutputSchema)
     .query(async ({ ctx, input }) => {
-      const mahasiswaResult = await ctx.db
-        .select()
-        .from(mahasiswa)
-        .innerJoin(users, eq(mahasiswa.userId, users.id))
-        .where(eq(users.id, input.userId))
-        .limit(1);
-
-      if (mahasiswaResult.length === 0 || !mahasiswaResult[0]) {
+      const profile = await loadMahasiswaProfile(
+        ctx.db,
+        ctx.session.user,
+        byUserId(input.userId),
+      );
+      if (!profile) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Mahasiswa tidak ditemukan',
         });
       }
-
-      return {
-        mahasiswaData: mahasiswaResult[0],
-      };
+      return { mahasiswaData: profile };
     }),
 
   getMahasiswaByNim: protectedProcedure
     .input(GetMahasiswaByNimInputSchema)
     .output(GetMahasiswaOutputSchema)
     .query(async ({ ctx, input }) => {
-      const mahasiswaResult = await ctx.db
-        .select()
-        .from(mahasiswa)
-        .innerJoin(users, eq(mahasiswa.userId, users.id))
-        .where(eq(mahasiswa.nim, Number(input.nim)))
-        .limit(1);
-
-      if (mahasiswaResult.length === 0 || !mahasiswaResult[0]) {
+      const profile = await loadMahasiswaProfile(
+        ctx.db,
+        ctx.session.user,
+        byNim(Number(input.nim)),
+      );
+      if (!profile) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Mahasiswa tidak ditemukan',
         });
       }
-
-      return {
-        mahasiswaData: mahasiswaResult[0],
-      };
+      return { mahasiswaData: profile };
     }),
 
   getAnggotaById: protectedProcedure
@@ -959,7 +955,7 @@ export const userRouter = createTRPCRouter({
       }
     }),
 
-  toggleRaporVisibility: protectedProcedure
+  toggleRaporVisibility: mahasiswaProcedure
     .input(ToggleRaporVisibilityMahasiswaInputSchema)
     .output(ToggleRaporVisibilityOutputSchema)
     .mutation(async ({ ctx, input }) => {

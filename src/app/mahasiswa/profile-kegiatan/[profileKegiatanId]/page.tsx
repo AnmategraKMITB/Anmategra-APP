@@ -50,7 +50,8 @@ const ProfileKegiatan = async ({
 }) => {
   try {
     const query = (await params).profileKegiatanId;
-    const { kegiatan, lembaga, participant } = await getKegiatan(query);
+    const { kegiatan, lembaga, participant, daftarLink } =
+      await getKegiatan(query);
 
     const session = await getServerAuthSession();
     const userId = session?.user?.id;
@@ -131,7 +132,7 @@ const ProfileKegiatan = async ({
                 ajuanAsosiasi={
                   Boolean(kegiatan?.id) && !shouldHideAjuanAsosiasi
                 }
-                linkDaftar={kegiatan?.oprec_link}
+                linkDaftar={daftarLink}
                 session={session}
               />
               <article className="mt-6 sm:mt-8 mb-8">

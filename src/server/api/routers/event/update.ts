@@ -1,4 +1,5 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput, withoutLembagaId } from '~/server/api/types/scope';
 import { and, eq } from 'drizzle-orm';
 import { type Prodi } from '~/server/auth';
 import {
@@ -10,7 +11,7 @@ import {
 } from '~/server/db/schema';
 
 import daftarProdi from '../../../db/kode-program-studi.json';
-import { lembagaProcedure } from '../../trpc';
+import { lembagaScopedProcedure } from '../../trpc';
 import {
   AddNewPanitiaKegiatanInputSchema,
   AddNewPanitiaKegiatanManualInputSchema,
@@ -34,15 +35,15 @@ import {
 } from '../organization/membership';
 import { isUniqueViolation } from '../organization/services';
 
-export const updateEvent = lembagaProcedure
-  .input(UpdateEventInputSchema)
+export const updateEvent = lembagaScopedProcedure
+  .input(UpdateEventInputSchema.and(LembagaScopeInput))
   .output(UpdateEventOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,
@@ -60,8 +61,8 @@ export const updateEvent = lembagaProcedure
       const updatedEvent = await ctx.db
         .update(events)
         .set({
-          org_id: ctx.session.user.lembagaId,
-          ...input,
+          org_id: ctx.lembagaId,
+          ...withoutLembagaId(input),
           start_date: input.start_date ? new Date(input.start_date) : undefined,
           end_date: input.end_date ? new Date(input.end_date) : undefined,
         })
@@ -87,15 +88,15 @@ export const updateEvent = lembagaProcedure
     }
   });
 
-export const addNewPanitia = lembagaProcedure
-  .input(AddNewPanitiaKegiatanInputSchema)
+export const addNewPanitia = lembagaScopedProcedure
+  .input(AddNewPanitiaKegiatanInputSchema.and(LembagaScopeInput))
   .output(AddNewPanitiaKegiatanOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.event_id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,
@@ -147,15 +148,15 @@ export const addNewPanitia = lembagaProcedure
     }
   });
 
-export const removePanitia = lembagaProcedure
-  .input(RemovePanitiaKegiatanInputSchema)
+export const removePanitia = lembagaScopedProcedure
+  .input(RemovePanitiaKegiatanInputSchema.and(LembagaScopeInput))
   .output(RemovePanitiaKegiatanOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.event_id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,
@@ -225,15 +226,15 @@ export const removePanitia = lembagaProcedure
     }
   });
 
-export const editPanitia = lembagaProcedure
-  .input(EditPanitiaKegiatanInputSchema)
+export const editPanitia = lembagaScopedProcedure
+  .input(EditPanitiaKegiatanInputSchema.and(LembagaScopeInput))
   .output(EditPanitiaKegiatanOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.event_id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,
@@ -285,15 +286,15 @@ export const editPanitia = lembagaProcedure
     }
   });
 
-export const addNewPanitiaManual = lembagaProcedure
-  .input(AddNewPanitiaKegiatanManualInputSchema)
+export const addNewPanitiaManual = lembagaScopedProcedure
+  .input(AddNewPanitiaKegiatanManualInputSchema.and(LembagaScopeInput))
   .output(AddNewPanitiaKegiatanOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.event_id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,
@@ -400,15 +401,15 @@ export const addNewPanitiaManual = lembagaProcedure
     }
   });
 
-export const toggleHighlight = lembagaProcedure
-  .input(ToggleHighlightInputSchema)
+export const toggleHighlight = lembagaScopedProcedure
+  .input(ToggleHighlightInputSchema.and(LembagaScopeInput))
   .output(ToggleHighlightOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,
@@ -445,15 +446,15 @@ export const toggleHighlight = lembagaProcedure
     }
   });
 
-export const toggleRaporVisibility = lembagaProcedure
-  .input(ToggleRaporVisibilityInputSchema)
+export const toggleRaporVisibility = lembagaScopedProcedure
+  .input(ToggleRaporVisibilityInputSchema.and(LembagaScopeInput))
   .output(ToggleRaporVisibilityOutputSchema)
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
         where: and(
           eq(events.id, input.id),
-          eq(events.org_id, ctx.session.user.lembagaId!),
+          eq(events.org_id, ctx.lembagaId),
         ),
         columns: {
           id: true,

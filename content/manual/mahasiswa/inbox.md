@@ -9,6 +9,10 @@ description: Memantau, mengubah, dan membatalkan pengajuan asosiasi.
 Menu **Inbox** berisi pengajuan asosiasi yang Anda kirim untuk kegiatan atau
 lembaga.
 
+## Coba di sini
+
+::demo[inbox-mahasiswa]
+
 ## Memeriksa status pengajuan
 
 1. Buka menu **Inbox**.

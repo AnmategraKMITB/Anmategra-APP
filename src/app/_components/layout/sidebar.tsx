@@ -15,6 +15,7 @@ import {
   FileText,
   LogOut,
   Network,
+  Settings2,
   X,
 } from 'lucide-react';
 // Auth Import
@@ -99,6 +100,14 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
     icon: <BookOpen className="w-5 h-5" />,
   },
 ];
+
+// Muncul bagi mahasiswa yang memegang Grant (Admin Lembaga atau Admin Kegiatan);
+// disisipkan sebelum item Manual.
+const KELOLA_ITEM: SidebarItemType = {
+  label: 'Kelola',
+  href: '/manage',
+  icon: <Settings2 className="w-5 h-5" />,
+};
 
 const SIDEBAR_ITEMS_ADMIN: SidebarItemType[] = [
   { label: 'Laporan', href: '/admin', icon: <ExclamationTriangleIcon /> },
@@ -194,12 +203,23 @@ export const Sidebar = ({
   const user = session?.user;
   const role = user?.role ?? 'mahasiswa';
 
+  const hasManagedScope =
+    api.adminGrant.hasManagedScope.useQuery(undefined, {
+      enabled: role === 'mahasiswa' && !!user?.id,
+    }).data === true;
+
   const sidebarItems =
     role === 'lembaga'
       ? SIDEBAR_ITEMS_LEMBAGA
       : role === 'admin'
         ? SIDEBAR_ITEMS_ADMIN
-        : SIDEBAR_ITEMS_MAHASISWA;
+        : hasManagedScope
+          ? [
+              ...SIDEBAR_ITEMS_MAHASISWA.slice(0, -1),
+              KELOLA_ITEM,
+              ...SIDEBAR_ITEMS_MAHASISWA.slice(-1),
+            ]
+          : SIDEBAR_ITEMS_MAHASISWA;
 
   const profileData = useSidebarProfile(session);
 

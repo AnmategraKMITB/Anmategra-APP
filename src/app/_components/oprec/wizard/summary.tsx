@@ -11,6 +11,8 @@ import {
   type StepId,
   type WizardCtx,
   type WizardState,
+  criteriaSlots,
+  openWarnings,
   stepProblem,
 } from './model';
 import { presetLabel } from './presets';
@@ -37,6 +39,7 @@ const TITLES: Record<StepId, (c: WizardCtx) => string> = {
   S15: () => 'Syarat gugur',
   S16: () => 'Keputusan akhir dan veto',
   S17: () => 'Pengelola oprec',
+  S18a: () => 'Metode penempatan',
   S18: () => 'Tahap penempatan',
   S19: () => 'Visibilitas antar tujuan',
   S20: () => 'Akses menu Hasil',
@@ -46,6 +49,14 @@ const TITLES: Record<StepId, (c: WizardCtx) => string> = {
 };
 
 /** Ringkasan jawaban satu langkah dalam kalimat pendek. */
+const waveDate = (v: string) =>
+  v
+    ? new Date(v).toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      })
+    : '?';
+
 export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
   const l2 = c.labels[1].toLowerCase();
   switch (id) {
@@ -61,7 +72,12 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
     }
     case 'S4':
       return s.useWaves
-        ? s.waves.map((w) => w.label || '?').join(', ')
+        ? s.waves
+            .map(
+              (w) =>
+                `${w.label || '?'} (${waveDate(w.startsAt)} – ${waveDate(w.endsAt)})`,
+            )
+            .join('; ')
         : 'Tanpa gelombang';
     case 'S5':
       return s.eligibility.enabled
@@ -103,8 +119,10 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
         : 'Langsung diputuskan';
     case 'S12a':
       return {
-        peringkat_kuota_minimum: 'Peringkat dalam kuota dengan nilai minimum',
-        peringkat_kuota: 'Peringkat dalam kuota',
+        peringkat_kuota_minimum:
+          'Peringkat dalam kuota dengan nilai minimum (kuota 0 = tanpa batas, semua yang memenuhi nilai minimum lolos)',
+        peringkat_kuota:
+          'Peringkat dalam kuota (kuota 0 = tanpa batas, semua yang tidak gugur lolos)',
         ambang: 'Ambang nilai',
       }[s.statusMethod];
     case 'S12b':
@@ -115,9 +133,9 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
       }[s.scoreSource];
     case 'S13':
       return {
-        ketua: `Ketua ${l2}`,
+        ketua: `Pengurus ${l2}`,
         umum: 'Penilai umum',
-        keduanya: `Penilai umum dan ketua ${l2}`,
+        keduanya: `Penilai umum dan pengurus ${l2}`,
       }[s.assessors];
     case 'S14':
       return s.generalAssessorUnitId
@@ -136,6 +154,10 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
           : 'Saya dan bagian tertentu',
         ketua: `Hanya ketua ${l2}`,
       }[s.managers];
+    case 'S18a':
+      return s.placementMethod === 'prioritas'
+        ? 'Prioritas per divisi'
+        : 'Manual';
     case 'S18':
       return s.staged ? 'Bertahap per pilihan' : 'Semua pilihan sekaligus';
     case 'S19':
@@ -143,7 +165,7 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
     case 'S20':
       return {
         admin: 'Admin oprec saja',
-        admin_ketua: `Admin dan ketua ${l2}`,
+        admin_ketua: `Admin dan pengurus ${l2}`,
         semua: 'Semua pengelola',
       }[s.resultsAccess];
     case 'S21':
@@ -151,11 +173,19 @@ export function describe(id: StepId, s: WizardState, c: WizardCtx): string {
     case 'S22':
       return YES(s.closerec);
     case 'S23': {
-      const n = Object.values(s.criteria).reduce(
-        (a, l) => a + l.filter((k) => k.name.trim()).length,
-        0,
-      );
-      return n === 0 ? 'Belum ada kriteria' : `${n} kriteria`;
+      const parts = criteriaSlots(s).flatMap((slot) => {
+        const list = (s.criteria[slot] ?? []).filter((k) => k.name.trim());
+        if (list.length === 0) return [];
+        const items = list
+          .map((k) =>
+            k.kind === 'skor'
+              ? `${k.name.trim()} (skor ${k.weight}%)`
+              : `${k.name.trim()} (gugur manual)`,
+          )
+          .join(', ');
+        return [`${slot === 'umum' ? 'Umum' : c.unitName(slot)}: ${items}`];
+      });
+      return parts.length === 0 ? 'Belum ada kriteria' : parts.join('; ');
     }
   }
 }
@@ -182,6 +212,7 @@ export function Summary({
     const p = stepProblem(id, s, c);
     return p ? [{ id, message: p }] : [];
   });
+  const warnings = openWarnings(steps, s, c);
   const groups = [...new Set(steps.map((id) => GROUP_OF[id]))];
   return (
     <div>
@@ -211,6 +242,31 @@ export function Summary({
                 <button
                   type="button"
                   onClick={() => onEdit(p.id)}
+                  className="font-semibold text-primary-400 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                >
+                  Perbaiki
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      {warnings.length > 0 ? (
+        <div
+          role="status"
+          className="mt-6 rounded-xl bg-warning-light px-4 py-3 text-sm text-neutral-1000"
+        >
+          <p className="flex items-center gap-2 font-semibold">
+            <TriangleAlert className="size-4" /> Pendaftaran belum bisa dibuka
+          </p>
+          <ul className="mt-1 list-disc pl-6">
+            {warnings.map((w) => (
+              <li key={w.id}>
+                {TITLES[w.id](c)}: {w.message}{' '}
+                <button
+                  type="button"
+                  onClick={() => onEdit(w.id)}
                   className="font-semibold text-primary-400 underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                 >
                   Perbaiki

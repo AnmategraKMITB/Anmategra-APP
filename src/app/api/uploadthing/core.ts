@@ -3,7 +3,10 @@ import { type FileRouter, createUploadthing } from 'uploadthing/next';
 import { UploadThingError } from 'uploadthing/server';
 import { z } from 'zod';
 import { loadManagedForm } from '~/app/_components/forms/access';
-import { getServerAuthSession } from '~/server/auth';
+import {
+  getServerAuthSession,
+  getServerAuthSessionWithAlt,
+} from '~/server/auth';
 import { db } from '~/server/db';
 import { form, formImage } from '~/server/db/schema';
 import { isAcceptingResponses } from '~/server/api/routers/form/services';
@@ -106,11 +109,16 @@ export const ourFileRouter = {
         maxFileCount: 5,
       },
       'application/zip': { maxFileSize: '16MB', maxFileCount: 5 },
+      'image/jpeg': { maxFileSize: '16MB', maxFileCount: 5 },
+      'image/png': { maxFileSize: '16MB', maxFileCount: 5 },
+      'image/webp': { maxFileSize: '16MB', maxFileCount: 5 },
     },
   )
     .input(z.object({ formId: z.string().min(1).max(255) }))
     .middleware(async ({ input }) => {
-      const session = await getServerAuthSession();
+      // Akses alternatif (klaim aktif) boleh mengunggah jawaban berkas form.
+      const raw = await getServerAuthSessionWithAlt();
+      const session = raw?.user.alt === 'guest' ? null : raw;
       if (!session) {
         throw new UploadThingError('Harus login untuk mengunggah berkas.') as Error;
       }

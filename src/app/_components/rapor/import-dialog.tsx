@@ -18,9 +18,12 @@ import { api } from '~/trpc/react';
 
 export function ImportDialog({
   session,
+  lembagaId,
   isLembaga,
 }: {
   session: Session | null;
+  /** Lembaga yang dikelola; bawaan: lembaga milik sesi (Owner). */
+  lembagaId?: string;
   isLembaga?: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,7 +57,7 @@ export function ImportDialog({
               importType={isLembaga ? 'lembaga-nilai' : 'kegiatan-nilai'}
               entityId={
                 isLembaga
-                  ? (session?.user.lembagaId ?? '')
+                  ? (lembagaId ?? session?.user.lembagaId ?? '')
                   : (pathname.split('/')[3] ?? '')
               }
               onImportSuccess={() => {

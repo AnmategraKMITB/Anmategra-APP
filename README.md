@@ -85,7 +85,22 @@ Script lain:
 - `npm run start` — jalanin hasil build
 - `npm run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `npm run lint:prune` dan commit perubahan file itu.
 - `npm run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
+- `npm test` — jalankan tes otomatis (Vitest); lihat [Menjalankan Tes](#menjalankan-tes). `npm run test:watch` mengulang tes setiap berkas berubah.
 - `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
+
+### Menjalankan Tes
+
+Tes memakai Vitest dan **PostgreSQL asli**, bukan mock, supaya aturan akses diuji terhadap skema yang sama dengan produksi.
+
+```
+npm test
+```
+
+- Database uji terpisah dari database pengembangan. Alamatnya dari `TEST_DATABASE_URL`; bawaannya `postgresql://postgres:password@localhost:5432/anmategra_test`. Nama database **wajib memuat kata `test`**; kalau tidak, tes menolak jalan karena tiap kasus mengosongkan tabel.
+- Sebelum tes pertama, `src/test/global-setup.ts` membuat database itu bila belum ada (dari `template0`) dan menerapkan semua migrasi di `drizzle/`. Run berikutnya melewati migrasi yang sudah diterapkan.
+- Berkas tes diberi akhiran `.test.ts` dan diletakkan di samping kodenya. Helper database dan pabrik data ada di `src/test/test-db.ts`.
+- Tes tidak butuh `.env` lengkap: kode yang diuji tidak boleh memuat `~/env`. Prosedur yang butuh sesi atau NextAuth sebaiknya diuji lewat logika yang dipisah, seperti `src/server/api/access.ts`.
+- CI menjalankan `npm test` pada job `Test` dengan layanan PostgreSQL 15.
 
 ### Login Microsoft (SSO ITB)
 

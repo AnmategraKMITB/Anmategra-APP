@@ -27,22 +27,6 @@ export const VerifiedUserRowSchema = z.object({
   email: z.string(),
 });
 
-export const AddVerifiedEmailInputSchema = z.object({ email: z.string() });
-
-/** `.returning()` selalu mengembalikan array, walau hanya satu row yang di-insert. */
-export const AddVerifiedEmailOutputSchema = z.array(VerifiedUserRowSchema);
-
-export const DeleteVerifiedEmailInputSchema = z.object({ email: z.string() });
-
-/**
- * Bentuk responsnya memang tidak seragam: kalau email-nya sudah punya akun,
- * yang dikembalikan adalah row `user` yang dihapus; kalau belum, array row
- * `verified_user`; kalau tidak ada dua-duanya, `undefined`.
- */
-export const DeleteVerifiedEmailOutputSchema = z
-  .union([UserRowSchema, z.array(VerifiedUserRowSchema)])
-  .optional();
-
 export const adminSchema = z.object({
   id: z.number(),
   username: z.string(),
@@ -83,8 +67,9 @@ export const SetReportStatusOutputSchema = z.object({
 // Alumni CSV upload (H-03): NIM lulusan per batch wisuda. Yang belum
 // terdaftar disimpan sebagai pending, otomatis di-apply saat sign-in pertama.
 export const UploadAlumniCsvInputSchema = z.object({
-  nims: z.array(z.number().int().positive()).min(1),
-  wisudaBatch: z.string().optional(),
+  // NIM ITB 8 digit; batas jumlah menjaga satu permintaan tetap wajar.
+  nims: z.array(z.number().int().min(10_000_000).max(99_999_999)).min(1).max(20_000),
+  wisudaBatch: z.string().trim().max(100).optional(),
 });
 
 export const UploadAlumniCsvOutputSchema = z.object({

@@ -42,6 +42,8 @@ const MAX_LEMBAGA_TREE_DEPTH = 16;
 const ADMIN_SCOPE_PERMISSION: Partial<Record<GrantFeature, string>> = {
   organization: 'lembaga.organization',
   events: 'lembaga.events',
+  forms: 'lembaga.forms',
+  oprec: 'lembaga.oprec',
 };
 
 async function hasAdminOperatorScope(

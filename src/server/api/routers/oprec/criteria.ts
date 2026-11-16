@@ -353,6 +353,8 @@ function parseImportRows(args: {
   rows: z.infer<typeof ImportRowSchema>[];
   slots: SlotSet;
   existingBySlot: Map<string, Map<string, ExistingCriterion>>;
+  /** Mengikuti `recruitment.hasGugur`; false menolak kriteria jenis gugur. */
+  hasGugur: boolean;
 }): ParseResult {
   const problems: { row: number; message: string }[] = [];
   const parsed: ParsedImportRow[] = [];
@@ -372,6 +374,9 @@ function parseImportRows(args: {
     if (!name) messages.push('Nama kriteria wajib diisi.');
     const kind = normalizeKind(row.jenis);
     if (!kind) messages.push('Jenis kriteria tidak dikenal.');
+    else if (kind !== 'skor' && !args.hasGugur) {
+      messages.push('Oprec ini tidak memakai syarat gugur.');
+    }
 
     let weight: number | null = null;
     if (kind === 'skor') {
@@ -628,6 +633,13 @@ export const criteriaProcedures = {
       const formId = ctx.recruitment.formId;
       const name = input.name.trim();
       const divisionId = input.scope === 'umum' ? null : input.scope;
+      if (input.kind !== 'skor' && !ctx.recruitment.hasGugur) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Oprec ini tidak memakai syarat gugur, jadi kriteria gugur tidak bisa ditambahkan.',
+        });
+      }
       try {
         return await ctx.db.transaction(async (tx) => {
           if (divisionId !== null) {
@@ -973,6 +985,7 @@ export const criteriaProcedures = {
         rows: input.rows,
         slots,
         existingBySlot,
+        hasGugur: ctx.recruitment.hasGugur,
       });
       return {
         newRows: parsed.newRows,
@@ -997,6 +1010,7 @@ export const criteriaProcedures = {
           rows: input.rows,
           slots,
           existingBySlot,
+          hasGugur: ctx.recruitment.hasGugur,
         });
         if (parsed.rows.length === 0) {
           return { applied: 0, problems: parsed.problems };

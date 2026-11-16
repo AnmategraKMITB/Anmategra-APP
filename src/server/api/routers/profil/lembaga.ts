@@ -1,6 +1,11 @@
 import { TRPCError } from '@trpc/server';
 import { eq } from 'drizzle-orm';
-import { createTRPCRouter, lembagaProcedure, protectedProcedure } from '~/server/api/trpc';
+import { z } from 'zod';
+import {
+  createTRPCRouter,
+  lembagaScopedProcedure,
+  protectedProcedure,
+} from '~/server/api/trpc';
 import {
   CreateProfilLembagaInputSchema,
   CreateProfilLembagaOutputSchema,
@@ -17,10 +22,7 @@ import {
   profilLembaga,
 } from '~/server/db/schema';
 
-import {
-  validateLembagaOwnership,
-  validateLembagaProfileOwnership,
-} from './services';
+import { validateLembagaProfileOwnership } from './services';
 
 export const profileLembagaRouter = createTRPCRouter({
   getAllProfilLembaga: protectedProcedure
@@ -50,14 +52,12 @@ export const profileLembagaRouter = createTRPCRouter({
       };
     }),
 
-  createProfilLembaga: lembagaProcedure
+  createProfilLembaga: lembagaScopedProcedure
     .input(CreateProfilLembagaInputSchema)
     .output(CreateProfilLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateLembagaOwnership(ctx, input.lembaga_id);
-
       const lembagaExists = await ctx.db.query.lembaga.findFirst({
-        where: eq(lembaga.id, input.lembaga_id),
+        where: eq(lembaga.id, ctx.lembagaId),
       });
 
       if (!lembagaExists) {
@@ -91,7 +91,7 @@ export const profileLembagaRouter = createTRPCRouter({
         const newProfil = await tx
           .insert(profilLembaga)
           .values({
-            lembagaId: input.lembaga_id,
+            lembagaId: ctx.lembagaId,
             name: input.name,
             description: input.description,
           })
@@ -121,11 +121,11 @@ export const profileLembagaRouter = createTRPCRouter({
       return result;
     }),
 
-  deleteProfilLembaga: lembagaProcedure
-    .input(DeleteProfilInputSchema)
+  deleteProfilLembaga: lembagaScopedProcedure
+    .input(DeleteProfilInputSchema.extend({ lembagaId: z.string().nonempty() }))
     .output(DeleteProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateLembagaProfileOwnership(ctx, input.profil_id);
+      await validateLembagaProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
 
       const profilExists = await ctx.db.query.profilLembaga.findFirst({
         where: eq(profilLembaga.id, input.profil_id),
@@ -145,11 +145,11 @@ export const profileLembagaRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  editProfilLembaga: lembagaProcedure
-    .input(EditProfilInputSchema)
+  editProfilLembaga: lembagaScopedProcedure
+    .input(EditProfilInputSchema.extend({ lembagaId: z.string().nonempty() }))
     .output(EditProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateLembagaProfileOwnership(ctx, input.profil_id);
+      await validateLembagaProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
 
       // Validate profil KM IDs exist
       if (input.profil_km_id && input.profil_km_id.length > 0) {

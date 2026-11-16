@@ -10,6 +10,10 @@ Rapor adalah penilaian kinerja yang diberikan lembaga kepada anggota atau
 panitia. Rapor hanya dapat dibuka jika visibilitasnya diaktifkan oleh lembaga
 atau kegiatan terkait.
 
+## Coba di sini
+
+::demo[rapor-mahasiswa]
+
 ## Membuka rapor
 
 1. Buka [profil mahasiswa](/manual/mahasiswa/profil) Anda atau profil mahasiswa

@@ -28,6 +28,7 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
 import { Input } from '~/components/ui/input';
+import { type AppBase } from '~/lib/app-base';
 import { Label } from '~/components/ui/label';
 import {
   Select,
@@ -82,7 +83,7 @@ export function FormsList({
 }: {
   scope: FormsScope;
   /** `/lembaga` atau `/mahasiswa`: awalan rute builder. */
-  basePath: '/lembaga' | '/mahasiswa';
+  basePath: AppBase;
 }) {
   const router = useRouter();
   const utils = api.useUtils();

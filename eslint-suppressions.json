@@ -52,11 +52,6 @@
       "count": 1
     }
   },
-  "src/app/_components/manual/markdown-components.tsx": {
-    "@typescript-eslint/prefer-optional-chain": {
-      "count": 1
-    }
-  },
   "src/app/_components/placeholder/event-header.tsx": {
     "react-hooks/set-state-in-effect": {
       "count": 1
@@ -206,7 +201,7 @@
   },
   "src/server/api/routers/profile.ts": {
     "@typescript-eslint/prefer-nullish-coalescing": {
-      "count": 3
+      "count": 2
     }
   },
   "src/server/auth.ts": {

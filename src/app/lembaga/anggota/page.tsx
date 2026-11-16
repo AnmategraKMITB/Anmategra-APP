@@ -11,7 +11,9 @@ export default async function Home() {
     lembagaId: session?.user.lembagaId ?? '',
   });
 
-  const getPosisiBidang = await api.lembaga.getPosisiBidangOptions();
+  const getPosisiBidang = await api.lembaga.getPosisiBidangOptions({
+    lembagaId: session?.user.lembagaId ?? '',
+  });
 
   const lembaga = await api.lembaga.getInfo({
     lembagaId: session?.user.lembagaId ?? '',

@@ -81,7 +81,7 @@ export async function canOpenResults(recruitmentId: string) {
   );
   if (!access) return false;
   if (access.isAdmin) return true;
-  const mode = resultsMode(row.setupAnswers);
+  const mode = resultsMode(row);
   if (mode === 'admin') return false;
   if (mode === 'admin_ketua') return access.deciderDivisionIds.size > 0;
   return access.divisionIds.size > 0;

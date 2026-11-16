@@ -62,6 +62,67 @@ export const users = createTable('user', {
   ...timestamps,
 });
 
+/**
+ * Akses sementara (email kontak + NIM + KTM) untuk mahasiswa yang akun ITB-nya
+ * bermasalah. Satu baris = satu klaim NIM oleh satu Gmail, berlaku singkat
+ * (`expiresAt`) dan hanya boleh dipakai mengisi form. Login Microsoft yang
+ * berhasil mencabut semua klaim aktif milik user itu.
+ */
+export const altLoginClaim = createTable(
+  'alt_login_claim',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    nim: integer('nim').notNull(),
+    /**
+     * Email yang diketik pemohon. Tidak diverifikasi: hanya label kontak untuk
+     * admin, tidak pernah dipakai sebagai identitas sesi.
+     */
+    contactEmail: varchar('contact_email', { length: 255 }).notNull(),
+    /** SHA-256 dari rahasia acak yang hanya dipegang browser pengaju; mengikat sesi ke klaim. */
+    secretHash: varchar('secret_hash', { length: 64 }).notNull(),
+    /** Tautan KTM (`FileAnswerItem`); dikosongkan otomatis setelah 7 hari. */
+    ktm: jsonb('ktm').$type<Record<string, unknown>>(),
+    ip: varchar('ip', { length: 64 }),
+    /** Ditandai bila NIM yang sama diklaim Gmail lain pada hari yang sama. */
+    disputed: boolean('disputed').notNull().default(false),
+    /** Klaim bersengketa baru berlaku setelah admin menyetujui. */
+    approvedAt: timestamp('approved_at', { mode: 'date', withTimezone: true }),
+    approvedBy: varchar('approved_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    /** Klaim biasa: 6 jam sejak diajukan. Klaim bersengketa: 6 jam sejak disetujui. */
+    expiresAt: timestamp('expires_at', {
+      mode: 'date',
+      withTimezone: true,
+    }).notNull(),
+    revokedAt: timestamp('revoked_at', { mode: 'date', withTimezone: true }),
+    /** 'admin' | 'login-microsoft' | 'diganti-klaim-baru' | 'sengketa-kalah' */
+    revokedReason: varchar('revoked_reason', { length: 64 }),
+    revokedBy: varchar('revoked_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    created_at: timestamp('created_at', {
+      mode: 'date',
+      withTimezone: true,
+    })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`),
+  },
+  (t) => [
+    index('alt_login_claim_contact_email_idx').on(t.contactEmail),
+    index('alt_login_claim_user_idx').on(t.userId),
+    index('alt_login_claim_nim_idx').on(t.nim),
+  ],
+);
+
 /** Jejak audit tindakan backoffice; append-only dari UI. */
 export const adminAudit = createTable(
   'admin_audit',
@@ -193,6 +254,12 @@ export const mahasiswa = createTable('mahasiswa', {
   lineId: varchar('line_id', { length: 255 }),
   whatsapp: varchar('whatsapp', { length: 255 }),
   raporVisible: boolean('rapor_visible').notNull().default(true),
+  // Visibilitas kontak bagi mahasiswa lain. Pemilik akun, Superadmin, Operator
+  // (accounts.read), serta Owner/Admin yang mengelola lembaga atau kegiatan
+  // tempat mahasiswa ini terlibat selalu dapat melihat, apa pun nilainya.
+  showWhatsapp: boolean('show_whatsapp').notNull().default(false),
+  showLine: boolean('show_line').notNull().default(false),
+  showEmail: boolean('show_email').notNull().default(false),
   status: mahasiswaStatusEnum('status').notNull().default('aktif'),
   ...timestamps,
 });
@@ -1932,6 +1999,22 @@ export type StatusMethod = (typeof STATUS_METHODS)[number];
 export const SCORE_SOURCES = ['umum', 'divisi', 'gabungan'] as const;
 export type ScoreSource = (typeof SCORE_SOURCES)[number];
 
+/** S13: siapa yang menilai pendaftar. `ketua` = Kadiv masing-masing, `umum` = hanya penilai umum. */
+export const ASSESSOR_MODES = ['ketua', 'umum', 'keduanya'] as const;
+export type AssessorMode = (typeof ASSESSOR_MODES)[number];
+
+/**
+ * Cara penempatan. `manual`: pengambil keputusan menerima/menolak per pilihan.
+ * `prioritas`: tiap divisi menyusun daftar prioritas, lalu sistem menempatkan
+ * pendaftar otomatis (deferred acceptance, src/lib/oprec/matching.ts).
+ */
+export const PLACEMENT_METHODS = ['manual', 'prioritas'] as const;
+export type PlacementMethod = (typeof PLACEMENT_METHODS)[number];
+
+/** S20: siapa yang boleh membuka menu Hasil. */
+export const RESULTS_ACCESS_MODES = ['admin', 'admin_ketua', 'semua'] as const;
+export type ResultsAccessMode = (typeof RESULTS_ACCESS_MODES)[number];
+
 export const ELIGIBILITY_MATCHES = ['all', 'any'] as const;
 export type EligibilityMatch = (typeof ELIGIBILITY_MATCHES)[number];
 
@@ -2037,6 +2120,34 @@ export const recruitment = createTable(
       .notNull()
       .default(false),
     visibilityDefault: boolean('visibility_default').notNull().default(false),
+    // CHECK: assessor_mode dan results_access hanya bernilai konstanta di atas.
+    /** S13: `umum` mencabut hak menilai Kadiv; penilai umum berasal dari S14. */
+    assessorMode: varchar('assessor_mode', { length: 16 })
+      .$type<AssessorMode>()
+      .notNull()
+      .default('keduanya'),
+    /** S14: bagian organogram yang pemegang jabatannya menjadi penilai umum. */
+    generalAssessorUnitId: varchar('general_assessor_unit_id', {
+      length: 255,
+    }).references(() => organizationUnit.id, { onDelete: 'set null' }),
+    /** S15: false = kriteria gugur ditolak. */
+    hasGugur: boolean('has_gugur').notNull().default(true),
+    /** S16: true = Kadiv memutuskan dan bisa memveto; false = hanya admin. */
+    headDecides: boolean('head_decides').notNull().default(true),
+    /** S18: false = semua pilihan diproses sekaligus, bukan bertahap per urutan. */
+    stagedPlacement: boolean('staged_placement').notNull().default(true),
+    // CHECK: placement_method IN PLACEMENT_METHODS.
+    placementMethod: varchar('placement_method', { length: 16 })
+      .$type<PlacementMethod>()
+      .notNull()
+      .default('manual'),
+    /** S20 */
+    resultsAccess: varchar('results_access', { length: 16 })
+      .$type<ResultsAccessMode>()
+      .notNull()
+      .default('admin_ketua'),
+    /** S22: false = jalur closerec ditutup. */
+    closerecEnabled: boolean('closerec_enabled').notNull().default(true),
     eligibilityMatch: varchar('eligibility_match', { length: 8 })
       .$type<EligibilityMatch>()
       .notNull()
@@ -2046,6 +2157,40 @@ export const recruitment = createTable(
   (table) => ({
     periodIdx: index('recruitment_period_idx').on(table.periodId),
     formUnique: uniqueIndex('recruitment_form_unique').on(table.formId),
+  }),
+);
+
+/**
+ * Draf wizard setup sebelum oprec ada: satu draf per (periode, pengguna).
+ * `saveSetup` butuh `recruitment` yang sudah ada, jadi draf tahap awal
+ * disimpan di sini dan dihapus saat `createFromSetup` berhasil.
+ */
+export const recruitmentSetupDraft = createTable(
+  'recruitment_setup_draft',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    periodId: varchar('period_id', { length: 255 })
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    /** Jawaban wizard (`WizardState`), bentuknya dijaga klien. */
+    state: jsonb('state').$type<Record<string, unknown>>().notNull(),
+    /** Langkah terakhir yang dibuka, mis. 'S12a'. */
+    step: varchar('step', { length: 8 }).notNull().default('S1'),
+    /** 'steps' atau 'summary'. */
+    phase: varchar('phase', { length: 16 }).notNull().default('steps'),
+    ...timestamps,
+  },
+  (table) => ({
+    periodUserUnique: uniqueIndex('recruitment_setup_draft_period_user_unique').on(
+      table.periodId,
+      table.userId,
+    ),
   }),
 );
 
@@ -2122,6 +2267,17 @@ export const recruitmentDivision = createTable(
       .references(() => organizationPosition.id, { onDelete: 'restrict' }),
     code: varchar('code', { length: 50 }),
     sortOrder: integer('sort_order').notNull().default(0),
+    /** Naik tiap urutan prioritas disimpan; penyunting lain yang basi ditolak. */
+    priorityVersion: integer('priority_version').notNull().default(0),
+    /** Daftar prioritas dikunci (siap dipakai penempatan otomatis). */
+    priorityLockedAt: timestamp('priority_locked_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    priorityLockedBy: varchar('priority_locked_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
   },
   (table) => ({
     unitIdx: index('recruitment_division_unit_idx').on(table.unitId),
@@ -2680,6 +2836,51 @@ export const placementDecision = createTable(
     decidedByIdx: index('placement_decision_decided_by_idx').on(
       table.decidedBy,
     ),
+  }),
+);
+
+/**
+ * Daftar prioritas satu divisi (metode `prioritas`). `rank` 1 = paling
+ * diinginkan; NULL = tidak diprioritaskan (ditolak divisi ini) tetapi
+ * penyusun menyimpan keterangan. Baris tanpa urutan dan tanpa keterangan
+ * dihapus. CHECK (rank >= 1) dan (rank IS NOT NULL OR note IS NOT NULL)
+ * ditulis tangan di migrasi.
+ */
+export const divisionPriority = createTable(
+  'division_priority',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    divisionId: varchar('division_id', { length: 255 })
+      .notNull()
+      .references(() => recruitmentDivision.id, { onDelete: 'cascade' }),
+    applicationId: varchar('application_id', { length: 255 })
+      .notNull()
+      .references(() => application.id, { onDelete: 'cascade' }),
+    rank: integer('rank'),
+    /** Catatan penyusun (alasan urutan); tidak pernah tampil ke pendaftar. */
+    note: text('note'),
+    updatedBy: varchar('updated_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    updatedAt: timestamp('updated_at', { mode: 'date', withTimezone: true })
+      .notNull()
+      .default(sql`CURRENT_TIMESTAMP`)
+      .$onUpdate(() => new Date()),
+  },
+  (table) => ({
+    applicationIdx: index('division_priority_application_idx').on(
+      table.applicationId,
+    ),
+    divisionApplicationUnique: uniqueIndex(
+      'division_priority_division_application_unique',
+    ).on(table.divisionId, table.applicationId),
+    divisionRankUnique: uniqueIndex('division_priority_division_rank_unique')
+      .on(table.divisionId, table.rank)
+      .where(sql`${table.rank} IS NOT NULL`),
   }),
 );
 

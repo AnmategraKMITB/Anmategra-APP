@@ -1,5 +1,6 @@
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { getServerAuthSession } from '~/server/auth';
 import { api } from '~/trpc/server';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -9,7 +10,10 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const OprecPeriodPickerPage = async () => {
-  const events = await api.kegiatan.getAllByLembaga();
+  const session = await getServerAuthSession();
+  const events = await api.kegiatan.getAllByLembaga({
+    lembagaId: session?.user.lembagaId ?? '',
+  });
 
   return (
     <main className="py-6 sm:py-8">

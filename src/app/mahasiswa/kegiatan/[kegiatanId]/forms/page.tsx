@@ -1,12 +1,13 @@
-import { EventFormsPage } from '~/app/_components/forms/event-forms-page';
+import { redirect } from 'next/navigation';
 
-const MahasiswaKegiatanFormsPage = async ({
+/** Rute lama; halaman pengelola kini di /manage. */
+const LegacyRedirectPage = async ({
   params,
 }: {
   params: Promise<{ kegiatanId: string }>;
 }) => {
   const { kegiatanId } = await params;
-  return <EventFormsPage kegiatanId={kegiatanId} basePath="/mahasiswa" />;
+  redirect(`/manage/kegiatan/${kegiatanId}/forms`);
 };
 
-export default MahasiswaKegiatanFormsPage;
+export default LegacyRedirectPage;

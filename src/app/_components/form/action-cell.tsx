@@ -53,7 +53,11 @@ export function ActionCell({
   const onDelete = (id: string) => {
     if (isKegiatan && eventId) {
       eventMutation.mutate(
-        { id, event_id: eventId },
+        {
+          id,
+          event_id: eventId,
+          lembagaId: lembagaId ?? session?.user.lembagaId ?? '',
+        },
         {
           onSuccess: () => {
             eventMutation.reset();
@@ -74,7 +78,7 @@ export function ActionCell({
       );
     } else {
       lembagaMutation.mutate(
-        { user_id: id },
+        { user_id: id, lembagaId: lembagaId ?? '' },
         {
           onSuccess: () => {
             lembagaMutation.reset();

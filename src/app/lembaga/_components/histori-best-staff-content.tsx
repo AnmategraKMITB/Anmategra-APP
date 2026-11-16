@@ -90,13 +90,14 @@ export default function HistoriBestStaffContent({
 
     if (isKegiatan && kegiatanId) {
       deleteMutation.mutate({
+        lembagaId: lembagaId ?? '',
         event_id: kegiatanId,
         start_date: periode.start_date,
         end_date: periode.end_date,
       });
     } else if (lembagaId) {
       deleteMutation.mutate({
-        lembaga_id: lembagaId,
+        lembagaId,
         start_date: periode.start_date,
         end_date: periode.end_date,
       });

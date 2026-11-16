@@ -29,7 +29,17 @@ export async function OprecListPage({
   if (!event) notFound();
 
   const backHref =
-    basePath === '/lembaga' ? '/lembaga/oprec' : '/mahasiswa/kegiatan';
+    basePath === '/lembaga'
+      ? '/lembaga/oprec'
+      : basePath === '/manage'
+        ? '/manage'
+        : '/mahasiswa/kegiatan';
+  const backLabel =
+    basePath === '/lembaga'
+      ? 'Semua periode'
+      : basePath === '/manage'
+        ? 'Kelola'
+        : 'Kegiatan';
 
   return (
     <main className="py-6 sm:py-8">
@@ -37,7 +47,7 @@ export async function OprecListPage({
         href={backHref}
         className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
       >
-        ← {basePath === '/lembaga' ? 'Semua periode' : 'Kegiatan'}
+        ← {backLabel}
       </Link>
       <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
         <div>

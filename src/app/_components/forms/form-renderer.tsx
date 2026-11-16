@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { computeVisibility, pickEnding } from '~/lib/forms/conditions';
@@ -83,6 +83,54 @@ function Decor({
   if (!url || !isAllowedImageHost(url)) return null;
   // eslint-disable-next-line @next/next/no-img-element
   return <img src={url} alt={alt ?? ''} className={className} />;
+}
+
+/** Perkiraan detik per jenis pertanyaan, untuk "± N menit". */
+const SECONDS: Partial<Record<string, number>> = {
+  long_text: 60,
+  file: 45,
+  matrix: 40,
+  text_block: 10,
+};
+
+/**
+ * Baris ringkas di kepala form: jumlah pertanyaan, perkiraan waktu, dan arti
+ * tanda bintang. Pola umum form supaya pengisi tahu apa yang menanti.
+ */
+function FormMeta({
+  fields,
+  sections,
+}: {
+  fields: RendererFieldFull[];
+  sections: RendererSection[];
+}) {
+  const questions = fields.filter((f) => f.type !== 'text_block');
+  // Dengan alur bersyarat (mis. bagian per divisi oprec) jumlah yang benar-benar
+  // dilihat pengisi tidak bisa diketahui di awal, jadi barisnya tidak ditampilkan.
+  const branched =
+    fields.some((f) => !!f.condition) || sections.some((s) => !!s.condition);
+  if (questions.length === 0 || branched) return null;
+  const seconds = fields.reduce((sum, f) => sum + (SECONDS[f.type] ?? 15), 0);
+  const minutes = Math.max(1, Math.round(seconds / 60));
+  const anyRequired = questions.some((f) => f.required);
+  return (
+    <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-neutral-700">
+      <span>{questions.length} pertanyaan</span>
+      <span aria-hidden>·</span>
+      <span>± {minutes} menit</span>
+      {anyRequired ? (
+        <>
+          <span aria-hidden>·</span>
+          <span>
+            <span aria-hidden className="font-semibold text-tomato">
+              *
+            </span>{' '}
+            wajib diisi
+          </span>
+        </>
+      ) : null}
+    </p>
+  );
 }
 
 /** Halaman: sambutan (bila ada), satu per bagian yang berisi pertanyaan, lalu tinjauan (bila diminta). */
@@ -245,6 +293,15 @@ export function FormRenderer({
   const [formError, setFormError] = useState<string | null>(null);
 
   const dirty = Object.keys(answers).length > 0 && !done;
+
+  // Pindah halaman: gulir ke atas form (M-13), kecuali pada render pertama.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const shownPage = useRef(0);
+  useEffect(() => {
+    if (shownPage.current === pageIndex) return;
+    shownPage.current = pageIndex;
+    rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [pageIndex]);
 
   useEffect(() => {
     if (draftKey && !done) writeDraft(draftKey, answers);
@@ -412,16 +469,23 @@ export function FormRenderer({
             Ini hanya pratinjau, jadi jawaban tidak dikirim.
           </p>
         ) : null}
-        {filling || editing ? (
-          <Link
-            href="/"
-            className={cn(
-              'mt-6 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold',
-              primary,
-            )}
-          >
-            Kembali ke beranda
-          </Link>
+        {filling ? (
+          form.id ? (
+            // Muat ulang penuh supaya halaman form menampilkan kiriman terbaru.
+            <Button asChild className={cn('mt-6', primary)}>
+              <a href={`/forms/${form.id}`}>Lihat jawabanmu</a>
+            </Button>
+          ) : (
+            <Link
+              href="/"
+              className={cn(
+                'mt-6 inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold',
+                primary,
+              )}
+            >
+              Kembali ke beranda
+            </Link>
+          )
         ) : (
           <Button className={cn('mt-6', primary)} onClick={restart}>
             Ulangi pratinjau
@@ -436,12 +500,16 @@ export function FormRenderer({
 
   return (
     <div
+      ref={rootRef}
       style={style}
-      className="overflow-hidden rounded-[24px] border border-neutral-400 p-5 sm:p-8"
+      className="scroll-mt-4 overflow-hidden rounded-[24px] border border-neutral-400 p-5 sm:p-8"
     >
       <Decor
         url={form.theme.banner}
-        className="-mx-5 -mt-5 mb-6 h-40 w-[calc(100%+2.5rem)] max-w-none object-cover sm:-mx-8 sm:-mt-8 sm:w-[calc(100%+4rem)]"
+        // Ikuti rasio gambar aslinya: tinggi tetap (atau rasio tetap) memotong
+        // kiri-kanan banner di layar sempit sehingga teks di dalamnya hilang.
+        // Hanya gambar yang sangat tinggi yang dibatasi.
+        className="-mx-5 -mt-5 mb-6 h-auto max-h-[28rem] w-[calc(100%+2.5rem)] max-w-none object-cover sm:-mx-8 sm:-mt-8 sm:w-[calc(100%+4rem)]"
       />
       {form.settings.showProgress &&
       questionPages.length > 1 &&
@@ -480,6 +548,7 @@ export function FormRenderer({
               {form.welcome.description}
             </p>
           ) : null}
+          <FormMeta fields={form.fields} sections={form.sections} />
         </div>
       ) : null}
 
@@ -499,6 +568,7 @@ export function FormRenderer({
                   {form.description}
                 </p>
               ) : null}
+              <FormMeta fields={form.fields} sections={form.sections} />
             </header>
           ) : null}
           {page.section ? (
@@ -584,15 +654,14 @@ export function FormRenderer({
                       );
                   }}
                 />
-                {error ? (
-                  <p
-                    id={`err-${field.id}`}
-                    role="alert"
-                    className="text-sm text-danger-dark"
-                  >
-                    {error}
-                  </p>
-                ) : null}
+                {/* Ruang pesan galat dipesan agar tata letak tidak bergeser saat pesan hilang (M-13). */}
+                <p
+                  id={`err-${field.id}`}
+                  role={error ? 'alert' : undefined}
+                  className="min-h-5 text-sm text-danger-dark"
+                >
+                  {error}
+                </p>
               </div>
             );
           })}
@@ -619,11 +688,12 @@ export function FormRenderer({
         </div>
       ) : null}
 
-      {formError ? (
-        <p role="alert" className="mt-6 text-sm text-danger-dark">
-          {formError}
-        </p>
-      ) : null}
+      <p
+        role={formError ? 'alert' : undefined}
+        className="mt-6 min-h-5 text-sm text-danger-dark"
+      >
+        {formError}
+      </p>
 
       <div className="mt-8 flex flex-wrap justify-between gap-3">
         <Button

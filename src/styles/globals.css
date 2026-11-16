@@ -70,6 +70,30 @@
 }
 
 /* ===================================================================== */
+/* Manual / simulasi interaktif                                          */
+/* ===================================================================== */
+/* Sorotan elemen yang jadi sasaran langkah pada mode "Ikuti langkah". */
+.demo-spot {
+  outline: 2px solid #00b7b7;
+  outline-offset: 2px;
+  animation: demo-spot-pulse 1.6s ease-in-out infinite;
+}
+@keyframes demo-spot-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 183, 183, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(0, 183, 183, 0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .demo-spot {
+    animation: none;
+  }
+}
+
+/* ===================================================================== */
 /* Manual / documentation content                                        */
 /* ===================================================================== */
 .docs-content {

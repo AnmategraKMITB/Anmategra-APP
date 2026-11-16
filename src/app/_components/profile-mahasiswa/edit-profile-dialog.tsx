@@ -21,6 +21,7 @@ import {
   FormMessage,
 } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
+import { Switch } from '~/components/ui/switch';
 import { useToast } from '~/hooks/use-toast';
 import { api } from '~/trpc/react';
 // Upload Thing Import
@@ -43,6 +44,9 @@ const mahasiswaProfilSchema = z.object({
     .refine((val) => !val || /^0\d{10,12}$/.test(val), {
       message: 'Nomor WhatsApp harus 11-13 digit dan dimulai dengan 0',
     }),
+  showWhatsapp: z.boolean(),
+  showLine: z.boolean(),
+  showEmail: z.boolean(),
 });
 
 type mahasiswaProfilSchemaType = z.infer<typeof mahasiswaProfilSchema>;
@@ -55,6 +59,9 @@ const EditProfileDialog = ({
   angkatan,
   line,
   whatsapp,
+  showWhatsapp,
+  showLine,
+  showEmail,
   isEdit,
   setIsEdit,
 }: {
@@ -65,6 +72,9 @@ const EditProfileDialog = ({
   angkatan: string;
   line: string;
   whatsapp: string;
+  showWhatsapp: boolean;
+  showLine: boolean;
+  showEmail: boolean;
   isEdit: boolean;
   setIsEdit: (value: boolean) => void;
 }) => {
@@ -81,6 +91,9 @@ const EditProfileDialog = ({
       jurusanAngkatan: `${jurusan ?? ''}'${angkatan ?? ''}`,
       idLine: line ?? '',
       noWhatsapp: whatsapp ?? '',
+      showWhatsapp,
+      showLine,
+      showEmail,
     },
   });
 
@@ -100,6 +113,9 @@ const EditProfileDialog = ({
         image: values.fotoProfil,
         idLine: values.idLine,
         noWhatsapp: values.noWhatsapp,
+        showWhatsapp: values.showWhatsapp,
+        showLine: values.showLine,
+        showEmail: values.showEmail,
       },
       {
         onSuccess: () => {
@@ -364,6 +380,47 @@ const EditProfileDialog = ({
                     )}
                   />
                 </div>
+              </div>
+
+              {/* Visibilitas Kontak */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-neutral-1000">
+                    Visibilitas Kontak
+                  </h3>
+                  <p className="text-sm text-neutral-600">
+                    Atur kontak yang dapat dilihat mahasiswa lain. Owner dan
+                    Admin lembaga atau kegiatan tempat kamu terlibat, serta
+                    admin sistem, tetap dapat melihat kontakmu.
+                  </p>
+                </div>
+                {(
+                  [
+                    ['showWhatsapp', 'Tampilkan nomor WhatsApp'],
+                    ['showLine', 'Tampilkan ID Line'],
+                    ['showEmail', 'Tampilkan email'],
+                  ] as const
+                ).map(([name, label]) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center justify-between rounded-xl border px-4 py-3">
+                        <FormLabel className="font-normal text-sm sm:text-base">
+                          {label}
+                        </FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            aria-label={label}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                ))}
               </div>
 
               {/* Submit Button */}

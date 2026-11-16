@@ -1,4 +1,5 @@
-import {lembagaProcedure} from "../../trpc";
+import {lembagaScopedProcedure} from "../../trpc";
+import { LembagaScopeInput, withoutLembagaId } from '~/server/api/types/scope';
 import {events} from "~/server/db/schema";
 import {TRPCError} from "@trpc/server";
 import { CreateEventInputSchema, CreateEventOutputSchema } from "../../types/event.type";
@@ -9,15 +10,15 @@ function generateShortId(byteLength = 8) {
     return Array.from(array, byte => byte.toString(16).padStart(2, "0")).join("");
 }
 
-export const createEvent = lembagaProcedure 
-    .input(CreateEventInputSchema)
+export const createEvent = lembagaScopedProcedure 
+    .input(CreateEventInputSchema.and(LembagaScopeInput))
     .output(CreateEventOutputSchema)
     .mutation(async ({ctx, input}) => {
         try {
             const newEvent = await ctx.db.insert(events).values({
                 id: generateShortId(),
-                org_id: ctx.session.user.lembagaId,
-                ...input,
+                org_id: ctx.lembagaId,
+                ...withoutLembagaId(input),
                 start_date: new Date(input.start_date),
                 end_date: input.end_date ? new Date(input.end_date) : null
             }).returning();

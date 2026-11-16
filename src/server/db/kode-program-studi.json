@@ -1,666 +1,832 @@
 [
   {
     "kode": 101,
-    "jurusan": "Matematika"
+    "jurusan": "Matematika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 102,
-    "jurusan": "Fisika"
+    "jurusan": "Fisika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 103,
-    "jurusan": "Astronomi"
+    "jurusan": "Astronomi",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 104,
-    "jurusan": "Mikrobiologi"
+    "jurusan": "Mikrobiologi",
+    "fakultas": "SITH"
   },
   {
     "kode": 105,
-    "jurusan": "Kimia"
+    "jurusan": "Kimia",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 106,
-    "jurusan": "Biologi"
+    "jurusan": "Biologi",
+    "fakultas": "SITH"
   },
   {
     "kode": 107,
-    "jurusan": "Sains dan Teknologi Farmasi"
+    "jurusan": "Sains dan Teknologi Farmasi",
+    "fakultas": "SF"
   },
   {
     "kode": 108,
-    "jurusan": "Aktuaria"
+    "jurusan": "Aktuaria",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 112,
-    "jurusan": "Rekayasa Hayati"
+    "jurusan": "Rekayasa Hayati",
+    "fakultas": "SITH"
   },
   {
     "kode": 114,
-    "jurusan": "Rekayasa Pertanian"
+    "jurusan": "Rekayasa Pertanian",
+    "fakultas": "SITH"
   },
   {
     "kode": 115,
-    "jurusan": "Rekayasa Kehutanan"
+    "jurusan": "Rekayasa Kehutanan",
+    "fakultas": "SITH"
   },
   {
     "kode": 116,
-    "jurusan": "Farmasi Klinik dan Komunitas"
+    "jurusan": "Farmasi Klinik dan Komunitas",
+    "fakultas": "SF"
   },
   {
     "kode": 119,
-    "jurusan": "Teknologi Pasca Panen"
+    "jurusan": "Teknologi Pasca Panen",
+    "fakultas": "SITH"
   },
   {
     "kode": 120,
-    "jurusan": "Teknik Geologi"
+    "jurusan": "Teknik Geologi",
+    "fakultas": "FITB"
   },
   {
     "kode": 121,
-    "jurusan": "Teknik Pertambangan"
+    "jurusan": "Teknik Pertambangan",
+    "fakultas": "FTTM"
   },
   {
     "kode": 122,
-    "jurusan": "Teknik Perminyakan"
+    "jurusan": "Teknik Perminyakan",
+    "fakultas": "FTTM"
   },
   {
     "kode": 123,
-    "jurusan": "Teknik Geofisika"
+    "jurusan": "Teknik Geofisika",
+    "fakultas": "FTTM"
   },
   {
     "kode": 124,
-    "jurusan": "Geofisika"
+    "jurusan": "Geofisika",
+    "fakultas": "FTTM"
   },
   {
     "kode": 125,
-    "jurusan": "Teknik Metalurgi"
+    "jurusan": "Teknik Metalurgi",
+    "fakultas": "FTTM"
   },
   {
     "kode": 128,
-    "jurusan": "Meteorologi"
+    "jurusan": "Meteorologi",
+    "fakultas": "FITB"
   },
   {
     "kode": 129,
-    "jurusan": "Oseanografi"
+    "jurusan": "Oseanografi",
+    "fakultas": "FITB"
   },
   {
     "kode": 130,
-    "jurusan": "Teknik Kimia"
+    "jurusan": "Teknik Kimia",
+    "fakultas": "FTI"
   },
   {
     "kode": 131,
-    "jurusan": "Teknik Mesin"
+    "jurusan": "Teknik Mesin",
+    "fakultas": "FTMD"
   },
   {
     "kode": 132,
-    "jurusan": "Teknik Elektro"
+    "jurusan": "Teknik Elektro",
+    "fakultas": "STEI"
   },
   {
     "kode": 133,
-    "jurusan": "Teknik Fisika"
+    "jurusan": "Teknik Fisika",
+    "fakultas": "FTI"
   },
   {
     "kode": 134,
-    "jurusan": "Teknik Industri"
+    "jurusan": "Teknik Industri",
+    "fakultas": "FTI"
   },
   {
     "kode": 135,
-    "jurusan": "Teknik Informatika"
+    "jurusan": "Teknik Informatika",
+    "fakultas": "STEI"
   },
   {
     "kode": 136,
-    "jurusan": "Teknik Dirgantara"
+    "jurusan": "Teknik Dirgantara",
+    "fakultas": "FTMD"
   },
   {
     "kode": 137,
-    "jurusan": "Teknik Material"
+    "jurusan": "Teknik Material",
+    "fakultas": "FTMD"
   },
   {
     "kode": 143,
-    "jurusan": "Teknik Pangan"
+    "jurusan": "Teknik Pangan",
+    "fakultas": "FTI"
   },
   {
     "kode": 144,
-    "jurusan": "Manajemen Rekayasa"
+    "jurusan": "Manajemen Rekayasa",
+    "fakultas": "FTI"
   },
   {
     "kode": 145,
-    "jurusan": "Teknik Bioenergi dan Kemurgi"
+    "jurusan": "Teknik Bioenergi dan Kemurgi",
+    "fakultas": "FTI"
   },
   {
     "kode": 150,
-    "jurusan": "Teknik Sipil"
+    "jurusan": "Teknik Sipil",
+    "fakultas": "FTSL"
   },
   {
     "kode": 151,
-    "jurusan": "Teknik Geodesi dan Geomatika"
+    "jurusan": "Teknik Geodesi dan Geomatika",
+    "fakultas": "FITB"
   },
   {
     "kode": 152,
-    "jurusan": "Arsitektur"
+    "jurusan": "Arsitektur",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 153,
-    "jurusan": "Teknik Lingkungan"
+    "jurusan": "Teknik Lingkungan",
+    "fakultas": "FTSL"
   },
   {
     "kode": 154,
-    "jurusan": "Perencanaan Wilayah dan Kota"
+    "jurusan": "Perencanaan Wilayah dan Kota",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 155,
-    "jurusan": "Teknik Kelautan"
+    "jurusan": "Teknik Kelautan",
+    "fakultas": "FTSL"
   },
   {
     "kode": 156,
-    "jurusan": "Perencanaan Wilayah dan Kota (Kampus Cirebon)"
+    "jurusan": "Perencanaan Wilayah dan Kota (Kampus Cirebon)",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 157,
-    "jurusan": "Rekayasa Infrastruktur Lingkungan"
+    "jurusan": "Rekayasa Infrastruktur Lingkungan",
+    "fakultas": "FTSL"
   },
   {
     "kode": 158,
-    "jurusan": "Teknik dan Pengelolaan Sumber Daya Air"
+    "jurusan": "Teknik dan Pengelolaan Sumber Daya Air",
+    "fakultas": "FTSL"
   },
   {
     "kode": 160,
-    "jurusan": "Tahap Tahun Pertama FMIPA"
+    "jurusan": "Tahap Tahun Pertama FMIPA",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 161,
-    "jurusan": "Tahap Tahun Pertama SITH-S"
+    "jurusan": "Tahap Tahun Pertama SITH-S",
+    "fakultas": "SITH"
   },
   {
     "kode": 162,
-    "jurusan": "Tahap Tahun Pertama SF"
+    "jurusan": "Tahap Tahun Pertama SF",
+    "fakultas": "SF"
   },
   {
     "kode": 163,
-    "jurusan": "Tahap Tahun Pertama FITB"
+    "jurusan": "Tahap Tahun Pertama FITB",
+    "fakultas": "FITB"
   },
   {
     "kode": 164,
-    "jurusan": "Tahap Tahun Pertama FTTM"
+    "jurusan": "Tahap Tahun Pertama FTTM",
+    "fakultas": "FTTM"
   },
   {
     "kode": 165,
-    "jurusan": "Tahap Tahun Pertama STEI-R"
+    "jurusan": "Tahap Tahun Pertama STEI-R",
+    "fakultas": "STEI"
   },
   {
     "kode": 166,
-    "jurusan": "Tahap Tahun Pertama FTSL"
+    "jurusan": "Tahap Tahun Pertama FTSL",
+    "fakultas": "FTSL"
   },
   {
     "kode": 167,
-    "jurusan": "Tahap Tahun Pertama FTI"
+    "jurusan": "Tahap Tahun Pertama FTI",
+    "fakultas": "FTI"
   },
   {
     "kode": 168,
-    "jurusan": "Tahap Tahun Pertama FSRD"
+    "jurusan": "Tahap Tahun Pertama FSRD",
+    "fakultas": "FSRD"
   },
   {
     "kode": 169,
-    "jurusan": "Tahap Tahun Pertama FTMD"
+    "jurusan": "Tahap Tahun Pertama FTMD",
+    "fakultas": "FTMD"
   },
   {
     "kode": 170,
-    "jurusan": "Seni Rupa"
+    "jurusan": "Seni Rupa",
+    "fakultas": "FSRD"
   },
   {
     "kode": 171,
-    "jurusan": "Kriya (Kampus Cirebon)"
+    "jurusan": "Kriya (Kampus Cirebon)",
+    "fakultas": "FSRD"
   },
   {
     "kode": 172,
-    "jurusan": "Kriya"
+    "jurusan": "Kriya",
+    "fakultas": "FSRD"
   },
   {
     "kode": 173,
-    "jurusan": "Desain Interior"
+    "jurusan": "Desain Interior",
+    "fakultas": "FSRD"
   },
   {
     "kode": 174,
-    "jurusan": "Desain Komunikasi Visual"
+    "jurusan": "Desain Komunikasi Visual",
+    "fakultas": "FSRD"
   },
   {
     "kode": 175,
-    "jurusan": "Desain Produk"
+    "jurusan": "Desain Produk",
+    "fakultas": "FSRD"
   },
   {
     "kode": 179,
-    "jurusan": "MKDU"
+    "jurusan": "MKDU",
+    "fakultas": null
   },
   {
     "kode": 180,
-    "jurusan": "Teknik Tenaga Listrik"
+    "jurusan": "Teknik Tenaga Listrik",
+    "fakultas": "STEI"
   },
   {
     "kode": 181,
-    "jurusan": "Teknik Telekomunikasi"
+    "jurusan": "Teknik Telekomunikasi",
+    "fakultas": "STEI"
   },
   {
     "kode": 182,
-    "jurusan": "Sistem dan Teknologi Informasi"
+    "jurusan": "Sistem dan Teknologi Informasi",
+    "fakultas": "STEI"
   },
   {
     "kode": 183,
-    "jurusan": "Teknik Biomedis"
+    "jurusan": "Teknik Biomedis",
+    "fakultas": "STEI"
   },
   {
     "kode": 190,
-    "jurusan": "Manajemen"
+    "jurusan": "Manajemen",
+    "fakultas": "SBM"
   },
   {
     "kode": 192,
-    "jurusan": "Kewirausahaan"
+    "jurusan": "Kewirausahaan",
+    "fakultas": "SBM"
   },
   {
     "kode": 194,
-    "jurusan": "Teknik Industri (Kampus Cirebon)"
+    "jurusan": "Teknik Industri (Kampus Cirebon)",
+    "fakultas": "FTI"
   },
   {
     "kode": 196,
-    "jurusan": "Tahap Tahun Pertama STEI-K"
+    "jurusan": "Tahap Tahun Pertama STEI-K",
+    "fakultas": "STEI"
   },
   {
     "kode": 197,
-    "jurusan": "Tahap Tahun Pertama SBM"
+    "jurusan": "Tahap Tahun Pertama SBM",
+    "fakultas": "SBM"
   },
   {
     "kode": 198,
-    "jurusan": "Tahap Tahun Pertama SITH-R"
+    "jurusan": "Tahap Tahun Pertama SITH-R",
+    "fakultas": "SITH"
   },
   {
     "kode": 199,
-    "jurusan": "Tahap Tahun Pertama SAPPK"
+    "jurusan": "Tahap Tahun Pertama SAPPK",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 201,
-    "jurusan": "Matematika"
+    "jurusan": "Matematika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 202,
-    "jurusan": "Fisika"
+    "jurusan": "Fisika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 203,
-    "jurusan": "Astronomi"
+    "jurusan": "Astronomi",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 205,
-    "jurusan": "Kimia"
+    "jurusan": "Kimia",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 206,
-    "jurusan": "Biologi"
+    "jurusan": "Biologi",
+    "fakultas": "SITH"
   },
   {
     "kode": 207,
-    "jurusan": "Farmasi"
+    "jurusan": "Farmasi",
+    "fakultas": "SF"
   },
   {
     "kode": 208,
-    "jurusan": "Aktuaria"
+    "jurusan": "Aktuaria",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 209,
-    "jurusan": "Sains Komputasi"
+    "jurusan": "Sains Komputasi",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 211,
-    "jurusan": "Bioteknologi"
+    "jurusan": "Bioteknologi",
+    "fakultas": "SITH"
   },
   {
     "kode": 213,
-    "jurusan": "Biomanajemen"
+    "jurusan": "Biomanajemen",
+    "fakultas": "SITH"
   },
   {
     "kode": 217,
-    "jurusan": "Keolahragaan"
+    "jurusan": "Keolahragaan",
+    "fakultas": "SF"
   },
   {
     "kode": 218,
-    "jurusan": "Farmasi Industri"
+    "jurusan": "Farmasi Industri",
+    "fakultas": "SF"
   },
   {
     "kode": 220,
-    "jurusan": "Teknik Geologi"
+    "jurusan": "Teknik Geologi",
+    "fakultas": "FITB"
   },
   {
     "kode": 221,
-    "jurusan": "Rekayasa Pertambangan"
+    "jurusan": "Rekayasa Pertambangan",
+    "fakultas": "FTTM"
   },
   {
     "kode": 222,
-    "jurusan": "Teknik Perminyakan"
+    "jurusan": "Teknik Perminyakan",
+    "fakultas": "FTTM"
   },
   {
     "kode": 223,
-    "jurusan": "Teknik Geofisika"
+    "jurusan": "Teknik Geofisika",
+    "fakultas": "FTTM"
   },
   {
     "kode": 224,
-    "jurusan": "Sains Kebumian"
+    "jurusan": "Sains Kebumian",
+    "fakultas": "FITB"
   },
   {
     "kode": 225,
-    "jurusan": "Teknik Metalurgi"
+    "jurusan": "Teknik Metalurgi",
+    "fakultas": "FTTM"
   },
   {
     "kode": 226,
-    "jurusan": "Teknik Geotermal"
+    "jurusan": "Teknik Geotermal",
+    "fakultas": "FTTM"
   },
   {
     "kode": 227,
-    "jurusan": "Teknik Air Tanah"
+    "jurusan": "Teknik Air Tanah",
+    "fakultas": "FITB"
   },
   {
     "kode": 230,
-    "jurusan": "Teknik Kimia"
+    "jurusan": "Teknik Kimia",
+    "fakultas": "FTI"
   },
   {
     "kode": 231,
-    "jurusan": "Teknik Mesin"
+    "jurusan": "Teknik Mesin",
+    "fakultas": "FTMD"
   },
   {
     "kode": 232,
-    "jurusan": "Teknik Elektro"
+    "jurusan": "Teknik Elektro",
+    "fakultas": "STEI"
   },
   {
     "kode": 233,
-    "jurusan": "Teknik Fisika"
+    "jurusan": "Teknik Fisika",
+    "fakultas": "FTI"
   },
   {
     "kode": 234,
-    "jurusan": "Teknik dan Manajemen Industri"
+    "jurusan": "Teknik dan Manajemen Industri",
+    "fakultas": "FTI"
   },
   {
     "kode": 235,
-    "jurusan": "Informatika"
+    "jurusan": "Informatika",
+    "fakultas": "STEI"
   },
   {
     "kode": 236,
-    "jurusan": "Teknik Dirgantara"
+    "jurusan": "Teknik Dirgantara",
+    "fakultas": "FTMD"
   },
   {
     "kode": 237,
-    "jurusan": "Ilmu dan Teknik Material"
+    "jurusan": "Ilmu dan Teknik Material",
+    "fakultas": "FTMD"
   },
   {
     "kode": 238,
-    "jurusan": "Instrumentasi dan Kontrol"
+    "jurusan": "Instrumentasi dan Kontrol",
+    "fakultas": "FTI"
   },
   {
     "kode": 239,
-    "jurusan": "Studi Pertahanan"
+    "jurusan": "Studi Pertahanan",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 240,
-    "jurusan": "Studi Pembangunan"
+    "jurusan": "Studi Pembangunan",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 242,
-    "jurusan": "Transportasi"
+    "jurusan": "Transportasi",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 246,
-    "jurusan": "Pengajaran Matematika"
+    "jurusan": "Pengajaran Matematika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 247,
-    "jurusan": "Pengajaran Fisika"
+    "jurusan": "Pengajaran Fisika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 248,
-    "jurusan": "Pengajaran Kimia"
+    "jurusan": "Pengajaran Kimia",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 249,
-    "jurusan": "Ilmu dan Rekayasa Nuklir"
+    "jurusan": "Ilmu dan Rekayasa Nuklir",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 250,
-    "jurusan": "Teknik Sipil"
+    "jurusan": "Teknik Sipil",
+    "fakultas": "FTSL"
   },
   {
     "kode": 251,
-    "jurusan": "Teknik Geodesi dan Geomatika"
+    "jurusan": "Teknik Geodesi dan Geomatika",
+    "fakultas": "FITB"
   },
   {
     "kode": 252,
-    "jurusan": "Arsitektur"
+    "jurusan": "Arsitektur",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 253,
-    "jurusan": "Teknik Lingkungan"
+    "jurusan": "Teknik Lingkungan",
+    "fakultas": "FTSL"
   },
   {
     "kode": 254,
-    "jurusan": "Perencanaan Wilayah dan Kota"
+    "jurusan": "Perencanaan Wilayah dan Kota",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 255,
-    "jurusan": "Teknik Kelautan"
+    "jurusan": "Teknik Kelautan",
+    "fakultas": "FTSL"
   },
   {
     "kode": 256,
-    "jurusan": "Rancang Kota"
+    "jurusan": "Rancang Kota",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 257,
-    "jurusan": "Pengelolaan Infrastruktur Air Bersih dan Sanitasi"
+    "jurusan": "Pengelolaan Infrastruktur Air Bersih dan Sanitasi",
+    "fakultas": "FTSL"
   },
   {
     "kode": 258,
-    "jurusan": "Pengelolaan Sumberdaya Air (PSDA)"
+    "jurusan": "Pengelolaan Sumberdaya Air (PSDA)",
+    "fakultas": "FTSL"
   },
   {
     "kode": 269,
-    "jurusan": "Sistem dan Teknik Jalan Raya"
+    "jurusan": "Sistem dan Teknik Jalan Raya",
+    "fakultas": "FTSL"
   },
   {
     "kode": 270,
-    "jurusan": "Seni Rupa"
+    "jurusan": "Seni Rupa",
+    "fakultas": "FSRD"
   },
   {
     "kode": 271,
-    "jurusan": "Desain"
+    "jurusan": "Desain",
+    "fakultas": "FSRD"
   },
   {
     "kode": 279,
-    "jurusan": "Teknokultur"
+    "jurusan": "Teknokultur",
+    "fakultas": "SPITM"
   },
   {
     "kode": 282,
-    "jurusan": "Sistem dan Teknologi Informasi"
+    "jurusan": "Sistem dan Teknologi Informasi",
+    "fakultas": "STEI"
   },
   {
     "kode": 284,
-    "jurusan": "Kecerdasan Artifisial"
+    "jurusan": "Kecerdasan Artifisial",
+    "fakultas": "STEI"
   },
   {
     "kode": 285,
-    "jurusan": "Kecerdasan Sistem"
+    "jurusan": "Kecerdasan Sistem",
+    "fakultas": "SPITM"
   },
   {
     "kode": 287,
-    "jurusan": "Teknologi Nano"
+    "jurusan": "Teknologi Nano",
+    "fakultas": "SPITM"
   },
   {
     "kode": 288,
-    "jurusan": "Perencanaan Kepariwisataan"
+    "jurusan": "Perencanaan Kepariwisataan",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 289,
-    "jurusan": "Arsitektur Lanskap"
+    "jurusan": "Arsitektur Lanskap",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 290,
-    "jurusan": "Sains Manajemen"
+    "jurusan": "Sains Manajemen",
+    "fakultas": "SBM"
   },
   {
     "kode": 291,
-    "jurusan": "Administrasi Bisnis"
+    "jurusan": "Administrasi Bisnis",
+    "fakultas": "SBM"
   },
   {
     "kode": 293,
-    "jurusan": "Administrasi Bisnis (Kampus Jakarta)"
+    "jurusan": "Administrasi Bisnis (Kampus Jakarta)",
+    "fakultas": "SBM"
   },
   {
     "kode": 294,
-    "jurusan": "Logistik"
+    "jurusan": "Logistik",
+    "fakultas": "FTI"
   },
   {
     "kode": 301,
-    "jurusan": "Matematika"
+    "jurusan": "Matematika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 302,
-    "jurusan": "Fisika"
+    "jurusan": "Fisika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 303,
-    "jurusan": "Astronomi"
+    "jurusan": "Astronomi",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 305,
-    "jurusan": "Kimia"
+    "jurusan": "Kimia",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 306,
-    "jurusan": "Biologi"
+    "jurusan": "Biologi",
+    "fakultas": "SITH"
   },
   {
     "kode": 307,
-    "jurusan": "Farmasi"
+    "jurusan": "Farmasi",
+    "fakultas": "SF"
   },
   {
     "kode": 320,
-    "jurusan": "Teknik Geologi"
+    "jurusan": "Teknik Geologi",
+    "fakultas": "FITB"
   },
   {
     "kode": 321,
-    "jurusan": "Rekayasa Pertambangan"
+    "jurusan": "Rekayasa Pertambangan",
+    "fakultas": "FTTM"
   },
   {
     "kode": 322,
-    "jurusan": "Teknik Perminyakan"
+    "jurusan": "Teknik Perminyakan",
+    "fakultas": "FTTM"
   },
   {
     "kode": 323,
-    "jurusan": "Teknik Geofisika"
+    "jurusan": "Teknik Geofisika",
+    "fakultas": "FTTM"
   },
   {
     "kode": 324,
-    "jurusan": "Sains Kebumian"
+    "jurusan": "Sains Kebumian",
+    "fakultas": "FITB"
   },
   {
     "kode": 325,
-    "jurusan": "Teknik Metalurgi"
+    "jurusan": "Teknik Metalurgi",
+    "fakultas": "FTTM"
   },
   {
     "kode": 330,
-    "jurusan": "Teknik Kimia"
+    "jurusan": "Teknik Kimia",
+    "fakultas": "FTI"
   },
   {
     "kode": 331,
-    "jurusan": "Teknik Mesin"
+    "jurusan": "Teknik Mesin",
+    "fakultas": "FTMD"
   },
   {
     "kode": 332,
-    "jurusan": "Teknik Elektro dan Informatika"
+    "jurusan": "Teknik Elektro dan Informatika",
+    "fakultas": "STEI"
   },
   {
     "kode": 333,
-    "jurusan": "Teknik Fisika"
+    "jurusan": "Teknik Fisika",
+    "fakultas": "FTI"
   },
   {
     "kode": 334,
-    "jurusan": "Teknik dan Manajemen Industri"
+    "jurusan": "Teknik dan Manajemen Industri",
+    "fakultas": "FTI"
   },
   {
     "kode": 336,
-    "jurusan": "Teknik Dirgantara"
+    "jurusan": "Teknik Dirgantara",
+    "fakultas": "FTMD"
   },
   {
     "kode": 337,
-    "jurusan": "Ilmu dan Teknik Material"
+    "jurusan": "Ilmu dan Teknik Material",
+    "fakultas": "FTMD"
   },
   {
     "kode": 342,
-    "jurusan": "Transportasi"
+    "jurusan": "Transportasi",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 349,
-    "jurusan": "Rekayasa Nuklir"
+    "jurusan": "Rekayasa Nuklir",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 350,
-    "jurusan": "Teknik Sipil"
+    "jurusan": "Teknik Sipil",
+    "fakultas": "FTSL"
   },
   {
     "kode": 351,
-    "jurusan": "Teknik Geodesi dan Geomatika"
+    "jurusan": "Teknik Geodesi dan Geomatika",
+    "fakultas": "FITB"
   },
   {
     "kode": 352,
-    "jurusan": "Arsitektur"
+    "jurusan": "Arsitektur",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 353,
-    "jurusan": "Teknik Lingkungan"
+    "jurusan": "Teknik Lingkungan",
+    "fakultas": "FTSL"
   },
   {
     "kode": 354,
-    "jurusan": "Perencanaan Wilayah dan Kota"
+    "jurusan": "Perencanaan Wilayah dan Kota",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 370,
-    "jurusan": "Ilmu Seni Rupa dan Desain"
+    "jurusan": "Ilmu Seni Rupa dan Desain",
+    "fakultas": "FSRD"
   },
   {
     "kode": 371,
-    "jurusan": "Desain"
+    "jurusan": "Desain",
+    "fakultas": "FSRD"
   },
   {
     "kode": 387,
-    "jurusan": "Sains dan Teknologi Nano"
+    "jurusan": "Sains dan Teknologi Nano",
+    "fakultas": "SPITM"
   },
   {
     "kode": 390,
-    "jurusan": "Sains Manajemen"
+    "jurusan": "Sains Manajemen",
+    "fakultas": "SBM"
   },
   {
     "kode": 900,
-    "jurusan": "Profesi Insinyur"
+    "jurusan": "Profesi Insinyur",
+    "fakultas": "SPITM"
   },
   {
     "kode": 901,
-    "jurusan": "Pengajaran Matematika"
+    "jurusan": "Pengajaran Matematika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 902,
-    "jurusan": "Pengajaran Fisika"
+    "jurusan": "Pengajaran Fisika",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 905,
-    "jurusan": "Pengajaran Kimia"
+    "jurusan": "Pengajaran Kimia",
+    "fakultas": "FMIPA"
   },
   {
     "kode": 907,
-    "jurusan": "Profesi Apoteker"
+    "jurusan": "Profesi Apoteker",
+    "fakultas": "SF"
   },
   {
     "kode": 950,
-    "jurusan": "Pengelolaan Sumberdaya Air (PSDA)"
+    "jurusan": "Pengelolaan Sumberdaya Air (PSDA)",
+    "fakultas": "FTSL"
   },
   {
     "kode": 952,
-    "jurusan": "Profesi Arsitek"
+    "jurusan": "Profesi Arsitek",
+    "fakultas": "SAPPK"
   },
   {
     "kode": 957,
-    "jurusan": "Terapan Perencanaan Kepariwisataan"
+    "jurusan": "Terapan Perencanaan Kepariwisataan",
+    "fakultas": "SAPPK"
   }
 ]

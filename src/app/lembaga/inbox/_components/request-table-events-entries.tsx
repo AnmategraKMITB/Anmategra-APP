@@ -13,13 +13,14 @@ type PermintaanAsosiasi = {
   tujuan: string;
 };
 
-const RequestTableEventsEntries: React.FC<{ data: PermintaanAsosiasi[] }> = ({
-  data,
-}) => {
+const RequestTableEventsEntries: React.FC<{
+  data: PermintaanAsosiasi[];
+  basePath?: string;
+}> = ({ data, basePath = '/lembaga/inbox' }) => {
   const router = useRouter();
 
   const handleButtonClick = (id: string) => {
-    router.push(`/inbox/${id}`);
+    router.push(`${basePath}/${id}`);
   };
 
   return (

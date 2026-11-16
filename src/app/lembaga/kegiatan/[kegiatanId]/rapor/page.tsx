@@ -45,6 +45,7 @@ export default async function RaporPage(props: RaporPageProps) {
         <RaporVisibilitySwitch
           type="event"
           id={event_id}
+          lembagaId={session.user.lembagaId ?? ''}
           initialValue={event?.rapor_visible ?? false}
         />
       </div>
@@ -58,6 +59,7 @@ export default async function RaporPage(props: RaporPageProps) {
       <RaporTable
         session={session}
         event_id={event_id}
+        lembaga_id={session.user.lembagaId ?? ''}
         type="event"
         selectOptions={selectOptions}
       />

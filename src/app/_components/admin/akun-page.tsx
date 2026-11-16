@@ -12,6 +12,7 @@ import { AdminDataTable } from './admin-data-table';
 import { AdminEditPanel } from './admin-edit-panel';
 import { AdminEntitySearch } from './admin-entity-search';
 import { AdminPageHeader } from './admin-page-header';
+import { AltLoginPanel } from './alt-login-panel';
 
 const PAGE_SIZE = 25;
 const TYPES = [
@@ -77,6 +78,10 @@ export function AkunPage() {
     { id: 'createdAt', desc: true },
   ]);
   const [openCreate, setOpenCreate] = useState(false);
+  const [openAlt, setOpenAlt] = useState(false);
+  const altPending = api.altLogin.adminPendingCount.useQuery(undefined, {
+    refetchInterval: 60_000,
+  });
 
   const sort = SORT_MAP[sorting[0]?.id ?? 'createdAt'] ?? 'created_at';
   const dir = sorting[0]?.desc === false ? 'asc' : 'desc';
@@ -179,13 +184,28 @@ export function AkunPage() {
         title="Akun"
         description="Cari, urutkan, dan ubah akun mahasiswa/lembaga. Klik nama untuk membuka editor lengkap."
         actions={
-          canWrite ? (
-            <Button type="button" onClick={() => setOpenCreate((value) => !value)}>
-              {openCreate ? 'Tutup form' : 'Tambah akun'}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpenAlt((value) => !value)}
+            >
+              {openAlt
+                ? 'Tutup akses alternatif'
+                : `Akses alternatif${altPending.data?.count ? ` (${altPending.data.count} menunggu)` : ''}`}
             </Button>
-          ) : null
+            {canWrite ? (
+              <Button type="button" onClick={() => setOpenCreate((value) => !value)}>
+                {openCreate ? 'Tutup form' : 'Tambah akun'}
+              </Button>
+            ) : null}
+          </div>
         }
       />
+
+      {openAlt ? (
+        <AltLoginPanel canWrite={canWrite} onClose={() => setOpenAlt(false)} />
+      ) : null}
 
       {stats.data ? (
         <p className="text-sm text-neutral-700">

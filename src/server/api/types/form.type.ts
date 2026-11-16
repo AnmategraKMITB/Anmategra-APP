@@ -1,9 +1,10 @@
 import { z } from 'zod';
-import { FORM_SLUG_RE } from '~/lib/forms/slug';
 import { MAX_RULES } from '~/lib/forms/conditions';
+import { FORM_SLUG_RE } from '~/lib/forms/slug';
 import { FORM_FIELD_TYPES, FORM_STATUSES } from '~/server/db/schema';
 
 import {
+  DESCRIPTION_MAX_LENGTH,
   FILE_MAX_FILES,
   FILE_MAX_SIZE_MB,
   FILE_PRESET_KEYS,
@@ -358,7 +359,10 @@ export const FormWelcomeSchema = z
       .optional(),
     description: z
       .string()
-      .max(2000, 'Deskripsi sambutan maksimal 2000 karakter')
+      .max(
+        DESCRIPTION_MAX_LENGTH,
+        `Deskripsi sambutan maksimal ${DESCRIPTION_MAX_LENGTH.toLocaleString('id-ID')} karakter`,
+      )
       .regex(TANPA_NUL, PESAN_NUL)
       .optional(),
     buttonLabel: ShortLabelSchema.optional(),
@@ -423,7 +427,10 @@ const fieldBase = {
   description: z
     .string()
     .trim()
-    .max(2000)
+    .max(
+      DESCRIPTION_MAX_LENGTH,
+      `Deskripsi maksimal ${DESCRIPTION_MAX_LENGTH.toLocaleString('id-ID')} karakter`,
+    )
     .regex(TANPA_NUL, PESAN_NUL)
     .nullish(),
   required: z.boolean().default(false),
@@ -805,7 +812,10 @@ const sectionMeta = {
   description: z
     .string()
     .trim()
-    .max(2000, 'Deskripsi bagian maksimal 2000 karakter')
+    .max(
+      DESCRIPTION_MAX_LENGTH,
+      `Deskripsi bagian maksimal ${DESCRIPTION_MAX_LENGTH.toLocaleString('id-ID')} karakter`,
+    )
     .regex(TANPA_NUL, PESAN_NUL)
     .nullish(),
 };
@@ -907,7 +917,10 @@ const endingMeta = {
   description: z
     .string()
     .trim()
-    .max(2000, 'Deskripsi ending maksimal 2000 karakter')
+    .max(
+      DESCRIPTION_MAX_LENGTH,
+      `Deskripsi ending maksimal ${DESCRIPTION_MAX_LENGTH.toLocaleString('id-ID')} karakter`,
+    )
     .regex(TANPA_NUL, PESAN_NUL)
     .nullish(),
 };

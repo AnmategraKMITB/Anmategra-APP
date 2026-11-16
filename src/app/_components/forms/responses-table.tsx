@@ -40,9 +40,22 @@ const show = (column: ResponseColumn, row: ResponseRowOut) =>
 
 /**
  * Jawaban berkas ditampilkan sebagai tautan. Isi jawaban dikirim klien, jadi
- * hanya URL dari host OneDrive/SharePoint yang dijadikan tautan.
+ * hanya URL dari host berkas yang diizinkan yang dijadikan tautan. Jawaban
+ * lama bertipe tautan (teks URL) tetap dibaca.
  */
 export function FileAnswer({ value }: { value: unknown }) {
+  if (typeof value === 'string' && isAllowedFileHost(value)) {
+    return (
+      <a
+        href={value}
+        target="_blank"
+        rel="noreferrer"
+        className="font-medium text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+      >
+        {value}
+      </a>
+    );
+  }
   const files = (isFileAnswerList(value) ? value : []).filter(
     (file, index, all) =>
       all.findIndex((other) => other.itemId === file.itemId) === index,
@@ -66,6 +79,12 @@ export function FileAnswer({ value }: { value: unknown }) {
           )}
         </li>
       ))}
+      {files.some((f) => f.provider === 'google-drive') ? (
+        <li className="text-xs text-neutral-700">
+          Tidak bisa dibuka? Minta pelamar mengatur akses berkas ke &quot;Siapa
+          saja yang memiliki link&quot;.
+        </li>
+      ) : null}
     </ul>
   );
 }

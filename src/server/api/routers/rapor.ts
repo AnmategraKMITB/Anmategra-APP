@@ -1,8 +1,9 @@
 import { TRPCError } from '@trpc/server';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { and, eq, inArray } from 'drizzle-orm';
 import {
-  createTRPCRouter,
-  lembagaProcedure,
+  createTRPCRouter,
+  lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
 import {
@@ -17,6 +18,7 @@ import {
 } from '~/server/db/schema';
 
 import { lembagaMembersSq, periodMembersSq } from './organization/membership';
+import { contactAccess, type ContactViewer } from '../contact';
 
 import {
   GetAllNilaiProfilKegiatanInputSchema,
@@ -26,6 +28,7 @@ import {
   GetNilaiKegiatanIndividuInputSchema,
   GetNilaiKegiatanIndividuOutputSchema,
   GetNilaiLembagaIndividuInputSchema,
+  GetNilaiLembagaIndividuManageInputSchema,
   GetNilaiLembagaIndividuOutputSchema,
   UpsertNilaiMahasiswaKegiatanInputSchema,
   UpsertNilaiMahasiswaKegiatanOutputSchema,
@@ -33,9 +36,34 @@ import {
   UpsertNilaiMahasiswaLembagaOutputSchema,
 } from '../types/rapor.type';
 
+/** Kontak yang boleh dilihat penonton; bidang yang disembunyikan menjadi string kosong. */
+async function visibleContactFields(
+  database: typeof import('~/server/db').db,
+  viewer: ContactViewer,
+  m: {
+    user_id: string;
+    lineId: string | null;
+    whatsapp: string | null;
+    showWhatsapp: boolean;
+    showLine: boolean;
+    showEmail: boolean;
+  },
+) {
+  const access = await contactAccess(database, viewer, {
+    userId: m.user_id,
+    showWhatsapp: m.showWhatsapp,
+    showLine: m.showLine,
+    showEmail: m.showEmail,
+  });
+  return {
+    lineId: access.line ? (m.lineId ?? '') : '',
+    whatsapp: access.whatsapp ? (m.whatsapp ?? '') : '',
+  };
+}
+
 export const raporRouter = createTRPCRouter({
-  getAllNilaiProfilKegiatan: lembagaProcedure
-    .input(GetAllNilaiProfilKegiatanInputSchema)
+  getAllNilaiProfilKegiatan: lembagaScopedProcedure
+    .input(GetAllNilaiProfilKegiatanInputSchema.and(LembagaScopeInput))
     .output(GetAllNilaiProfilKegiatanOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
@@ -44,7 +72,7 @@ export const raporRouter = createTRPCRouter({
           columns: { org_id: true },
         });
 
-        if (!event || event.org_id !== ctx.session.user.lembagaId) {
+        if (event?.org_id !== ctx.lembagaId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Access denied to this event.',
@@ -122,8 +150,8 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  getNilaiKegiatanIndividu: lembagaProcedure
-    .input(GetNilaiKegiatanIndividuInputSchema)
+  getNilaiKegiatanIndividu: lembagaScopedProcedure
+    .input(GetNilaiKegiatanIndividuInputSchema.and(LembagaScopeInput))
     .output(GetNilaiKegiatanIndividuOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
@@ -141,7 +169,7 @@ export const raporRouter = createTRPCRouter({
 
         if (
           !event.rapor_visible &&
-          event.org_id !== ctx.session.user.lembagaId
+          event.org_id !== ctx.lembagaId
         ) {
           throw new TRPCError({
             code: 'FORBIDDEN',
@@ -158,6 +186,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
           })
@@ -204,8 +235,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -221,13 +251,13 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  upsertNilaiMahasiswaKegiatan: lembagaProcedure
-    .input(UpsertNilaiMahasiswaKegiatanInputSchema)
+  upsertNilaiMahasiswaKegiatan: lembagaScopedProcedure
+    .input(UpsertNilaiMahasiswaKegiatanInputSchema.and(LembagaScopeInput))
     .output(UpsertNilaiMahasiswaKegiatanOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.db.transaction(async (tx) => {
-          const lembagaId: string = ctx.session.user.lembagaId!;
+          const lembagaId: string = ctx.lembagaId;
           const { event_id } = input;
 
           const eventValid = await tx.query.events.findFirst({
@@ -291,19 +321,12 @@ export const raporRouter = createTRPCRouter({
         });
       }
     }),
-  getAllNilaiProfilLembaga: lembagaProcedure
+  getAllNilaiProfilLembaga: lembagaScopedProcedure
     .input(GetAllNilaiProfilLembagaInputSchema)
     .output(GetAllNilaiProfilLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        if (ctx.session.user.lembagaId !== input.lembaga_id) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Access denied to this lembaga.',
-          });
-        }
-
-        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+        const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
         const anggotaList = await ctx.db
           .select({
             user_id: users.id,
@@ -330,7 +353,7 @@ export const raporRouter = createTRPCRouter({
           )
           .where(
             and(
-              eq(profilLembaga.lembagaId, input.lembaga_id),
+              eq(profilLembaga.lembagaId, ctx.lembagaId),
               inArray(nilaiProfilLembaga.mahasiswaId, anggotaIds),
             ),
           );
@@ -367,35 +390,12 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  getNilaiLembagaIndividu: lembagaProcedure
-    .input(GetNilaiLembagaIndividuInputSchema)
+  getNilaiLembagaIndividu: lembagaScopedProcedure
+    .input(GetNilaiLembagaIndividuManageInputSchema)
     .output(GetNilaiLembagaIndividuOutputSchema)
     .query(async ({ ctx, input }) => {
       try {
-        const [lembagaUser] = await ctx.db
-          .select()
-          .from(lembaga)
-          .where(eq(lembaga.id, input.lembaga_id))
-          .limit(1);
-
-        if (!lembagaUser) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Lembaga tidak ditemukan.',
-          });
-        }
-
-        if (
-          !lembagaUser.raporVisible &&
-          ctx.session.user.lembagaId !== input.lembaga_id
-        ) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'Access denied to this lembaga.',
-          });
-        }
-
-        const members = await lembagaMembersSq(ctx.db, input.lembaga_id);
+        const members = await lembagaMembersSq(ctx.db, ctx.lembagaId);
         const mhs = await ctx.db
           .select({
             user_id: members.userId,
@@ -404,6 +404,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
           })
@@ -435,7 +438,7 @@ export const raporRouter = createTRPCRouter({
               eq(nilaiProfilLembaga.mahasiswaId, input.mahasiswa_id),
             ),
           )
-          .where(and(eq(profilLembaga.lembagaId, input.lembaga_id)));
+          .where(and(eq(profilLembaga.lembagaId, ctx.lembagaId)));
 
         const formattedNilaiList = nilaiList.map(
           ({ profil_id, profil_name, nilai }) => ({
@@ -450,8 +453,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -467,13 +469,13 @@ export const raporRouter = createTRPCRouter({
       }
     }),
 
-  upsertNilaiMahasiswaLembaga: lembagaProcedure
+  upsertNilaiMahasiswaLembaga: lembagaScopedProcedure
     .input(UpsertNilaiMahasiswaLembagaInputSchema)
     .output(UpsertNilaiMahasiswaLembagaOutputSchema)
     .mutation(async ({ ctx, input }) => {
       try {
         await ctx.db.transaction(async (tx) => {
-          const lembagaId: string = ctx.session.user.lembagaId!;
+          const lembagaId: string = ctx.lembagaId;
 
           for (const mahasiswa of input.mahasiswa) {
             for (const n of mahasiswa.nilai) {
@@ -565,6 +567,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
             raporVisible: mahasiswa.raporVisible,
@@ -619,8 +624,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -669,6 +673,9 @@ export const raporRouter = createTRPCRouter({
             jurusan: mahasiswa.jurusan,
             lineId: mahasiswa.lineId,
             whatsapp: mahasiswa.whatsapp,
+            showWhatsapp: mahasiswa.showWhatsapp,
+            showLine: mahasiswa.showLine,
+            showEmail: mahasiswa.showEmail,
             division: members.division,
             position: members.position,
             raporVisible: mahasiswa.raporVisible,
@@ -723,8 +730,7 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          lineId: dataMahasiswa.lineId ?? '',
-          whatsapp: dataMahasiswa.whatsapp ?? '',
+          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,

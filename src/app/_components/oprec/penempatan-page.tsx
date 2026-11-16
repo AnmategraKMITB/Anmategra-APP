@@ -1,10 +1,17 @@
-import { notFound } from 'next/navigation';
+import { count, eq } from 'drizzle-orm';
+import { notFound, redirect } from 'next/navigation';
+import { db } from '~/server/db';
+import { application } from '~/server/db/schema';
 import { api } from '~/trpc/server';
 
 import { canOpenResults, loadAssessableOprec } from './access';
 import { OprecTabs } from './oprec-tabs';
 import { PlacementView } from './placement-view';
-import { type OprecBase } from './status';
+import {
+  type OprecBase,
+  placementLockReason,
+  priorityPlacementLockReason,
+} from './status';
 
 /** Halaman Penempatan satu oprec; admin dan Kadiv (Kadiv lewat jalur mahasiswa). */
 export async function PenempatanPage({
@@ -19,9 +26,29 @@ export async function PenempatanPage({
   const found = await loadAssessableOprec(recruitmentId);
   if (found?.recruitment.periodId !== kegiatanId) notFound();
   const isAdmin = found.access.isAdmin;
-  const canDecide =
-    isAdmin || found.access.deciderDivisionIds.size > 0;
+  const canDecide = isAdmin || found.access.deciderDivisionIds.size > 0;
   if (!canDecide) notFound();
+
+  const [applicants] = await db
+    .select({ n: count() })
+    .from(application)
+    .where(eq(application.recruitmentId, recruitmentId));
+  if (placementLockReason(found.recruitment.status, applicants?.n ?? 0))
+    redirect(
+      isAdmin
+        ? `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/pendaftar`
+        : `${basePath}/kegiatan/${kegiatanId}/oprec`,
+    );
+  if (
+    !isAdmin &&
+    priorityPlacementLockReason(
+      found.recruitment.placementMethod,
+      found.recruitment.placementState,
+    )
+  )
+    redirect(
+      `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/prioritas`,
+    );
 
   const event = await api.event.getByID({ id: kegiatanId });
   const showHasil = await canOpenResults(recruitmentId);
@@ -33,6 +60,7 @@ export async function PenempatanPage({
       backHref={
         isAdmin ? `${basePath}/kegiatan/${kegiatanId}/oprec` : undefined
       }
+      prioritasHref={`${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/prioritas`}
       tabs={
         <OprecTabs
           basePath={basePath}
@@ -42,6 +70,14 @@ export async function PenempatanPage({
           showPendaftar={isAdmin}
           showPenempatan
           showHasil={showHasil}
+          manage={
+            isAdmin
+              ? {
+                  formId: found.recruitment.formId,
+                  status: found.recruitment.status,
+                }
+              : undefined
+          }
         />
       }
     />

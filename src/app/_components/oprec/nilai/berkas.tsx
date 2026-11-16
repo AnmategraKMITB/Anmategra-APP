@@ -11,6 +11,7 @@ import {
 import { Button } from '~/components/ui/button';
 import { type RouterOutputs, api } from '~/trpc/react';
 
+import { waveTitle } from '../status';
 import { AnswerList } from './answers';
 import { CriterionCard } from './criterion-card';
 import { FlagsBar } from './flags-bar';
@@ -328,7 +329,7 @@ export function BerkasView({
                           {row.name ?? row.code}
                         </span>
                         <span className="mt-0.5 block text-sm text-neutral-700">
-                          {row.waveLabel ? `Gelombang ${row.waveLabel}` : '—'}
+                          {row.waveLabel ? waveTitle(row.waveLabel) : '—'}
                         </span>
                       </span>
                       <span className="flex shrink-0 items-center gap-1 text-xs text-neutral-700">
@@ -447,7 +448,7 @@ export function BerkasView({
               <p className="mt-0.5 text-sm text-neutral-700">
                 {[
                   data.application.waveLabel
-                    ? `Gelombang ${data.application.waveLabel}`
+                    ? waveTitle(data.application.waveLabel)
                     : null,
                   data.application.willingToMove
                     ? 'Bersedia dipindahkan'
@@ -568,7 +569,19 @@ export function BerkasView({
                 Jawaban
               </h3>
               <div className="mt-2">
-                <AnswerList columns={data.columns} answers={data.answers} />
+                <AnswerList
+                  columns={data.columns}
+                  answers={data.answers}
+                  linkedLabel={
+                    <>
+                      Untuk kriteria{' '}
+                      <span className="font-semibold text-neutral-1000">
+                        {activeCriterion?.name}
+                      </span>
+                    </>
+                  }
+                  linkedFieldIds={activeCriterion?.fieldIds}
+                />
               </div>
             </section>
           </div>

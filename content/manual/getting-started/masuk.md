@@ -9,6 +9,10 @@ description: Cara masuk dan keluar dari aplikasi Anmategra.
 Anmategra menggunakan akun institusi. Anda tidak perlu membuat kata sandi
 terpisah untuk aplikasi.
 
+## Coba di sini
+
+::demo[masuk]
+
 ## Masuk sebagai mahasiswa
 
 1. Buka situs Anmategra.

@@ -10,14 +10,31 @@ import { TRPCError, initTRPC } from '@trpc/server';
 import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
-import { getServerAuthSession } from '~/server/auth';
 import {
   type AdminPermission,
   hasAdminPermission,
 } from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
+import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
-import { adminPermission, form, recruitment } from '~/server/db/schema';
+
+import { env } from '~/env';
+import { isEmergencySuperadmin } from '~/server/api/superadmin';
+import {
+  adminPermission,
+  form,
+  recruitment,
+  users,
+} from '~/server/db/schema';
+
+// Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
+// tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
+import {
+  type GrantFeature,
+  type LembagaAccess,
+  canManageEvent,
+  canManageLembaga,
+} from './access';
 
 /**
  * 1. CONTEXT
@@ -32,7 +49,7 @@ import { adminPermission, form, recruitment } from '~/server/db/schema';
  * @see https://trpc.io/docs/server/context
  */
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const session = await getServerAuthSession();
+  const session = await getServerAuthSessionWithAlt();
 
   return {
     db,
@@ -59,13 +76,19 @@ export type ApiMeta = {
     | 'authenticated'
     | 'admin'
     | 'admin-permission'
-    | 'lembaga'
+    | 'mahasiswa'
     | 'lembaga-scoped'
     | 'lembaga-owner'
     | 'event-scoped'
     | 'form-scoped'
     | 'oprec-scoped'
     | 'oprec-assess';
+  /**
+   * Sesi akses alternatif (Google pribadi) ditolak di semua prosedur kecuali
+   * yang diberi penanda ini. `claim` = hanya klaim aktif; `any` = termasuk
+   * tamu yang belum punya klaim (dipakai alur pengajuan itu sendiri).
+   */
+  alt?: 'claim' | 'any';
 };
 
 /**
@@ -186,13 +209,37 @@ const timingMiddleware = t.middleware(async ({ next, path }) => {
 });
 
 /**
+ * Default-deny untuk sesi akses alternatif: prosedur baru otomatis tertutup
+ * bagi mereka sampai diberi `meta.alt` secara eksplisit.
+ */
+const altGuardMiddleware = t.middleware(({ ctx, meta, next }) => {
+  const alt = ctx.session?.user?.alt;
+  if (alt) {
+    const allowed =
+      meta?.alt === 'any' || (meta?.alt === 'claim' && alt === 'claim');
+    if (!allowed) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message:
+          alt === 'claim'
+            ? 'Akses alternatif hanya untuk mengisi form.'
+            : 'Akses alternatif belum aktif. Ajukan dulu di halaman login.',
+      });
+    }
+  }
+  return next();
+});
+
+const baseProcedure = t.procedure.use(altGuardMiddleware);
+
+/**
  * Public (unauthenticated) procedure
  *
  * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
  * guarantee that a user querying is authorized, but you can still access user session data if they
  * are logged in.
  */
-export const publicProcedure = t.procedure
+export const publicProcedure = baseProcedure
   .meta({ access: 'public' })
   .use(timingMiddleware);
 
@@ -204,7 +251,7 @@ export const publicProcedure = t.procedure
  *
  * @see https://trpc.io/docs/procedures
  */
-export const protectedProcedure = t.procedure
+export const protectedProcedure = baseProcedure
   .meta({ access: 'authenticated' })
   .use(timingMiddleware)
   .use(({ ctx, next }) => {
@@ -219,39 +266,84 @@ export const protectedProcedure = t.procedure
     });
   });
 
-export const adminProcedure = t.procedure
+/**
+ * Peran dan izin admin dibaca ulang dari basis data pada setiap panggilan,
+ * dengan satu query ringkas (users LEFT JOIN admin_permission aktif). Token
+ * sesi berlaku hingga 30 hari, sehingga peran di token tidak boleh dipercaya:
+ * Superadmin/Operator yang diturunkan harus langsung kehilangan akses.
+ */
+export async function loadAdminAccess(database: typeof db, userId: string) {
+  const [row] = await database
+    .select({
+      role: users.role,
+      email: users.email,
+      permissions: adminPermission.permissions,
+      expiresAt: adminPermission.expiresAt,
+    })
+    .from(users)
+    .leftJoin(
+      adminPermission,
+      and(
+        eq(adminPermission.userId, users.id),
+        isNull(adminPermission.revokedAt),
+        or(
+          isNull(adminPermission.expiresAt),
+          gt(adminPermission.expiresAt, new Date()),
+        ),
+      ),
+    )
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!row) return null;
+  return {
+    isSuperadmin:
+      row.role === 'admin' ||
+      isEmergencySuperadmin(row.email, env.SUPERADMIN_EMAILS),
+    permissions: row.permissions ?? [],
+    expiresAt: row.expiresAt ?? null,
+  };
+}
+
+/**
+ * Khusus Superadmin (`users.role = 'admin'` atau akun `SUPERADMIN_EMAILS`),
+ * diperiksa ke basis data. Operator berizin tidak lolos di sini.
+ */
+export const adminProcedure = baseProcedure
   .meta({ access: 'admin' })
   .use(timingMiddleware)
-  .use(({ ctx, next }) => {
-    if (
-      !ctx.session ||
-      !ctx.session.user ||
-      ctx.session.user.role !== 'admin'
-    ) {
+  .use(async ({ ctx, next }) => {
+    // 401 = belum login; 403 = sudah login tetapi bukan admin.
+    if (!ctx.session?.user) {
       throw new TRPCError({ code: 'UNAUTHORIZED' });
     }
+    const access = await loadAdminAccess(ctx.db, ctx.session.user.id);
+    if (!access?.isSuperadmin) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
     return next({
-      ctx: {
-        // infers the `session` as non-nullable
-        session: { ...ctx.session, user: ctx.session.user },
-      },
+      ctx: { session: { ...ctx.session, user: ctx.session.user } },
     });
   });
 
+/** Sama dengan `adminProcedure`; satu pemeriksaan basis data, tanpa query ganda. */
+export const superadminProcedure = adminProcedure;
+
 /**
- * Izin operator admin console. Superadmin (`role === 'admin'`) melewati semua
- * pemeriksaan; operator biasa harus punya baris `admin_permission` aktif yang
- * memuat izin yang diminta.
+ * Izin operator admin console, diperiksa ulang ke basis data. Superadmin
+ * melewati semua pemeriksaan; operator biasa harus punya baris `admin_permission`
+ * aktif yang memuat izin yang diminta.
  */
 export const adminPermissionProcedure = (required: AdminPermission) =>
-  t.procedure
+  baseProcedure
     .meta({ access: 'admin-permission' })
     .use(timingMiddleware)
     .use(async ({ ctx, next }) => {
       if (!ctx.session?.user) {
         throw new TRPCError({ code: 'UNAUTHORIZED' });
       }
-      if (ctx.session.user.role === 'admin') {
+      const access = await loadAdminAccess(ctx.db, ctx.session.user.id);
+      if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
+      if (access.isSuperadmin) {
         return next({
           ctx: {
             session: { ...ctx.session, user: ctx.session.user },
@@ -259,48 +351,30 @@ export const adminPermissionProcedure = (required: AdminPermission) =>
           },
         });
       }
-
-      const row = await ctx.db.query.adminPermission.findFirst({
-        where: and(
-          eq(adminPermission.userId, ctx.session.user.id),
-          isNull(adminPermission.revokedAt),
-          or(
-            isNull(adminPermission.expiresAt),
-            gt(adminPermission.expiresAt, new Date()),
-          ),
-        ),
-        columns: { permissions: true },
-      });
-      if (!row || !hasAdminPermission(row.permissions, required)) {
+      if (!hasAdminPermission(access.permissions, required)) {
         throw new TRPCError({ code: 'FORBIDDEN' });
       }
       return next({
         ctx: {
           session: { ...ctx.session, user: ctx.session.user },
-          adminPermissions: row.permissions,
+          adminPermissions: access.permissions,
         },
       });
     });
 
-export const isLembaga = t.middleware(async ({ ctx, next }) => {
-  if (ctx.session?.user.role !== 'lembaga') {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
-  }
-  return next();
-});
+/**
+ * Hanya Account Role `mahasiswa`. Untuk tindakan yang mengubah data milik
+ * mahasiswa sendiri; role lain ditolak (403) alih-alih berhasil tanpa efek.
+ */
+export const mahasiswaProcedure = protectedProcedure
+  .meta({ access: 'mahasiswa' })
+  .use(({ ctx, next }) => {
+    if (ctx.session.user.role !== 'mahasiswa') {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next();
+  });
 
-export const lembagaProcedure = protectedProcedure
-  .meta({ access: 'lembaga' })
-  .use(timingMiddleware)
-  .use(isLembaga);
-
-// Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
-// tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
-import {
-  canManageEvent,
-  canManageLembaga,
-  type LembagaAccess,
-} from './access';
 export { canManageEvent, canManageLembaga, type LembagaAccess };
 
 /**
@@ -319,12 +393,12 @@ function rawId(value: unknown): string | undefined {
 }
 
 /**
- * Procedure baru untuk mutation/query yang menerima `lembagaId` di input
- * dan boleh diakses Owner ATAU Admin Lembaga. Endpoint lama yang masih
- * pakai `lembagaProcedure` (Owner-only via role, tanpa cek input) TIDAK
- * perlu dimigrasi sekaligus — migrasi dilakukan bertahap per-endpoint.
+ * Prosedur untuk mutation/query yang menerima `lembagaId` di input dan boleh
+ * diakses Owner ATAU Admin Lembaga (`canManageLembaga`). Semua endpoint
+ * pengelolaan lembaga memakai prosedur ini; `ctx.lembagaId` adalah Scope.
  */
-export const lembagaScopedProcedure = protectedProcedure
+function lembagaScopedFor(features: readonly GrantFeature[]) {
+  return protectedProcedure
   .meta({ access: 'lembaga-scoped' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
@@ -336,18 +410,29 @@ export const lembagaScopedProcedure = protectedProcedure
         message: 'lembagaId is required',
       });
     }
-    const access = await canManageLembaga(
+      let access: Awaited<ReturnType<typeof canManageLembaga>> = null;
+      for (const feature of features) {
+        access = await canManageLembaga(
       ctx.db,
       ctx.session.user.id,
       ctx.session.user.role,
       ctx.session.user.lembagaId,
       lembagaId,
+          feature,
     );
+        if (access) break;
+      }
     if (!access) {
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
   });
+}
+
+export const lembagaScopedProcedure = lembagaScopedFor(['admin']);
+
+/** Seperti `lembagaScopedProcedure`, tetapi juga membuka pemegang fitur `forms` (daftar dan buat form lembaga). */
+export const lembagaFormsProcedure = lembagaScopedFor(['admin', 'forms']);
 
 /** Owner-only: kelola/grant/revoke admin lain — bukan operasional biasa. */
 export const lembagaOwnerProcedure = lembagaScopedProcedure
@@ -367,7 +452,8 @@ export const lembagaOwnerProcedure = lembagaScopedProcedure
  * Lembaga otomatis boleh kelola event di bawah lembaganya; Admin Kepanitiaan
  * cuma boleh kelola event yang di-grant ke dia secara spesifik.
  */
-export const eventScopedProcedure = protectedProcedure
+function eventScopedFor(features: readonly GrantFeature[]) {
+  return protectedProcedure
   .meta({ access: 'event-scoped' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
@@ -379,19 +465,29 @@ export const eventScopedProcedure = protectedProcedure
         message: 'eventId is required',
       });
     }
-    const access = await canManageEvent(
+      let access: Awaited<ReturnType<typeof canManageEvent>> = null;
+      for (const feature of features) {
+        access = await canManageEvent(
       ctx.db,
       ctx.session.user.id,
       ctx.session.user.role,
       ctx.session.user.lembagaId,
       eventId,
-      'events',
+          feature,
     );
+        if (access) break;
+      }
     if (!access) {
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, eventAccess: access, eventId } });
   });
+}
+
+export const eventScopedProcedure = eventScopedFor(['events']);
+
+/** Seperti `eventScopedProcedure`, tetapi juga membuka pemegang fitur `forms` (daftar dan buat form kegiatan). */
+export const eventFormsProcedure = eventScopedFor(['events', 'forms']);
 
 /**
  * Di-scope oleh `formId` (#210). Form dimiliki tepat satu lembaga ATAU satu

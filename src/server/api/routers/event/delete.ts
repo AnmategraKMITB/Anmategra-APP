@@ -1,12 +1,13 @@
-import { lembagaProcedure } from "../../trpc";
+import { lembagaScopedProcedure } from "../../trpc";
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { events } from "~/server/db/schema";
 import { periodHasMembers } from "~/server/api/routers/organization/membership";
 import { TRPCError } from "@trpc/server";
 import { eq, and } from "drizzle-orm";
 import { DeleteEventInputSchema, DeleteEventOutputSchema } from "../../types/event.type";
 
-export const deleteEvent = lembagaProcedure
-.input(DeleteEventInputSchema)
+export const deleteEvent = lembagaScopedProcedure
+.input(DeleteEventInputSchema.and(LembagaScopeInput))
 .output(DeleteEventOutputSchema)
 .mutation(async ({ ctx, input }) => {
   try {
@@ -14,7 +15,7 @@ export const deleteEvent = lembagaProcedure
     const existingEvent = await ctx.db.query.events.findFirst({
       where: and(
         eq(events.id, input.id),
-        eq(events.org_id, ctx.session.user.lembagaId!)
+        eq(events.org_id, ctx.lembagaId)
       )
     });
 

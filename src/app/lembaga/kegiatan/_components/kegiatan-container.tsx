@@ -66,9 +66,19 @@ export interface Event {
 interface EventListProps {
   propEvents: Event[];
   session: Session | null;
+  /** Lembaga yang dikelola; bawaan: lembaga milik sesi. */
+  lembagaId?: string;
+  /** Awalan rute kegiatan (panitia, rapor); bawaan halaman Owner. */
+  kegiatanBasePath?: string;
 }
 
-export default function EventList({ propEvents, session }: EventListProps) {
+export default function EventList({
+  propEvents,
+  session,
+  lembagaId: lembagaIdProp,
+  kegiatanBasePath = '',
+}: EventListProps) {
+  const lembagaId = lembagaIdProp ?? session?.user.lembagaId ?? '';
   const { toast } = useToast();
   const [activities, setActivities] = useState<Event[]>(propEvents);
   const [searchQuery, setSearchQuery] = useState('');
@@ -191,6 +201,7 @@ export default function EventList({ propEvents, session }: EventListProps) {
     );
 
     toggleHighlightMutation.mutate({
+      lembagaId,
       id: activityId,
       is_highlighted: !currentStatus,
     });
@@ -231,7 +242,7 @@ export default function EventList({ propEvents, session }: EventListProps) {
 
   const handleConfirmDelete = () => {
     if (deletingEvent) {
-      deleteMutation.mutate({ id: deletingEvent.id });
+      deleteMutation.mutate({ lembagaId, id: deletingEvent.id });
     }
   };
 
@@ -270,6 +281,7 @@ export default function EventList({ propEvents, session }: EventListProps) {
             </DialogHeader>
             <TambahEditKegiatanForm
               session={session}
+              lembagaId={lembagaId}
               setIsOpen={setIsOpen}
               setEventList={setActivities}
             />
@@ -347,7 +359,7 @@ export default function EventList({ propEvents, session }: EventListProps) {
                       : '-'}
                   </div>
                   <div className="w-[110px] flex-shrink-0 flex items-center justify-center text-gray-500">
-                    <Link href={`/kegiatan/${activity.id}/panitia`}>
+                    <Link href={`${kegiatanBasePath}/kegiatan/${activity.id}/panitia`}>
                       <Button
                         variant={'outline'}
                         className="rounded-lg text-base"
@@ -368,7 +380,7 @@ export default function EventList({ propEvents, session }: EventListProps) {
                     </span>
                   </div>
                   <div className="w-[94px] flex-shrink-0 flex items-center justify-center text-gray-500">
-                    <Link href={`/kegiatan/${activity.id}/rapor`}>
+                    <Link href={`${kegiatanBasePath}/kegiatan/${activity.id}/rapor`}>
                       <Button
                         variant={'outline'}
                         className="rounded-lg text-base"
@@ -413,13 +425,15 @@ export default function EventList({ propEvents, session }: EventListProps) {
 
             {isLoading && (
               <div className="p-4 text-center text-gray-500">
-                Loading activities...
+                Memuat kegiatan…
               </div>
             )}
 
             {!isLoading && activities.length === 0 && (
               <div className="p-8 text-center text-gray-500">
-                Aktivitas tidak ditemukan
+                {searchQuery.trim() !== '' || selectedFilters.length > 0
+                  ? 'Tidak ada kegiatan yang cocok dengan pencarian atau filter.'
+                  : 'Belum ada kegiatan pada periode ini.'}
               </div>
             )}
           </div>
@@ -439,6 +453,7 @@ export default function EventList({ propEvents, session }: EventListProps) {
           {editingEvent && (
             <TambahEditKegiatanForm
               session={session}
+              lembagaId={lembagaId}
               setIsOpen={() => setEditingEvent(null)}
               setEventList={setActivities}
               kegiatan={editingEvent}

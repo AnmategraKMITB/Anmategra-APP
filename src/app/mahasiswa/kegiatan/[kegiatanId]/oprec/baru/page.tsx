@@ -1,12 +1,13 @@
-import { SetupPage } from '~/app/_components/oprec/setup-page';
+import { redirect } from 'next/navigation';
 
-const OprecBaruPage = async ({
+/** Rute lama; halaman pengelola kini di /manage. */
+const LegacyRedirectPage = async ({
   params,
 }: {
   params: Promise<{ kegiatanId: string }>;
 }) => {
   const { kegiatanId } = await params;
-  return <SetupPage kegiatanId={kegiatanId} basePath="/mahasiswa" />;
+  redirect(`/manage/kegiatan/${kegiatanId}/oprec/baru`);
 };
 
-export default OprecBaruPage;
+export default LegacyRedirectPage;

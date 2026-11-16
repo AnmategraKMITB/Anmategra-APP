@@ -1,3 +1,5 @@
+import { type AppBase } from '~/lib/app-base';
+
 export const RECRUITMENT_STATUS_LABEL = {
   draft: 'Draf',
   open: 'Dibuka',
@@ -10,10 +12,81 @@ export const RECRUITMENT_STATUS_STYLE = {
   closed: 'bg-warning-light text-neutral-1000',
 } as const;
 
-export type OprecBase = '/lembaga' | '/mahasiswa';
+export type OprecBase = AppBase;
 
 export const pendaftarHref = (
   base: OprecBase,
   kegiatanId: string,
   recruitmentId: string,
 ) => `${base}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/pendaftar`;
+
+/** Tombol Buka pendaftaran hanya berlaku untuk oprec yang masih Draf. */
+export const canOpenRegistration = (status: 'draft' | 'open' | 'closed') =>
+  status === 'draft';
+
+/**
+ * Langkah status berikutnya untuk pengelola: Draf → Dibuka → Ditutup, dan
+ * Ditutup → Dibuka lagi (perpanjangan). `confirm` = minta konfirmasi dulu.
+ */
+export const STATUS_ACTION = {
+  draft: {
+    to: 'open',
+    label: 'Buka pendaftaran',
+    pending: 'Membuka…',
+    confirm: null,
+  },
+  open: {
+    to: 'closed',
+    label: 'Tutup pendaftaran',
+    pending: 'Menutup…',
+    confirm:
+      'Formulir berhenti menerima jawaban. Pendaftar tanpa gelombang mulai bisa dinilai di tab Nilai. Pendaftaran bisa dibuka lagi kapan saja.',
+  },
+  closed: {
+    to: 'open',
+    label: 'Buka lagi pendaftaran',
+    pending: 'Membuka…',
+    confirm:
+      'Formulir kembali menerima jawaban. Bila oprec memakai gelombang, pastikan ada gelombang yang sedang berjalan di Pengaturan.',
+  },
+} as const satisfies Record<
+  'draft' | 'open' | 'closed',
+  {
+    to: 'draft' | 'open' | 'closed';
+    label: string;
+    pending: string;
+    confirm: string | null;
+  }
+>;
+
+/**
+ * Judul gelombang dari labelnya (L-01). Label disimpan polos ("1", "3.1"),
+ * tetapi data lama bisa berisi "Gelombang 1"; awalan ganda dibuang.
+ */
+export const waveTitle = (label: string) =>
+  `Gelombang ${label.trim().replace(/^gelombang\s+/i, '')}`;
+
+/**
+ * Tab Penempatan terkunci sampai pendaftaran ditutup atau ada minimal satu
+ * pendaftar (#346). Mengembalikan alasan, atau null bila terbuka.
+ */
+export const placementLockReason = (
+  status: 'draft' | 'open' | 'closed',
+  applicantCount: number,
+) =>
+  status === 'closed' || applicantCount > 0
+    ? null
+    : 'Terkunci sampai pendaftaran ditutup atau ada minimal satu pendaftar.';
+
+/**
+ * Metode prioritas selama penempatan berjalan: keputusan diisi dari tab
+ * Prioritas, jadi Penempatan terkunci kecuali closerec dan visibilitas antar
+ * divisi untuk pengelola. Mengembalikan alasan, atau null bila terbuka.
+ */
+export const priorityPlacementLockReason = (
+  method: 'manual' | 'prioritas',
+  state: 'berjalan' | 'masa_banding' | 'final',
+) =>
+  method === 'prioritas' && state === 'berjalan'
+    ? 'Selama penempatan berjalan, keputusan diisi lewat tab Prioritas. Terbuka lagi saat masa banding.'
+    : null;

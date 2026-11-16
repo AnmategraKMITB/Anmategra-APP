@@ -422,11 +422,11 @@ const BestStaffForm = ({
 
   const { data: divisionData } = eventId
     ? api.lembaga.getAllKegiatanDivision.useQuery(
-        { event_id: eventId },
-        { enabled: !!eventId },
+        lembagaId ? { lembagaId, event_id: eventId } : skipToken,
+        { enabled: !!eventId && !!lembagaId },
       )
     : api.lembaga.getAllLembagaDivision.useQuery(
-        lembagaId ? { lembaga_id: lembagaId } : skipToken,
+        lembagaId ? { lembagaId } : skipToken,
         { enabled: !!lembagaId },
       );
 
@@ -533,6 +533,7 @@ const BestStaffForm = ({
 
     if (eventId) {
       const payload = {
+        lembagaId: lembagaId ?? '',
         event_id: eventId,
         start_date,
         end_date,
@@ -541,7 +542,7 @@ const BestStaffForm = ({
       chooseBestStaffKegiatanMutation.mutate(payload);
     } else if (lembagaId) {
       const payload = {
-        lembaga_id: lembagaId,
+        lembagaId,
         start_date,
         end_date,
         best_staff_list,

@@ -8,7 +8,10 @@ import {
   type FileUploadContext,
 } from '~/lib/forms/file-provider';
 import {
+  connectGoogleDrive,
   deleteFromGoogleDrive,
+  hasGoogleDriveToken,
+  prepareGoogleDrive,
   uploadToGoogleDrive,
 } from '~/lib/forms/google-drive';
 import { useUploadThing } from '~/utils/uploadthing';
@@ -25,6 +28,14 @@ export function useFormFileUpload(): {
     context: FileUploadContext,
   ) => Promise<FileAnswerItem>;
   remove: (item: FileAnswerItem) => Promise<void>;
+  /**
+   * Penyedia yang butuh izin lewat popup (Google Drive). `connect` harus
+   * dipanggil langsung dari penangan klik agar popup tidak diblokir browser.
+   */
+  needsConnect: boolean;
+  isConnected: () => boolean;
+  prepare: () => void;
+  connect: () => Promise<void>;
 } {
   const providerId = resolveFileProvider(env.NEXT_PUBLIC_FORM_FILE_PROVIDER);
   const { startUpload } = useUploadThing('formFile');
@@ -66,10 +77,18 @@ export function useFormFileUpload(): {
     }
   };
 
+  const needsConnect = providerId === 'google-drive';
+
   return {
     providerId,
     providerLabel: FILE_PROVIDER_LABELS[providerId],
     upload,
     remove,
+    needsConnect,
+    isConnected: () => !needsConnect || hasGoogleDriveToken(),
+    prepare: () => {
+      if (needsConnect) prepareGoogleDrive();
+    },
+    connect: () => (needsConnect ? connectGoogleDrive() : Promise.resolve()),
   };
 }

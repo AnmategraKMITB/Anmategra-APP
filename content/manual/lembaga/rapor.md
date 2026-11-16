@@ -9,6 +9,10 @@ description: Membuat profil penilaian, mengisi nilai, mengimpor, dan membuka rap
 Lembaga dapat membuat rapor untuk anggota lembaga maupun panitia kegiatan.
 Rapor menggunakan profil ketercapaian yang dapat dipetakan ke profil KM ITB.
 
+## Coba di sini
+
+::demo[rapor]
+
 ## Membuka halaman rapor
 
 - Untuk rapor anggota lembaga, buka **Anggota** lalu klik **Rapor Komunal**.

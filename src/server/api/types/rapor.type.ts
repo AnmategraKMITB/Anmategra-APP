@@ -62,7 +62,7 @@ export const UpsertNilaiMahasiswaKegiatanOutputSchema = z.object({
 });
 
 export const GetAllNilaiProfilLembagaInputSchema = z.object({
-  lembaga_id: z.string(),
+  lembagaId: z.string().nonempty(),
 });
 
 export const GetAllNilaiProfilLembagaOutputSchema =
@@ -73,10 +73,17 @@ export const GetNilaiLembagaIndividuInputSchema = z.object({
   mahasiswa_id: z.string(),
 });
 
+/** Varian ber-Scope untuk pengelola; versi `lembaga_id` dipakai prosedur publik. */
+export const GetNilaiLembagaIndividuManageInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
+  mahasiswa_id: z.string(),
+});
+
 export const GetNilaiLembagaIndividuOutputSchema =
   GetNilaiKegiatanIndividuOutputSchema;
 
 export const UpsertNilaiMahasiswaLembagaInputSchema = z.object({
+  lembagaId: z.string().nonempty(),
   mahasiswa: z.array(
     z.object({
       user_id: z.string(),

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { type SQL, and, eq, ilike } from 'drizzle-orm';
-import { z } from 'zod';
+import { type z } from 'zod';
 import { periodMembersSq } from '~/server/api/routers/organization/membership';
 import { mahasiswa, users } from '~/server/db/schema';
 

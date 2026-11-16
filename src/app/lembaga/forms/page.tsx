@@ -7,7 +7,7 @@ import { api } from '~/trpc/server';
 const FormsPage = async () => {
   const session = await getServerAuthSession();
   const lembagaId = session?.user.lembagaId;
-  const events = lembagaId ? await api.kegiatan.getAllByLembaga() : [];
+  const events = lembagaId ? await api.kegiatan.getAllByLembaga({ lembagaId }) : [];
 
   return (
     <main className="py-6 sm:py-8">

@@ -60,6 +60,9 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
   const canWrite = perms.includes('*') || perms.includes('lembaga.write');
   const canEvents = perms.includes('*') || perms.includes('lembaga.events');
   const canOrg = perms.includes('*') || perms.includes('lembaga.organization');
+  // Forms dan oprec dibuka lewat /manage; aksesnya diperiksa server (role admin atau izin operator).
+  const canForms = perms.includes('*') || perms.includes('lembaga.forms');
+  const canOprec = perms.includes('*') || perms.includes('lembaga.oprec');
 
   const [tab, setTab] = useState<Tab>('kegiatan');
   const [form, setForm] = useState<FormState | null>(null);
@@ -148,9 +151,16 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
         title={data.lembaga.name}
         description={`${data.lembaga.type ?? 'Lembaga'}${data.lembaga.acronym ? ` · ${data.lembaga.acronym}` : ''} · ${data.memberCount} anggota aktif`}
         actions={
+          <span className="flex flex-wrap items-center gap-4">
+            {canForms ? (
+              <Link href={`/manage/${lembagaId}/forms`} className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline">
+                Forms lembaga
+              </Link>
+            ) : null}
           <Link href="/admin/lembaga" className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline">
             Kembali ke daftar
           </Link>
+          </span>
         }
       />
 
@@ -406,6 +416,22 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
                   >
                     Organogram
                   </Link>
+                  {canForms ? (
+                    <Link
+                      href={`/manage/kegiatan/${period.id}/forms`}
+                      className="inline-flex items-center px-3 py-1 text-sm font-semibold text-primary-400 underline-offset-2 hover:underline"
+                    >
+                      Forms
+                    </Link>
+                  ) : null}
+                  {canOprec ? (
+                    <Link
+                      href={`/manage/kegiatan/${period.id}/oprec`}
+                      className="inline-flex items-center px-3 py-1 text-sm font-semibold text-primary-400 underline-offset-2 hover:underline"
+                    >
+                      Oprec
+                    </Link>
+                  ) : null}
                 </span>
               </li>
             ))}

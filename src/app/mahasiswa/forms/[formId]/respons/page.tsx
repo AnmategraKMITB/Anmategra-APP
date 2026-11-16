@@ -1,12 +1,13 @@
-import { ResponsesPage } from '~/app/_components/forms/responses-page';
+import { redirect } from 'next/navigation';
 
-const MahasiswaFormResponsesPage = async ({
+/** Rute lama; halaman pengelola kini di /manage. */
+const LegacyRedirectPage = async ({
   params,
 }: {
   params: Promise<{ formId: string }>;
 }) => {
   const { formId } = await params;
-  return <ResponsesPage formId={formId} basePath="/mahasiswa" />;
+  redirect(`/manage/forms/${formId}/respons`);
 };
 
-export default MahasiswaFormResponsesPage;
+export default LegacyRedirectPage;

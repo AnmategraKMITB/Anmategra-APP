@@ -20,6 +20,8 @@ interface RaporIndividuPageProps {
   profilKMData: { profil_km: Array<{ id: string; description: string }> };
   isLembaga: boolean;
   id: string;
+  /** Lembaga yang dikelola; wajib untuk rapor kegiatan. */
+  lembagaId?: string;
   breadcrumbItems: BreadcrumbItem[];
   canEdit?: boolean;
 }
@@ -30,6 +32,7 @@ export default function RaporIndividuPage({
   profilKMData,
   isLembaga,
   id,
+  lembagaId,
   breadcrumbItems,
   canEdit = false,
 }: RaporIndividuPageProps) {
@@ -82,6 +85,7 @@ export default function RaporIndividuPage({
         <RaporIndividuHeader
           dataNilaiProfil={raporData}
           id={id}
+          lembagaId={lembagaId}
           isLembaga={isLembaga}
           canEdit={canEdit}
         />

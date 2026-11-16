@@ -80,6 +80,8 @@ export const ManagedLembagaEntrySchema = z.object({
   lembagaId: z.string(),
   lembagaNama: z.string(),
   access: z.enum(['owner', 'admin']),
+  /** Fitur yang boleh dikelola; `admin` berarti semuanya. */
+  features: z.array(z.string()),
 });
 
 export const GetMyManagedLembagaOutputSchema = z.array(
@@ -90,7 +92,9 @@ export const ManagedEventEntrySchema = z.object({
   eventId: z.string(),
   eventNama: z.string(),
   lembagaId: z.string().nullable(),
+  lembagaNama: z.string().nullable(),
   access: z.enum(['owner', 'admin']),
+  features: z.array(z.string()),
 });
 
 export const GetMyManagedEventsOutputSchema = z.array(ManagedEventEntrySchema);
@@ -104,3 +108,20 @@ export const KelolaAdminAccessInputSchema = z.object({
 export const KelolaAdminAccessOutputSchema = z
   .enum(['owner', 'admin'])
   .nullable();
+
+export const HasManagedScopeOutputSchema = z.boolean();
+
+/** Oprec yang ditangani sebagai pengurus organogram atau penilai tambahan. */
+export const GetMyHandledOprecsOutputSchema = z.array(
+  z.object({
+    recruitmentId: z.string(),
+    recruitmentName: z.string(),
+    status: z.string(),
+    periodId: z.string(),
+    periodName: z.string(),
+    lembagaNama: z.string().nullable(),
+    tab: z.enum(['nilai', 'prioritas']),
+    divisionCount: z.number(),
+    canDecide: z.boolean(),
+  }),
+);

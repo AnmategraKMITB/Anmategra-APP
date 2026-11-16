@@ -25,6 +25,6 @@ export async function DocsPage({
   if (!page) notFound();
 
   return (
-    <DocsShell nav={nav} page={page} basePath={basePath} pdfHref="/api/manual" />
+    <DocsShell nav={nav} page={page} basePath={basePath} />
   );
 }

@@ -13,6 +13,8 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { placementReleased } from '../../oprec-release';
+import { isListedAsKegiatan } from '../../period-listing';
 import {
   DEFAULT_POSITION_TITLE,
   GENERAL_UNIT_NAME,
@@ -39,8 +41,14 @@ const rankOrder = sql`coalesce(
  * Anggota sebuah periode: satu baris per orang, memakai penempatan utamanya
  * (rank tertinggi, lalu urutan bagian dan jabatan). Pengganti `keanggotaan`:
  * kolom `division`, `position`, `index` bentuknya sama dengan kolom lama.
+ * Penempatan oprec yang hasilnya belum dirilis tidak ikut kecuali
+ * `includeUnreleased`.
  */
-export function periodMembersSq(db: Db, periodId: string) {
+export function periodMembersSq(
+  db: Db,
+  periodId: string,
+  { includeUnreleased = false }: { includeUnreleased?: boolean } = {},
+) {
   return db
     .selectDistinctOn([placement.userId], {
       userId: placement.userId,
@@ -66,6 +74,7 @@ export function periodMembersSq(db: Db, periodId: string) {
         eq(organizationStructure.is_active, true),
       ),
     )
+    .where(includeUnreleased ? undefined : placementReleased)
     .orderBy(
       placement.userId,
       rankOrder,
@@ -415,7 +424,7 @@ export async function periodHasMembers(
   db: Db,
   periodId: string,
 ): Promise<boolean> {
-  const members = periodMembersSq(db, periodId);
+  const members = periodMembersSq(db, periodId, { includeUnreleased: true });
   const [row] = await db
     .select({ userId: members.userId })
     .from(members)
@@ -527,7 +536,7 @@ async function userPlacementRows(db: Db, userId: string) {
       ),
     )
     .innerJoin(events, eq(events.id, organizationStructure.eventId))
-    .where(eq(placement.userId, userId))
+    .where(and(eq(placement.userId, userId), placementReleased))
     .orderBy(
       events.id,
       rankOrder,
@@ -537,16 +546,14 @@ async function userPlacementRows(db: Db, userId: string) {
 }
 
 /**
- * Kegiatan (bukan kepengurusan) yang diikuti seorang pengguna, terbaru dulu,
- * beserta lembaga penyelenggara dan bagian/jabatannya. Pengganti join keanggotaan.
+ * Kegiatan yang diikuti seorang pengguna, terbaru dulu, beserta lembaga
+ * penyelenggara dan bagian/jabatannya. Termasuk kepengurusan lembaga
+ * Kepanitiaan (`isListedAsKegiatan`). Pengganti join keanggotaan.
  */
 export async function userKegiatanMemberships(db: Db, userId: string) {
   const rows = await userPlacementRows(db, userId);
-  const kegiatan = rows.filter((r) => r.event.kind === 'kegiatan');
   const orgIds = [
-    ...new Set(
-      kegiatan.flatMap((r) => (r.event.org_id ? [r.event.org_id] : [])),
-    ),
+    ...new Set(rows.flatMap((r) => (r.event.org_id ? [r.event.org_id] : []))),
   ];
   if (orgIds.length === 0) return [];
   const orgs = await db
@@ -555,10 +562,10 @@ export async function userKegiatanMemberships(db: Db, userId: string) {
     .innerJoin(users, eq(lembaga.userId, users.id))
     .where(inArray(lembaga.id, orgIds));
   const orgById = new Map(orgs.map((o) => [o.lembaga.id, o]));
-  return kegiatan
+  return rows
     .flatMap((r) => {
       const org = r.event.org_id ? orgById.get(r.event.org_id) : undefined;
-      return org
+      return org && isListedAsKegiatan(r.event.kind, org.lembaga.type)
         ? [
             {
               event: r.event,
