@@ -87,6 +87,11 @@ export function StateBar({
   };
 
   const state = overview.state;
+  const prioritas = overview.method === 'prioritas';
+  const help =
+    prioritas && state === 'berjalan'
+      ? 'Keputusan diisi dari daftar prioritas lewat Terapkan. Tab Penempatan baru terbuka untuk Kadiv saat masa banding.'
+      : HELP[state];
 
   return (
     <section
@@ -106,7 +111,7 @@ export function StateBar({
           </Chip>
         ) : null}
       </div>
-      <p className="text-sm text-neutral-700">{HELP[state]}</p>
+      <p className="text-sm text-neutral-700">{help}</p>
 
       {overview.isAdmin ? (
         <div className="flex flex-wrap gap-2">
@@ -167,8 +172,12 @@ export function StateBar({
           ask === 'final'
             ? 'Setelah final, keputusan tidak bisa diubah. Permintaan pindah yang masih terbuka harus diselesaikan dulu.'
             : ask === 'masa_banding'
-              ? 'Masa banding membuka permintaan pindah dan penerimaan lewat banding.'
-              : 'Permintaan pindah yang terbuka akan dibatalkan saat keluar dari masa banding.'
+              ? prioritas && state === 'berjalan'
+                ? 'Masa banding membuka permintaan pindah dan penerimaan lewat banding di tab Penempatan. Penempatan prioritas tidak bisa diterapkan lagi sampai kembali ke berjalan.'
+                : 'Masa banding membuka permintaan pindah dan penerimaan lewat banding.'
+              : prioritas
+                ? 'Permintaan pindah yang terbuka akan dibatalkan, dan tab Penempatan kembali terkunci bagi Kadiv.'
+                : 'Permintaan pindah yang terbuka akan dibatalkan saat keluar dari masa banding.'
         }
         footer={
           <>

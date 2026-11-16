@@ -1,6 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { canManageEvent } from '~/server/api/access';
+import { placementReleased } from '~/server/api/oprec-release';
 import { resolveOrganogramAccess } from '~/server/api/organization-access';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
 import { type db as Db } from '~/server/db';
@@ -106,6 +107,17 @@ export const organizationStructureRouter = createTRPCRouter({
 
       const { tree } = await loadTree(ctx.db, structure.id);
 
+      const access = await resolveOrganogramAccess(
+        ctx.db,
+        {
+          id: ctx.session.user.id,
+          role: ctx.session.user.role,
+          lembagaId: ctx.session.user.lembagaId,
+        },
+        { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+        tree.units,
+      );
+
       const placementRows = await ctx.db
         .select({
           id: placement.id,
@@ -120,22 +132,17 @@ export const organizationStructureRouter = createTRPCRouter({
         .innerJoin(users, eq(placement.userId, users.id))
         .innerJoin(organizationPosition, eq(placement.positionId, organizationPosition.id))
         .innerJoin(organizationUnit, eq(organizationPosition.unitId, organizationUnit.id))
-        .where(eq(organizationUnit.structure_id, structure.id));
+        // Hasil oprec yang belum dirilis hanya terlihat oleh pengelola.
+        .where(
+          and(
+            eq(organizationUnit.structure_id, structure.id),
+            access.isManager ? undefined : placementReleased,
+          ),
+        );
       const byPosition = new Map<string, typeof placementRows>();
       for (const row of placementRows) {
         byPosition.set(row.positionId, [...(byPosition.get(row.positionId) ?? []), row]);
       }
-
-      const access = await resolveOrganogramAccess(
-        ctx.db,
-        {
-          id: ctx.session.user.id,
-          role: ctx.session.user.role,
-          lembagaId: ctx.session.user.lembagaId,
-        },
-        { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
-        tree.units,
-      );
 
       return {
         id: structure.id,
