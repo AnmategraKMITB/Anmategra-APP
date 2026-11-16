@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '~/components/ui/button';
 import { computeVisibility, pickEnding } from '~/lib/forms/conditions';
@@ -13,6 +13,7 @@ import type {
   FormWelcome,
 } from '~/server/api/types/form.type';
 
+import { createDraftWriter } from './draft-writer';
 import { type RendererField, validatePage } from './form-validate';
 import { HEX_COLOR } from './model';
 import { AnswerInput } from './renderer-inputs';
@@ -239,6 +240,92 @@ function writeDraft(storageKey: string, answers: Record<string, unknown>) {
 }
 
 /**
+ * Satu pertanyaan beserta masukannya. Dibungkus `memo` sehingga mengetik di
+ * satu pertanyaan tidak merender ulang pertanyaan lain: semua prop berupa nilai
+ * primitif atau referensi yang stabil.
+ */
+const FieldRow = memo(function FieldRow({
+  field,
+  value,
+  error,
+  number,
+  shuffleOptions,
+  filling,
+  formId,
+  folder,
+  closesAt,
+  onAnswer,
+}: {
+  field: RendererFieldFull;
+  value: unknown;
+  error: string | undefined;
+  /** Nomor tampil; `undefined` bila penomoran dimatikan. */
+  number: number | undefined;
+  shuffleOptions: boolean;
+  filling: boolean;
+  formId: string | undefined;
+  folder: string;
+  closesAt: Date | null;
+  onAnswer: (fieldId: string, value: unknown) => void;
+}) {
+  const upload = useMemo(
+    () => ({ enabled: filling, formId, folder, closesAt }),
+    [filling, formId, folder, closesAt],
+  );
+  const handleChange = useCallback(
+    (next: unknown) => onAnswer(field.id, next),
+    [onAnswer, field.id],
+  );
+  return (
+    <div key={field.id} id={`field-q-${field.id}`} className="grid gap-2">
+      <label
+        id={`label-${field.id}`}
+        htmlFor={`fill-${field.id}`}
+        className="font-semibold text-neutral-1000"
+      >
+        {number ? `${number}. ` : ''}
+        <RichText value={field.label} />
+        {field.required ? (
+          <>
+            <span aria-hidden className="ml-1 text-tomato">
+              *
+            </span>
+            <span className="sr-only"> (wajib diisi)</span>
+          </>
+        ) : null}
+      </label>
+      {field.description ? (
+        <p className="text-sm text-neutral-700">
+          <RichText value={field.description} />
+        </p>
+      ) : null}
+      <Decor
+        url={field.image?.url}
+        alt={field.image?.alt}
+        className="max-h-64 rounded-xl object-contain"
+      />
+      <AnswerInput
+        field={field}
+        value={value}
+        invalid={!!error}
+        describedBy={error ? `err-${field.id}` : undefined}
+        shuffleOptions={shuffleOptions}
+        upload={upload}
+        onChange={handleChange}
+      />
+      {/* Ruang pesan galat dipesan agar tata letak tidak bergeser saat pesan hilang (M-13). */}
+      <p
+        id={`err-${field.id}`}
+        role={error ? 'alert' : undefined}
+        className="min-h-5 text-sm text-danger-dark"
+      >
+        {error}
+      </p>
+    </div>
+  );
+});
+
+/**
  * Tampilan pengisi satu form. Mode `preview` tidak mengirim ke mana pun. Mode
  * `fill` mengirim lewat `onSubmit`, menyimpan draf di perangkat (bila
  * `autosaveDraft` menyala dan ada `storageKey`) dan memperingatkan sebelum
@@ -303,9 +390,21 @@ export function FormRenderer({
     rootRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [pageIndex]);
 
+  // Draf ditulis dengan debounce agar `localStorage` tidak disentuh pada setiap
+  // ketikan. Tulisan yang tertunda dilepas saat komponen dilepas, supaya
+  // jawaban terakhir tidak hilang ketika pengguna menutup halaman.
+  const draftWriter = useMemo(() => createDraftWriter(writeDraft), []);
   useEffect(() => {
-    if (draftKey && !done) writeDraft(draftKey, answers);
-  }, [draftKey, answers, done]);
+    if (draftKey && !done) draftWriter.schedule(draftKey, answers);
+  }, [draftWriter, draftKey, answers, done]);
+  useEffect(() => {
+    const flush = () => draftWriter.flush();
+    window.addEventListener('pagehide', flush);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      draftWriter.flush();
+    };
+  }, [draftWriter]);
 
   useEffect(() => {
     if (!filling || !form.settings.confirmOnLeave || !dirty) return;
@@ -333,6 +432,17 @@ export function FormRenderer({
   const page = pages[Math.min(pageIndex, pages.length - 1)];
   const questionPages = pages.filter((p) => p.kind === 'questions');
   const lastIndex = pages.length - 1;
+
+  // Stabil antarrender agar `FieldRow` yang tidak berubah tidak dirender ulang.
+  const setAnswer = useCallback((fieldId: string, value: unknown) => {
+    setAnswers((prev) => ({ ...prev, [fieldId]: value }));
+    setErrors((prev) => {
+      if (!(fieldId in prev)) return prev;
+      return Object.fromEntries(
+        Object.entries(prev).filter(([k]) => k !== fieldId),
+      );
+    });
+  }, []);
 
   const restart = () => {
     setAnswers({});
@@ -384,6 +494,7 @@ export function FormRenderer({
         setFormError(outcome.message);
         return;
       }
+      draftWriter.cancel();
       if (draftKey) writeDraft(draftKey, {});
       setEnding(result.ending ?? null);
       setDone(true);
@@ -601,68 +712,19 @@ export function FormRenderer({
               );
             }
             return (
-              <div
+              <FieldRow
                 key={field.id}
-                id={`field-q-${field.id}`}
-                className="grid gap-2"
-              >
-                <label
-                  id={`label-${field.id}`}
-                  htmlFor={`fill-${field.id}`}
-                  className="font-semibold text-neutral-1000"
-                >
-                  {form.settings.showNumbers && number ? `${number}. ` : ''}
-                  <RichText value={field.label} />
-                  {field.required ? (
-                    <>
-                      <span aria-hidden className="ml-1 text-tomato">
-                        *
-                      </span>
-                      <span className="sr-only"> (wajib diisi)</span>
-                    </>
-                  ) : null}
-                </label>
-                {field.description ? (
-                  <p className="text-sm text-neutral-700">
-                    <RichText value={field.description} />
-                  </p>
-                ) : null}
-                <Decor
-                  url={field.image?.url}
-                  alt={field.image?.alt}
-                  className="max-h-64 rounded-xl object-contain"
-                />
-                <AnswerInput
-                  field={field}
-                  value={answers[field.id]}
-                  invalid={!!error}
-                  describedBy={error ? `err-${field.id}` : undefined}
-                  shuffleOptions={form.settings.shuffleOptions}
-                  upload={{
-                    enabled: filling,
-                    formId: form.id,
-                    folder: form.title,
-                    closesAt: form.closesAt ?? null,
-                  }}
-                  onChange={(value) => {
-                    setAnswers((prev) => ({ ...prev, [field.id]: value }));
-                    if (error)
-                      setErrors((prev) =>
-                        Object.fromEntries(
-                          Object.entries(prev).filter(([k]) => k !== field.id),
-                        ),
-                      );
-                  }}
-                />
-                {/* Ruang pesan galat dipesan agar tata letak tidak bergeser saat pesan hilang (M-13). */}
-                <p
-                  id={`err-${field.id}`}
-                  role={error ? 'alert' : undefined}
-                  className="min-h-5 text-sm text-danger-dark"
-                >
-                  {error}
-                </p>
-              </div>
+                field={field}
+                value={answers[field.id]}
+                error={error}
+                number={form.settings.showNumbers ? number : undefined}
+                shuffleOptions={form.settings.shuffleOptions}
+                filling={filling}
+                formId={form.id}
+                folder={form.title}
+                closesAt={form.closesAt ?? null}
+                onAnswer={setAnswer}
+              />
             );
           })}
         </div>

@@ -1,9 +1,29 @@
 'use client';
 
 import {
+  type Announcements,
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   ArrowDown,
   ArrowUp,
+  GripVertical,
   ListOrdered,
+  ListPlus,
   Lock,
   LockOpen,
   Plus,
@@ -30,10 +50,20 @@ import {
   Modal,
   Notice,
   inputClass,
+  selectClass,
   when,
 } from '../placement/shared';
 import { PriorityAnswersSheet } from './answers-sheet';
-import { moveTo, parsePosition, remove, shift } from './order';
+import {
+  type SubmitSort,
+  bySubmitted,
+  dropBlock,
+  fillQuota,
+  moveTo,
+  parsePosition,
+  remove,
+  shift,
+} from './order';
 import { PageSizeSelect, Pager, pageCount, pageOf, pageSlice } from './pager';
 
 type Board = RouterOutputs['oprec']['priorityBoard'];
@@ -44,6 +74,7 @@ type Local = { base: number; order: string[]; dirty: boolean };
 type SaveState = 'idle' | 'saving' | 'saved' | 'conflict' | 'error';
 type Section = 'ranked' | 'unranked' | 'blocked';
 type Pages = Record<Section, number> & { key: string };
+type SortableBits = ReturnType<typeof useSortable>;
 
 const SAVE_DELAY_MS = 700;
 
@@ -99,6 +130,24 @@ function PositionInput({
     />
   );
 }
+
+/** Pembungkus hook seret-lepas agar satu baris tabel bisa diurutkan. */
+function Sortable({
+  id,
+  disabled,
+  children,
+}: {
+  id: string;
+  disabled: boolean;
+  children: (sortable: SortableBits) => React.ReactNode;
+}) {
+  return children(useSortable({ id, disabled }));
+}
+
+const screenReaderInstructions = {
+  draggable:
+    'Tekan Spasi atau Enter untuk mengangkat. Panah atas/bawah memindah, Spasi atau Enter melepas, Escape membatalkan. Bila beberapa baris dicentang, semuanya ikut pindah.',
+};
 
 /** Keterangan bebas per kandidat; tersimpan saat keluar kolom. */
 function NoteCell({
@@ -209,6 +258,17 @@ export function PriorityBoard({
   /** Baris yang dicentang untuk aksi massal (id pendaftar). */
   const [picked, setPicked] = useState<string[]>([]);
   const [confirmScore, setConfirmScore] = useState(false);
+  const [confirmFill, setConfirmFill] = useState(false);
+  /** Urutan tampil tabel belum diurutkan dan tidak bisa diurutkan. */
+  const [submitSort, setSubmitSort] = useState<SubmitSort>('bawaan');
+  /** Baris yang sedang diseret. */
+  const [dragId, setDragId] = useState<string | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
   /** Halaman tiap tabel; kembali ke 1 bila saringan atau ukuran berubah. */
   const [pageState, setPageState] = useState<Pages>({
     key: '',
@@ -251,7 +311,7 @@ export function PriorityBoard({
         ? row.kind === 'dipindahkan'
         : row.kind === 'pilihan' && row.choiceRank === rankFilter));
 
-  const pageKey = JSON.stringify([query, rankFilter, pageSize]);
+  const pageKey = JSON.stringify([query, rankFilter, pageSize, submitSort]);
   const pagesNow: Pages =
     pageState.key === pageKey
       ? pageState
@@ -337,10 +397,11 @@ export function PriorityBoard({
     const row = rowById.get(id);
     return row && !row.blocked ? [row] : [];
   });
-  const unranked = data.rows.filter(
+  const sortedRows = bySubmitted(data.rows, submitSort);
+  const unranked = sortedRows.filter(
     (row) => !row.blocked && !ordered.has(row.applicationId),
   );
-  const blocked = data.rows.filter((row) => row.blocked);
+  const blocked = sortedRows.filter((row) => row.blocked);
   const shownRanked = ranked.filter(shows);
   const shownUnranked = unranked.filter(shows);
   const shownBlocked = blocked.filter(shows);
@@ -391,6 +452,64 @@ export function PriorityBoard({
   const locked = data.lockedAt !== null;
   const noteDisabled = data.method !== 'prioritas' || data.state === 'final';
   const reorderDisabled = !canEdit || searching;
+  const fillCandidates = fillQuota(
+    data.rows,
+    ranked.map((row) => row.applicationId),
+    quota,
+  );
+  // Baris terpilih ikut diseret sebagai satu blok bila yang diseret terpilih.
+  const dragBlock =
+    dragId && pickedSet.has(dragId) && pickedRanked.length > 1
+      ? new Set(pickedRanked)
+      : null;
+  const labelOf = (id: unknown) => {
+    const row = rowById.get(String(id));
+    return row ? (row.name ?? row.code) : 'Baris';
+  };
+  const positionOf = (id: unknown) => order.indexOf(String(id)) + 1;
+  const blockSize = (id: unknown) =>
+    pickedSet.has(String(id)) && pickedRanked.length > 1
+      ? pickedRanked.length
+      : 1;
+  const dragSubject = (id: unknown) => {
+    const extra = blockSize(id) - 1;
+    return extra > 0 ? `${labelOf(id)} dan ${extra} lainnya` : labelOf(id);
+  };
+  const announcements: Announcements = {
+    onDragStart: ({ active }) =>
+      `Mengangkat ${dragSubject(active.id)} dari urutan ${positionOf(active.id)}.`,
+    onDragOver: ({ active, over }) =>
+      over
+        ? `${dragSubject(active.id)} di urutan ${positionOf(over.id)}.`
+        : `${dragSubject(active.id)} di luar daftar.`,
+    onDragEnd: ({ active, over }) =>
+      over
+        ? `${dragSubject(active.id)} dilepas di urutan ${positionOf(over.id)}.`
+        : 'Dilepas di luar daftar; urutan tidak berubah.',
+    onDragCancel: () => 'Pemindahan dibatalkan.',
+  };
+
+  const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setDragId(null);
+    if (!over || active.id === over.id) return;
+    const activeId = String(active.id);
+    const next = dropBlock(order, pickedRanked, activeId, String(over.id));
+    if (next.every((id, index) => id === order[index])) return;
+    update(next);
+    const count = blockSize(activeId);
+    announce(
+      count > 1
+        ? `${count} orang dipindah mulai urutan ${next.indexOf(pickedRanked[0]!) + 1}.`
+        : `${labelOf(activeId)} dipindah ke urutan ${next.indexOf(activeId) + 1}.`,
+    );
+  };
+
+  const fillFromFirstChoice = () => {
+    const added = fillCandidates.map((row) => row.applicationId);
+    update([...order, ...added]);
+    setConfirmFill(false);
+    announce(`${added.length} pendaftar pilihan 1 ditambahkan ke urutan.`);
+  };
 
   const reload = () => {
     setLocal(null);
@@ -438,7 +557,7 @@ export function PriorityBoard({
       .indexOf(id);
     if (rankedAt >= 0)
       return { section: 'ranked' as const, page: pageOf(rankedAt, pageSize) };
-    const unrankedAt = data.rows
+    const unrankedAt = sortedRows
       .filter(
         (row) => !row.blocked && !inNext.has(row.applicationId) && shows(row),
       )
@@ -490,16 +609,29 @@ export function PriorityBoard({
     }
   };
 
-  const renderRow = (row: Row, isRanked: boolean) => {
+  const renderRow = (row: Row, isRanked: boolean, sortable?: SortableBits) => {
     const position = isRanked ? order.indexOf(row.applicationId) + 1 : null;
     const name = row.name ?? row.code;
+    const inBlock =
+      dragBlock?.has(row.applicationId) === true &&
+      dragId !== row.applicationId;
     return (
       <TableRow
         key={row.applicationId}
         ref={(element) => {
+          sortable?.setNodeRef(element);
           if (element) rowRefs.current.set(row.applicationId, element);
           else rowRefs.current.delete(row.applicationId);
         }}
+        style={
+          sortable
+            ? {
+                transform: CSS.Translate.toString(sortable.transform),
+                transition: sortable.transition,
+              }
+            : undefined
+        }
+        data-dragging={sortable?.isDragging ? '' : undefined}
         tabIndex={0}
         aria-label={
           position ? `${name}, urutan ${position}` : `${name}, belum diurutkan`
@@ -512,7 +644,9 @@ export function PriorityBoard({
             return;
           setOpenRow(row);
         }}
-        className="cursor-pointer align-top hover:bg-neutral-100 focus-visible:bg-primary-100 focus-visible:outline-none"
+        className={`relative cursor-pointer align-top hover:bg-neutral-100 focus-visible:bg-primary-100 focus-visible:outline-none data-[dragging]:z-10 data-[dragging]:bg-primary-100 data-[dragging]:opacity-60 ${
+          inBlock ? 'opacity-40' : ''
+        }`}
       >
         {canEdit ? (
           <TableCell className="w-10">
@@ -537,31 +671,51 @@ export function PriorityBoard({
           {row.blocked ? (
             <span className="text-sm text-neutral-500">—</span>
           ) : (
-            <PositionInput
-              value={position}
-              disabled={!canEdit}
-              label={`Urutan ${name}`}
-              onCommit={(target) => {
-                const next =
-                  target === null
-                    ? remove(order, row.applicationId)
-                    : moveTo(order, row.applicationId, target);
-                update(next);
-                const place = placeOf(row.applicationId, next);
-                const position = next.indexOf(row.applicationId) + 1;
-                if (
-                  place?.section === 'ranked' &&
-                  place.page !== rankedPage.page
-                ) {
-                  setMoved({ name, position, page: place.page });
-                  announce(
-                    `${name} dipindah ke urutan ${position}, halaman ${place.page}.`,
-                  );
-                } else {
-                  setMoved(null);
-                }
-              }}
-            />
+            <div className="flex items-center gap-1">
+              {sortable ? (
+                <button
+                  type="button"
+                  ref={sortable.setActivatorNodeRef}
+                  aria-label={`Seret ${name} untuk memindah urutan`}
+                  disabled={reorderDisabled}
+                  title={
+                    searching
+                      ? 'Matikan saringan untuk menyeret.'
+                      : 'Seret untuk memindah. Baris yang dicentang ikut pindah.'
+                  }
+                  {...sortable.attributes}
+                  {...sortable.listeners}
+                  className={`${iconButton} -ml-1 w-6 cursor-grab touch-none active:cursor-grabbing`}
+                >
+                  <GripVertical className="size-4" />
+                </button>
+              ) : null}
+              <PositionInput
+                value={position}
+                disabled={!canEdit}
+                label={`Urutan ${name}`}
+                onCommit={(target) => {
+                  const next =
+                    target === null
+                      ? remove(order, row.applicationId)
+                      : moveTo(order, row.applicationId, target);
+                  update(next);
+                  const place = placeOf(row.applicationId, next);
+                  const position = next.indexOf(row.applicationId) + 1;
+                  if (
+                    place?.section === 'ranked' &&
+                    place.page !== rankedPage.page
+                  ) {
+                    setMoved({ name, position, page: place.page });
+                    announce(
+                      `${name} dipindah ke urutan ${position}, halaman ${place.page}.`,
+                    );
+                  } else {
+                    setMoved(null);
+                  }
+                }}
+              />
+            </div>
           )}
         </TableCell>
         <TableCell>
@@ -595,6 +749,9 @@ export function PriorityBoard({
               Memilih: {row.choices.map((choice) => choice.label).join(', ')}
             </span>
           ) : null}
+          <span className="mt-1 block text-xs text-neutral-700">
+            Dikirim {when(row.submittedAt)}
+          </span>
         </TableCell>
         {showStatus ? (
           <TableCell>
@@ -691,7 +848,7 @@ export function PriorityBoard({
             />
           </TableHead>
         ) : null}
-        <TableHead className="w-20">Urutan</TableHead>
+        <TableHead className="w-24">Urutan</TableHead>
         <TableHead className="min-w-48">Pendaftar</TableHead>
         <TableHead className="min-w-40">Pilihan</TableHead>
         {showStatus ? (
@@ -761,6 +918,23 @@ export function PriorityBoard({
               <ListOrdered /> Isi urutan dari nilai
             </Button>
           ) : null}
+          {canEdit && quota > 0 ? (
+            <Button
+              size="sm"
+              variant="dark_blue_outline"
+              disabled={fillCandidates.length === 0}
+              title={
+                fillCandidates.length === 0
+                  ? ranked.length >= quota
+                    ? 'Urutan sudah mencapai kuota.'
+                    : 'Tidak ada pendaftar pilihan 1 yang belum diurutkan.'
+                  : undefined
+              }
+              onClick={() => setConfirmFill(true)}
+            >
+              <ListPlus /> Isi kuota dari pilihan 1
+            </Button>
+          ) : null}
           {locked ? (
             data.method === 'prioritas' && data.state === 'berjalan' ? (
               <Button
@@ -805,6 +979,13 @@ export function PriorityBoard({
             Ketik angka di kolom Urutan lalu Enter untuk memindah orang ke
             urutan itu; kosongkan untuk mengeluarkannya. Orang di luar urutan
             tidak diterima divisi ini.
+          </li>
+          <li>
+            Seret pegangan{' '}
+            <GripVertical aria-hidden className="inline size-3.5" /> untuk
+            memindah. Centang beberapa orang lalu seret salah satunya: semuanya
+            pindah sebagai satu blok, urutan di antara mereka tetap. Pegangan
+            juga bisa dipakai dengan keyboard (Spasi, panah, Spasi).
           </li>
           <li>
             Di baris yang terpilih: PgUp/PgDn naik-turun 1 (Shift: 10), Home/End
@@ -868,7 +1049,23 @@ export function PriorityBoard({
         ) : (
           <span />
         )}
-        <PageSizeSelect value={pageSize} onChange={onPageSize} />
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 whitespace-nowrap text-sm text-neutral-700">
+            Urutkan yang belum diurutkan
+            <select
+              value={submitSort}
+              onChange={(event) =>
+                setSubmitSort(event.target.value as SubmitSort)
+              }
+              className={`${selectClass} h-8 w-auto pr-8`}
+            >
+              <option value="bawaan">Pilihan, lalu nama</option>
+              <option value="kirim_awal">Dikirim paling awal</option>
+              <option value="kirim_akhir">Dikirim paling akhir</option>
+            </select>
+          </label>
+          <PageSizeSelect value={pageSize} onChange={onPageSize} />
+        </div>
       </div>
       {searching ? (
         <p className="text-xs text-neutral-700">
@@ -935,45 +1132,78 @@ export function PriorityBoard({
 
       <div>
         <div className="overflow-x-auto rounded-[24px] border border-neutral-400 bg-neutral-50">
-          <Table>
-            {header}
-            <TableBody>
-              {shownRanked.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
-                    className="text-sm text-neutral-700"
-                  >
-                    {searching
-                      ? 'Tidak ada yang cocok di urutan.'
-                      : 'Belum ada yang diurutkan. Mulai dari daftar di bawah.'}
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rankedPage.rows.flatMap((row, index) => {
-                  const out = [renderRow(row, true)];
-                  if (
-                    cutLineAfter !== null &&
-                    rankedStart + index + 1 === cutLineAfter
-                  ) {
-                    out.push(
-                      <TableRow key="batas-kuota" aria-hidden>
-                        <TableCell
-                          colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
-                          className="border-y-2 border-dashed border-warning-dark bg-warning-light py-1.5 text-xs font-semibold text-neutral-1000"
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            accessibility={{ announcements, screenReaderInstructions }}
+            onDragStart={({ active }) => setDragId(String(active.id))}
+            onDragCancel={() => setDragId(null)}
+            onDragEnd={onDragEnd}
+          >
+            <SortableContext
+              items={rankedPage.rows.map((row) => row.applicationId)}
+              strategy={verticalListSortingStrategy}
+            >
+              <Table>
+                {header}
+                <TableBody>
+                  {shownRanked.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
+                        className="text-sm text-neutral-700"
+                      >
+                        {searching
+                          ? 'Tidak ada yang cocok di urutan.'
+                          : 'Belum ada yang diurutkan. Mulai dari daftar di bawah.'}
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rankedPage.rows.flatMap((row, index) => {
+                      const out = [
+                        <Sortable
+                          key={row.applicationId}
+                          id={row.applicationId}
+                          disabled={reorderDisabled}
                         >
-                          Batas kuota ({quota}). Yang di bawah garis masih bisa
-                          masuk bila orang di atasnya diterima di pilihan yang
-                          lebih tinggi.
-                        </TableCell>
-                      </TableRow>,
-                    );
-                  }
-                  return out;
-                })
-              )}
-            </TableBody>
-          </Table>
+                          {(sortable) => renderRow(row, true, sortable)}
+                        </Sortable>,
+                      ];
+                      if (
+                        cutLineAfter !== null &&
+                        rankedStart + index + 1 === cutLineAfter
+                      ) {
+                        out.push(
+                          <TableRow key="batas-kuota" aria-hidden>
+                            <TableCell
+                              colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
+                              className="border-y-2 border-dashed border-warning-dark bg-warning-light py-1.5 text-xs font-semibold text-neutral-1000"
+                            >
+                              Batas kuota ({quota}). Yang di bawah garis masih
+                              bisa masuk bila orang di atasnya diterima di
+                              pilihan yang lebih tinggi.
+                            </TableCell>
+                          </TableRow>,
+                        );
+                      }
+                      return out;
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </SortableContext>
+            <DragOverlay dropAnimation={null}>
+              {dragId ? (
+                <div className="flex items-center gap-2 rounded-xl border border-primary-400 bg-neutral-50 px-3 py-2 text-sm font-semibold text-neutral-1000 shadow-lg">
+                  <GripVertical
+                    aria-hidden
+                    className="size-4 text-neutral-700"
+                  />
+                  {dragSubject(dragId)}
+                </div>
+              ) : null}
+            </DragOverlay>
+          </DndContext>
         </div>
         <Pager
           label="urutan"
@@ -1064,6 +1294,47 @@ export function PriorityBoard({
         <p className="text-sm text-neutral-700">
           {order.length} orang sudah diurutkan saat ini.
         </p>
+      </Modal>
+
+      <Modal
+        open={confirmFill}
+        onOpenChange={setConfirmFill}
+        title="Isi kuota dari pilihan 1?"
+        description="Pendaftar yang memilih divisi ini sebagai pilihan 1 dan belum diurutkan ditambahkan ke akhir urutan, dari yang paling awal mengirim, sampai kuota terisi. Nilai dan keterangan penilai tidak dipertimbangkan, dan urutan yang sudah ada tidak diubah."
+        wide
+        footer={
+          <>
+            <Button
+              variant="dark_blue_outline"
+              onClick={() => setConfirmFill(false)}
+            >
+              Batal
+            </Button>
+            <Button variant="dark_blue" onClick={fillFromFirstChoice}>
+              Tambahkan {fillCandidates.length} orang
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm text-neutral-700">
+          Kuota {quota} · {ranked.length} sudah diurutkan · sisa{' '}
+          {Math.max(quota - ranked.length, 0)}.
+        </p>
+        <ol
+          start={ranked.length + 1}
+          aria-label="Pratinjau tambahan urutan"
+          className="mt-3 grid list-decimal gap-1 pl-8 text-sm text-neutral-1000"
+        >
+          {fillCandidates.map((row) => (
+            <li key={row.applicationId}>
+              <span className="font-semibold">{row.name ?? row.code}</span>
+              <span className="text-neutral-700">
+                {' '}
+                · dikirim {when(row.submittedAt)}
+              </span>
+            </li>
+          ))}
+        </ol>
       </Modal>
 
       <PriorityAnswersSheet
