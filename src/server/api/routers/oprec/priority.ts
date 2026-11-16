@@ -110,6 +110,8 @@ type PoolApp = Omit<PoolApplication, 'choices'> & {
   nim: number | null;
   prodi: string | null;
   angkatan: number | null;
+  /** Waktu kirim formulir; closerec/data lama memakai waktu dibuat. */
+  submittedAt: Date;
   choices: (PoolChoice & { score: number | null })[];
 };
 
@@ -159,6 +161,8 @@ async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
           nim: mahasiswa.nim,
           prodi: mahasiswa.jurusan,
           angkatan: mahasiswa.angkatan,
+          submittedAt: application.submittedAt,
+          createdAt: application.created_at,
         })
         .from(application)
         .innerJoin(users, eq(users.id, application.userId))
@@ -247,8 +251,9 @@ async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
         lockedByName: lock?.lockedByName ?? null,
       };
     }),
-    apps: appRows.map((row) => ({
+    apps: appRows.map(({ createdAt, ...row }) => ({
       ...row,
+      submittedAt: row.submittedAt ?? createdAt,
       choices: choicesOf.get(row.id) ?? [],
     })),
     priorities: priorityRows,
@@ -674,6 +679,7 @@ export const priorityProcedures = {
             choiceRank: c.kind === 'pilihan' ? c.choiceRank : null,
             blocked: c.blocked,
             willingToMove: app.willingToMove,
+            submittedAt: app.submittedAt,
             status: here?.status ?? null,
             score: here?.score ?? null,
             choices: own.map((x) => ({
