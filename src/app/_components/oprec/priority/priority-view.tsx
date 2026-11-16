@@ -7,9 +7,9 @@ import { api } from '~/trpc/react';
 
 import { ErrorNote, Loading, Modal, Notice } from '../placement/shared';
 import { StateBar } from '../placement/state-bar';
+import { PriorityImport } from './import-dialog';
 import { MatchingPanel } from './matching-panel';
 import { DivisionPicker } from './division-picker';
-import { PriorityImport } from './import-dialog';
 import { DEFAULT_PAGE_SIZE } from './pager';
 import { PriorityBoard } from './priority-board';
 
