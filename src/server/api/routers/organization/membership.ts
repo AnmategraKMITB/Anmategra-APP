@@ -13,6 +13,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { placementReleased } from '../../oprec-release';
 import { isListedAsKegiatan } from '../../period-listing';
 import {
   DEFAULT_POSITION_TITLE,
@@ -40,8 +41,14 @@ const rankOrder = sql`coalesce(
  * Anggota sebuah periode: satu baris per orang, memakai penempatan utamanya
  * (rank tertinggi, lalu urutan bagian dan jabatan). Pengganti `keanggotaan`:
  * kolom `division`, `position`, `index` bentuknya sama dengan kolom lama.
+ * Penempatan oprec yang hasilnya belum dirilis tidak ikut kecuali
+ * `includeUnreleased`.
  */
-export function periodMembersSq(db: Db, periodId: string) {
+export function periodMembersSq(
+  db: Db,
+  periodId: string,
+  { includeUnreleased = false }: { includeUnreleased?: boolean } = {},
+) {
   return db
     .selectDistinctOn([placement.userId], {
       userId: placement.userId,
@@ -67,6 +74,7 @@ export function periodMembersSq(db: Db, periodId: string) {
         eq(organizationStructure.is_active, true),
       ),
     )
+    .where(includeUnreleased ? undefined : placementReleased)
     .orderBy(
       placement.userId,
       rankOrder,
@@ -416,7 +424,7 @@ export async function periodHasMembers(
   db: Db,
   periodId: string,
 ): Promise<boolean> {
-  const members = periodMembersSq(db, periodId);
+  const members = periodMembersSq(db, periodId, { includeUnreleased: true });
   const [row] = await db
     .select({ userId: members.userId })
     .from(members)
@@ -528,7 +536,7 @@ async function userPlacementRows(db: Db, userId: string) {
       ),
     )
     .innerJoin(events, eq(events.id, organizationStructure.eventId))
-    .where(eq(placement.userId, userId))
+    .where(and(eq(placement.userId, userId), placementReleased))
     .orderBy(
       events.id,
       rankOrder,
