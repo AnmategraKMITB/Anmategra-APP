@@ -21,8 +21,17 @@ const PUBLIC_ROUTES = [
   '/404',
 ];
 // Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
-// semua role, jadi tidak dialihkan ke `/<role>/manual`.
-const PUBLIC_SHARED_ROUTES = ['/manual'];
+// semua role, jadi tidak dialihkan ke `/<role>/...`.
+// Halaman legal (`/privasi`, `/privacy`, `/ketentuan`, `/terms`) wajib terbuka
+// tanpa sesi: ditautkan dari footer, dan versi privasinya diperiksa peninjau
+// verifikasi OAuth Google.
+const PUBLIC_SHARED_ROUTES = [
+  '/manual',
+  '/privasi',
+  '/privacy',
+  '/ketentuan',
+  '/terms',
+];
 // Purwarupa internal: middleware hanya melewatkan. Gerbangnya ada di
 // src/app/prototype/layout.tsx (superadmin/operator atau kata sandi statis);
 // operator butuh DB sehingga tidak bisa diperiksa di middleware edge.
