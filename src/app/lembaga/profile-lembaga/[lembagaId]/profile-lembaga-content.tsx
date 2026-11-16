@@ -6,6 +6,7 @@ import Link from 'next/link';
 // Asset Import
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import { useState } from 'react';
+import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
@@ -192,6 +193,10 @@ export default function ProfileLembagaContent({
           kegiatanLembagaId={lembagaId}
           raporVisible={lembagaData?.raporVisible ?? false}
           isKegiatan={false}
+        />
+        <KelolaAdminButton
+          href={`/lembaga/profile-lembaga/${lembagaId}/kelola-admin`}
+          lembagaId={lembagaId}
         />
       </div>
     </div>
