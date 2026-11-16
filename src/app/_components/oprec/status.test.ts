@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
-import { canOpenRegistration, placementLockReason, waveTitle } from './status';
+import {
+  canOpenRegistration,
+  placementLockReason,
+  priorityPlacementLockReason,
+  waveTitle,
+} from './status';
 
 describe('canOpenRegistration (H-02)', () => {
   it('hanya untuk oprec Draf', () => {
@@ -26,5 +31,16 @@ describe('placementLockReason (#381)', () => {
   it('terbuka bila ada pendaftar atau sudah ditutup', () => {
     expect(placementLockReason('draft', 1)).toBeNull();
     expect(placementLockReason('closed', 0)).toBeNull();
+  });
+});
+
+describe('priorityPlacementLockReason', () => {
+  it('terkunci hanya pada metode prioritas yang masih berjalan', () => {
+    expect(priorityPlacementLockReason('prioritas', 'berjalan')).toContain(
+      'tab Prioritas',
+    );
+    expect(priorityPlacementLockReason('prioritas', 'masa_banding')).toBeNull();
+    expect(priorityPlacementLockReason('prioritas', 'final')).toBeNull();
+    expect(priorityPlacementLockReason('manual', 'berjalan')).toBeNull();
   });
 });

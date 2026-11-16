@@ -6,8 +6,10 @@ import { Button } from '~/components/ui/button';
 import { api } from '~/trpc/react';
 
 import { ErrorNote, Loading, Modal, Notice } from '../placement/shared';
+import { StateBar } from '../placement/state-bar';
 import { MatchingPanel } from './matching-panel';
 import { DivisionPicker } from './division-picker';
+import { DEFAULT_PAGE_SIZE } from './pager';
 import { PriorityBoard } from './priority-board';
 
 /** Layar Prioritas: daftar prioritas per divisi dan penempatan otomatis. */
@@ -27,15 +29,27 @@ export function PriorityView({
     { recruitmentId },
     { retry: false },
   );
+  // Keadaan penempatan diubah di sini selama metode prioritas, karena
+  // Penempatan terkunci sampai masa banding.
+  const placement = api.oprec.placementOverview.useQuery(
+    { recruitmentId },
+    {
+      retry: false,
+      enabled: overview.data?.isAdmin === true && overview.data.method === 'prioritas',
+    },
+  );
   const setMethod = api.oprec.prioritySetMethod.useMutation();
   const [picked, setPicked] = useState('');
   const [announcement, setAnnouncement] = useState('');
   const [error, setError] = useState('');
   const [confirmOn, setConfirmOn] = useState(false);
+  // Di sini, bukan di papan, supaya tetap sama saat berganti divisi.
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   const refresh = useCallback(() => {
     void utils.oprec.priorityOverview.invalidate({ recruitmentId });
     void utils.oprec.matchingPreview.invalidate({ recruitmentId });
+    void utils.oprec.placementOverview.invalidate({ recruitmentId });
   }, [utils, recruitmentId]);
   const announce = useCallback((message: string) => {
     setError('');
@@ -144,6 +158,16 @@ export function PriorityView({
         </div>
       ) : (
         <>
+          {data.isAdmin && placement.data ? (
+            <StateBar
+              recruitmentId={recruitmentId}
+              overview={placement.data}
+              onChanged={refresh}
+              announce={announce}
+              onError={setError}
+            />
+          ) : null}
+
           {data.isAdmin ? (
             <MatchingPanel
               recruitmentId={recruitmentId}
@@ -182,6 +206,8 @@ export function PriorityView({
                 recruitmentId={recruitmentId}
                 divisionId={active.id}
                 registrationEnded={data.registrationEnded}
+                pageSize={pageSize}
+                onPageSize={setPageSize}
                 onChanged={refresh}
                 announce={announce}
                 onError={setError}

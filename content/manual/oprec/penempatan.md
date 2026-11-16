@@ -63,6 +63,19 @@ dan 3 seorang pendaftar berstatus **menunggu pilihan sebelumnya** sampai
 pilihan di atasnya diputuskan. Pendaftar yang sudah diterima di satu divisi
 ditandai **sudah diterima di pilihan lain** pada divisi berikutnya.
 
+### Jika memakai metode prioritas
+
+Pada metode **Prioritas**, keputusan terima atau tolak tidak dibuat di sini
+selama penempatan **Berjalan**. Tiap divisi mengurutkan pendaftar di bagian
+**Prioritas**, lalu pengelola menerapkan penempatan dari sana.
+
+- Bagian **Penempatan** terkunci bagi ketua divisi sampai masa banding.
+- Pengelola masih bisa membuka **Penempatan**, tetapi hanya untuk **Closerec**
+  dan **Visibilitas antar divisi**.
+- Tombol **Masuk masa banding** ada di bagian **Prioritas**. Setelah masa
+  banding dimulai, **Penempatan** terbuka seperti biasa untuk banding,
+  permintaan pindah, dan penetapan final.
+
 ## Keadaan penempatan
 
 Penempatan bergerak melalui tiga keadaan:

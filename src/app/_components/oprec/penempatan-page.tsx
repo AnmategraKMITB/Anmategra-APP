@@ -7,7 +7,11 @@ import { api } from '~/trpc/server';
 import { canOpenResults, loadAssessableOprec } from './access';
 import { OprecTabs } from './oprec-tabs';
 import { PlacementView } from './placement-view';
-import { type OprecBase, placementLockReason } from './status';
+import {
+  type OprecBase,
+  placementLockReason,
+  priorityPlacementLockReason,
+} from './status';
 
 /** Halaman Penempatan satu oprec; admin dan Kadiv (Kadiv lewat jalur mahasiswa). */
 export async function PenempatanPage({
@@ -35,6 +39,16 @@ export async function PenempatanPage({
         ? `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/pendaftar`
         : `${basePath}/kegiatan/${kegiatanId}/oprec`,
     );
+  if (
+    !isAdmin &&
+    priorityPlacementLockReason(
+      found.recruitment.placementMethod,
+      found.recruitment.placementState,
+    )
+  )
+    redirect(
+      `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/prioritas`,
+    );
 
   const event = await api.event.getByID({ id: kegiatanId });
   const showHasil = await canOpenResults(recruitmentId);
@@ -46,6 +60,7 @@ export async function PenempatanPage({
       backHref={
         isAdmin ? `${basePath}/kegiatan/${kegiatanId}/oprec` : undefined
       }
+      prioritasHref={`${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/prioritas`}
       tabs={
         <OprecTabs
           basePath={basePath}
