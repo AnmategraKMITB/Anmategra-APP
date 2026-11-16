@@ -1,6 +1,5 @@
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { and, eq } from 'drizzle-orm';
-import { cache } from 'react';
 import {
   type DefaultSession,
   type NextAuthOptions,
@@ -11,7 +10,17 @@ import type { DefaultJWT } from 'next-auth/jwt';
 import AzureADProvider from 'next-auth/providers/azure-ad';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import Google from 'next-auth/providers/google';
+import { cache } from 'react';
 import { env } from '~/env';
+import {
+  fetchProxyAddresses,
+  linkTpbFromMicrosoft,
+} from '~/server/akun/gabung-akun';
+import {
+  resolveAltAccess,
+  revokeAltClaimsForUser,
+  verifyClaimSecret,
+} from '~/server/alt-login';
 import { db } from '~/server/db';
 import {
   accounts,
@@ -22,11 +31,6 @@ import {
   verificationTokens,
   verifiedUsers,
 } from '~/server/db/schema';
-import {
-  resolveAltAccess,
-  revokeAltClaimsForUser,
-  verifyClaimSecret,
-} from '~/server/alt-login';
 import { insertMahasiswa, profileFromNim } from '~/server/mahasiswa-record';
 
 import {
@@ -155,6 +159,21 @@ export const authOptions: NextAuthOptions = {
           if (!existingMahasiswa) {
             // Only insert if not added manually
             await insertMahasiswa(user.id, parseInt(nim!), jurusan, angkatan);
+          }
+
+          // Akun placeholder ber-NIM TPB (dari impor) milik orang ini ikut
+          // digabung, beserta jabatan dan keanggotaannya.
+          // Kegagalan tidak boleh menghalangi login.
+          try {
+            // Alias email TPB lama dari Microsoft Graph menautkan akun ini ke
+            // placeholder TPB-nya; tanpa token atau alias, pakai nim_tpb saja.
+            const aliases = account.access_token
+              ? await fetchProxyAddresses(account.access_token)
+              : null;
+            const merged = await linkTpbFromMicrosoft(db, user.id, aliases);
+            if (merged) console.info('[akun] placeholder TPB digabung', merged);
+          } catch (error) {
+            console.error('[akun] gagal menggabung placeholder TPB', error);
           }
 
           // Pemilik asli berhasil masuk lewat Microsoft: akses alternatif apa
@@ -415,6 +434,9 @@ export const authOptions: NextAuthOptions = {
       // Pakai endpoint directory ITB, bukan /common, supaya hanya token dari
       // tenant ITB yang lolos validasi issuer.
       tenantId: env.AZURE_AD_TENANT_ID,
+      // User.Read: membaca alias email (proxyAddresses) akun sendiri untuk
+      // menautkan akun TPB lama setelah penjurusan.
+      authorization: { params: { scope: 'openid profile email User.Read' } },
 
       profile: (profile: AzureADProfile) => {
         return {

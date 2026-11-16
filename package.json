@@ -32,6 +32,7 @@
     "lint:prune": "eslint . --prune-suppressions",
     "typecheck": "tsc --noEmit",
     "seed:oprec-mock": "vitest run --config scripts/oprec/vitest.seed.config.ts",
+    "akun:gabung-tpb": "tsx scripts/akun/gabung-akun-tpb.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "start": "next start",
