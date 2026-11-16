@@ -77,3 +77,16 @@ export const placementLockReason = (
   status === 'closed' || applicantCount > 0
     ? null
     : 'Terkunci sampai pendaftaran ditutup atau ada minimal satu pendaftar.';
+
+/**
+ * Metode prioritas selama penempatan berjalan: keputusan diisi dari tab
+ * Prioritas, jadi Penempatan terkunci kecuali closerec dan visibilitas antar
+ * divisi untuk pengelola. Mengembalikan alasan, atau null bila terbuka.
+ */
+export const priorityPlacementLockReason = (
+  method: 'manual' | 'prioritas',
+  state: 'berjalan' | 'masa_banding' | 'final',
+) =>
+  method === 'prioritas' && state === 'berjalan'
+    ? 'Selama penempatan berjalan, keputusan diisi lewat tab Prioritas. Terbuka lagi saat masa banding.'
+    : null;

@@ -37,11 +37,14 @@ export function PlacementView({
   recruitmentId,
   periodName,
   backHref,
+  prioritasHref,
   tabs,
 }: {
   recruitmentId: string;
   periodName: string;
   backHref?: string;
+  /** Tautan tab Prioritas, untuk catatan saat penempatan prioritas berjalan. */
+  prioritasHref?: string;
   tabs?: React.ReactNode;
 }) {
   const utils = api.useUtils();
@@ -104,7 +107,8 @@ export function PlacementView({
   const isAdmin = overview.data?.isAdmin ?? false;
   const state = overview.data?.state ?? 'berjalan';
   const isFinal = state === 'final';
-  // Mode prioritas: selama berjalan, keputusan diisi lewat tab Prioritas.
+  // Mode prioritas: selama berjalan, keputusan dan keadaan diatur lewat tab
+  // Prioritas; di sini tinggal closerec dan visibilitas.
   const manualLocked =
     overview.data?.method === 'prioritas' && state === 'berjalan';
 
@@ -282,6 +286,28 @@ export function PlacementView({
         <Loading label="Memuat penempatan…" />
       ) : (
         <>
+          {manualLocked ? (
+            <div className="mt-6">
+              <Notice>
+                Oprec ini memakai penempatan prioritas. Selama penempatan
+                berjalan, keputusan terima/tolak diisi otomatis dari daftar
+                prioritas tiap divisi, dan keadaan penempatan diubah di{' '}
+                {prioritasHref ? (
+                  <Link
+                    href={prioritasHref}
+                    className="font-semibold text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                  >
+                    tab Prioritas
+                  </Link>
+                ) : (
+                  'tab Prioritas'
+                )}
+                . Halaman ini terbuka lagi saat masa banding; sekarang yang
+                bisa diatur hanya closerec dan visibilitas antar divisi.
+              </Notice>
+            </div>
+          ) : (
+          <>
           <StateBar
             recruitmentId={recruitmentId}
             overview={overview.data}
@@ -323,28 +349,15 @@ export function PlacementView({
                     );
                   })}
                 </nav>
-                {manualLocked ? null : (
-                  <Button
-                    size="sm"
-                    variant="dark_blue_outline"
-                    disabled={isFinal}
-                    onClick={() => setAutofillOpen(true)}
-                  >
-                    <Sparkles /> Isi dari penilaian
-                  </Button>
-                )}
+                <Button
+                  size="sm"
+                  variant="dark_blue_outline"
+                  disabled={isFinal}
+                  onClick={() => setAutofillOpen(true)}
+                >
+                  <Sparkles /> Isi dari penilaian
+                </Button>
               </div>
-
-              {manualLocked ? (
-                <div className="mt-4">
-                  <Notice>
-                    Oprec ini memakai penempatan prioritas. Selama penempatan
-                    berjalan, keputusan terima/tolak diisi otomatis dari daftar
-                    prioritas tiap divisi lewat tab Prioritas. Setelah masuk
-                    masa banding, banding dan pindah bisa dilakukan di sini.
-                  </Notice>
-                </div>
-              ) : null}
 
               <div className="mt-4 grid gap-2 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-3">
                 <div>
@@ -464,7 +477,6 @@ export function PlacementView({
                     }}
                     state={state}
                     isAdmin={isAdmin}
-                    manualLocked={manualLocked}
                     page={page}
                     onPage={(next) => setPageState({ key: filterKey, page: next })}
                     loading={rows.isFetching}
@@ -510,8 +522,13 @@ export function PlacementView({
             </section>
           ) : null}
 
+          </>
+          )}
+
           {isAdmin ? (
-            <details className="mt-8 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
+            <details
+              open={manualLocked}
+              className="mt-8 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
               <summary className="cursor-pointer text-lg font-semibold text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
                 Closerec
               </summary>
@@ -529,7 +546,10 @@ export function PlacementView({
           ) : null}
 
           {isAdmin ? (
-            <details className="mt-4 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
+            <details
+              open={manualLocked}
+              className="mt-4 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4"
+            >
               <summary className="cursor-pointer text-lg font-semibold text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
                 Visibilitas antar divisi
               </summary>

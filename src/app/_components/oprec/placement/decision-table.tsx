@@ -56,15 +56,12 @@ export function DecisionTable({
   onAppeal,
   onMove,
   onRequestTransfer,
-  manualLocked = false,
 }: {
   recruitmentId: string;
   data: Rows;
   division: Division;
   state: State;
   isAdmin: boolean;
-  /** Mode prioritas saat berjalan: keputusan hanya dari penempatan otomatis. */
-  manualLocked?: boolean;
   page: number;
   onPage: (page: number) => void;
   loading: boolean;
@@ -101,7 +98,6 @@ export function DecisionTable({
               );
               if (!target) return null;
               const canDecide =
-                !manualLocked &&
                 state === 'berjalan' &&
                 target.origin !== 'closerec' &&
                 target.stage === 'aktif';
@@ -110,7 +106,6 @@ export function DecisionTable({
                 (target.decision === 'tolak' ||
                   target.stageReason === 'tidak_lolos');
               const canMove =
-                !manualLocked &&
                 isAdmin &&
                 accepted !== undefined &&
                 state !== 'final';

@@ -34,6 +34,7 @@ import {
 } from '../placement/shared';
 import { PriorityAnswersSheet } from './answers-sheet';
 import { moveTo, parsePosition, remove, shift } from './order';
+import { PageSizeSelect, Pager, pageCount, pageOf, pageSlice } from './pager';
 
 type Board = RouterOutputs['oprec']['priorityBoard'];
 type Row = Board['rows'][number];
@@ -41,6 +42,8 @@ type Row = Board['rows'][number];
 /** Urutan yang sedang disunting; `base` = versi server tempat ia berpijak. */
 type Local = { base: number; order: string[]; dirty: boolean };
 type SaveState = 'idle' | 'saving' | 'saved' | 'conflict' | 'error';
+type Section = 'ranked' | 'unranked' | 'blocked';
+type Pages = Record<Section, number> & { key: string };
 
 const SAVE_DELAY_MS = 700;
 
@@ -170,6 +173,8 @@ export function PriorityBoard({
   recruitmentId,
   divisionId,
   registrationEnded,
+  pageSize,
+  onPageSize,
   onChanged,
   announce,
   onError,
@@ -177,6 +182,9 @@ export function PriorityBoard({
   recruitmentId: string;
   divisionId: string;
   registrationEnded: boolean;
+  /** Baris per halaman tiap tabel; 0 = semua. */
+  pageSize: number;
+  onPageSize: (size: number) => void;
   onChanged: () => void;
   announce: (message: string) => void;
   onError: (message: string) => void;
@@ -201,6 +209,19 @@ export function PriorityBoard({
   /** Baris yang dicentang untuk aksi massal (id pendaftar). */
   const [picked, setPicked] = useState<string[]>([]);
   const [confirmScore, setConfirmScore] = useState(false);
+  /** Halaman tiap tabel; kembali ke 1 bila saringan atau ukuran berubah. */
+  const [pageState, setPageState] = useState<Pages>({
+    key: '',
+    ranked: 1,
+    unranked: 1,
+    blocked: 1,
+  });
+  /** Baris yang pindah ke halaman lain lewat isian urutan. */
+  const [moved, setMoved] = useState<{
+    name: string;
+    position: number;
+    page: number;
+  } | null>(null);
   const rowRefs = useRef(new Map<string, HTMLTableRowElement>());
   /** Baris yang menerima fokus setelah urutan berikutnya dirender. */
   const pendingFocus = useRef<string | null>(null);
@@ -229,6 +250,16 @@ export function PriorityBoard({
       (rankFilter === 'dipindahkan'
         ? row.kind === 'dipindahkan'
         : row.kind === 'pilihan' && row.choiceRank === rankFilter));
+
+  const pageKey = JSON.stringify([query, rankFilter, pageSize]);
+  const pagesNow: Pages =
+    pageState.key === pageKey
+      ? pageState
+      : { key: pageKey, ranked: 1, unranked: 1, blocked: 1 };
+  const setPage = (section: Section, page: number) => {
+    setPageState({ ...pagesNow, [section]: page });
+    setMoved(null);
+  };
 
   const invalidateBoard = () =>
     void utils.oprec.priorityBoard.invalidate({ recruitmentId, divisionId });
@@ -295,7 +326,7 @@ export function PriorityBoard({
     if (!id) return;
     pendingFocus.current = null;
     rowRefs.current.get(id)?.focus();
-  }, [order]);
+  }, [order, pageState]);
 
   if (board.isError) return <ErrorNote message={board.error.message} />;
   if (!data) return <Loading label="Memuat daftar prioritas…" />;
@@ -310,7 +341,24 @@ export function PriorityBoard({
     (row) => !row.blocked && !ordered.has(row.applicationId),
   );
   const blocked = data.rows.filter((row) => row.blocked);
-  const visible = [...ranked, ...unranked, ...blocked].filter(shows);
+  const shownRanked = ranked.filter(shows);
+  const shownUnranked = unranked.filter(shows);
+  const shownBlocked = blocked.filter(shows);
+  const pageInfo = (section: Section, rows: Row[]) => {
+    const pages = pageCount(rows.length, pageSize);
+    const page = Math.min(pagesNow[section], pages);
+    return { page, pages, rows: pageSlice(rows, page, pageSize) };
+  };
+  const rankedPage = pageInfo('ranked', shownRanked);
+  const unrankedPage = pageInfo('unranked', shownUnranked);
+  const blockedPage = pageInfo('blocked', shownBlocked);
+  const rankedStart = pageSize === 0 ? 0 : (rankedPage.page - 1) * pageSize;
+  // Baris yang sedang dirender, untuk ↑/↓ dan centang "semua yang tampil".
+  const visible = [
+    ...rankedPage.rows,
+    ...unrankedPage.rows,
+    ...blockedPage.rows,
+  ];
   const pickedSet = new Set(picked);
   const selectableVisible = visible
     .filter((row) => !row.blocked)
@@ -379,6 +427,27 @@ export function PriorityBoard({
     );
   };
 
+  /** Halaman tempat baris `id` berada setelah urutan menjadi `next`. */
+  const placeOf = (id: string, next: string[]) => {
+    const inNext = new Set(next);
+    const rankedAt = next
+      .filter((item) => {
+        const row = rowById.get(item);
+        return row && !row.blocked && shows(row);
+      })
+      .indexOf(id);
+    if (rankedAt >= 0)
+      return { section: 'ranked' as const, page: pageOf(rankedAt, pageSize) };
+    const unrankedAt = data.rows
+      .filter(
+        (row) => !row.blocked && !inNext.has(row.applicationId) && shows(row),
+      )
+      .findIndex((row) => row.applicationId === id);
+    return unrankedAt >= 0
+      ? { section: 'unranked' as const, page: pageOf(unrankedAt, pageSize) }
+      : null;
+  };
+
   const onRowKey = (
     event: React.KeyboardEvent<HTMLTableRowElement>,
     row: Row,
@@ -413,6 +482,11 @@ export function PriorityBoard({
       event.preventDefault();
       pendingFocus.current = id;
       update(next);
+      // Fokus ikut pindah halaman bila baris keluar dari halaman ini.
+      const place = placeOf(id, next);
+      if (place && place.page !== pagesNow[place.section]) {
+        setPageState({ ...pagesNow, [place.section]: place.page });
+      }
     }
   };
 
@@ -467,12 +541,25 @@ export function PriorityBoard({
               value={position}
               disabled={!canEdit}
               label={`Urutan ${name}`}
-              onCommit={(next) => {
-                update(
-                  next === null
+              onCommit={(target) => {
+                const next =
+                  target === null
                     ? remove(order, row.applicationId)
-                    : moveTo(order, row.applicationId, next),
-                );
+                    : moveTo(order, row.applicationId, target);
+                update(next);
+                const place = placeOf(row.applicationId, next);
+                const position = next.indexOf(row.applicationId) + 1;
+                if (
+                  place?.section === 'ranked' &&
+                  place.page !== rankedPage.page
+                ) {
+                  setMoved({ name, position, page: place.page });
+                  announce(
+                    `${name} dipindah ke urutan ${position}, halaman ${place.page}.`,
+                  );
+                } else {
+                  setMoved(null);
+                }
               }}
             />
           )}
@@ -616,9 +703,6 @@ export function PriorityBoard({
     </TableHeader>
   );
 
-  const shownRanked = ranked.filter(shows);
-  const shownUnranked = unranked.filter(shows);
-  const shownBlocked = blocked.filter(shows);
   const cutLineAfter =
     quota > 0 && !searching && ranked.length > quota ? quota : null;
 
@@ -752,35 +836,40 @@ export function PriorityBoard({
           className={`${inputClass} pl-9`}
         />
       </div>
-      {rankOptions.length > 1 || hasMoved ? (
-        <div
-          role="group"
-          aria-label="Saring menurut pilihan"
-          className="flex flex-wrap gap-1"
-        >
-          {(
-            [
-              ['semua', 'Semua'],
-              ...rankOptions.map((n) => [n, `Pilihan ${n}`] as const),
-              ...(hasMoved ? [['dipindahkan', 'Dipindahkan'] as const] : []),
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={String(value)}
-              type="button"
-              aria-pressed={rankFilter === value}
-              onClick={() => setRankFilter(value)}
-              className={`rounded-full px-3 py-1 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
-                rankFilter === value
-                  ? 'bg-primary-200 text-primary-400'
-                  : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-      ) : null}
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        {rankOptions.length > 1 || hasMoved ? (
+          <div
+            role="group"
+            aria-label="Saring menurut pilihan"
+            className="flex flex-wrap gap-1"
+          >
+            {(
+              [
+                ['semua', 'Semua'],
+                ...rankOptions.map((n) => [n, `Pilihan ${n}`] as const),
+                ...(hasMoved ? [['dipindahkan', 'Dipindahkan'] as const] : []),
+              ] as const
+            ).map(([value, label]) => (
+              <button
+                key={String(value)}
+                type="button"
+                aria-pressed={rankFilter === value}
+                onClick={() => setRankFilter(value)}
+                className={`rounded-full px-3 py-1 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
+                  rankFilter === value
+                    ? 'bg-primary-200 text-primary-400'
+                    : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <span />
+        )}
+        <PageSizeSelect value={pageSize} onChange={onPageSize} />
+      </div>
       {searching ? (
         <p className="text-xs text-neutral-700">
           Saringan aktif: geser urutan dengan isian angka.
@@ -827,43 +916,73 @@ export function PriorityBoard({
         <Notice>Oprec ini tidak memakai penempatan prioritas.</Notice>
       ) : null}
 
-      <div className="overflow-x-auto rounded-[24px] border border-neutral-400 bg-neutral-50">
-        <Table>
-          {header}
-          <TableBody>
-            {shownRanked.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
-                  className="text-sm text-neutral-700"
-                >
-                  {searching
-                    ? 'Tidak ada yang cocok di urutan.'
-                    : 'Belum ada yang diurutkan. Mulai dari daftar di bawah.'}
-                </TableCell>
-              </TableRow>
-            ) : (
-              shownRanked.flatMap((row, index) => {
-                const out = [renderRow(row, true)];
-                if (cutLineAfter !== null && index + 1 === cutLineAfter) {
-                  out.push(
-                    <TableRow key="batas-kuota" aria-hidden>
-                      <TableCell
-                        colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
-                        className="border-y-2 border-dashed border-warning-dark bg-warning-light py-1.5 text-xs font-semibold text-neutral-1000"
-                      >
-                        Batas kuota ({quota}). Yang di bawah garis masih bisa
-                        masuk bila orang di atasnya diterima di pilihan yang
-                        lebih tinggi.
-                      </TableCell>
-                    </TableRow>,
-                  );
-                }
-                return out;
-              })
-            )}
-          </TableBody>
-        </Table>
+      {moved ? (
+        <p
+          role="status"
+          className="flex flex-wrap items-center gap-2 rounded-xl bg-primary-100 px-3 py-2 text-sm text-neutral-1000"
+        >
+          {moved.name} dipindah ke urutan {moved.position} (halaman {moved.page}
+          ).
+          <button
+            type="button"
+            onClick={() => setPage('ranked', moved.page)}
+            className="font-semibold text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          >
+            Lihat
+          </button>
+        </p>
+      ) : null}
+
+      <div>
+        <div className="overflow-x-auto rounded-[24px] border border-neutral-400 bg-neutral-50">
+          <Table>
+            {header}
+            <TableBody>
+              {shownRanked.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
+                    className="text-sm text-neutral-700"
+                  >
+                    {searching
+                      ? 'Tidak ada yang cocok di urutan.'
+                      : 'Belum ada yang diurutkan. Mulai dari daftar di bawah.'}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                rankedPage.rows.flatMap((row, index) => {
+                  const out = [renderRow(row, true)];
+                  if (
+                    cutLineAfter !== null &&
+                    rankedStart + index + 1 === cutLineAfter
+                  ) {
+                    out.push(
+                      <TableRow key="batas-kuota" aria-hidden>
+                        <TableCell
+                          colSpan={(showStatus ? 6 : 5) + (canEdit ? 1 : 0)}
+                          className="border-y-2 border-dashed border-warning-dark bg-warning-light py-1.5 text-xs font-semibold text-neutral-1000"
+                        >
+                          Batas kuota ({quota}). Yang di bawah garis masih bisa
+                          masuk bila orang di atasnya diterima di pilihan yang
+                          lebih tinggi.
+                        </TableCell>
+                      </TableRow>,
+                    );
+                  }
+                  return out;
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        <Pager
+          label="urutan"
+          page={rankedPage.page}
+          pages={rankedPage.pages}
+          total={shownRanked.length}
+          size={pageSize}
+          onPage={(page) => setPage('ranked', page)}
+        />
       </div>
 
       <div>
@@ -878,11 +997,19 @@ export function PriorityBoard({
             <Table>
               {header}
               <TableBody>
-                {shownUnranked.map((row) => renderRow(row, false))}
+                {unrankedPage.rows.map((row) => renderRow(row, false))}
               </TableBody>
             </Table>
           </div>
         ) : null}
+        <Pager
+          label="belum diurutkan"
+          page={unrankedPage.page}
+          pages={unrankedPage.pages}
+          total={shownUnranked.length}
+          size={pageSize}
+          onPage={(page) => setPage('unranked', page)}
+        />
       </div>
 
       {blocked.length > 0 ? (
@@ -899,11 +1026,19 @@ export function PriorityBoard({
               <Table>
                 {header}
                 <TableBody>
-                  {shownBlocked.map((row) => renderRow(row, false))}
+                  {blockedPage.rows.map((row) => renderRow(row, false))}
                 </TableBody>
               </Table>
             </div>
           ) : null}
+          <Pager
+            label="tidak bisa diurutkan"
+            page={blockedPage.page}
+            pages={blockedPage.pages}
+            total={shownBlocked.length}
+            size={pageSize}
+            onPage={(page) => setPage('blocked', page)}
+          />
         </div>
       ) : null}
 

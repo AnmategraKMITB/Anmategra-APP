@@ -5,7 +5,11 @@ import { db } from '~/server/db';
 import { application, recruitment } from '~/server/db/schema';
 
 import { OprecManageBar } from './manage-bar';
-import { type OprecBase, placementLockReason } from './status';
+import {
+  type OprecBase,
+  placementLockReason,
+  priorityPlacementLockReason,
+} from './status';
 
 const TABS = [
   ['pendaftar', 'Pendaftar'],
@@ -46,6 +50,7 @@ export async function OprecTabs({
     .select({
       status: recruitment.status,
       placementMethod: recruitment.placementMethod,
+      placementState: recruitment.placementState,
     })
     .from(recruitment)
     .where(eq(recruitment.id, recruitmentId));
@@ -65,7 +70,14 @@ export async function OprecTabs({
     .select({ n: count() })
     .from(application)
     .where(eq(application.recruitmentId, recruitmentId));
-  const lock = row ? placementLockReason(row.status, applicants?.n ?? 0) : null;
+  // Pengelola tetap bisa masuk Penempatan saat prioritas berjalan untuk
+  // closerec dan visibilitas; selain pengelola terkunci.
+  const lock = row
+    ? (placementLockReason(row.status, applicants?.n ?? 0) ??
+      (manage
+        ? null
+        : priorityPlacementLockReason(row.placementMethod, row.placementState)))
+    : null;
   const nav =
     tabs.length < 2 ? null : (
       <nav
