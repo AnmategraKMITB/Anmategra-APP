@@ -7,6 +7,7 @@ import {
 } from '~/server/db/schema';
 
 import { canManageEvent } from './access';
+import { placementReleased } from './oprec-release';
 import { subtreeIds } from './routers/organization/tree';
 
 type Database = typeof Db;
@@ -69,6 +70,7 @@ export async function resolveOrganogramAccess(
       and(
         eq(placement.userId, actor.id),
         eq(organizationUnit.structure_id, structure.id),
+        placementReleased,
       ),
     );
 
