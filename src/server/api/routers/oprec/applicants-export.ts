@@ -50,7 +50,7 @@ export function applicantCsv(table: ReturnType<typeof applicantTable>) {
   return `﻿${line(table.header)}${table.body.map(line).join('')}`;
 }
 
-function slugOf(name: string) {
+export function slugOf(name: string) {
   const slug = name
     .normalize('NFKD')
     .replace(/[̀-ͯ]/g, '')

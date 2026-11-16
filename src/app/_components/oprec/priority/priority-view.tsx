@@ -7,8 +7,9 @@ import { api } from '~/trpc/react';
 
 import { ErrorNote, Loading, Modal, Notice } from '../placement/shared';
 import { StateBar } from '../placement/state-bar';
-import { MatchingPanel } from './matching-panel';
 import { DivisionPicker } from './division-picker';
+import { PriorityImport } from './import-dialog';
+import { MatchingPanel } from './matching-panel';
 import { DEFAULT_PAGE_SIZE } from './pager';
 import { PriorityBoard } from './priority-board';
 
@@ -35,7 +36,8 @@ export function PriorityView({
     { recruitmentId },
     {
       retry: false,
-      enabled: overview.data?.isAdmin === true && overview.data.method === 'prioritas',
+      enabled:
+        overview.data?.isAdmin === true && overview.data.method === 'prioritas',
     },
   );
   const setMethod = api.oprec.prioritySetMethod.useMutation();
@@ -181,9 +183,9 @@ export function PriorityView({
           {!data.registrationEnded ? (
             <div className="mt-4">
               <Notice>
-                Pendaftaran masih berjalan. Daftar bisa disusun sekarang,
-                tetapi baru bisa dikunci setelah pendaftaran berakhir supaya
-                pendaftar baru tidak terlewat.
+                Pendaftaran masih berjalan. Daftar bisa disusun sekarang, tetapi
+                baru bisa dikunci setelah pendaftaran berakhir supaya pendaftar
+                baru tidak terlewat.
               </Notice>
             </div>
           ) : null}
@@ -196,6 +198,15 @@ export function PriorityView({
             </div>
           ) : (
             <>
+              <PriorityImport
+                recruitmentId={recruitmentId}
+                canImport={data.state === 'berjalan'}
+                onImported={() => {
+                  refresh();
+                  void utils.oprec.priorityBoard.invalidate();
+                }}
+                announce={announce}
+              />
               <DivisionPicker
                 divisions={divisions}
                 activeId={active.id}

@@ -14,6 +14,7 @@
 import { TRPCError } from '@trpc/server';
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { fakultasOfNim } from '~/lib/itb/fakultas';
 import { type MatchingStep, runPriorityMatching } from '~/lib/oprec/matching';
 import {
   type IgnoredPriority,
@@ -24,7 +25,6 @@ import {
   ownChoices,
   planWrites,
 } from '~/lib/oprec/priority';
-import { fakultasOfNim } from '~/lib/itb/fakultas';
 import { registrationEnded } from '~/lib/oprec/registration';
 import { blindCode, effectiveStatus } from '~/lib/oprec/scoring';
 import { oprecAssessProcedure } from '~/server/api/trpc';
@@ -43,9 +43,9 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { type Tx } from '../form/services';
 import { loadApplicantAnswers } from './applicant-answers';
 import { type AssessAccess, canRankDivision } from './assess-access';
-import { type Tx } from '../form/services';
 import { logAction } from './log';
 import { type PlacementDivision, loadPlacementDivisions } from './placement';
 import { recomputeDivisions } from './recompute';
@@ -77,7 +77,7 @@ function assertRanker(access: AssessAccess, divisionId: string) {
 }
 
 /** Daftar hanya bisa diubah pada metode prioritas selama penempatan berjalan. */
-function assertEditable(
+export function assertEditable(
   rec: Pick<Recruitment, 'placementMethod' | 'placementState'>,
 ) {
   if (rec.placementMethod !== 'prioritas') {
@@ -88,7 +88,7 @@ function assertEditable(
   }
 }
 
-function chunks<T>(rows: readonly T[]): T[][] {
+export function chunks<T>(rows: readonly T[]): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < rows.length; i += CHUNK) {
     out.push(rows.slice(i, i + CHUNK));
@@ -104,10 +104,12 @@ const displayName = sql<
 // Pemuatan data
 // ---------------------------------------------------------------------------
 
-type PoolApp = Omit<PoolApplication, 'choices'> & {
+export type PoolApp = Omit<PoolApplication, 'choices'> & {
   userId: string;
   name: string | null;
   nim: number | null;
+  /** Hanya untuk mencocokkan impor; tidak pernah ditampilkan. */
+  nimTpb: number | null;
   prodi: string | null;
   angkatan: number | null;
   choices: (PoolChoice & { score: number | null })[];
@@ -135,7 +137,10 @@ type Pool = {
 };
 
 /** Semua pendaftar, pilihan, status efektif, dan daftar prioritas satu oprec. */
-async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
+export async function loadPool(
+  db: Queryable,
+  recruitmentId: string,
+): Promise<Pool> {
   const [divisions, lockRows, appRows, choiceRows, priorityRows] =
     await Promise.all([
       loadPlacementDivisions(db, recruitmentId),
@@ -157,6 +162,7 @@ async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
           willingToMove: application.willingToMove,
           name: displayName,
           nim: mahasiswa.nim,
+          nimTpb: mahasiswa.nimTpb,
           prodi: mahasiswa.jurusan,
           angkatan: mahasiswa.angkatan,
         })
@@ -279,7 +285,7 @@ async function isRegistrationEnded(
 }
 
 /** Identitas pendaftar; pada mode blind hanya kode bagi yang bukan admin. */
-function identity(hide: boolean, app: PoolApp) {
+export function identity(hide: boolean, app: PoolApp) {
   return {
     code: blindCode(app.id),
     name: hide ? null : app.name,
@@ -330,7 +336,9 @@ async function computeMatching(db: Queryable, rec: Recruitment) {
       userId: string;
       applicationChoiceId: string | null;
     }[] = [];
-    for (const part of chunks([...new Set(assigned.map((p) => p.app.userId))])) {
+    for (const part of chunks([
+      ...new Set(assigned.map((p) => p.app.userId)),
+    ])) {
       existing.push(
         ...(await db
           .select({
@@ -432,8 +440,11 @@ async function writeMatching(
     decision: 'terima' | 'tolak';
     tag: 'di_luar_pilihan' | null;
   }[] = [];
-  const accepted: { app: PoolApp; choiceId: string | null; divisionId: string }[] =
-    [];
+  const accepted: {
+    app: PoolApp;
+    choiceId: string | null;
+    divisionId: string;
+  }[] = [];
   let redirected = 0;
 
   for (const app of apps) {
@@ -565,7 +576,11 @@ async function writeMatching(
 const DivisionInput = z.object({ recruitmentId: id, divisionId: id });
 
 /** Kunci baris oprec (bersama) lalu baris divisi; ditolak bila bukan milik oprec. */
-async function lockDivision(tx: Tx, recruitmentId: string, divisionId: string) {
+export async function lockDivision(
+  tx: Tx,
+  recruitmentId: string,
+  divisionId: string,
+) {
   const [rec] = await tx
     .select()
     .from(recruitment)
@@ -588,6 +603,51 @@ async function lockDivision(tx: Tx, recruitmentId: string, divisionId: string) {
     .for('update');
   if (!division) notFound('Divisi itu bukan milik oprec ini.');
   return { rec, division };
+}
+
+/**
+ * Tulis ulang seluruh urutan satu divisi (indeks 0 = urutan 1). Keterangan
+ * tidak disentuh. Pemanggil memegang kunci divisi dan menaikkan versinya.
+ */
+export async function writeDivisionOrder(
+  tx: Tx,
+  input: { divisionId: string; order: readonly string[]; actorId: string },
+) {
+  const { divisionId, order, actorId } = input;
+  // Kosongkan urutan lama tanpa melanggar CHECK (urutan atau keterangan
+  // harus ada): baris tanpa keterangan dihapus, sisanya dibuat tanpa
+  // urutan. Lalu urutan baru ditulis ulang.
+  await tx
+    .delete(divisionPriority)
+    .where(
+      and(
+        eq(divisionPriority.divisionId, divisionId),
+        isNull(divisionPriority.note),
+      ),
+    );
+  await tx
+    .update(divisionPriority)
+    .set({ rank: null })
+    .where(eq(divisionPriority.divisionId, divisionId));
+  const rows = order.map((applicationId, index) => ({
+    divisionId,
+    applicationId,
+    rank: index + 1,
+    updatedBy: actorId,
+  }));
+  for (const part of chunks(rows)) {
+    await tx
+      .insert(divisionPriority)
+      .values(part)
+      .onConflictDoUpdate({
+        target: [divisionPriority.divisionId, divisionPriority.applicationId],
+        set: {
+          rank: sql`excluded.rank`,
+          updatedBy: actorId,
+          updatedAt: new Date(),
+        },
+      });
+  }
 }
 
 export const priorityProcedures = {
@@ -721,7 +781,6 @@ export const priorityProcedures = {
       };
     }),
 
-  /** Simpan seluruh urutan prioritas satu divisi (indeks 0 = urutan 1). */
   /**
    * Jawaban satu pendaftar untuk papan prioritas: pertanyaan bagian divisi ini
    * plus pertanyaan umum. Aksesnya sama dengan papan divisi itu.
@@ -748,6 +807,7 @@ export const priorityProcedures = {
       );
     }),
 
+  /** Simpan seluruh urutan prioritas satu divisi (indeks 0 = urutan 1). */
   prioritySave: oprecAssessProcedure
     .input(
       DivisionInput.extend({
@@ -782,9 +842,7 @@ export const priorityProcedures = {
         const appById = new Map(pool.apps.map((a) => [a.id, a]));
         const invalid = input.order.filter((applicationId) => {
           const app = appById.get(applicationId);
-          const c = app
-            ? candidacy(app, division.id, rec.allowRedirect)
-            : null;
+          const c = app ? candidacy(app, division.id, rec.allowRedirect) : null;
           // Bukan kandidat (undefined) atau diblokir: keduanya tidak sah.
           return c?.blocked !== null;
         });
@@ -794,44 +852,11 @@ export const priorityProcedures = {
           );
         }
 
-        // Kosongkan urutan lama tanpa melanggar CHECK (urutan atau keterangan
-        // harus ada): baris tanpa keterangan dihapus, sisanya dibuat tanpa
-        // urutan. Lalu urutan baru ditulis ulang.
-        const actorId = ctx.session.user.id;
-        await tx
-          .delete(divisionPriority)
-          .where(
-            and(
-              eq(divisionPriority.divisionId, division.id),
-              isNull(divisionPriority.note),
-            ),
-          );
-        await tx
-          .update(divisionPriority)
-          .set({ rank: null })
-          .where(eq(divisionPriority.divisionId, division.id));
-        const rows = input.order.map((applicationId, index) => ({
+        await writeDivisionOrder(tx, {
           divisionId: division.id,
-          applicationId,
-          rank: index + 1,
-          updatedBy: actorId,
-        }));
-        for (const part of chunks(rows)) {
-          await tx
-            .insert(divisionPriority)
-            .values(part)
-            .onConflictDoUpdate({
-              target: [
-                divisionPriority.divisionId,
-                divisionPriority.applicationId,
-              ],
-              set: {
-                rank: sql`excluded.rank`,
-                updatedBy: actorId,
-                updatedAt: new Date(),
-              },
-            });
-        }
+          order: input.order,
+          actorId: ctx.session.user.id,
+        });
         const version = division.version + 1;
         await tx
           .update(recruitmentDivision)
@@ -1034,9 +1059,8 @@ export const priorityProcedures = {
         })
         .sort(
           (x, y) =>
-            (x.after?.label ?? '￿').localeCompare(
-              y.after?.label ?? '￿',
-            ) || (x.name ?? '').localeCompare(y.name ?? ''),
+            (x.after?.label ?? '￿').localeCompare(y.after?.label ?? '￿') ||
+            (x.name ?? '').localeCompare(y.name ?? ''),
         );
 
       const replacedDecisions = pool.apps
