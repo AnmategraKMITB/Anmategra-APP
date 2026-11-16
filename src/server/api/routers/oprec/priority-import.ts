@@ -20,7 +20,11 @@ import {
   planPriorityImport,
 } from '~/lib/oprec/priority-import';
 import { oprecAssessProcedure } from '~/server/api/trpc';
-import { divisionPriority, recruitmentDivision } from '~/server/db/schema';
+import {
+  divisionPriority,
+  mahasiswa,
+  recruitmentDivision,
+} from '~/server/db/schema';
 
 import { type Tx } from '../form/services';
 import { type AssessAccess, canRankDivision } from './assess-access';
@@ -32,14 +36,13 @@ import {
   identity,
   loadPool,
   lockDivision,
-  writeDivisionOrder,
 } from './priority';
 import {
   type TemplateData,
   type TemplateRow,
   readSheet,
 } from './priority-sheet';
-import { conflict } from './services';
+import { type Queryable, conflict } from './services';
 
 const id = z.string().min(1).max(255);
 /** Batas ukuran file unggahan (setelah base64 diurai). */
@@ -114,13 +117,35 @@ export function divisionNames(
   );
 }
 
-function nimsOf(app: PoolApp): number[] {
-  return [app.nim, app.nimTpb].filter((n): n is number => n !== null);
+/** NIM TPB per pengguna; hanya untuk mencocokkan impor, tidak ditampilkan. */
+async function loadTpbNims(
+  db: Queryable,
+  pool: Pool,
+): Promise<Map<string, number>> {
+  const userIds = [...new Set(pool.apps.map((a) => a.userId))];
+  const out = new Map<string, number>();
+  for (const part of chunks(userIds)) {
+    const rows = await db
+      .select({ userId: mahasiswa.userId, nimTpb: mahasiswa.nimTpb })
+      .from(mahasiswa)
+      .where(inArray(mahasiswa.userId, part));
+    for (const row of rows) {
+      if (row.nimTpb !== null) out.set(row.userId, row.nimTpb);
+    }
+  }
+  return out;
+}
+
+function nimsOf(app: PoolApp, tpb: ReadonlyMap<string, number>): number[] {
+  return [app.nim, tpb.get(app.userId) ?? null].filter(
+    (n): n is number => n !== null,
+  );
 }
 
 /** Rencana impor dari tabel sel terhadap data oprec saat ini. */
 function planFor(
   pool: Pool,
+  tpb: ReadonlyMap<string, number>,
   rec: Recruitment,
   access: AssessAccess,
   table: string[][],
@@ -135,7 +160,13 @@ function planFor(
     candidates: pool.apps.flatMap((app) => {
       const c = candidacy(app, d.id, rec.allowRedirect);
       return c
-        ? [{ applicationId: app.id, nims: nimsOf(app), blocked: c.blocked }]
+        ? [
+            {
+              applicationId: app.id,
+              nims: nimsOf(app, tpb),
+              blocked: c.blocked,
+            },
+          ]
         : [];
     }),
   }));
@@ -163,6 +194,53 @@ function diffOf(pool: Pool, plan: DivisionPlan) {
       )
     : [];
   return { orderChanged, noteChanges };
+}
+
+/**
+ * Tulis ulang seluruh urutan satu divisi (indeks 0 = urutan 1), dengan cara
+ * yang sama seperti `prioritySave`. Keterangan tidak disentuh. Pemanggil
+ * memegang kunci divisi dan menaikkan versinya.
+ */
+async function writeDivisionOrder(
+  tx: Tx,
+  divisionId: string,
+  order: readonly string[],
+  actorId: string,
+) {
+  // Kosongkan urutan lama tanpa melanggar CHECK (urutan atau keterangan
+  // harus ada): baris tanpa keterangan dihapus, sisanya dibuat tanpa
+  // urutan. Lalu urutan baru ditulis ulang.
+  await tx
+    .delete(divisionPriority)
+    .where(
+      and(
+        eq(divisionPriority.divisionId, divisionId),
+        isNull(divisionPriority.note),
+      ),
+    );
+  await tx
+    .update(divisionPriority)
+    .set({ rank: null })
+    .where(eq(divisionPriority.divisionId, divisionId));
+  const rows = order.map((applicationId, index) => ({
+    divisionId,
+    applicationId,
+    rank: index + 1,
+    updatedBy: actorId,
+  }));
+  for (const part of chunks(rows)) {
+    await tx
+      .insert(divisionPriority)
+      .values(part)
+      .onConflictDoUpdate({
+        target: [divisionPriority.divisionId, divisionPriority.applicationId],
+        set: {
+          rank: sql`excluded.rank`,
+          updatedBy: actorId,
+          updatedAt: new Date(),
+        },
+      });
+  }
 }
 
 /** Tulis keterangan yang berubah; null = hapus. */
@@ -289,7 +367,8 @@ export const priorityImportProcedures = {
       assertEditable(ctx.recruitment);
       const table = await readSheet(input.fileName, decode(input.content));
       const pool = await loadPool(ctx.db, ctx.recruitment.id);
-      const plan = planFor(pool, ctx.recruitment, ctx.assess, table);
+      const tpb = await loadTpbNims(ctx.db, pool);
+      const plan = planFor(pool, tpb, ctx.recruitment, ctx.assess, table);
       const versionOf = new Map(
         pool.divisions.map((d) => [d.id, d.priorityVersion]),
       );
@@ -365,7 +444,8 @@ export const priorityImportProcedures = {
         assertEditable(rec);
 
         const pool = await loadPool(tx, rec.id);
-        const plan = planFor(pool, rec, ctx.assess, table);
+        const tpb = await loadTpbNims(tx, pool);
+        const plan = planFor(pool, tpb, rec, ctx.assess, table);
         if (plan.errorCount > 0) {
           badRequest(
             `File ini masih punya ${plan.errorCount} masalah. Ulangi pratinjau.`,
@@ -388,11 +468,7 @@ export const priorityImportProcedures = {
             );
           }
           if (diff.orderChanged) {
-            await writeDivisionOrder(tx, {
-              divisionId: d.divisionId,
-              order: d.order,
-              actorId,
-            });
+            await writeDivisionOrder(tx, d.divisionId, d.order, actorId);
           }
           if (diff.noteChanges.length > 0) {
             await writeNotes(tx, d.divisionId, diff.noteChanges, actorId);
