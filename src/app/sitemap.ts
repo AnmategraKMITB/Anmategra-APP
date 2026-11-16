@@ -51,6 +51,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'daily',
       priority: 1,
     },
+    {
+      // Ditautkan dari footer dan dipakai peninjau verifikasi OAuth Google.
+      url: absoluteUrl('/privasi'),
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
+    {
+      // Versi bahasa Inggris dari halaman kebijakan privasi.
+      url: absoluteUrl('/privacy'),
+      lastModified: new Date(),
+      changeFrequency: 'yearly',
+      priority: 0.3,
+    },
   ];
 
   return [...staticPages, ...eventEntries, ...lembagaEntries];

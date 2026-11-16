@@ -69,6 +69,22 @@ const Footer = () => {
               </Link>
               .
             </p>
+            <p className="flex flex-wrap items-center gap-x-2 text-Blue-Dark text-sm md:text-[16px]">
+              <Link
+                href="/privasi"
+                className="underline underline-offset-2 hover:opacity-80"
+              >
+                Kebijakan Privasi
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/privacy"
+                hrefLang="en"
+                className="underline underline-offset-2 hover:opacity-80"
+              >
+                Privacy Policy
+              </Link>
+            </p>
           </div>
         </div>
         <div className="flex flex-row md:contents gap-x-4 w-full">
