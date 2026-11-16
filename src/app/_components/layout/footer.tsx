@@ -78,11 +78,26 @@ const Footer = () => {
               </Link>
               <span aria-hidden="true">·</span>
               <Link
+                href="/ketentuan"
+                className="underline underline-offset-2 hover:opacity-80"
+              >
+                Syarat dan Ketentuan
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
                 href="/privacy"
                 hrefLang="en"
                 className="underline underline-offset-2 hover:opacity-80"
               >
                 Privacy Policy
+              </Link>
+              <span aria-hidden="true">·</span>
+              <Link
+                href="/terms"
+                hrefLang="en"
+                className="underline underline-offset-2 hover:opacity-80"
+              >
+                Terms of Service
               </Link>
             </p>
           </div>

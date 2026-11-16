@@ -58,6 +58,13 @@ export function TentangSection() {
           >
             Kebijakan Privasi
           </Link>
+          , dan aturan pemakaian layanan ada di{' '}
+          <Link
+            href="/ketentuan"
+            className="underline underline-offset-2 hover:opacity-80"
+          >
+            Syarat dan Ketentuan
+          </Link>
           .
         </p>
       </div>

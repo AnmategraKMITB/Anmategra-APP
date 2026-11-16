@@ -1,31 +1,18 @@
 import Link from 'next/link';
-import { type ReactNode } from 'react';
 
-export type PolicyLocale = 'id' | 'en';
+import {
+  contactLink,
+  Daftar,
+  LegalPage,
+  type LegalContent,
+  type LegalLocale,
+} from './legal-page';
 
-export type PolicyContent = {
-  lang: PolicyLocale;
-  href: string;
-  title: string;
-  description: string;
-  switchLabel: string;
-  switchHref: string;
-  switchHrefLang: string;
-  heading: string;
-  effective: string;
-  intro: ReactNode;
-  sections: { title: string; body: ReactNode }[];
-};
+export type PolicyLocale = LegalLocale;
+export type PolicyContent = LegalContent;
 
-const CONTACT_EMAIL = 'anmategra@km.itb.ac.id';
-
-const POLICY_URL = 'https://developers.google.com/terms/api-services-user-data-policy';
-
-const contactLink = (
-  <a href={`mailto:${CONTACT_EMAIL}`} className="underline underline-offset-2">
-    {CONTACT_EMAIL}
-  </a>
-);
+const POLICY_URL =
+  'https://developers.google.com/terms/api-services-user-data-policy';
 
 const policyLink = (
   <Link
@@ -89,7 +76,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               layanan. Bergantung pada peran dan fitur yang Anda pakai, data
               tersebut meliputi:
             </p>
-            <ul className="flex list-disc flex-col gap-2 pl-6">
+            <Daftar>
               <li>
                 <strong>Data identitas dan akun.</strong> Nama, alamat email,
                 foto profil, dan peran akun. Mahasiswa masuk lewat Microsoft
@@ -110,7 +97,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 audit tindakan administratif yang kami gunakan untuk keamanan dan
                 penyelesaian sengketa.
               </li>
-            </ul>
+            </Daftar>
           </>
         ),
       },
@@ -154,7 +141,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
       {
         title: '4. Cara kami menggunakan data',
         body: (
-          <ul className="flex list-disc flex-col gap-2 pl-6">
+          <Daftar>
             <li>Mengautentikasi Anda dan menentukan hak akses sesuai peran.</li>
             <li>
               Menampilkan profil lembaga, kegiatan, dan anggota kepada pengguna
@@ -170,7 +157,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               sengketa kepemilikan akun.
             </li>
             <li>Memperbaiki kualitas layanan secara agregat.</li>
-          </ul>
+          </Daftar>
         ),
       },
       {
@@ -181,7 +168,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               Kami tidak menjual data Anda. Data hanya dibagikan dalam keadaan
               berikut:
             </p>
-            <ul className="flex list-disc flex-col gap-2 pl-6">
+            <Daftar>
               <li>
                 <strong>Pengelola yang berwenang.</strong> Pengurus lembaga atau
                 kepanitiaan dapat melihat data yang Anda kirimkan kepada mereka,
@@ -198,14 +185,14 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 bila diwajibkan oleh peraturan yang berlaku atau permintaan resmi
                 Institut Teknologi Bandung.
               </li>
-            </ul>
+            </Daftar>
           </>
         ),
       },
       {
         title: '6. Penyimpanan dan masa retensi',
         body: (
-          <ul className="flex list-disc flex-col gap-2 pl-6">
+          <Daftar>
             <li>
               Data akun dan keanggotaan disimpan selama akun aktif atau selama
               diperlukan untuk keperluan organisasi.
@@ -222,7 +209,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               Catatan audit disimpan untuk keperluan keamanan dan dapat dihapus
               setelah tidak diperlukan.
             </li>
-          </ul>
+          </Daftar>
         ),
       },
       {
@@ -241,7 +228,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '8. Hak Anda',
         body: (
           <>
-            <ul className="flex list-disc flex-col gap-2 pl-6">
+            <Daftar>
               <li>Meminta salinan data pribadi yang kami simpan tentang Anda.</li>
               <li>Meminta perbaikan data yang tidak akurat.</li>
               <li>
@@ -252,7 +239,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 Mencabut akses Anmategra ke akun Google Anda kapan saja melalui
                 halaman izin akun Google Anda.
               </li>
-            </ul>
+            </Daftar>
             <p>
               Permintaan dapat dikirim ke {contactLink}. Kami akan menindaklanjuti
               dalam waktu yang wajar.
@@ -279,6 +266,10 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
           </p>
         ),
       },
+    ],
+    related: [
+      { href: '/ketentuan', label: 'Syarat dan Ketentuan Layanan' },
+      { href: '/privacy', label: 'Read this policy in English' },
     ],
   },
   en: {
@@ -324,7 +315,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               We only collect the data needed to operate the service. Depending
               on your role and the features you use, that data includes:
             </p>
-            <ul className="flex list-disc flex-col gap-2 pl-6">
+            <Daftar>
               <li>
                 <strong>Identity and account data.</strong> Name, email address,
                 profile photo, and account role. Students sign in through ITB
@@ -344,7 +335,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 audit records of administrative actions, used for security and
                 dispute resolution.
               </li>
-            </ul>
+            </Daftar>
           </>
         ),
       },
@@ -387,7 +378,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
       {
         title: '4. How we use data',
         body: (
-          <ul className="flex list-disc flex-col gap-2 pl-6">
+          <Daftar>
             <li>To authenticate you and set access rights according to role.</li>
             <li>
               To display organization, event, and member profiles to other users
@@ -403,7 +394,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               ownership disputes.
             </li>
             <li>To improve service quality in aggregate.</li>
-          </ul>
+          </Daftar>
         ),
       },
       {
@@ -411,7 +402,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         body: (
           <>
             <p>We do not sell your data. Data is shared only in these cases:</p>
-            <ul className="flex list-disc flex-col gap-2 pl-6">
+            <Daftar>
               <li>
                 <strong>Authorized managers.</strong> Organization or committee
                 officers can see the data you submit to them, including form
@@ -428,14 +419,14 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 required by applicable regulations or an official request from
                 Institut Teknologi Bandung.
               </li>
-            </ul>
+            </Daftar>
           </>
         ),
       },
       {
         title: '6. Storage and retention',
         body: (
-          <ul className="flex list-disc flex-col gap-2 pl-6">
+          <Daftar>
             <li>
               Account and membership data is kept while the account is active or
               as long as needed for organizational purposes.
@@ -452,7 +443,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               Audit records are kept for security purposes and may be deleted once
               no longer needed.
             </li>
-          </ul>
+          </Daftar>
         ),
       },
       {
@@ -471,7 +462,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '8. Your rights',
         body: (
           <>
-            <ul className="flex list-disc flex-col gap-2 pl-6">
+            <Daftar>
               <li>A copy of the personal data we hold about you.</li>
               <li>Correction of inaccurate data.</li>
               <li>
@@ -482,7 +473,7 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 Revoking Anmategra&apos;s access to your Google account at any
                 time through your Google account permissions page.
               </li>
-            </ul>
+            </Daftar>
             <p>
               Requests can be sent to {contactLink}. We will respond within a
               reasonable time.
@@ -510,45 +501,13 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         ),
       },
     ],
+    related: [
+      { href: '/terms', label: 'Terms of Service' },
+      { href: '/privasi', label: 'Baca kebijakan ini dalam Bahasa Indonesia' },
+    ],
   },
 };
 
 export function PrivacyPolicyPage({ locale }: { locale: PolicyLocale }) {
-  const policy = PRIVACY_POLICY[locale];
-
-  return (
-    <article
-      lang={policy.lang}
-      className="mx-auto flex w-full max-w-3xl flex-col gap-8 py-10"
-    >
-      <header className="flex flex-col gap-3">
-        <h1 className="text-2xl font-semibold text-[#0B5C8A] sm:text-3xl">
-          {policy.heading}
-        </h1>
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <p className="text-sm text-slate-500">{policy.effective}</p>
-          <Link
-            href={policy.switchHref}
-            hrefLang={policy.switchHrefLang}
-            lang={policy.switchHrefLang}
-            className="text-sm underline underline-offset-2 hover:opacity-80"
-          >
-            {policy.switchLabel}
-          </Link>
-        </div>
-        {policy.intro}
-      </header>
-
-      {policy.sections.map((section) => (
-        <section key={section.title} className="flex flex-col gap-3">
-          <h2 className="text-xl font-semibold text-[#0B5C8A] sm:text-2xl">
-            {section.title}
-          </h2>
-          <div className="flex flex-col gap-3 leading-relaxed text-slate-700">
-            {section.body}
-          </div>
-        </section>
-      ))}
-    </article>
-  );
+  return <LegalPage content={PRIVACY_POLICY[locale]} />;
 }
