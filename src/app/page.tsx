@@ -15,6 +15,7 @@ import { JsonLd } from './_components/json-ld';
 import HeroSection from './_components/landing/hero';
 import { KegiatanSection } from './_components/landing/kegiatan-section';
 import { KepanitiaanSection } from './_components/landing/kepanitiaan-section';
+import { TentangSection } from './_components/landing/tentang-section';
 import Navbar from './_components/layout/navbar';
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ const LandingPage = async () => {
       </div>
       <HeroSection />
       <div className="space-y-16">
+        <TentangSection />
         <KegiatanSection data={kegiatanTerbaru} />
         <KepanitiaanSection data={kegiatanTerbesar} />
       </div>
