@@ -71,6 +71,16 @@ export function AnnouncementView({ recruitmentId }: { recruitmentId: string }) {
   }
   return (
     <Shell name={data.name}>
+      {!data.final ? (
+        <p
+          role="status"
+          className="mb-4 rounded-xl bg-warning-light px-4 py-3 text-sm text-neutral-1000"
+        >
+          <strong>Hasil sementara.</strong> Masa banding sedang berjalan, daftar
+          ini masih bisa berubah. Pengumuman akhir menyusul setelah penempatan
+          final.
+        </p>
+      ) : null}
       <Published sections={data.sections} />
     </Shell>
   );

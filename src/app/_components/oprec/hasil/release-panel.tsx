@@ -83,8 +83,9 @@ export function ReleasePanel({
             </p>
           ) : (
             <p className="mt-1 text-sm text-neutral-700">
-              Pendaftar baru bisa melihat hasil setelah rilis. Rilis hanya
-              tersedia saat penempatan sudah final.
+              Pendaftar baru bisa melihat hasil setelah rilis. Rilis tersedia
+              sejak masa banding dibuka. Hasil yang dirilis saat masa banding
+              bersifat sementara; setelah final, pendaftar diberi tahu lagi.
             </p>
           )}
         </div>
@@ -107,7 +108,7 @@ export function ReleasePanel({
               title={
                 overview.canRelease
                   ? undefined
-                  : 'Tetapkan penempatan final terlebih dahulu.'
+                  : 'Buka masa banding terlebih dahulu.'
               }
             >
               Rilis hasil ke pendaftar
@@ -128,7 +129,7 @@ export function ReleasePanel({
         </div>
       </div>
 
-      {!overview.released && overview.state !== 'final' ? (
+      {!overview.released && overview.state === 'berjalan' ? (
         <p className="mt-2 text-sm text-neutral-700">
           Keadaan penempatan masih “{overview.state}”.{' '}
           {penempatanHref ? (
@@ -146,7 +147,11 @@ export function ReleasePanel({
         open={releaseOpen}
         onOpenChange={setReleaseOpen}
         title="Rilis hasil ke pendaftar?"
-        description="Setelah dirilis, pendaftar hanya melihat diterima di divisi mana atau belum diterima."
+        description={
+          overview.state === 'final'
+            ? 'Setelah dirilis, pendaftar hanya melihat diterima di divisi mana atau belum diterima.'
+            : 'Penempatan masih masa banding, jadi hasil ini sementara dan bisa berubah. Pendaftar diberi tahu lagi saat penempatan ditetapkan final.'
+        }
         footer={
           <>
             <Button variant="ghost" onClick={() => setReleaseOpen(false)}>
@@ -157,7 +162,9 @@ export function ReleasePanel({
               onClick={() =>
                 release.mutate({
                   recruitmentId,
-                  publishAt: publishAt ? new Date(`${publishAt}:00+07:00`) : undefined,
+                  publishAt: publishAt
+                    ? new Date(`${publishAt}:00+07:00`)
+                    : undefined,
                 })
               }
             >

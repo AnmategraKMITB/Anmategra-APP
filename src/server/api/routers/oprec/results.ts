@@ -14,10 +14,7 @@ import {
 import { deriveChoiceStage } from '~/lib/oprec/allocation';
 import { fallbackReason, finalStatus, resultsMode } from '~/lib/oprec/results';
 import { aggregateCriterion, effectiveStatus } from '~/lib/oprec/scoring';
-import {
-  oprecAssessProcedure,
-  protectedProcedure,
-} from '~/server/api/trpc';
+import { oprecAssessProcedure, protectedProcedure } from '~/server/api/trpc';
 import {
   application,
   applicationChoice,
@@ -33,6 +30,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { resultsPublished } from '../../oprec-release';
 import {
   RecruitmentIdInputSchema,
   ResultsListInputSchema,
@@ -45,10 +43,9 @@ import {
   canDecideDivision,
   canSeeSensitive,
 } from './assess-access';
-import { resultsPublished } from '../../oprec-release';
 import { logAction } from './log';
-import { notifyResultsReleased } from './result-notification';
 import { loadPlacementDivisions } from './placement';
+import { notifyResultsReleased } from './result-notification';
 import { type Queryable, conflict, notFound } from './services';
 
 type ResultsMode = 'admin' | 'admin_ketua' | 'semua';
@@ -128,10 +125,7 @@ async function loadChoiceRows(
       decidedAt: placementDecision.decidedAt,
     })
     .from(applicationChoice)
-    .innerJoin(
-      application,
-      eq(application.id, applicationChoice.applicationId),
-    )
+    .innerJoin(application, eq(application.id, applicationChoice.applicationId))
     .innerJoin(
       recruitmentDivision,
       eq(recruitmentDivision.id, applicationChoice.divisionId),
@@ -209,10 +203,9 @@ async function gateReasonsFor(
     .from(assessment)
     .where(
       and(
-        inArray(
-          assessment.applicationId,
-          [...new Set(choices.map((choice) => choice.applicationId))],
-        ),
+        inArray(assessment.applicationId, [
+          ...new Set(choices.map((choice) => choice.applicationId)),
+        ]),
         inArray(
           assessment.criterionId,
           gates.map((gate) => gate.id),
@@ -291,8 +284,7 @@ async function undecidedCount(
   for (const group of groupByApplication(rows).values()) {
     const stages = stagesOf(group, staged);
     total += group.filter(
-      (row) =>
-        stages.get(row.id)?.stage === 'aktif' && row.decision === null,
+      (row) => stages.get(row.id)?.stage === 'aktif' && row.decision === null,
     ).length;
   }
   return total;
@@ -339,10 +331,7 @@ export const resultsProcedures = {
         releasedAt: ctx.recruitment.resultsReleasedAt,
         publishAt: ctx.recruitment.resultsPublishAt,
         published: resultsPublished(ctx.recruitment),
-        canRelease:
-          ctx.assess.isAdmin &&
-          !released &&
-          state === 'final',
+        canRelease: ctx.assess.isAdmin && !released && state !== 'berjalan',
         canWithdraw: ctx.assess.isAdmin && released,
         divisions: divisions.map((division) => {
           const done = accepted.get(division.id) ?? 0;
@@ -357,8 +346,7 @@ export const resultsProcedures = {
             accepted: done,
             extras: extra,
             pending: pending.get(division.id) ?? 0,
-            remaining:
-              division.quota === 0 ? null : division.quota - done,
+            remaining: division.quota === 0 ? null : division.quota - done,
             overQuota: division.quota > 0 && done > division.quota,
           };
         }),
@@ -427,10 +415,7 @@ export const resultsProcedures = {
           .from(application)
           .innerJoin(users, eq(users.id, application.userId))
           .leftJoin(mahasiswa, eq(mahasiswa.userId, application.userId))
-          .leftJoin(
-            recruitmentWave,
-            eq(recruitmentWave.id, application.waveId),
-          )
+          .leftJoin(recruitmentWave, eq(recruitmentWave.id, application.waveId))
           .where(where)
           .orderBy(asc(displayName), asc(application.id))
           .limit(input.pageSize)
@@ -519,8 +504,10 @@ export const resultsProcedures = {
           .where(eq(recruitment.id, ctx.recruitment.id))
           .for('update');
         if (!row) notFound('Oprec tidak ditemukan.');
-        if (row.placementState !== 'final') {
-          conflict('Tetapkan penempatan final sebelum merilis hasil.');
+        if (row.placementState === 'berjalan') {
+          conflict(
+            'Buka masa banding atau tetapkan final sebelum merilis hasil.',
+          );
         }
         if (row.resultsReleasedAt !== null) {
           conflict('Hasil sudah dirilis.');
@@ -594,6 +581,7 @@ export const resultsProcedures = {
       const [row] = await ctx.db
         .select({
           id: recruitment.id,
+          placementState: recruitment.placementState,
           releasedAt: recruitment.resultsReleasedAt,
           publishAt: recruitment.resultsPublishAt,
         })
@@ -646,6 +634,8 @@ export const resultsProcedures = {
 
       return {
         released: true as const,
+        /** false selama masa banding: hasil masih bisa berubah. */
+        final: row.placementState === 'final',
         accepted: accepted.length > 0,
         divisionLabel: accepted[0]?.label ?? null,
         releasedAt: row.releasedAt!,

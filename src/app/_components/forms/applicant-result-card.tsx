@@ -36,6 +36,13 @@ export function ApplicantResultCard({
     );
   }
 
+  const note = result.data.final ? null : (
+    <p className="mt-2 text-xs text-neutral-700">
+      Hasil sementara: masa banding sedang berjalan dan hasil bisa berubah.
+      Hasil final diumumkan setelah penempatan final.
+    </p>
+  );
+
   if (result.data.accepted) {
     return (
       <section
@@ -50,6 +57,7 @@ export function ApplicantResultCard({
           Diterima di{' '}
           <strong>{result.data.divisionLabel ?? 'divisi tujuan'}</strong>.
         </p>
+        {note}
       </section>
     );
   }
@@ -66,6 +74,7 @@ export function ApplicantResultCard({
       <p className="mt-1 text-sm text-neutral-700">
         Terima kasih sudah mendaftar. Kamu belum diterima di oprec ini.
       </p>
+      {note}
     </section>
   );
 }
