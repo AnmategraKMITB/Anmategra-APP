@@ -1,11 +1,15 @@
-import { and, asc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { groupAnnouncement } from '~/lib/oprec/announcement';
-import { resultsPublished } from '~/server/api/oprec-release';
+import {
+  recruitmentPublished,
+  resultsPublished,
+} from '~/server/api/oprec-release';
 import { protectedProcedure } from '~/server/api/trpc';
 import {
   applicationChoice,
+  events,
   mahasiswa,
   organizationUnit,
   placement,
@@ -50,6 +54,39 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
 ]);
 
 export const announcementProcedures = {
+  /** Pengumuman oprec yang sudah tayang milik satu lembaga, terbaru dulu. */
+  lembagaAnnouncements: protectedProcedure
+    .input(z.object({ lembagaId: z.string().min(1).max(255) }))
+    .output(
+      z.array(
+        z.object({ id: z.string(), name: z.string(), publishedAt: z.date() }),
+      ),
+    )
+    .query(async ({ ctx, input }) => {
+      const rows = await ctx.db
+        .select({
+          id: recruitment.id,
+          name: recruitment.name,
+          releasedAt: recruitment.resultsReleasedAt,
+          publishAt: recruitment.resultsPublishAt,
+        })
+        .from(recruitment)
+        .innerJoin(events, eq(events.id, recruitment.periodId))
+        .where(
+          and(
+            eq(events.org_id, input.lembagaId),
+            eq(recruitment.resultsVisibleToApplicants, true),
+            recruitmentPublished,
+          ),
+        )
+        .orderBy(desc(recruitment.resultsReleasedAt));
+      return rows.map((r) => ({
+        id: r.id,
+        name: r.name,
+        publishedAt: (r.publishAt ?? r.releasedAt)!,
+      }));
+    }),
+
   /**
    * Daftar penerima yang tayang untuk mahasiswa ber-login. Hanya Nama, NIM,
    * Prodi, Angkatan; tanpa kontak, jabatan, atau gelombang. Sebelum tayang,
@@ -92,7 +129,10 @@ export const announcementProcedures = {
         )
         .leftJoin(parent, eq(parent.id, organizationUnit.parent_id))
         .where(eq(recruitmentDivision.recruitmentId, input.recruitmentId))
-        .orderBy(asc(recruitmentDivision.sortOrder), asc(organizationUnit.name));
+        .orderBy(
+          asc(recruitmentDivision.sortOrder),
+          asc(organizationUnit.name),
+        );
 
       const rows = await ctx.db
         .select({

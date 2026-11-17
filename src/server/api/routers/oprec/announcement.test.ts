@@ -143,9 +143,7 @@ describe('oprec.announcement', () => {
           await db
             .select()
             .from(schema.organizationUnit)
-            .where(
-              eq(schema.organizationUnit.id, fx.divisions.Acara!.unitId),
-            )
+            .where(eq(schema.organizationUnit.id, fx.divisions.Acara!.unitId))
         )[0]!.structure_id,
         name: 'Bidang Inti',
         level: 1,
@@ -179,9 +177,9 @@ describe('oprec.announcement', () => {
       recruitmentId: fx.recruitmentId,
     });
     if (!r.published) throw new Error('harus tayang');
-    expect(r.sections.flatMap((s) => s.divisions).flatMap((d) => d.rows)).toEqual(
-      [],
-    );
+    expect(
+      r.sections.flatMap((s) => s.divisions).flatMap((d) => d.rows),
+    ).toEqual([]);
   });
 
   it('tidak tayang bila hasil tidak diumumkan lewat Anmategra', async () => {
@@ -200,16 +198,43 @@ describe('oprec.announcement', () => {
   it('satu orang dengan dua penempatan di divisi sama tampil sekali', async () => {
     const { fx, accepted, viewer, publish } = await world();
     await publish();
-    await db.insert(schema.placement).values({
-      positionId: fx.divisions.Acara!.positionId,
-      userId: accepted.userId,
-      source: 'oprec',
-      applicationChoiceId: (await choicesOf(db, accepted.applicationId))[0]!.id,
-    }).onConflictDoNothing();
+    await db
+      .insert(schema.placement)
+      .values({
+        positionId: fx.divisions.Acara!.positionId,
+        userId: accepted.userId,
+        source: 'oprec',
+        applicationChoiceId: (await choicesOf(db, accepted.applicationId))[0]!
+          .id,
+      })
+      .onConflictDoNothing();
     const r = await viewer.oprec.announcement({
       recruitmentId: fx.recruitmentId,
     });
     if (!r.published) throw new Error('harus tayang');
     expect(r.sections[0]!.divisions[0]!.rows).toHaveLength(1);
+  });
+});
+
+describe('oprec.lembagaAnnouncements', () => {
+  it('daftar hanya oprec yang sudah tayang milik lembaga itu', async () => {
+    const w = await world();
+    const [ev] = await db
+      .select()
+      .from(schema.events)
+      .where(
+        eq(
+          schema.events.id,
+          (await db.select().from(schema.recruitment))[0]!.periodId,
+        ),
+      );
+    const input = { lembagaId: ev!.org_id! };
+    expect(await w.viewer.oprec.lembagaAnnouncements(input)).toEqual([]);
+    await w.publish();
+    const list = await w.viewer.oprec.lembagaAnnouncements(input);
+    expect(list.map((x) => x.id)).toEqual([w.fx.recruitmentId]);
+    expect(
+      await w.viewer.oprec.lembagaAnnouncements({ lembagaId: 'lain' }),
+    ).toEqual([]);
   });
 });
