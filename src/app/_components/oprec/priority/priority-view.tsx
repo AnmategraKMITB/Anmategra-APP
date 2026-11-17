@@ -11,6 +11,7 @@ import { MatchingPanel } from './matching-panel';
 import { DivisionPicker } from './division-picker';
 import { DEFAULT_PAGE_SIZE } from './pager';
 import { PriorityBoard } from './priority-board';
+import { PriorityImport } from './import-dialog';
 
 /** Layar Prioritas: daftar prioritas per divisi dan penempatan otomatis. */
 export function PriorityView({
@@ -196,6 +197,17 @@ export function PriorityView({
             </div>
           ) : (
             <>
+              <PriorityImport
+                recruitmentId={recruitmentId}
+                divisionId={active.id}
+                divisionName={active.label}
+                canImport={data.state === 'berjalan'}
+                onImported={() => {
+                  refresh();
+                  void utils.oprec.priorityBoard.invalidate();
+                }}
+                announce={announce}
+              />
               <DivisionPicker
                 divisions={divisions}
                 activeId={active.id}

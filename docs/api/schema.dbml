@@ -700,8 +700,15 @@ table anmategra_notification {
   content text [not null]
   type notification_type [not null]
   read boolean [not null, default: false]
+  recruitment_id varchar(255)
+  kind varchar(32)
+  links jsonb
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, recruitment_id, kind) [name: 'notification_user_recruitment_kind_unique', unique]
+  }
   Note: "Notifikasi in-app per pengguna."
 }
 
@@ -869,6 +876,7 @@ table anmategra_recruitment {
   status varchar(16) [not null, default: 'draft']
   placement_state varchar(16) [not null, default: 'berjalan']
   results_released_at "timestamp with time zone"
+  results_publish_at "timestamp with time zone"
   results_visible_to_applicants boolean [not null, default: false]
   setup_completed_at "timestamp with time zone"
   setup_answers jsonb
@@ -926,6 +934,7 @@ table anmategra_recruitment_division {
   priority_version integer [not null, default: 0]
   priority_locked_at "timestamp with time zone"
   priority_locked_by varchar(255)
+  group_invite_url varchar(500)
 
   indexes {
     unit_id [name: 'recruitment_division_unit_idx']

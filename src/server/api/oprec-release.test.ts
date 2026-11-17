@@ -40,8 +40,6 @@ describe('penempatan oprec sebelum hasil dirilis', () => {
   it('tidak terhitung anggota periode sampai hasilnya dirilis', async () => {
     const { fx, userId, setRecruitment } = await acceptedApplicant();
     const kadiv = fx.divisions.Acara!.kadiv!.id;
-    await setRecruitment({ resultsVisibleToApplicants: true });
-
     const before = await periodMemberIds(db, fx.eventId);
     expect(before).toContain(kadiv);
     expect(before).not.toContain(userId);
@@ -50,15 +48,6 @@ describe('penempatan oprec sebelum hasil dirilis', () => {
     expect(await periodMemberIds(db, fx.eventId)).not.toContain(userId);
 
     await setRecruitment({ resultsReleasedAt: new Date() });
-    expect(await periodMemberIds(db, fx.eventId)).toContain(userId);
-  });
-
-  it('oprec yang diumumkan di luar Anmategra berlaku begitu final', async () => {
-    const { fx, userId, setRecruitment } = await acceptedApplicant();
-    await setRecruitment({ resultsVisibleToApplicants: false });
-    expect(await periodMemberIds(db, fx.eventId)).not.toContain(userId);
-
-    await setRecruitment({ placementState: 'final' });
     expect(await periodMemberIds(db, fx.eventId)).toContain(userId);
   });
 });

@@ -34,6 +34,7 @@ import {
   UpdateRecruitmentInputSchema,
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
+import { announcementProcedures } from './announcement';
 import { applicantProcedures } from './applicants';
 import { assessProcedures } from './assess';
 import { assessorProcedures } from './assessors';
@@ -41,7 +42,9 @@ import { criteriaProcedures } from './criteria';
 import { flagProcedures } from './flags';
 import { placementProcedures } from './placement';
 import { priorityProcedures } from './priority';
+import { priorityImportProcedures } from './priority-import';
 import { recomputeDivisions } from './recompute';
+import { resultNotificationProcedures } from './result-notification';
 import { resultsProcedures } from './results';
 import {
   applySectionBinding,
@@ -81,7 +84,10 @@ export const oprecRouter = createTRPCRouter({
   ...assessorProcedures,
   ...placementProcedures,
   ...priorityProcedures,
+  ...priorityImportProcedures,
   ...resultsProcedures,
+  ...announcementProcedures,
+  ...resultNotificationProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {

@@ -3,11 +3,14 @@ name: CI
 on:
   pull_request:
     branches: ['main', 'develop']
+  # Push hanya di main (jaring pengaman produksi). Untuk develop, kode yang
+  # masuk sudah lulus CI di PR-nya (branch protection mewajibkan check hijau),
+  # jadi menjalankan CI lagi setelah merge hanya membuang waktu runner.
   push:
-    branches: ['main', 'develop']
+    branches: ['main']
 
-# Push baru ke PR yang sama membatalkan run sebelumnya. Run di main/develop
-# tidak dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
+# Push baru ke PR yang sama membatalkan run sebelumnya. Run di main tidak
+# dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -156,7 +159,9 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    if: github.event_name == 'pull_request'
+    # Butuh dependency graph dan GitHub Advanced Security. Dilewati selama
+    # variabel repo GHAS_ENABLED belum bernilai true (lihat codeql.yml).
+    if: github.event_name == 'pull_request' && vars.GHAS_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

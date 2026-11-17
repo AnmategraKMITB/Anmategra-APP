@@ -10,10 +10,12 @@ import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
 // Components Import
 import { EventHeader } from '~/app/_components/placeholder/event-header';
 import { PenyelenggaraCard } from '~/app/_components/placeholder/penyelenggara-card';
+import { PengumumanList } from '~/app/_components/oprec/pengumuman/pengumuman-list';
 import { OrganogramDialog } from '~/app/_components/profile-kegiatan/organogram-dialog';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
 import { Button } from '~/components/ui/button';
 import { getServerAuthSession } from '~/server/auth';
+import { type RouterOutputs } from '~/trpc/react';
 import { api } from '~/trpc/server';
 
 // Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
@@ -52,6 +54,18 @@ const ProfileKegiatan = async ({
     const query = (await params).profileKegiatanId;
     const { kegiatan, lembaga, participant, daftarLink } =
       await getKegiatan(query);
+
+    let pengumuman: RouterOutputs['oprec']['lembagaAnnouncements'] = [];
+    try {
+      if (lembaga?.id) {
+        pengumuman = await api.oprec.lembagaAnnouncements({
+          lembagaId: lembaga.id,
+          periodId: query,
+        });
+      }
+    } catch {
+      // Pengumuman opsional; profil tetap tampil tanpanya.
+    }
 
     const session = await getServerAuthSession();
     const userId = session?.user?.id;
@@ -174,6 +188,9 @@ const ProfileKegiatan = async ({
                   }
                 />
               </Link>
+              <div className="mt-8">
+                <PengumumanList items={pengumuman} />
+              </div>
               {/* Best Staff Section */}
               {latestBestStaff && (
                 <div className="flex flex-col gap-12 w-full mt-8 mb-8">

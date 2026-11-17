@@ -42,7 +42,8 @@ const PROTOTYPE_ROUTES = ['/prototype'];
 // same URL works for lembaga, mahasiswa, and admin users.
 // `/manage` memuat alat pengelola (kegiatan, oprec, forms); aksesnya ditentukan
 // per halaman lewat canManageLembaga/canManageEvent, bukan oleh role akun.
-const AUTHENTICATED_SHARED_ROUTES = ['/manage'];
+// `/pengumuman` memuat hasil oprec; wajib login, dan login kembali ke URL semula.
+const AUTHENTICATED_SHARED_ROUTES = ['/manage', '/pengumuman'];
 
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
@@ -115,7 +116,11 @@ export default async function middleware(req: NextRequest) {
     AUTHENTICATED_SHARED_ROUTES.some((route) => matchesRoute(pathname, route))
   ) {
     if (!token) {
-      return NextResponse.redirect(new URL('/authentication', req.url));
+      const target = new URL('/authentication', req.url);
+      if (matchesRoute(pathname, '/pengumuman')) {
+        target.searchParams.set('callbackUrl', pathname + req.nextUrl.search);
+      }
+      return NextResponse.redirect(target);
     }
     return NextResponse.next();
   }
