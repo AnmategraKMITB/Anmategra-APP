@@ -187,3 +187,27 @@ describe('pemberitahuan hasil oprec', () => {
     expect(after!.read).toBe(false);
   });
 });
+
+describe('tautan notifikasi mengikuti slug', () => {
+  it('memakai slug formulir saat ada', async () => {
+    const w = await world();
+    const [rec] = await db
+      .select()
+      .from(schema.recruitment)
+      .where(eq(schema.recruitment.id, w.fx.recruitmentId));
+    await w.owner.oprec.resultsRelease({ recruitmentId: w.fx.recruitmentId });
+    await db
+      .update(schema.form)
+      .set({ slug: 'oprec-ami27' })
+      .where(eq(schema.form.id, rec!.formId));
+    const viewer = callerFor(db, {
+      id: w.accepted.userId,
+      role: 'mahasiswa',
+    } as never);
+    const [n] = await viewer.oprec.myResultNotifications();
+    expect(n!.links.map((l) => l.href)).toEqual([
+      '/forms/oprec-ami27',
+      '/pengumuman/oprec-ami27',
+    ]);
+  });
+});

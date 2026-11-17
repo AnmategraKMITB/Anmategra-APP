@@ -2,7 +2,7 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { recruitmentPublished } from '~/server/api/oprec-release';
 import { protectedProcedure } from '~/server/api/trpc';
-import { notifications, recruitment } from '~/server/db/schema';
+import { form, notifications, recruitment } from '~/server/db/schema';
 
 import { type Database } from './services';
 
@@ -51,10 +51,14 @@ export const resultNotificationProcedures = {
         content: notifications.content,
         read: notifications.read,
         links: notifications.links,
+        slug: form.slug,
+        formId: recruitment.formId,
+        recruitmentId: recruitment.id,
         createdAt: notifications.created_at,
       })
       .from(notifications)
       .innerJoin(recruitment, eq(recruitment.id, notifications.recruitmentId))
+      .innerJoin(form, eq(form.id, recruitment.formId))
       .where(
         and(
           eq(notifications.user_id, ctx.session.user.id),
@@ -63,7 +67,18 @@ export const resultNotificationProcedures = {
         ),
       )
       .orderBy(desc(notifications.created_at));
-    return rows.map((r) => ({ ...r, links: r.links ?? [] }));
+    // Tautan mengikuti slug formulir yang berlaku sekarang (bisa berubah sejak rilis).
+    return rows.map(({ slug, formId, recruitmentId, ...r }) => ({
+      ...r,
+      links: (r.links ?? []).map((l) => ({
+        ...l,
+        href: l.href.startsWith('/pengumuman/')
+          ? `/pengumuman/${slug ?? recruitmentId}`
+          : l.href.startsWith('/forms/')
+            ? `/forms/${slug ?? formId}`
+            : l.href,
+      })),
+    }));
   }),
 
   markResultNotificationRead: protectedProcedure

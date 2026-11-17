@@ -18,7 +18,7 @@ export function PengumumanList({
         {items.map((p) => (
           <li key={p.id}>
             <Link
-              href={`/pengumuman/${p.id}`}
+              href={`/pengumuman/${p.ref}`}
               className="flex items-center gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 transition-colors hover:bg-primary-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-400">

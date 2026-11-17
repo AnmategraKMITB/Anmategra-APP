@@ -300,3 +300,48 @@ describe('oprec.setDivisionInviteUrl', () => {
     expect(res.url).toBeNull();
   });
 });
+
+describe('slug formulir pada URL pengumuman', () => {
+  it('announcement dan daftar profil mengikuti slug formulir', async () => {
+    const w = await world();
+    const [rec] = await db
+      .select()
+      .from(schema.recruitment)
+      .where(eq(schema.recruitment.id, w.fx.recruitmentId));
+    const [ev] = await db
+      .select()
+      .from(schema.events)
+      .where(eq(schema.events.id, rec!.periodId));
+    await db
+      .update(schema.form)
+      .set({ slug: 'oprec-ami27' })
+      .where(eq(schema.form.id, rec!.formId));
+    await w.publish();
+
+    const bySlug = await w.viewer.oprec.announcement({
+      recruitmentId: 'oprec-ami27',
+    });
+    const byId = await w.viewer.oprec.announcement({
+      recruitmentId: w.fx.recruitmentId,
+    });
+    expect(bySlug).toEqual(byId);
+    expect(bySlug.published).toBe(true);
+
+    const list = await w.viewer.oprec.lembagaAnnouncements({
+      lembagaId: ev!.org_id!,
+    });
+    expect(list[0]!.ref).toBe('oprec-ami27');
+
+    await db
+      .update(schema.form)
+      .set({ slug: null })
+      .where(eq(schema.form.id, rec!.formId));
+    const plain = await w.viewer.oprec.lembagaAnnouncements({
+      lembagaId: ev!.org_id!,
+    });
+    expect(plain[0]!.ref).toBe(w.fx.recruitmentId);
+    await expect(
+      w.viewer.oprec.announcement({ recruitmentId: 'oprec-ami27' }),
+    ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+  });
+});

@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, desc, eq, isNull } from 'drizzle-orm';
+import { and, asc, desc, eq, isNull, or, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { groupAnnouncement, parseInviteUrl } from '~/lib/oprec/announcement';
@@ -11,6 +11,7 @@ import { oprecAssessProcedure, protectedProcedure } from '~/server/api/trpc';
 import {
   applicationChoice,
   events,
+  form,
   mahasiswa,
   organizationUnit,
   placement,
@@ -19,7 +20,6 @@ import {
   users,
 } from '~/server/db/schema';
 
-import { RecruitmentIdInputSchema } from '../../types/oprec.type';
 import { canDecideDivision } from './assess-access';
 import { logAction } from './log';
 import { notFound } from './services';
@@ -56,6 +56,11 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
     ),
   }),
 ]);
+
+/** Id oprec atau slug formulirnya; slug formulir yang dibagikan ikut dipakai di URL pengumuman. */
+const AnnouncementRefSchema = z.object({
+  recruitmentId: z.string().min(1).max(255),
+});
 
 export const announcementProcedures = {
   /**
@@ -119,7 +124,13 @@ export const announcementProcedures = {
     )
     .output(
       z.array(
-        z.object({ id: z.string(), name: z.string(), publishedAt: z.date() }),
+        z.object({
+          id: z.string(),
+          /** Segmen URL `/pengumuman/<ref>`: slug formulir bila ada, selain itu id. */
+          ref: z.string(),
+          name: z.string(),
+          publishedAt: z.date(),
+        }),
       ),
     )
     .query(async ({ ctx, input }) => {
@@ -127,10 +138,12 @@ export const announcementProcedures = {
         .select({
           id: recruitment.id,
           name: recruitment.name,
+          slug: form.slug,
           releasedAt: recruitment.resultsReleasedAt,
           publishAt: recruitment.resultsPublishAt,
         })
         .from(recruitment)
+        .innerJoin(form, eq(form.id, recruitment.formId))
         .innerJoin(events, eq(events.id, recruitment.periodId))
         .where(
           and(
@@ -142,6 +155,7 @@ export const announcementProcedures = {
         .orderBy(desc(recruitment.resultsReleasedAt));
       return rows.map((r) => ({
         id: r.id,
+        ref: r.slug ?? r.id,
         name: r.name,
         publishedAt: (r.publishAt ?? r.releasedAt)!,
       }));
@@ -153,17 +167,27 @@ export const announcementProcedures = {
    * tidak ada baris yang dikembalikan.
    */
   announcement: protectedProcedure
-    .input(RecruitmentIdInputSchema)
+    .input(AnnouncementRefSchema)
     .output(AnnouncementOutputSchema)
     .query(async ({ ctx, input }) => {
       const [row] = await ctx.db
         .select({
+          id: recruitment.id,
           name: recruitment.name,
           resultsReleasedAt: recruitment.resultsReleasedAt,
           resultsPublishAt: recruitment.resultsPublishAt,
         })
         .from(recruitment)
-        .where(eq(recruitment.id, input.recruitmentId));
+        .innerJoin(form, eq(form.id, recruitment.formId))
+        .where(
+          or(
+            eq(recruitment.id, input.recruitmentId),
+            eq(form.slug, input.recruitmentId),
+          ),
+        )
+        // Id yang cocok menang atas slug yang kebetulan sama.
+        .orderBy(sql`(${recruitment.id} = ${input.recruitmentId}) DESC`)
+        .limit(1);
       if (!row) notFound('Oprec tidak ditemukan.');
       if (!resultsPublished(row)) {
         return {
@@ -188,7 +212,7 @@ export const announcementProcedures = {
           eq(organizationUnit.id, recruitmentDivision.unitId),
         )
         .leftJoin(parent, eq(parent.id, organizationUnit.parent_id))
-        .where(eq(recruitmentDivision.recruitmentId, input.recruitmentId))
+        .where(eq(recruitmentDivision.recruitmentId, row.id))
         .orderBy(
           asc(recruitmentDivision.sortOrder),
           asc(organizationUnit.name),
@@ -216,7 +240,7 @@ export const announcementProcedures = {
         .innerJoin(mahasiswa, eq(mahasiswa.userId, users.id))
         .where(
           and(
-            eq(recruitmentDivision.recruitmentId, input.recruitmentId),
+            eq(recruitmentDivision.recruitmentId, row.id),
             isNull(users.hiddenAt),
           ),
         )
