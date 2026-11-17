@@ -2,7 +2,7 @@
 
 import { CalendarClock, ExternalLink, Search, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Table,
   TableBody,
@@ -16,7 +16,11 @@ import {
   anchorSlugs,
   filterAnnouncement,
 } from '~/lib/oprec/announcement';
-import { resolveActiveIndex, tabParam } from '~/lib/oprec/announcement-view';
+import {
+  resolveActiveIndex,
+  searchTarget,
+  tabParam,
+} from '~/lib/oprec/announcement-view';
 import { cn } from '~/lib/utils';
 import { api } from '~/trpc/react';
 
@@ -140,6 +144,37 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
     (searching ? currentFiltered?.divisions : current?.divisions) ?? [];
   const slugOf = (id: string) =>
     slugs[active]?.[current?.divisions.findIndex((x) => x.id === id) ?? -1];
+
+  // Mencari: bila tab aktif kosong, loncat ke tab yang berisi hasil, lalu
+  // gulir ke divisi pertama yang cocok. Hanya bereaksi pada perubahan kata kunci.
+  const counts = filtered.map((f) => f.count);
+  const jump = useRef<string | null>(null);
+  useEffect(() => {
+    if (!searching) {
+      jump.current = null;
+      return;
+    }
+    const target = searchTarget(counts, active);
+    if (target === null) return;
+    if (target !== active) selectTab(target);
+    const first = filtered[target]?.sections[0]?.divisions[0];
+    const idx = first
+      ? sections[target]?.divisions.findIndex((d) => d.id === first.id)
+      : -1;
+    const slug = idx !== undefined && idx >= 0 ? slugs[target]?.[idx] : null;
+    jump.current = slug ?? null;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [q]);
+
+  // Tab baru sudah dirender: gulir ke divisi pertama yang cocok.
+  useEffect(() => {
+    if (!jump.current) return;
+    const el = document.getElementById(jump.current);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      jump.current = null;
+    }
+  }, [active, q, divisions.length]);
 
   return (
     <>
