@@ -56,7 +56,7 @@ export default function OprecPendaftarDemo() {
   return (
     <DemoFrame
       title="Daftar pendaftar oprec"
-      location="Lembaga › Oprec › Festival Karya 2026 › Pendaftar"
+      location="Lembaga › Oprec › Aku Masuk ITB 2027 › Pendaftar"
       steps={STEPS}
     >
       {(guide) => <Body guide={guide} />}
@@ -95,7 +95,7 @@ function Body({ guide }: { guide: DemoGuide }) {
   return (
     <div>
       <ScreenTitle
-        title="Oprec Festival Karya 2026"
+        title="Oprec Aku Masuk ITB 2027"
         subtitle="Klik baris untuk membuka berkasnya."
         actions={
           <Btn

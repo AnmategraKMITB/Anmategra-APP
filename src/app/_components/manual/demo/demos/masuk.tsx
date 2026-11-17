@@ -104,7 +104,7 @@ function Body({ guide }: { guide: DemoGuide }) {
         </ul>
         <div className="mt-3 border-t border-neutral-300 pt-2">
           <p className="truncate text-xs font-semibold">
-            {role === 'mahasiswa' ? 'Raka Pradipta' : 'Himpunan Mahasiswa Contoh'}
+            {role === 'mahasiswa' ? 'Raka Pradipta' : 'Kabinet KM ITB'}
           </p>
           <Btn
             small
@@ -125,7 +125,7 @@ function Body({ guide }: { guide: DemoGuide }) {
         </Pill>
         <p className="mt-2 text-lg font-semibold">
           Selamat datang,{' '}
-          {role === 'mahasiswa' ? 'Raka' : 'Himpunan Mahasiswa Contoh'}
+          {role === 'mahasiswa' ? 'Raka' : 'Kabinet KM ITB'}
         </p>
         <p className="mt-1 text-neutral-700">
           {role === 'mahasiswa'

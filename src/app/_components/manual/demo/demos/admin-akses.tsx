@@ -38,7 +38,7 @@ const STEPS: DemoStep[] = [
 ];
 
 const FEATURES = ['OPREC', 'Formulir', 'Organogram', 'Kegiatan/kepengurusan'];
-const EVENTS = ['Festival Karya 2026', 'Malam Keakraban 2026'];
+const EVENTS = ['Aku Masuk ITB 2027', 'Malam Keakraban 2026'];
 const TABS = [
   ['akses', 'Akses'],
   ['audit', 'Audit'],

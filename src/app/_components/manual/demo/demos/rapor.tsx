@@ -65,7 +65,7 @@ export default function RaporDemo() {
   return (
     <DemoFrame
       title="Rapor panitia"
-      location="Lembaga › Kegiatan › Festival Karya 2026 › Rapor Komunal"
+      location="Lembaga › Kegiatan › Aku Masuk ITB 2027 › Rapor Komunal"
       steps={STEPS}
     >
       {(guide) => <Body guide={guide} />}
@@ -95,7 +95,7 @@ function Body({ guide }: { guide: DemoGuide }) {
     <div>
       <ScreenTitle
         title="Rapor Panitia"
-        subtitle="Festival Karya 2026"
+        subtitle="Aku Masuk ITB 2027"
         actions={
           <>
             <Btn

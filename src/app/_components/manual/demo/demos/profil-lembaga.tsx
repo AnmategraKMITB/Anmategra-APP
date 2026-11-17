@@ -31,7 +31,7 @@ export default function ProfilLembagaDemo() {
 
 function Body({ guide }: { guide: DemoGuide }) {
   const [saved, setSaved] = useState({
-    name: 'Himpunan Mahasiswa Contoh',
+    name: 'Kabinet KM ITB',
     type: 'Himpunan',
     description: 'Wadah mahasiswa program studi untuk berkarya dan berkegiatan.',
   });
@@ -142,7 +142,7 @@ function Body({ guide }: { guide: DemoGuide }) {
         <p className="text-xs font-semibold text-neutral-700">
           Highlighted Event
         </p>
-        <p className="mt-1 font-semibold">Festival Karya 2026</p>
+        <p className="mt-1 font-semibold">Aku Masuk ITB 2027</p>
         <p className="text-xs text-neutral-700">
           Kegiatan yang disematkan dari menu Kegiatan tampil di sini.
         </p>
