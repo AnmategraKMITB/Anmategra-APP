@@ -89,7 +89,7 @@ export function filterAnnouncement(
   return { sections: filtered, count: total(filtered) };
 }
 
-function slugify(text: string) {
+export function slugify(text: string) {
   return text
     .toLowerCase()
     .normalize('NFKD')

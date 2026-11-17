@@ -4,6 +4,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createCaller } from '~/server/api/root';
 import {
   DIVISION_HEADER,
+  PROVISIONAL_BANNER,
   acceptedFlatTable,
   applicantCsv,
   divisionSheets,
@@ -76,6 +77,8 @@ export async function GET(
       provisional: !overview.published,
     });
 
+    const banner = overview.published ? undefined : PROVISIONAL_BANNER;
+
     await api.oprec.resultsLogExport({ recruitmentId, format });
 
     if (format === 'csv') {
@@ -83,7 +86,7 @@ export async function GET(
         scope === 'diterima'
           ? acceptedFlatTable(rows, overview.divisions)
           : table;
-      return new Response(applicantCsv(csvTable), {
+      return new Response(applicantCsv(csvTable, banner), {
         headers: {
           'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': `attachment; filename="${filename}"`,
@@ -95,13 +98,18 @@ export async function GET(
     const workbook = new ExcelJS.Workbook();
     workbook.title = `Hasil ${overview.name}${overview.published ? '' : ' - SEMENTARA (belum final)'}`;
     const style = (sheet: ExcelJS.Worksheet) => {
-      sheet.views = [{ state: 'frozen', ySplit: 1 }];
+      sheet.views = [{ state: 'frozen', ySplit: banner ? 2 : 1 }];
       sheet.columns.forEach((column) => {
         column.width = 22;
       });
     };
     if (scope === 'semua') {
       const main = workbook.addWorksheet('Rekap');
+      if (banner)
+        main.addRow([banner]).font = {
+          bold: true,
+          color: { argb: 'FFB91C1C' },
+        };
       main.addRow(table.header).font = { bold: true };
       for (const row of table.body) main.addRow(row.map(safeCell));
       style(main);
@@ -113,6 +121,11 @@ export async function GET(
           ? 'Rekap (2)'
           : data.name;
       const sheet = workbook.addWorksheet(name);
+      if (banner)
+        sheet.addRow([banner]).font = {
+          bold: true,
+          color: { argb: 'FFB91C1C' },
+        };
       sheet.addRow(DIVISION_HEADER).font = { bold: true };
       for (const row of data.body) sheet.addRow(row.map(safeCell));
       style(sheet);

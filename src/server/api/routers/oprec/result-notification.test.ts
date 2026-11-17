@@ -7,7 +7,12 @@ import {
   choicesOf,
   createOprecFixture,
 } from '~/test/oprec-fixture';
-import { createMahasiswa, createTestDb, createUser, resetDb } from '~/test/test-db';
+import {
+  createMahasiswa,
+  createTestDb,
+  createUser,
+  resetDb,
+} from '~/test/test-db';
 
 const { db, close } = createTestDb();
 
@@ -59,7 +64,14 @@ async function world() {
     submittedAt: null,
   });
 
-  return { fx, accepted, rejected, draftUser, closerecUser, owner: callerFor(db, fx.owner) };
+  return {
+    fx,
+    accepted,
+    rejected,
+    draftUser,
+    closerecUser,
+    owner: callerFor(db, fx.owner),
+  };
 }
 
 const forUser = (userId: string) =>
@@ -101,7 +113,7 @@ describe('pemberitahuan hasil oprec', () => {
     expect(await forUser(w.accepted.userId)).toHaveLength(1);
   });
 
-  it('pendaftar yang baru terkirim setelah tarik tetap diberi tahu saat rilis ulang', async () => {
+  it('hanya rilis pertama: pendaftar yang baru terkirim tidak diberi tahu saat rilis ulang', async () => {
     const w = await world();
     await w.owner.oprec.resultsRelease({ recruitmentId: w.fx.recruitmentId });
     await w.owner.oprec.resultsWithdraw({
@@ -113,7 +125,7 @@ describe('pemberitahuan hasil oprec', () => {
       .set({ submittedAt: new Date() })
       .where(eq(schema.application.userId, w.draftUser.id));
     await w.owner.oprec.resultsRelease({ recruitmentId: w.fx.recruitmentId });
-    expect(await forUser(w.draftUser.id)).toHaveLength(1);
+    expect(await forUser(w.draftUser.id)).toHaveLength(0);
     expect(await forUser(w.accepted.userId)).toHaveLength(1);
   });
 
@@ -128,7 +140,9 @@ describe('pemberitahuan hasil oprec', () => {
         w.owner.oprec.resultsRelease({ recruitmentId: w.fx.recruitmentId }),
       ).rejects.toBeDefined();
     } finally {
-      await db.execute(sql`DROP TRIGGER fail_notif_trg ON anmategra_notification`);
+      await db.execute(
+        sql`DROP TRIGGER fail_notif_trg ON anmategra_notification`,
+      );
       await db.execute(sql`DROP FUNCTION fail_notif()`);
     }
     const [row] = await db

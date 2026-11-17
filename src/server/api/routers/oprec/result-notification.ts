@@ -14,7 +14,8 @@ export const RESULT_NOTIFICATION_KIND = 'hasil_oprec';
  * Pemberitahuan Inbox saat hasil dirilis, satu `INSERT ... SELECT` di dalam
  * transaksi rilis (gagal berarti rilis batal). Penerima: pendaftar dengan
  * pendaftaran terkirim, ditambah orang closerec. Pesan seragam tanpa status.
- * Unik per (pengguna, oprec, jenis): rilis ulang tidak menggandakan, tetapi pendaftar yang baru masuk tetap diberi tahu.
+ * Hanya pada rilis pertama: bila oprec sudah pernah diberi pemberitahuan jenis
+ * ini, rilis ulang (setelah tarik) tidak membuat apa pun. Unik per (pengguna, oprec, jenis).
  */
 export async function notifyResultsReleased(
   tx: Tx,
@@ -34,6 +35,9 @@ export async function notifyResultsReleased(
     FROM anmategra_application a
     WHERE a.recruitment_id = ${row.id}
       AND (a.submitted_at IS NOT NULL OR a.source = 'closerec')
+      AND NOT EXISTS (
+        SELECT 1 FROM ${notifications} n
+        WHERE n.recruitment_id = ${row.id} AND n.kind = ${RESULT_NOTIFICATION_KIND})
     ON CONFLICT DO NOTHING`);
 }
 

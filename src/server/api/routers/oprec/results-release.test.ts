@@ -125,4 +125,24 @@ describe('gerbang tayang hasil oprec', () => {
     await owner.oprec.resultsRelease({ recruitmentId: fx.recruitmentId });
     expect(await placed()).toBe(true);
   });
+
+  it('penerimaan yang dibatalkan hilang dari organogram dan daftar pengumuman', async () => {
+    const { fx, a, owner, applicant, placed } = await finalWorld();
+    await owner.oprec.resultsRelease({ recruitmentId: fx.recruitmentId });
+    expect(await placed()).toBe(true);
+    const list = () =>
+      applicant.oprec.announcement({ recruitmentId: fx.recruitmentId });
+    const count = async () => {
+      const r = await list();
+      return r.published
+        ? r.sections.flatMap((x) => x.divisions).flatMap((d) => d.rows).length
+        : -1;
+    };
+    expect(await count()).toBe(1);
+    await db
+      .delete(schema.placement)
+      .where(eq(schema.placement.userId, a.userId));
+    expect(await placed()).toBe(false);
+    expect(await count()).toBe(0);
+  });
 });

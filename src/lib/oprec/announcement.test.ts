@@ -107,7 +107,10 @@ describe('filterAnnouncement', () => {
 describe('anchorSlugs', () => {
   it('membentuk <bidang>-<divisi> dan memberi sufiks angka pada bentrok', () => {
     const slugs = anchorSlugs([
-      { label: 'Inti', divisions: [{ label: 'Humas & PR' }, { label: 'Humas PR' }] },
+      {
+        label: 'Inti',
+        divisions: [{ label: 'Humas & PR' }, { label: 'Humas PR' }],
+      },
       { label: null, divisions: [{ label: 'Acara' }] },
     ]);
     expect(slugs[0]).toEqual(['inti-humas-pr', 'inti-humas-pr-2']);

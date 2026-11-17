@@ -1,14 +1,22 @@
 import { describe, expect, it } from 'vitest';
-import { resolveActiveIndex } from './announcement-view';
+
+import { resolveActiveIndex, tabParam } from './announcement-view';
+
+const labels = ['Bidang Acara', 'Humas & Media', 'Tanpa bidang'];
 
 describe('resolveActiveIndex', () => {
-  it('memakai indeks yang sah', () => {
-    expect(resolveActiveIndex('2', 3)).toBe(2);
+  it('memakai slug yang sah, bukan posisi', () => {
+    expect(resolveActiveIndex('humas-media', labels)).toBe(1);
+    expect(resolveActiveIndex('humas-media', [...labels].reverse())).toBe(1);
   });
-  it.each([null, undefined, '', 'x', '-1', '3', '1.5'])(
+  it.each([null, undefined, '', 'x', '2', 'tidak-ada'])(
     'jatuh ke 0 untuk %s',
     (v) => {
-      expect(resolveActiveIndex(v, 3)).toBe(0);
+      expect(resolveActiveIndex(v, labels)).toBe(0);
     },
   );
+  it('tabParam memakai slug label', () => {
+    expect(tabParam('Humas & Media', 1)).toBe('humas-media');
+    expect(tabParam(null, 0)).toBe('0');
+  });
 });

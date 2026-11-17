@@ -16,7 +16,7 @@ import {
   anchorSlugs,
   filterAnnouncement,
 } from '~/lib/oprec/announcement';
-import { resolveActiveIndex } from '~/lib/oprec/announcement-view';
+import { resolveActiveIndex, tabParam } from '~/lib/oprec/announcement-view';
 import { cn } from '~/lib/utils';
 import { api } from '~/trpc/react';
 
@@ -111,12 +111,15 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
   );
   const searching = q.trim() !== '';
   const total = filtered.reduce((n, f) => n + f.count, 0);
-  const active = resolveActiveIndex(params.get('bidang'), sections.length);
+  const active = resolveActiveIndex(
+    params.get('bidang'),
+    sections.map((s) => s.label),
+  );
   const showTabs = !(sections.length === 1 && sections[0]?.label === null);
 
   const selectTab = (i: number) => {
     const next = new URLSearchParams(params.toString());
-    next.set('bidang', String(i));
+    next.set('bidang', tabParam(sections[i]?.label ?? null, i));
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   };
 

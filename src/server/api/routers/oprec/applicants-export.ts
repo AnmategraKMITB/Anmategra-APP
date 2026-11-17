@@ -44,10 +44,13 @@ export function applicantTable(rows: ExportRow[], maxChoices: number) {
 }
 
 /** UTF-8 dengan BOM agar Excel membaca huruf dengan benar. */
-export function applicantCsv(table: ReturnType<typeof applicantTable>) {
+export function applicantCsv(
+  table: ReturnType<typeof applicantTable>,
+  banner?: string,
+) {
   const line = (cells: (string | number)[]) =>
     `${cells.map((c) => escapeCsvCell(c)).join(',')}\r\n`;
-  return `﻿${line(table.header)}${table.body.map(line).join('')}`;
+  return `﻿${banner ? line([banner]) : ''}${line(table.header)}${table.body.map(line).join('')}`;
 }
 
 export function slugOf(name: string) {
@@ -149,6 +152,10 @@ export function safeCell(value: string | number) {
     ? `'${value}`
     : value;
 }
+
+/** Baris penanda di atas header ekspor yang belum final. */
+export const PROVISIONAL_BANNER =
+  'SEMENTARA - belum final (hasil belum dirilis)';
 
 export type ResultsScope = 'diterima' | 'semua';
 
