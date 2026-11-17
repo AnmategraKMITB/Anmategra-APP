@@ -64,11 +64,12 @@ export const announcementProcedures = {
           name: recruitment.name,
           resultsReleasedAt: recruitment.resultsReleasedAt,
           resultsPublishAt: recruitment.resultsPublishAt,
+          visible: recruitment.resultsVisibleToApplicants,
         })
         .from(recruitment)
         .where(eq(recruitment.id, input.recruitmentId));
       if (!row) notFound('Oprec tidak ditemukan.');
-      if (!resultsPublished(row)) {
+      if (!row.visible || !resultsPublished(row)) {
         return {
           published: false as const,
           name: row.name,
@@ -118,6 +119,15 @@ export const announcementProcedures = {
             eq(recruitmentDivision.recruitmentId, input.recruitmentId),
             isNull(users.hiddenAt),
           ),
+        )
+        .groupBy(
+          applicationChoice.divisionId,
+          users.id,
+          mahasiswa.nama,
+          users.name,
+          mahasiswa.nim,
+          mahasiswa.jurusan,
+          mahasiswa.angkatan,
         );
 
       return {

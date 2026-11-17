@@ -101,6 +101,22 @@ describe('pemberitahuan hasil oprec', () => {
     expect(await forUser(w.accepted.userId)).toHaveLength(1);
   });
 
+  it('pendaftar yang baru terkirim setelah tarik tetap diberi tahu saat rilis ulang', async () => {
+    const w = await world();
+    await w.owner.oprec.resultsRelease({ recruitmentId: w.fx.recruitmentId });
+    await w.owner.oprec.resultsWithdraw({
+      recruitmentId: w.fx.recruitmentId,
+      reason: 'Salah data',
+    });
+    await db
+      .update(schema.application)
+      .set({ submittedAt: new Date() })
+      .where(eq(schema.application.userId, w.draftUser.id));
+    await w.owner.oprec.resultsRelease({ recruitmentId: w.fx.recruitmentId });
+    expect(await forUser(w.draftUser.id)).toHaveLength(1);
+    expect(await forUser(w.accepted.userId)).toHaveLength(1);
+  });
+
   it('rilis batal bila pembuatan pemberitahuan gagal', async () => {
     const w = await world();
     await db.execute(sql`CREATE OR REPLACE FUNCTION fail_notif() RETURNS trigger AS $$

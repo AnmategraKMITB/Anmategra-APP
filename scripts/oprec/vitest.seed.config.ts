@@ -12,7 +12,7 @@ export default defineConfig({
   test: {
     environment: 'node',
     env: { SKIP_ENV_VALIDATION: '1' },
-    include: ['scripts/oprec/seed-mock.seed.ts'],
+    include: ['scripts/oprec/*.seed.ts'],
     root: fileURLToPath(new URL('../..', import.meta.url)),
   },
 });

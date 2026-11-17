@@ -7,14 +7,19 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-const Page = async ({ params }: { params: { recruitmentId: string } }) => {
+const Page = async ({
+  params,
+}: {
+  params: Promise<{ recruitmentId: string }>;
+}) => {
+  const { recruitmentId } = await params;
   const session = await getServerAuthSession();
   if (!session) {
     redirect(
-      `/authentication?callbackUrl=${encodeURIComponent(`/pengumuman/${params.recruitmentId}`)}`,
+      `/authentication?callbackUrl=${encodeURIComponent(`/pengumuman/${recruitmentId}`)}`,
     );
   }
-  return <AnnouncementView recruitmentId={params.recruitmentId} />;
+  return <AnnouncementView recruitmentId={recruitmentId} />;
 };
 
 export default Page;

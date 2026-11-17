@@ -164,7 +164,7 @@ export function ReleasePanel({
               onClick={() =>
                 release.mutate({
                   recruitmentId,
-                  publishAt: publishAt ? new Date(publishAt) : undefined,
+                  publishAt: publishAt ? new Date(`${publishAt}:00+07:00`) : undefined,
                 })
               }
             >
