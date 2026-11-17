@@ -145,11 +145,16 @@ function PreviewSummary({ data }: { data: Preview }) {
  */
 export function PriorityImport({
   recruitmentId,
+  divisionId,
+  divisionName,
   canImport,
   onImported,
   announce,
 }: {
   recruitmentId: string;
+  /** Divisi yang sedang dipilih; templatnya memuat jawaban formulir. */
+  divisionId: string;
+  divisionName: string;
   /** Metode prioritas dan penempatan masih berjalan. */
   canImport: boolean;
   onImported: () => void;
@@ -230,8 +235,11 @@ export function PriorityImport({
     <>
       <div className="mt-6 flex flex-wrap items-center gap-2">
         <Button asChild variant="dark_blue_outline">
-          <a href={`/api/oprec/${recruitmentId}/prioritas`} download>
-            <Download /> Unduh templat
+          <a
+            href={`/api/oprec/${recruitmentId}/prioritas?divisi=${encodeURIComponent(divisionId)}`}
+            download
+          >
+            <Download /> Unduh templat {divisionName}
           </a>
         </Button>
         {canImport ? (
@@ -246,7 +254,15 @@ export function PriorityImport({
           </Button>
         ) : null}
         <p className="text-sm text-neutral-700">
-          Untuk menyusun banyak pendaftar di Excel atau Google Sheets.
+          Templat divisi terpilih memuat jawaban formulir, untuk disusun di
+          Excel atau Google Sheets.{' '}
+          <a
+            href={`/api/oprec/${recruitmentId}/prioritas`}
+            download
+            className="text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+          >
+            Semua divisi (tanpa jawaban)
+          </a>
         </p>
       </div>
 
