@@ -48,7 +48,7 @@ import {
   type TemplateRow,
   readSheet,
 } from './priority-sheet';
-import { type Queryable, conflict } from './services';
+import { type Queryable, conflict, notFound } from './services';
 
 const id = z.string().min(1).max(255);
 /** Batas ukuran file unggahan (setelah base64 diurai). */
@@ -304,6 +304,8 @@ async function loadTemplateAnswers(
   db: FormDb,
   rec: { id: string; formId: string },
   divisionIds: ReadonlySet<string>,
+  /** Hanya jawaban pendaftar ini yang dimuat. */
+  applicationIds: ReadonlySet<string>,
 ) {
   const [bindings, fields, apps] = await Promise.all([
     db
@@ -346,7 +348,9 @@ async function loadTemplateAnswers(
 
   const submissionOf = new Map<string, string>();
   for (const a of apps) {
-    if (a.submissionId) submissionOf.set(a.id, a.submissionId);
+    if (a.submissionId && applicationIds.has(a.id)) {
+      submissionOf.set(a.id, a.submissionId);
+    }
   }
   const wanted = new Set(columns.map((c) => c.fieldId));
   const valuesOf = new Map<string, Map<string, unknown>>();
@@ -389,10 +393,16 @@ export const priorityImportProcedures = {
    * Isi templat: satu baris per pendaftar per divisi yang boleh disusun
    * pemanggil, beserta urutan dan keterangan tersimpan. Pada mode blind,
    * identitas hanya untuk admin.
+   *
+   * Dengan `divisionId`, templat hanya berisi divisi itu dan memuat jawaban
+   * formulir. Tanpa `divisionId`, semua divisi ikut tetapi tanpa jawaban:
+   * pendaftar yang bersedia dipindahkan menjadi kandidat di setiap divisi,
+   * jadi jawaban mereka akan terulang di puluhan baris dan file menjadi
+   * terlalu besar untuk dibuat server.
    */
   priorityTemplate: oprecAssessProcedure
-    .input(z.object({ recruitmentId: id }))
-    .query(async ({ ctx }): Promise<TemplateData> => {
+    .input(z.object({ recruitmentId: id, divisionId: id.optional() }))
+    .query(async ({ ctx, input }): Promise<TemplateData> => {
       const rec = ctx.recruitment;
       const a = ctx.assess;
       const pool = await loadPool(ctx.db, rec.id);
@@ -402,15 +412,39 @@ export const priorityImportProcedures = {
       const saved = new Map(
         pool.priorities.map((p) => [`${p.divisionId}:${p.applicationId}`, p]),
       );
-      const rankIds = new Set(
-        pool.divisions.filter((d) => canRankDivision(a, d.id)).map((d) => d.id),
+      const only = input.divisionId;
+      if (only !== undefined) {
+        if (!pool.divisions.some((d) => d.id === only)) {
+          notFound('Divisi itu bukan milik oprec ini.');
+        }
+        if (!canRankDivision(a, only)) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Kamu tidak menyusun daftar prioritas divisi itu.',
+          });
+        }
+      }
+      const targets = pool.divisions.filter(
+        (d) =>
+          canRankDivision(a, d.id) && (only === undefined || d.id === only),
       );
-      const answers = await loadTemplateAnswers(ctx.db, rec, rankIds);
+      const answers =
+        only === undefined
+          ? null
+          : await loadTemplateAnswers(
+              ctx.db,
+              rec,
+              new Set([only]),
+              new Set(
+                pool.apps
+                  .filter((app) => candidacy(app, only, rec.allowRedirect))
+                  .map((app) => app.id),
+              ),
+            );
 
       const divisions: TemplateData['divisions'] = [];
       const rows: TemplateRow[] = [];
-      for (const d of pool.divisions) {
-        if (!canRankDivision(a, d.id)) continue;
+      for (const d of targets) {
         let rankable = 0;
         const part: TemplateRow[] = [];
         for (const app of pool.apps) {
@@ -439,7 +473,7 @@ export const priorityImportProcedures = {
             rank: c.blocked ? null : (p?.rank ?? null),
             note: p?.note ?? null,
             applicationId: app.id,
-            answers: answers.answersFor(app.id, d.id),
+            answers: answers ? answers.answersFor(app.id, d.id) : [],
           });
         }
         const group = (r: TemplateRow) =>
@@ -462,7 +496,7 @@ export const priorityImportProcedures = {
       return {
         recruitmentName: rec.name,
         blind: hide,
-        answerColumns: answers.labels,
+        answerColumns: answers?.labels ?? [],
         divisions,
         rows,
       };

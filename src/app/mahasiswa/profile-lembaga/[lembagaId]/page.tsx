@@ -10,6 +10,7 @@ import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan
 import DummyFotoEvent from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import React, { cache } from 'react';
 import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
+import { PengumumanList } from '~/app/_components/oprec/pengumuman/pengumuman-list';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
@@ -20,6 +21,7 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { getServerAuthSession } from '~/server/auth';
 // TRPC Import
+import { type RouterOutputs } from '~/trpc/react';
 import { api } from '~/trpc/server';
 
 // Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
@@ -82,6 +84,13 @@ const DetailLembagaPage = async ({
         lembagaId,
         error,
       );
+    }
+
+    let pengumuman: RouterOutputs['oprec']['lembagaAnnouncements'] = [];
+    try {
+      pengumuman = await api.oprec.lembagaAnnouncements({ lembagaId });
+    } catch {
+      // Pengumuman opsional; profil tetap tampil tanpanya.
     }
 
     const jsonLd = {
@@ -182,6 +191,8 @@ const DetailLembagaPage = async ({
                 </div>
               </Link>
             )}
+
+            <PengumumanList items={pengumuman} />
 
             {/* Best Staff Section */}
             {latestBestStaff && (

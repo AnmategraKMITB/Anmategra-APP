@@ -1,10 +1,11 @@
 'use client';
 
 import { ArrowRight } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '~/components/ui/button';
-import { type RouterOutputs } from '~/trpc/react';
+import { type RouterOutputs, api } from '~/trpc/react';
 
-import { Chip } from '../placement/shared';
+import { Chip, inputClass } from '../placement/shared';
 
 type Overview = RouterOutputs['oprec']['resultsOverview'];
 type Division = Overview['divisions'][number];
@@ -15,12 +16,16 @@ export type AcceptedNames = Record<
 
 /** Rekap per divisi, dikelompokkan menurut bidang induk. */
 export function DivisionSummary({
+  recruitmentId,
   divisions,
   acceptedByDivision,
   onPickDivision,
+  onSaved,
 }: {
+  recruitmentId: string;
   divisions: Division[];
   acceptedByDivision: AcceptedNames;
+  onSaved: () => void;
   onPickDivision: (divisionId: string) => void;
 }) {
   const groups = new Map<string, Division[]>();
@@ -31,10 +36,7 @@ export function DivisionSummary({
 
   return (
     <section aria-labelledby="rekap-divisi" className="mt-8">
-      <h2
-        id="rekap-divisi"
-        className="text-lg font-semibold text-neutral-1000"
-      >
+      <h2 id="rekap-divisi" className="text-lg font-semibold text-neutral-1000">
         Rekap per divisi
       </h2>
       <div className="mt-3 grid gap-6">
@@ -49,6 +51,8 @@ export function DivisionSummary({
                   key={division.id}
                   division={division}
                   names={acceptedByDivision[division.id] ?? []}
+                  recruitmentId={recruitmentId}
+                  onSaved={onSaved}
                   onPickDivision={onPickDivision}
                 />
               ))}
@@ -65,13 +69,72 @@ export function DivisionSummary({
   );
 }
 
+function InviteForm({
+  recruitmentId,
+  division,
+  onSaved,
+}: {
+  recruitmentId: string;
+  division: Division;
+  onSaved: () => void;
+}) {
+  const [value, setValue] = useState(division.groupInviteUrl ?? '');
+  const save = api.oprec.setDivisionInviteUrl.useMutation({
+    onSuccess: onSaved,
+  });
+  const dirty = value.trim() !== (division.groupInviteUrl ?? '');
+  return (
+    <form
+      className="grid gap-1"
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate({ recruitmentId, divisionId: division.id, url: value });
+      }}
+    >
+      <label
+        htmlFor={`invite-${division.id}`}
+        className="text-xs font-semibold text-neutral-700"
+      >
+        Tautan grup LINE/WhatsApp
+      </label>
+      <div className="flex gap-2">
+        <input
+          id={`invite-${division.id}`}
+          type="url"
+          inputMode="url"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="https://chat.whatsapp.com/…"
+          className={inputClass}
+        />
+        <Button type="submit" size="sm" disabled={!dirty || save.isPending}>
+          Simpan
+        </Button>
+      </div>
+      {save.error ? (
+        <p role="alert" className="text-xs text-danger-dark">
+          {save.error.message}
+        </p>
+      ) : save.isSuccess && !dirty ? (
+        <p role="status" className="text-xs text-neutral-700">
+          Tersimpan. Keaktifan tautan tidak diperiksa.
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
 function DivisionCard({
   division,
   names,
+  recruitmentId,
+  onSaved,
   onPickDivision,
 }: {
   division: Division;
   names: AcceptedNames[string];
+  recruitmentId: string;
+  onSaved: () => void;
   onPickDivision: (divisionId: string) => void;
 }) {
   const quota = division.quota === 0 ? 'Tanpa batas' : division.quota;
@@ -99,8 +162,7 @@ function DivisionCard({
       </p>
       {division.overQuota ? (
         <p className="rounded-xl bg-warning-light px-3 py-2 text-sm text-neutral-1000">
-          Diterima melebihi kuota ({division.accepted} dari{' '}
-          {division.quota}).
+          Diterima melebihi kuota ({division.accepted} dari {division.quota}).
         </p>
       ) : null}
 
@@ -120,13 +182,24 @@ function DivisionCard({
                 <span className="min-w-0 flex-1 truncate font-semibold text-neutral-1000">
                   {row.name ?? 'Tanpa nama'}
                 </span>
-                <span className="text-xs text-neutral-700">{row.nim ?? ''}</span>
+                <span className="text-xs text-neutral-700">
+                  {row.nim ?? ''}
+                </span>
                 {row.closerec ? <Chip tone="muted">closerec</Chip> : null}
               </li>
             ))}
           </ul>
         ) : null}
       </details>
+
+      {division.canEditInvite ? (
+        <InviteForm
+          key={division.groupInviteUrl ?? ''}
+          recruitmentId={recruitmentId}
+          division={division}
+          onSaved={onSaved}
+        />
+      ) : null}
 
       <div>
         <Button

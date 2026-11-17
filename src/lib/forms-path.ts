@@ -45,6 +45,9 @@ export function isSafeFormsCallback(value: unknown): boolean {
     return false;
   }
 
+  // Halaman pengumuman hasil oprec juga memakai alur login dengan callbackUrl.
+  if (/^\/pengumuman\/[A-Za-z0-9_-]{1,100}$/.test(path)) return true;
+
   if (!path.startsWith('/forms/')) return false;
 
   const previewMatch = /^\/forms\/preview\/([^/]+)$/.exec(path);

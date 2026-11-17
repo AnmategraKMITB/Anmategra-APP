@@ -15,9 +15,9 @@ import {
   selectClass,
   when,
 } from '../placement/shared';
-import { DivisionSummary, type AcceptedNames } from './division-summary';
+import { type AcceptedNames, DivisionSummary } from './division-summary';
 import { ReleasePanel } from './release-panel';
-import { ResultsTable, type ResultRow } from './results-table';
+import { type ResultRow, ResultsTable } from './results-table';
 
 type Overview = RouterOutputs['oprec']['resultsOverview'];
 type FinalStatus = ResultRow['finalStatus'];
@@ -106,7 +106,11 @@ export function HasilView({
   const refresh = () => {
     void utils.oprec.resultsOverview.invalidate({ recruitmentId });
     void utils.oprec.resultsList.invalidate();
-    void utils.oprec.resultsList.invalidate({ recruitmentId, page: 1, pageSize: 1 });
+    void utils.oprec.resultsList.invalidate({
+      recruitmentId,
+      page: 1,
+      pageSize: 1,
+    });
   };
   const resetAll = () => {
     setAll({ ...EMPTY_ALL, loading: false, error: '' });
@@ -179,6 +183,11 @@ export function HasilView({
   );
   const hasFilter = search !== '' || divisionId !== '' || all.status !== '';
   const overallTotal = totals.data?.total ?? 0;
+  const acceptedCount = divisions.reduce(
+    (sum, division) => sum + division.accepted + division.extras,
+    0,
+  );
+  const canExportAll = overallTotal > 0 || acceptedCount > 0;
 
   return (
     <div className="py-6 sm:py-8">
@@ -201,26 +210,40 @@ export function HasilView({
             pendaftar.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {(['csv', 'xlsx'] as const).map((format) => (
-            <Button
-              key={format}
-              asChild
-              variant="dark_blue_outline"
-              aria-disabled={overallTotal === 0}
-              className={
-                overallTotal === 0 ? 'pointer-events-none opacity-50' : ''
-              }
-            >
-              <a
-                href={`/api/oprec/${recruitmentId}/hasil?format=${format}`}
-                download
-                tabIndex={overallTotal === 0 ? -1 : undefined}
-              >
-                <Download /> Ekspor {format.toUpperCase()}
-              </a>
-            </Button>
-          ))}
+        <div className="flex flex-col items-end gap-2">
+          {overview.data && !overview.data.published ? (
+            <Chip tone="muted">Sementara - belum final</Chip>
+          ) : null}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {(
+              [
+                ['diterima', 'Hanya yang diterima'],
+                ['semua', 'Semua pendaftar'],
+              ] as const
+            ).flatMap(([scope, label]) =>
+              (['csv', 'xlsx'] as const).map((format) => {
+                const disabled =
+                  scope === 'diterima' ? acceptedCount === 0 : !canExportAll;
+                return (
+                  <Button
+                    key={`${scope}-${format}`}
+                    asChild
+                    variant="dark_blue_outline"
+                    aria-disabled={disabled}
+                    className={disabled ? 'pointer-events-none opacity-50' : ''}
+                  >
+                    <a
+                      href={`/api/oprec/${recruitmentId}/hasil?format=${format}&scope=${scope}`}
+                      download
+                      tabIndex={disabled ? -1 : undefined}
+                    >
+                      <Download /> {label} ({format.toUpperCase()})
+                    </a>
+                  </Button>
+                );
+              }),
+            )}
+          </div>
         </div>
       </header>
 
@@ -304,6 +327,8 @@ export function HasilView({
           />
 
           <DivisionSummary
+            recruitmentId={recruitmentId}
+            onSaved={refresh}
             divisions={divisions}
             acceptedByDivision={acceptedByDivision}
             onPickDivision={(id) => {
@@ -343,9 +368,7 @@ export function HasilView({
                   <select
                     className={selectClass}
                     value={divisionId}
-                    onChange={(event) =>
-                      setDivisionFilter(event.target.value)
-                    }
+                    onChange={(event) => setDivisionFilter(event.target.value)}
                   >
                     <option value="">Semua divisi</option>
                     {divisions.map((division) => (
@@ -361,9 +384,7 @@ export function HasilView({
                     className={selectClass}
                     value={all.status}
                     onChange={(event) =>
-                      setStatusFilter(
-                        event.target.value as FinalStatus | '',
-                      )
+                      setStatusFilter(event.target.value as FinalStatus | '')
                     }
                   >
                     <option value="">Semua status</option>
@@ -416,9 +437,7 @@ export function HasilView({
                 <>
                   <p className="mb-2 text-sm text-neutral-700">
                     Tanpa data sensitif di ekspor.
-                    {activeDivision
-                      ? ` Divisi: ${activeDivision.label}.`
-                      : ''}
+                    {activeDivision ? ` Divisi: ${activeDivision.label}.` : ''}
                   </p>
                   <ResultsTable
                     rows={rows}

@@ -606,8 +606,21 @@ export const notifications = createTable('notification', {
   content: text('content').notNull(),
   type: notificationTypeEnum('type').notNull(),
   read: boolean('read').notNull().default(false),
+  // Pemberitahuan hasil oprec: satu per (pengguna, oprec, jenis).
+  recruitmentId: varchar('recruitment_id', { length: 255 }).references(
+    () => recruitment.id,
+    { onDelete: 'cascade' },
+  ),
+  kind: varchar('kind', { length: 32 }),
+  // Tautan relatif yang dibuka dari Inbox.
+  links: jsonb('links').$type<{ label: string; href: string }[]>(),
   ...timestamps,
-});
+},
+(table) => ({
+  recruitmentKindUnique: uniqueIndex('notification_user_recruitment_kind_unique')
+    .on(table.user_id, table.recruitmentId, table.kind)
+    .where(sql`${table.recruitmentId} IS NOT NULL`),
+}));
 
 // Relations for Support
 export const supportRelations = relations(support, ({ many, one }) => ({
@@ -2084,6 +2097,11 @@ export const recruitment = createTable(
       mode: 'date',
       withTimezone: true,
     }),
+    /** Waktu tayang terjadwal; kosong = tayang begitu dirilis. Dikosongkan saat rilis ditarik. */
+    resultsPublishAt: timestamp('results_publish_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
     resultsVisibleToApplicants: boolean('results_visible_to_applicants')
       .notNull()
       .default(false),
@@ -2278,6 +2296,8 @@ export const recruitmentDivision = createTable(
       () => users.id,
       { onDelete: 'set null' },
     ),
+    /** Tautan grup LINE/WhatsApp untuk yang diterima; diisi Kadiv atau admin, tidak diperiksa keaktifannya. */
+    groupInviteUrl: varchar('group_invite_url', { length: 500 }),
   },
   (table) => ({
     unitIdx: index('recruitment_division_unit_idx').on(table.unitId),

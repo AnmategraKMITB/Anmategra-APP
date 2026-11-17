@@ -60,6 +60,7 @@ export type PlacementDivision = {
   quota: number;
   positionId: string;
   sortOrder: number;
+  groupInviteUrl: string | null;
 };
 
 /** Divisi oprec beserta kuota posisinya. 0 = tanpa batas. */
@@ -73,6 +74,7 @@ export async function loadPlacementDivisions(
       id: recruitmentDivision.id,
       label: organizationUnit.name,
       groupLabel: parent.name,
+      groupInviteUrl: recruitmentDivision.groupInviteUrl,
       quota: organizationPosition.quota,
       positionId: recruitmentDivision.positionId,
       sortOrder: recruitmentDivision.sortOrder,

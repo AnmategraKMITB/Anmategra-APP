@@ -28,11 +28,19 @@ export async function GET(
   const { recruitmentId } = await params;
   const format =
     req.nextUrl.searchParams.get('format') === 'csv' ? 'csv' : 'xlsx';
+  // `?divisi=<id>`: satu divisi, lengkap dengan jawaban formulir.
+  const divisionId = req.nextUrl.searchParams.get('divisi') ?? undefined;
   const api = createCaller(await createTRPCContext({ headers: req.headers }));
 
   try {
-    const data = await api.oprec.priorityTemplate({ recruitmentId });
-    const filename = `${slugOf(data.recruitmentName)}-prioritas.${format}`;
+    const data = await api.oprec.priorityTemplate({
+      recruitmentId,
+      divisionId,
+    });
+    const scope = divisionId
+      ? slugOf(data.divisions[0]?.name ?? 'divisi')
+      : 'semua-divisi';
+    const filename = `${slugOf(data.recruitmentName)}-prioritas-${scope}.${format}`;
     const headers = {
       'Content-Disposition': `attachment; filename="${filename}"`,
       'Cache-Control': 'private, no-store',
