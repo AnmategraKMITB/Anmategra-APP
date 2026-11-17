@@ -60,8 +60,8 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
 export const announcementProcedures = {
   /**
    * Isi atau kosongkan tautan grup LINE/WhatsApp sebuah divisi. Hanya admin
-   * oprec atau pengurus yang memegang keputusan divisi itu. Tautan hanya
-   * diperiksa bentuknya (https, domain LINE/WhatsApp), bukan keaktifannya.
+   * oprec atau pengurus yang memegang keputusan divisi itu. Tautan tidak
+   * diperiksa domain maupun keaktifannya; hanya harus URL http/https.
    */
   setDivisionInviteUrl: oprecAssessProcedure
     .input(
@@ -83,7 +83,7 @@ export const announcementProcedures = {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message:
-            'Tautan harus https dari LINE (line.me, lin.ee) atau WhatsApp (chat.whatsapp.com).',
+            'Tautan tidak sah. Tempel alamat lengkap yang diawali https://.',
         });
       }
       const updated = await ctx.db

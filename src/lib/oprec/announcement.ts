@@ -131,23 +131,18 @@ export function anchorSlugs(
   );
 }
 
-const INVITE_HOSTS = ['chat.whatsapp.com', 'whatsapp.com', 'line.me', 'lin.ee'];
-
 /**
- * Tautan undangan grup: hanya https ke domain LINE/WhatsApp (mencegah skema
- * `javascript:` dan tautan sembarang). Keaktifan tautan tidak diperiksa.
- * Mengembalikan URL ternormalisasi, atau null bila tidak sah.
+ * Tautan undangan grup: domain dan keaktifan tidak diperiksa. Satu-satunya
+ * syarat: URL sah berskema http/https, karena nilainya dipakai sebagai `href`
+ * (skema `javascript:` akan menjadi XSS). Mengembalikan URL ternormalisasi.
  */
 export function parseInviteUrl(raw: string): string | null {
-  let url: URL;
   try {
-    url = new URL(raw.trim());
+    const url = new URL(raw.trim());
+    return url.protocol === 'https:' || url.protocol === 'http:'
+      ? url.toString()
+      : null;
   } catch {
     return null;
   }
-  const host = url.hostname.toLowerCase();
-  const ok = INVITE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
-  return url.protocol === 'https:' && ok && !url.username && !url.password
-    ? url.toString()
-    : null;
 }

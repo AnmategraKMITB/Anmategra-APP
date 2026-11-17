@@ -122,21 +122,15 @@ describe('anchorSlugs', () => {
 describe('parseInviteUrl', () => {
   it.each([
     'https://chat.whatsapp.com/AbC123',
-    'https://line.me/ti/g/abc',
-    'https://lin.ee/xyz',
-    'https://liff.line.me/1',
+    'http://line.me/ti/g/abc',
+    'https://contoh.com/grup',
   ])('menerima %s', (u) => {
     expect(parseInviteUrl(u)).not.toBeNull();
   });
-  it.each([
-    'javascript:alert(1)',
-    'http://chat.whatsapp.com/x',
-    'https://evil.com/chat.whatsapp.com',
-    'https://chat.whatsapp.com.evil.com/x',
-    'https://u:p@line.me/x',
-    'bukan url',
-    '',
-  ])('menolak %s', (u) => {
-    expect(parseInviteUrl(u)).toBeNull();
-  });
+  it.each(['javascript:alert(1)', 'data:text/html,x', 'bukan url', ''])(
+    'menolak %s',
+    (u) => {
+      expect(parseInviteUrl(u)).toBeNull();
+    },
+  );
 });
