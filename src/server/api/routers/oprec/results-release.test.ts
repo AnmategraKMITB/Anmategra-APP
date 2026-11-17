@@ -145,4 +145,55 @@ describe('gerbang tayang hasil oprec', () => {
     expect(await placed()).toBe(false);
     expect(await count()).toBe(0);
   });
+
+  it('rilis saat masa banding: hasil sementara, final memberi notifikasi lagi', async () => {
+    const { fx, a, owner, applicant } = await finalWorld();
+    const setState = (placementState: 'berjalan' | 'masa_banding' | 'final') =>
+      db
+        .update(schema.recruitment)
+        .set({ placementState })
+        .where(eq(schema.recruitment.id, fx.recruitmentId));
+    const notes = async (kind: string) =>
+      (
+        await db
+          .select()
+          .from(schema.notifications)
+          .where(eq(schema.notifications.user_id, a.userId))
+      ).filter((n) => n.kind === kind);
+
+    await setState('berjalan');
+    await expect(
+      owner.oprec.resultsRelease({ recruitmentId: fx.recruitmentId }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+
+    await setState('masa_banding');
+    await owner.oprec.resultsRelease({ recruitmentId: fx.recruitmentId });
+    const mine = await applicant.oprec.myResult({
+      recruitmentId: fx.recruitmentId,
+    });
+    expect(mine).toMatchObject({ released: true, final: false });
+    const list = await applicant.oprec.announcement({
+      recruitmentId: fx.recruitmentId,
+    });
+    expect(list).toMatchObject({ published: true, final: false });
+    expect(await notes('hasil_oprec')).toHaveLength(1);
+    expect(await notes('hasil_oprec_final')).toHaveLength(0);
+
+    // Tidak boleh kembali ke berjalan selama rilis aktif.
+    await expect(
+      owner.oprec.setPlacementState({
+        recruitmentId: fx.recruitmentId,
+        state: 'berjalan',
+      }),
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
+
+    await owner.oprec.setPlacementState({
+      recruitmentId: fx.recruitmentId,
+      state: 'final',
+    });
+    expect(
+      await applicant.oprec.myResult({ recruitmentId: fx.recruitmentId }),
+    ).toMatchObject({ released: true, final: true });
+    expect(await notes('hasil_oprec_final')).toHaveLength(1);
+  });
 });
