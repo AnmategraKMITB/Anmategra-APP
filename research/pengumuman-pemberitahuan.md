@@ -15,7 +15,7 @@ Tiket: AnmategraKMITB/Anmategra-APP#479 (peta #475). Sumber: cabang `develop`, k
 - Pemakaian tabel itu di luar skema hanya `src/server/db/seeding/clear-db.ts:22,89` dan pembangkit data uji `src/server/db/seeding/generate_csv.py:423-443`. Tidak ada router, prosedur tRPC, atau komponen yang membaca atau menulisnya. Tidak ada pemicu basis data atau prosedur tersimpan.
 - "Inbox" di antarmuka adalah kotak permintaan asosiasi: `src/app/lembaga/inbox/page.tsx`, `src/app/mahasiswa/inbox/page.tsx`, dan `src/app/manage/[lembagaId]/inbox/page.tsx`. Datanya dari `associationRequests` (`schema.ts:468-488`) dan `associationRequestsLembaga` (`schema.ts:491-512`) dengan status `Pending/Accepted/Declined` (`schema.ts:425-428`); kueri lembaga ada di `src/server/api/routers/lembaga.ts:211` (`getAllRequestAssociationSummary`). Ini bukan kanal pemberitahuan hasil oprec.
 - Ada pula `transferInbox` (`src/server/api/routers/oprec/placement.ts:1629`) untuk permintaan pindah divisi bagi panitia oprec, bukan untuk pendaftar.
-- Dasar yang tersedia untuk pendaftar: `myResult` (`src/server/api/routers/oprec/results.ts:~570-600`) mengembalikan `visible` dan `releasedAt` per pendaftar. Pendaftar harus membuka halaman sendiri (model tarik, bukan dorong).
+- Dasar yang tersedia untuk pendaftar: `myResult` (`src/server/api/routers/oprec/results.ts:579-600`) mengembalikan `visible` dan `releasedAt` per pendaftar. Pendaftar harus membuka halaman sendiri (model tarik, bukan dorong).
 - Jejak peristiwa oprec: `recruitment_log` (`schema.ts:2768-2793`), ditulis lewat `logAction` (`src/server/api/routers/oprec/log.ts:7-26`) dalam transaksi yang sama dengan perubahan.
 
 ## 2. Email
@@ -30,12 +30,12 @@ Tiket: AnmategraKMITB/Anmategra-APP#479 (peta #475). Sumber: cabang `develop`, k
 - Jumlah pendaftar per oprec tidak tertulis di repositori. Satu pendaftar adalah satu baris `application` per pasangan oprec dan pengguna (`schema.ts:2322-2364`, indeks unik `application_recruitment_user_unique`). Jumlah penerima sama dengan `count(application)` untuk oprec itu (dapat dihitung dari basis data produksi; tidak dilakukan di sini).
 - Pengiriman satu per satu dari proses aplikasi akan berbagi sumber daya dengan lalu lintas web. Kolam koneksi basis data 20 (`src/server/db/index.ts:20`). Kontainer tidak punya batas memori atau CPU di `Dockerfile`; batas diatur di sisi Dokploy dan masih menjadi pokok peta #458 (crash loop, iowait, batas sumber daya, 6 tiket turunan belum selesai).
 - Server: satu node Docker Swarm, 4 core, 16 GB (deskripsi peta #458). Batas kirim penyedia surel belum diketahui karena penyedia belum ada.
-- Mutasi rilis kini ringan (satu `UPDATE` dan satu `INSERT` log dalam satu transaksi). Penambahan pengiriman di dalam transaksi itu akan memperpanjang kunci baris `recruitment` (`results.ts:~512-516`, `.for('update')`).
+- Mutasi rilis kini ringan (satu `UPDATE` dan satu `INSERT` log dalam satu transaksi). Penambahan pengiriman di dalam transaksi itu akan memperpanjang kunci baris `recruitment` (`results.ts:508-511`, `.for('update')`).
 
 ## 4. Pemicu `resultsRelease` dan `resultsWithdraw`
 
-- `resultsRelease` (`src/server/api/routers/oprec/results.ts:497-540`): hanya admin; mengunci baris `recruitment` (`.for('update')`); menolak bila `placementState !== 'final'`, bila `resultsVisibleToApplicants` salah, atau bila `resultsReleasedAt` sudah terisi ("Hasil sudah dirilis"); lalu mengisi `resultsReleasedAt` dan mencatat `hasil_dirilis` dengan `detail: { undecided }`. Mengembalikan `{ releasedAt, undecided }`.
-- `resultsWithdraw` (`results.ts:543-570`): hanya admin; menolak bila belum dirilis; mengosongkan `resultsReleasedAt` dan mencatat `hasil_ditarik` dengan `detail: { reason }`.
+- `resultsRelease` (`src/server/api/routers/oprec/results.ts:497-541`): hanya admin; mengunci baris `recruitment` (`.for('update')`); menolak bila `placementState !== 'final'`, bila `resultsVisibleToApplicants` salah, atau bila `resultsReleasedAt` sudah terisi ("Hasil sudah dirilis"); lalu mengisi `resultsReleasedAt` dan mencatat `hasil_dirilis` dengan `detail: { undecided }`. Mengembalikan `{ releasedAt, undecided }`.
+- `resultsWithdraw` (`results.ts:543-574`): hanya admin; menolak bila belum dirilis; mengosongkan `resultsReleasedAt` dan mencatat `hasil_ditarik` dengan `detail: { reason }`.
 - Antarmuka: `src/app/_components/oprec/hasil/release-panel.tsx:34-55` memanggil kedua mutasi.
 - Efek lain dari `resultsReleasedAt`: gerbang berlakunya penempatan (`src/server/api/oprec-release.ts:22-25`, `placementReleased`) dan tampilan `myResult`.
 - Risiko kirim ganda:
