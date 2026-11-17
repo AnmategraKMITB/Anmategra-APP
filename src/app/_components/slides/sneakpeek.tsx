@@ -21,7 +21,6 @@ import {
   Maximize,
   Minimize,
   Network,
-  QrCode,
   ShieldCheck,
   UserPlus,
   Users,
@@ -296,16 +295,18 @@ function DemoSlide({
   );
 }
 
-// Ganti kotak ini dengan QR asli untuk https://anmategra.com/forms/rg
-function QrPlaceholder() {
+/** Kode QR ke form requirement gathering (https://anmategra.com/forms/rg). */
+function FormQr() {
   return (
-    <div className="flex size-[340px] flex-col items-center justify-center gap-4 rounded-[24px] border-2 border-dashed border-neutral-400 bg-neutral-100">
-      <QrCode
-        className="size-24 text-neutral-500"
-        strokeWidth={1.25}
-        aria-hidden
+    <div className="rounded-[24px] border border-neutral-200 bg-white p-4 shadow-[0_2px_8px_rgba(20,40,40,0.06),0_12px_32px_rgba(20,40,40,0.08)]">
+      <Image
+        src="/images/slides/qr-forms-rg.svg"
+        alt={`Kode QR ke ${FORM_URL}`}
+        width={1155}
+        height={1155}
+        className="size-[340px]"
+        unoptimized
       />
-      <p className="text-[18px] font-medium text-neutral-700">QR menyusul</p>
     </div>
   );
 }
@@ -916,14 +917,14 @@ const SLIDES: Slide[] = [
               Ada pertanyaan?
             </h2>
             <p className="mt-8 max-w-[780px] text-[28px] leading-[40px] text-neutral-700">
-              Kami mau tau kebutuhan lembaga kalian. Isi form ini ya, biar
-              fitur berikutnya dibangun dari kebutuhan yang aktual.
+              Kami mau tau kebutuhan lembaga kalian. Isi form ini ya, biar fitur
+              berikutnya dibangun dari kebutuhan yang aktual.
             </p>
             <p className="mt-6 text-[34px] font-semibold text-secondary-700">
               {FORM_URL}
             </p>
           </div>
-          <QrPlaceholder />
+          <FormQr />
         </div>
         <SlidesNote />
       </Frame>
