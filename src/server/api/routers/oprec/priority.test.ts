@@ -328,7 +328,7 @@ describe('prioritas: menyimpan daftar dan keterangan', () => {
     ]);
   });
 
-  it('mode gabungan: status tidak dipotong kuota, nilai minimum tetap berlaku', async () => {
+  it('mode gabungan: status tidak dipotong kuota dan nilai minimum tidak berlaku', async () => {
     const s = await setup();
     await setQuota(s.logistik.positionId, 1);
     await db.delete(criterion).where(eq(criterion.recruitmentId, s.recruitmentId));
@@ -372,9 +372,10 @@ describe('prioritas: menyimpan daftar dan keterangan', () => {
     await recomputeDivisions(db as never, s.recruitmentId, 'all');
     expect(await statuses()).toEqual(['lolos', 'tidak_lolos', 'tidak_lolos']);
 
-    // Prioritas: urutan diserahkan ke daftar divisi, hanya nilai < 60 gugur.
+    // Prioritas: urutan diserahkan ke daftar divisi; nilai (juga < 60) tidak
+    // lagi menggugurkan, karena tab Nilai tidak tersedia untuk memperbaikinya.
     await usePriority(s);
-    expect(await statuses()).toEqual(['lolos', 'lolos', 'tidak_lolos']);
+    expect(await statuses()).toEqual(['lolos', 'lolos', 'lolos']);
   });
 
   it('mode gabungan: pilihan tidak lolos tampil terblokir dan tidak bisa diurutkan', async () => {
