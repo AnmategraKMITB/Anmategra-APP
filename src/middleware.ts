@@ -22,11 +22,13 @@ const PUBLIC_ROUTES = [
 ];
 // Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
 // semua role, jadi tidak dialihkan ke `/<role>/...`.
+// `/slides` berisi presentasi publik yang tayang tanpa login.
 // Halaman legal (`/privasi`, `/privacy`, `/ketentuan`, `/terms`) wajib terbuka
 // tanpa sesi: ditautkan dari footer, dan versi privasinya diperiksa peninjau
 // verifikasi OAuth Google.
 const PUBLIC_SHARED_ROUTES = [
   '/manual',
+  '/slides',
   '/privasi',
   '/privacy',
   '/ketentuan',

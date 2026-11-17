@@ -58,7 +58,7 @@ type Event = {
 };
 
 const INITIAL: Event[] = [
-  { id: 1, name: 'Festival Karya 2026', date: '2026-12-05', status: 'Coming Soon', committee: 24, pinned: false },
+  { id: 1, name: 'Aku Masuk ITB 2027', date: '2026-12-05', status: 'Coming Soon', committee: 24, pinned: false },
   { id: 2, name: 'Kelas Desain Dasar', date: '2026-10-20', status: 'On going', committee: 8, pinned: false },
   { id: 3, name: 'Malam Keakraban 2026', date: '2026-08-30', status: 'Ended', committee: 31, pinned: false },
 ];

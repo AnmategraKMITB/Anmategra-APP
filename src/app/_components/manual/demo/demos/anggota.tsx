@@ -43,8 +43,8 @@ const STEPS: DemoStep[] = [
 type Member = { student: DemoStudent; division: string; position: string };
 
 const INITIAL: Member[] = [
-  { student: DEMO_STUDENTS[3]!, division: 'Acara', position: 'Kepala Divisi' },
-  { student: DEMO_STUDENTS[5]!, division: 'Dana Usaha', position: 'Staf' },
+  { student: DEMO_STUDENTS[3]!, division: 'Event Organizer', position: 'Kepala Divisi' },
+  { student: DEMO_STUDENTS[5]!, division: 'Sponsorship', position: 'Staf' },
   { student: DEMO_STUDENTS[1]!, division: 'Publikasi', position: 'Staf' },
 ];
 

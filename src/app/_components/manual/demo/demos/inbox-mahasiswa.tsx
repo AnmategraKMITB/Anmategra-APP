@@ -45,7 +45,7 @@ const TONE: Record<Status, PillTone> = {
 };
 
 const INITIAL: Request[] = [
-  { id: 1, target: 'Festival Karya 2026', division: 'Acara', position: 'Staf', status: 'REQUESTED' },
+  { id: 1, target: 'Aku Masuk ITB 2027', division: 'Event Organizer', position: 'Staf', status: 'REQUESTED' },
   { id: 2, target: 'Malam Keakraban 2026', division: 'Logistik', position: 'Staf', status: 'ACCEPTED' },
   { id: 3, target: 'UKM Rupa', division: 'Pameran', position: 'Anggota', status: 'DECLINED' },
 ];
