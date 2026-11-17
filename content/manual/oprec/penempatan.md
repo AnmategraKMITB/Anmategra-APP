@@ -152,6 +152,30 @@ Divisi yang ada di file diganti seluruh urutannya. Divisi yang tidak ada di
 file tidak berubah. Daftar yang sudah dikunci harus dibuka dulu. Jika daftar
 diubah orang lain setelah pratinjau, ulangi pratinjau.
 
+## Menawarkan tempat ke pendaftar yang belum dapat divisi
+
+Gunakan ini bila sebuah divisi masih kurang orang setelah penempatan
+diterapkan, sementara tidak ada lagi kandidat tersisa di daftar urutannya.
+
+1. Di bagian **Prioritas**, buka panel **Tawaran tempat**.
+2. Pilih **Divisi tawaran** dan **Batas waktu**, lalu klik **Buka tawaran**.
+3. Pendaftar yang belum diterima di divisi mana pun mendapat pemberitahuan di
+   Inbox (sekali per oprec) dan tombol **Saya bersedia** di halaman
+   pendaftarannya.
+4. Yang bersedia otomatis ditambahkan di akhir urutan divisi itu.
+5. Setelah batas waktu, klik **Pratinjau penempatan**, lalu **Terapkan**.
+
+Bersedia tidak menjamin tempat: kuota dan urutan divisi tetap berlaku. Tawaran
+bisa ditutup lebih awal dengan **Tutup sekarang**, atau diperpanjang dengan
+**Perpanjang tawaran**. Tawaran hanya bisa dipakai pada metode **Prioritas**,
+selama penempatan **Berjalan**, dan bila oprec mengizinkan pendaftar
+**bersedia dipindahkan**.
+
+> [!TIP]
+> Buka tawaran setelah divisi lain yang masih kurang terisi dari pendaftar yang
+> memilihnya. Dengan begitu, pendaftar yang masih bisa masuk ke pilihannya
+> sendiri tidak diberi tahu bahwa mereka belum dapat tempat.
+
 ## Riwayat tindakan
 
 Setiap baris pendaftar memiliki **Riwayat tindakan** yang mencatat siapa

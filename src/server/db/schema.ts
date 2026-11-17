@@ -2298,6 +2298,14 @@ export const recruitmentDivision = createTable(
     ),
     /** Tautan grup LINE/WhatsApp untuk yang diterima; diisi Kadiv atau admin, tidak diperiksa keaktifannya. */
     groupInviteUrl: varchar('group_invite_url', { length: 500 }),
+    /**
+     * Tawaran bagi pendaftar yang belum diterima di mana pun: sampai waktu ini
+     * mereka bisa menyatakan bersedia ditempatkan di divisi ini. Kosong = tidak ada tawaran.
+     */
+    offerClosesAt: timestamp('offer_closes_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
   },
   (table) => ({
     unitIdx: index('recruitment_division_unit_idx').on(table.unitId),
@@ -2365,6 +2373,15 @@ export const application = createTable(
       .notNull(),
     willingToMove: boolean('willing_to_move').notNull().default(false),
     submittedAt: timestamp('submitted_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    /** Tawaran yang diterima pendaftar (lihat `recruitmentDivision.offerClosesAt`). */
+    offerDivisionId: varchar('offer_division_id', { length: 255 }).references(
+      () => recruitmentDivision.id,
+      { onDelete: 'set null' },
+    ),
+    offerAcceptedAt: timestamp('offer_accepted_at', {
       mode: 'date',
       withTimezone: true,
     }),
