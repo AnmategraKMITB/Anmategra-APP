@@ -14,9 +14,9 @@ describe('resolveActiveIndex', () => {
     expect(resolveActiveIndex('humas-media', [...labels].reverse())).toBe(1);
   });
   it.each([null, undefined, '', 'x', '2', 'tidak-ada'])(
-    'jatuh ke 0 untuk %s',
+    'jatuh ke Semua (null) untuk %s',
     (v) => {
-      expect(resolveActiveIndex(v, labels)).toBe(0);
+      expect(resolveActiveIndex(v, labels)).toBeNull();
     },
   );
   it('tabParam memakai slug label', () => {

@@ -1,8 +1,21 @@
 'use client';
 
-import { CalendarClock, ExternalLink, Search, X } from 'lucide-react';
+import {
+  CalendarClock,
+  ChevronDown,
+  ExternalLink,
+  Search,
+  X,
+} from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu';
 import {
   Table,
   TableBody,
@@ -25,6 +38,27 @@ import { cn } from '~/lib/utils';
 import { api } from '~/trpc/react';
 
 import { ErrorNote, Loading, inputClass } from '../placement/shared';
+
+const PILL =
+  'inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400';
+const PILL_ON = 'border-primary-400 bg-primary-400 text-neutral-50';
+const PILL_OFF =
+  'border-neutral-400 bg-neutral-50 text-neutral-800 hover:border-neutral-500 hover:bg-neutral-200';
+
+function Count({ on, children }: { on: boolean; children: React.ReactNode }) {
+  return (
+    <span
+      className={cn(
+        'rounded-full px-1.5 text-xs tabular-nums',
+        on
+          ? 'bg-neutral-50/20 text-neutral-50'
+          : 'bg-neutral-200 text-neutral-700',
+      )}
+    >
+      {children}
+    </span>
+  );
+}
 
 const formatDate = (d: Date) =>
   `${new Intl.DateTimeFormat('id-ID', {
@@ -125,28 +159,45 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
   );
   const searching = q.trim() !== '';
   const total = filtered.reduce((n, f) => n + f.count, 0);
+  // null = tab "Semua": seluruh bidang sekaligus.
   const active = resolveActiveIndex(
     params.get('bidang'),
     sections.map((s) => s.label),
   );
   const showTabs = !(sections.length === 1 && sections[0]?.label === null);
 
-  const selectTab = (i: number) => {
+  const selectTab = (i: number | null) => {
     const next = new URLSearchParams(params.toString());
-    next.set('bidang', tabParam(sections[i]?.label ?? null, i));
-    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+    if (i === null) next.delete('bidang');
+    else next.set('bidang', tabParam(sections[i]?.label ?? null, i));
+    const qs = next.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
   };
 
-  const current = sections[active];
-  const currentFiltered = filtered[active]?.sections[0];
-  // Tanpa pencarian, divisi kosong tetap tampil; saat mencari, hanya yang ada hasil.
-  const divisions =
-    (searching ? currentFiltered?.divisions : current?.divisions) ?? [];
-  const slugOf = (id: string) =>
-    slugs[active]?.[current?.divisions.findIndex((x) => x.id === id) ?? -1];
+  // Bidang yang tampil: semua (Semua) atau satu. Saat mencari, hanya divisi yang ada hasil.
+  const groups = (active === null ? sections.map((_, i) => i) : [active]).map(
+    (si) => ({
+      si,
+      label: sections[si]?.label ?? null,
+      divisions:
+        (searching
+          ? filtered[si]?.sections[0]?.divisions
+          : sections[si]?.divisions) ?? [],
+    }),
+  );
+  const visible = groups.flatMap((g) =>
+    g.divisions.map((d, i) => ({
+      d,
+      si: g.si,
+      // Judul bidang hanya di mode Semua, sekali di divisi pertama tiap bidang.
+      heading: active === null && i === 0 ? g.label : null,
+    })),
+  );
+  const slugOf = (si: number, id: string) =>
+    slugs[si]?.[sections[si]?.divisions.findIndex((x) => x.id === id) ?? -1];
 
-  // Mencari: bila tab aktif kosong, loncat ke tab yang berisi hasil, lalu
-  // gulir ke divisi pertama yang cocok. Hanya bereaksi pada perubahan kata kunci.
+  // Mencari: bila bidang terpilih kosong, pindah ke bidang yang berisi hasil;
+  // lalu gulir ke divisi pertama yang cocok. Hanya bereaksi pada kata kunci.
   const counts = filtered.map((f) => f.count);
   const jump = useRef<string | null>(null);
   useEffect(() => {
@@ -154,19 +205,20 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
       jump.current = null;
       return;
     }
-    const target = searchTarget(counts, active);
+    const target =
+      active === null ? searchTarget(counts, 0) : searchTarget(counts, active);
     if (target === null) return;
-    if (target !== active) selectTab(target);
+    if (active !== null && target !== active) selectTab(target);
     const first = filtered[target]?.sections[0]?.divisions[0];
     const idx = first
       ? sections[target]?.divisions.findIndex((d) => d.id === first.id)
       : -1;
-    const slug = idx !== undefined && idx >= 0 ? slugs[target]?.[idx] : null;
-    jump.current = slug ?? null;
+    jump.current =
+      (idx !== undefined && idx >= 0 ? slugs[target]?.[idx] : null) ?? null;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [q]);
 
-  // Tab baru sudah dirender: gulir ke divisi pertama yang cocok.
+  // Hasil sudah dirender: gulir ke divisi pertama yang cocok.
   useEffect(() => {
     if (!jump.current) return;
     const el = document.getElementById(jump.current);
@@ -174,7 +226,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
       jump.current = null;
     }
-  }, [active, q, divisions.length]);
+  }, [active, q, visible.length]);
 
   return (
     <>
@@ -214,54 +266,72 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
 
         {showTabs ? (
           <div
-            role="tablist"
-            aria-label="Bidang"
-            className="-mx-1 mt-3 flex gap-1 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            aria-label="Filter bidang"
+            className="mt-3 flex flex-wrap items-center justify-center gap-2"
           >
-            {sections.map((s, i) => {
-              const count = filtered[i]?.count ?? 0;
-              const selected = i === active;
-              return (
-                <button
-                  key={s.label ?? i}
-                  type="button"
-                  role="tab"
-                  aria-selected={selected}
-                  onClick={() => selectTab(i)}
-                  className={cn(
-                    'inline-flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400',
-                    selected
-                      ? 'border-primary-400 bg-primary-400 text-neutral-50'
-                      : 'border-neutral-400 bg-neutral-50 text-neutral-800 hover:border-neutral-500 hover:bg-neutral-200',
-                    searching && count === 0 && !selected && 'opacity-60',
-                  )}
+            <button
+              type="button"
+              aria-pressed={active === null}
+              onClick={() => selectTab(null)}
+              className={cn(PILL, active === null ? PILL_ON : PILL_OFF)}
+            >
+              Semua
+              <Count on={active === null}>{total}</Count>
+            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                className={cn(PILL, active !== null ? PILL_ON : PILL_OFF)}
+              >
+                <span className="max-w-[16rem] truncate">
+                  {active === null
+                    ? 'Bidang'
+                    : (sections[active]?.label ?? 'Bidang')}
+                </span>
+                <ChevronDown className="size-4" aria-hidden />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="center"
+                className="max-h-72 w-72 max-w-[calc(100vw-2rem)] overflow-y-auto rounded-[16px] border-neutral-400 bg-neutral-50 p-1.5"
+              >
+                <DropdownMenuRadioGroup
+                  value={active === null ? '' : String(active)}
+                  onValueChange={(v) => selectTab(Number(v))}
                 >
-                  {s.label}
-                  <span
-                    className={cn(
-                      'rounded-full px-1.5 text-xs tabular-nums',
-                      selected
-                        ? 'bg-neutral-50/20 text-neutral-50'
-                        : 'bg-neutral-200 text-neutral-700',
-                    )}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
+                  {sections.map((s, i) => {
+                    const count = filtered[i]?.count ?? 0;
+                    return (
+                      <DropdownMenuRadioItem
+                        key={s.label ?? i}
+                        value={String(i)}
+                        className={cn(
+                          'min-h-10 cursor-pointer rounded-lg pr-3 text-sm font-semibold text-neutral-1000 focus:bg-primary-100',
+                          searching && count === 0 && 'opacity-60',
+                        )}
+                      >
+                        <span className="min-w-0 flex-1 truncate">
+                          {s.label}
+                        </span>
+                        <span className="ml-3 text-xs font-normal text-neutral-700 tabular-nums">
+                          {count}
+                        </span>
+                      </DropdownMenuRadioItem>
+                    );
+                  })}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         ) : null}
 
-        {divisions.length > 1 ? (
+        {visible.length > 1 ? (
           <nav
             aria-label="Loncat ke divisi"
             className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
-            {divisions.map((d) => (
+            {visible.map(({ d, si }) => (
               <a
-                key={d.id}
-                href={`#${slugOf(d.id)}`}
+                key={`${si}-${d.id}`}
+                href={`#${slugOf(si, d.id)}`}
                 className="shrink-0 rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-500 transition-colors hover:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
               >
                 {d.label}
@@ -271,20 +341,25 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
         ) : null}
       </div>
 
-      {divisions.length === 0 ? (
+      {visible.length === 0 ? (
         <p className="mt-6 rounded-[20px] border border-neutral-400 bg-neutral-50 p-6 text-center text-sm text-neutral-700">
           Tidak ada hasil yang sesuai dengan pencarianmu.
         </p>
       ) : null}
 
       <div className="mt-6 grid gap-8">
-        {divisions.map((d) => (
+        {visible.map(({ d, si, heading }) => (
           <section
-            key={d.id}
-            id={slugOf(d.id)}
+            key={`${si}-${d.id}`}
+            id={slugOf(si, d.id)}
             aria-label={d.label || undefined}
             className="scroll-mt-52"
           >
+            {heading ? (
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary-400">
+                {heading}
+              </p>
+            ) : null}
             {d.label ? (
               <div className="mb-3 flex items-baseline justify-between gap-3">
                 <h2 className="break-words text-xl font-semibold text-neutral-1000">

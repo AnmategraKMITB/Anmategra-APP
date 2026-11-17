@@ -1,16 +1,16 @@
 import { slugify } from './announcement';
 
 /**
- * Memilih tab bidang aktif dari query `?bidang=<slug-bidang>` (tahan terhadap
- * perubahan urutan); nilai tak dikenal jatuh ke tab pertama.
+ * Bidang terpilih dari query `?bidang=<slug-bidang>` (tahan terhadap perubahan
+ * urutan). `null` = Semua: tanpa parameter atau nilai tak dikenal.
  */
 export function resolveActiveIndex(
   param: string | null | undefined,
   labels: (string | null)[],
-): number {
-  if (!param) return 0;
+): number | null {
+  if (!param) return null;
   const index = labels.findIndex((l) => l !== null && slugify(l) === param);
-  return index < 0 ? 0 : index;
+  return index < 0 ? null : index;
 }
 
 /** Nilai query untuk satu tab bidang. */
