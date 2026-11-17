@@ -209,6 +209,8 @@ table anmategra_application {
   source varchar(16) [not null]
   willing_to_move boolean [not null, default: false]
   submitted_at "timestamp with time zone"
+  offer_division_id varchar(255)
+  offer_accepted_at "timestamp with time zone"
   created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
   updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
 
@@ -935,6 +937,7 @@ table anmategra_recruitment_division {
   priority_locked_at "timestamp with time zone"
   priority_locked_by varchar(255)
   group_invite_url varchar(500)
+  offer_closes_at "timestamp with time zone"
 
   indexes {
     unit_id [name: 'recruitment_division_unit_idx']

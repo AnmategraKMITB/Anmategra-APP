@@ -12,6 +12,7 @@ import { DivisionPicker } from './division-picker';
 import { DEFAULT_PAGE_SIZE } from './pager';
 import { PriorityBoard } from './priority-board';
 import { PriorityImport } from './import-dialog';
+import { OfferPanel } from './offer-panel';
 
 /** Layar Prioritas: daftar prioritas per divisi dan penempatan otomatis. */
 export function PriorityView({
@@ -51,6 +52,7 @@ export function PriorityView({
     void utils.oprec.priorityOverview.invalidate({ recruitmentId });
     void utils.oprec.matchingPreview.invalidate({ recruitmentId });
     void utils.oprec.placementOverview.invalidate({ recruitmentId });
+    void utils.oprec.offerOverview.invalidate({ recruitmentId });
   }, [utils, recruitmentId]);
   const announce = useCallback((message: string) => {
     setError('');
@@ -174,6 +176,14 @@ export function PriorityView({
               recruitmentId={recruitmentId}
               overview={data}
               onChanged={refresh}
+              announce={announce}
+              onError={setError}
+            />
+          ) : null}
+
+          {data.isAdmin ? (
+            <OfferPanel
+              recruitmentId={recruitmentId}
               announce={announce}
               onError={setError}
             />

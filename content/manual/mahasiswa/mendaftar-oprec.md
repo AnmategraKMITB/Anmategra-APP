@@ -84,3 +84,12 @@ Anda hanya melihat hasil akhir, tanpa nilai maupun alasan.
 
 Setelah diterima, Anda tercatat pada organogram kegiatan itu. Lihat juga
 [Profil mahasiswa](/manual/mahasiswa/profil).
+
+## Menerima tawaran tempat
+
+Jika Anda belum mendapat tempat di pilihan mana pun, panitia dapat membuka
+**tawaran tempat** di divisi yang masih kekurangan orang. Anda mendapat
+pemberitahuan di Inbox, dan tawarannya tampil di halaman pendaftaran sampai
+batas waktunya. Klik **Saya bersedia ditempatkan di …**, lalu **Ya, saya
+bersedia**. Anda hanya dapat menerima satu tawaran, dan menerimanya belum
+menjamin tempat: panitia menempatkan yang bersedia sesuai urutan dan kuota.

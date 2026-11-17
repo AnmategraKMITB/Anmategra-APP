@@ -1,0 +1,4 @@
+ALTER TABLE "anmategra_application" ADD COLUMN "offer_division_id" varchar(255);--> statement-breakpoint
+ALTER TABLE "anmategra_application" ADD COLUMN "offer_accepted_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "anmategra_recruitment_division" ADD COLUMN "offer_closes_at" timestamp with time zone;--> statement-breakpoint
+ALTER TABLE "anmategra_application" ADD CONSTRAINT "anmategra_application_offer_division_id_anmategra_recruitment_division_id_fk" FOREIGN KEY ("offer_division_id") REFERENCES "public"."anmategra_recruitment_division"("id") ON DELETE set null ON UPDATE no action;

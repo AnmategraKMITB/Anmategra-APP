@@ -14,6 +14,9 @@ const ACTION_LABEL: Record<string, string> = {
   pindah_dibatalkan: 'Permintaan pindah dibatalkan',
   closerec_ditambah: 'Ditambahkan lewat closerec',
   closerec_dicabut: 'Closerec dicabut',
+  tawaran_diterima: 'Menyatakan bersedia lewat tawaran',
+  tawaran_dibuka: 'Tawaran dibuka',
+  tawaran_ditutup: 'Tawaran ditutup',
 };
 
 /** Riwayat tindakan penempatan satu pendaftar; dimuat saat dibuka. */
