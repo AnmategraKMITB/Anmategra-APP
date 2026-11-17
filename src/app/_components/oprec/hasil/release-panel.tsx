@@ -30,6 +30,7 @@ export function ReleasePanel({
   const [releaseOpen, setReleaseOpen] = useState(false);
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [reason, setReason] = useState('');
+  const [publishAt, setPublishAt] = useState('');
 
   const release = api.oprec.resultsRelease.useMutation({
     onSuccess: (result) => {
@@ -37,7 +38,9 @@ export function ReleasePanel({
       announce(
         result.undecided > 0
           ? `Hasil dirilis, tetapi ${result.undecided} pilihan belum diputuskan.`
-          : 'Hasil dirilis ke pendaftar.',
+          : result.publishAt
+            ? 'Hasil dijadwalkan tayang.'
+            : 'Hasil dirilis ke pendaftar.',
       );
       onChanged();
     },
@@ -69,14 +72,14 @@ export function ReleasePanel({
           <h2 className="text-lg font-semibold text-neutral-1000">
             Rilis ke pendaftar
           </h2>
-          {!overview.visibleToApplicants ? (
+          {overview.released ? (
             <p className="mt-1 text-sm text-neutral-700">
-              Pendaftar tidak memilih menerima hasil lewat Anmategra. Hasil
-              diumumkan di luar aplikasi.
-            </p>
-          ) : overview.released ? (
-            <p className="mt-1 text-sm text-neutral-700">
-              Dirilis pada {when(overview.releasedAt)} WIB.
+              Dirilis pada {when(overview.releasedAt)} WIB.{' '}
+              {overview.published
+                ? 'Hasil sudah tayang.'
+                : overview.publishAt
+                  ? `Tayang terjadwal pada ${when(overview.publishAt)} WIB.`
+                  : ''}
             </p>
           ) : (
             <p className="mt-1 text-sm text-neutral-700">
@@ -88,14 +91,19 @@ export function ReleasePanel({
 
         <div className="flex flex-wrap items-center gap-2">
           {overview.released ? (
-            <Chip tone="success">Sudah dirilis</Chip>
+            <Chip tone="success">
+              {overview.published ? 'Tayang' : 'Dirilis, belum tayang'}
+            </Chip>
           ) : (
             <Chip tone="muted">Belum dirilis</Chip>
           )}
-          {overview.visibleToApplicants && !overview.released ? (
+          {!overview.released ? (
             <Button
               disabled={!overview.canRelease || release.isPending}
-              onClick={() => setReleaseOpen(true)}
+              onClick={() => {
+                setPublishAt('');
+                setReleaseOpen(true);
+              }}
               title={
                 overview.canRelease
                   ? undefined
@@ -120,9 +128,7 @@ export function ReleasePanel({
         </div>
       </div>
 
-      {overview.visibleToApplicants &&
-      !overview.released &&
-      overview.state !== 'final' ? (
+      {!overview.released && overview.state !== 'final' ? (
         <p className="mt-2 text-sm text-neutral-700">
           Keadaan penempatan masih “{overview.state}”.{' '}
           {penempatanHref ? (
@@ -148,7 +154,12 @@ export function ReleasePanel({
             </Button>
             <Button
               disabled={release.isPending}
-              onClick={() => release.mutate({ recruitmentId })}
+              onClick={() =>
+                release.mutate({
+                  recruitmentId,
+                  publishAt: publishAt ? new Date(`${publishAt}:00+07:00`) : undefined,
+                })
+              }
             >
               {release.isPending ? 'Merilis…' : 'Rilis sekarang'}
             </Button>
@@ -167,6 +178,14 @@ export function ReleasePanel({
             diputuskan di data pengelola dan belum diterima bagi pendaftar.
           </p>
         ) : null}
+        <Field label="Waktu tayang (opsional, kosong berarti tayang langsung)">
+          <input
+            type="datetime-local"
+            className={textareaClass}
+            value={publishAt}
+            onChange={(event) => setPublishAt(event.target.value)}
+          />
+        </Field>
         <p className="text-sm text-neutral-700">
           Data yang diekspor tidak memuat alasan, flag, atau catatan sensitif.
         </p>
@@ -176,7 +195,7 @@ export function ReleasePanel({
         open={withdrawOpen}
         onOpenChange={setWithdrawOpen}
         title="Tarik rilis hasil?"
-        description="Pendaftar tidak lagi melihat hasil sampai dirilis ulang."
+        description="Pendaftar tidak lagi melihat hasil sampai dirilis ulang. Jadwal tayang, bila ada, ikut dihapus."
         footer={
           <>
             <Button variant="ghost" onClick={() => setWithdrawOpen(false)}>

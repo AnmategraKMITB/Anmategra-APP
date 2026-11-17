@@ -1,0 +1,1 @@
+ALTER TABLE "anmategra_recruitment_division" ADD COLUMN "group_invite_url" varchar(500);
