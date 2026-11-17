@@ -20,6 +20,7 @@ import { Button } from '~/components/ui/button';
 import { Card } from '~/components/ui/card';
 import { getServerAuthSession } from '~/server/auth';
 // TRPC Import
+import { type RouterOutputs } from '~/trpc/react';
 import { api } from '~/trpc/server';
 
 // Dipakai generateMetadata dan halaman; cache() membuat query-nya cukup jalan sekali per request.
@@ -84,9 +85,12 @@ const DetailLembagaPage = async ({
       );
     }
 
-    const pengumuman = await api.oprec
-      .lembagaAnnouncements({ lembagaId })
-      .catch(() => []);
+    let pengumuman: RouterOutputs['oprec']['lembagaAnnouncements'] = [];
+    try {
+      pengumuman = await api.oprec.lembagaAnnouncements({ lembagaId });
+    } catch {
+      // Pengumuman opsional; profil tetap tampil tanpanya.
+    }
 
     const jsonLd = {
       '@context': 'https://schema.org',
