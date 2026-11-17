@@ -57,7 +57,7 @@ export default function OprecDaftarDemo() {
   return (
     <DemoFrame
       title="Mendaftar oprec sebagai mahasiswa"
-      location="Mahasiswa › tautan formulir › Pendaftaran Oprec Festival Karya 2026"
+      location="Mahasiswa › tautan formulir › Pendaftaran Oprec Aku Masuk ITB 2027"
       steps={STEPS}
     >
       {(guide) => <Body guide={guide} />}
@@ -104,7 +104,7 @@ function Body({ guide }: { guide: DemoGuide }) {
         <div className="rounded-lg border border-neutral-400 p-4">
           <p className="text-base font-semibold">Kamu sudah mengirim jawaban</p>
           <p className="mt-1 text-xs text-neutral-700">
-            Jawabanmu untuk “Pendaftaran Oprec Festival Karya 2026” terkirim
+            Jawabanmu untuk “Pendaftaran Oprec Aku Masuk ITB 2027” terkirim
             pada 12 Nov 2026 19.04 WIB.
           </p>
           <p className="mt-2 text-xs text-neutral-700">
@@ -217,7 +217,7 @@ function Body({ guide }: { guide: DemoGuide }) {
     <div className="mx-auto max-w-md space-y-4">
       <div>
         <p className="text-lg font-semibold">
-          Pendaftaran Oprec Festival Karya 2026
+          Pendaftaran Oprec Aku Masuk ITB 2027
         </p>
         <p className="mt-1 text-xs text-neutral-700">
           Identitas diambil dari akun Anda: Raka Pradipta · 13524011. Satu akun

@@ -12,7 +12,7 @@ yang sama setelah diumumkan.
 
 ## Contoh kasus
 
-**Anda ingin mendaftar Festival Karya 2026 dan ragu antara Acara dan
+**Anda ingin mendaftar Aku Masuk ITB 2027 dan ragu antara Acara dan
 Publikasi.** Pilih Acara sebagai pilihan 1 dan Publikasi sebagai pilihan 2.
 Formulir menampilkan pertanyaan khusus untuk kedua divisi itu. Jika pilihan
 pertama tidak lolos, pilihan kedua tetap dipertimbangkan.

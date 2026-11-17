@@ -138,8 +138,8 @@ function Body({ guide }: { guide: DemoGuide }) {
         )}
       </div>
       <div className="mt-4 rounded-lg border border-neutral-400 p-3">
-        <p className="font-semibold">Festival Karya 2026</p>
-        <p className="text-xs text-neutral-700">Divisi Acara · Staf</p>
+        <p className="font-semibold">Aku Masuk ITB 2027</p>
+        <p className="text-xs text-neutral-700">Divisi Event Organizer · Staf</p>
         <p className="mt-1 text-xs">
           {visible
             ? 'Tautan Rapor tampil di kartu ini bila lembaga juga membuka rapornya.'

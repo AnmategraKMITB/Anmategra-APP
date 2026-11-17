@@ -55,9 +55,9 @@ export const APPLICANTS: Applicant[] = [
       { division: 'publikasi', score: 71, status: 'tidak_lolos' },
     ],
     answers: [
-      ['Mengapa Anda ingin bergabung?', 'Ingin belajar menyusun acara besar dari awal sampai evaluasi.'],
-      ['Ceritakan pengalaman menyusun rundown', 'Menyusun rundown malam keakraban angkatan untuk 180 peserta.'],
-      ['Tautan CV', 'drive.google.com/…/cv-raka'],
+      ['Kenapa kamu pengen jadi panitia AMI?', 'pengen ngerasain nyambut ribuan maba dari belakang panggung.'],
+      ['Ceritain pengalaman kamu ngurus acara dong!', 'Menyusun rundown malam keakraban angkatan untuk 180 peserta.'],
+      ['Link CV kamu', 'drive.google.com/…/cv-raka'],
     ],
   },
   {
@@ -75,9 +75,9 @@ export const APPLICANTS: Applicant[] = [
     ],
     flag: 'Prioritas',
     answers: [
-      ['Mengapa Anda ingin bergabung?', 'Ingin portofolio desain saya dipakai untuk acara nyata.'],
-      ['Tautan portofolio desain', 'behance.net/nadiakw'],
-      ['Tautan CV', 'drive.google.com/…/cv-nadia'],
+      ['Kenapa kamu pengen jadi panitia AMI?', 'Biar karya desainku dilihat seluruh maba ITB.'],
+      ['Link portofolio desainmu', 'behance.net/nadiakw'],
+      ['Link CV kamu', 'drive.google.com/…/cv-nadia'],
     ],
   },
   {
@@ -94,9 +94,9 @@ export const APPLICANTS: Applicant[] = [
       { division: 'logistik', score: 84, status: 'lolos' },
     ],
     answers: [
-      ['Mengapa Anda ingin bergabung?', 'Suka pekerjaan lapangan dan ingin kenal banyak orang.'],
-      ['Ceritakan pengalaman menyusun rundown', 'Belum pernah, tetapi pernah jadi stage crew.'],
-      ['Tautan CV', 'drive.google.com/…/cv-bima'],
+      ['Kenapa kamu pengen jadi panitia AMI?', 'Suka pekerjaan lapangan dan ingin kenal banyak orang.'],
+      ['Ceritain pengalaman kamu ngurus acara dong!', 'Belum pernah, tetapi pernah jadi stage crew.'],
+      ['Link CV kamu', 'drive.google.com/…/cv-bima'],
     ],
   },
   {
@@ -113,9 +113,9 @@ export const APPLICANTS: Applicant[] = [
       { division: 'danus', score: null, status: 'belum_lengkap' },
     ],
     answers: [
-      ['Mengapa Anda ingin bergabung?', 'Ingin mengulang pengalaman kepanitiaan tahun lalu dengan peran lebih besar.'],
-      ['Ceritakan pengalaman menyusun rundown', 'Koordinator acara lomba tingkat fakultas.'],
-      ['Tautan CV', 'drive.google.com/…/cv-laras'],
+      ['Kenapa kamu pengen jadi panitia AMI?', 'Tahun lalu jadi peserta AMI, sekarang gantian yang nyambut.'],
+      ['Ceritain pengalaman kamu ngurus acara dong!', 'Koordinator acara lomba tingkat fakultas.'],
+      ['Link CV kamu', 'drive.google.com/…/cv-laras'],
     ],
   },
   {
@@ -132,8 +132,8 @@ export const APPLICANTS: Applicant[] = [
       { division: 'acara', score: 58, status: 'tidak_lolos' },
     ],
     answers: [
-      ['Mengapa Anda ingin bergabung?', 'Diajak teman dan ingin mencoba.'],
-      ['Tautan CV', 'drive.google.com/…/cv-fajar'],
+      ['Kenapa kamu pengen jadi panitia AMI?', 'Diajak teman dan ingin mencoba.'],
+      ['Link CV kamu', 'drive.google.com/…/cv-fajar'],
     ],
   },
   {
@@ -150,8 +150,8 @@ export const APPLICANTS: Applicant[] = [
       { division: 'publikasi', score: 74, status: 'tidak_lolos' },
     ],
     answers: [
-      ['Mengapa Anda ingin bergabung?', 'Ingin menguji rencana sponsorship yang saya susun di kelas.'],
-      ['Tautan CV', 'drive.google.com/…/cv-citra'],
+      ['Kenapa kamu pengen jadi panitia AMI?', 'pengen nyobain nego sponsor beneran, bukan cuma tugas kelas.'],
+      ['Link CV kamu', 'drive.google.com/…/cv-citra'],
     ],
   },
 ];

@@ -40,14 +40,14 @@ type Request = {
 const INITIAL: Request[] = [
   { id: 1, name: 'Dimas Wicaksono', nim: '13124073', division: 'Logistik', position: 'Staf' },
   { id: 2, name: 'Salsa Rahmadhani', nim: '17424021', division: 'Publikasi', position: 'Staf' },
-  { id: 3, name: 'Fajar Nugraha', nim: '10523044', division: 'Acara', position: 'Kepala Divisi' },
+  { id: 3, name: 'Fajar Nugraha', nim: '10523044', division: 'Event Organizer', position: 'Kepala Divisi' },
 ];
 
 export default function InboxLembagaDemo() {
   return (
     <DemoFrame
       title="Memproses pengajuan asosiasi"
-      location="Lembaga › Inbox › Festival Karya 2026"
+      location="Lembaga › Inbox › Aku Masuk ITB 2027"
       steps={STEPS}
     >
       {(guide) => <Body guide={guide} />}
@@ -85,7 +85,7 @@ function Body({ guide }: { guide: DemoGuide }) {
     <div>
       <ScreenTitle
         title="Inbox"
-        subtitle="Pengajuan asosiasi untuk Festival Karya 2026"
+        subtitle="Pengajuan asosiasi untuk Aku Masuk ITB 2027"
       />
       <div className={cn('flex flex-wrap gap-2 rounded-lg', guide.spot('cari'))}>
         <input
@@ -108,7 +108,7 @@ function Body({ guide }: { guide: DemoGuide }) {
           className={cn(inputClass, 'w-40')}
         >
           <option value="">Semua divisi</option>
-          <option>Acara</option>
+          <option>Event Organizer</option>
           <option>Logistik</option>
           <option>Publikasi</option>
         </select>

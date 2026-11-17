@@ -1,16 +1,17 @@
-// Data contoh bersama untuk simulasi manual. Semua nama dan NIM fiktif.
+// Data contoh bersama untuk simulasi manual. Struktur dan gaya pertanyaan
+// meniru oprec Aku Masuk ITB 2027, tetapi semua nama dan NIM fiktif.
 
-export const DEMO_LEMBAGA = 'Himpunan Mahasiswa Contoh';
-export const DEMO_EVENT = 'Festival Karya 2026';
+export const DEMO_LEMBAGA = 'Kabinet KM ITB';
+export const DEMO_EVENT = 'Aku Masuk ITB 2027';
 
 export type DemoDivision = { id: string; name: string; quota: number };
 
 /** Divisi kepanitiaan contoh beserta kuota stafnya. */
 export const DEMO_DIVISIONS: DemoDivision[] = [
-  { id: 'acara', name: 'Acara', quota: 2 },
+  { id: 'acara', name: 'Event Organizer', quota: 2 },
   { id: 'publikasi', name: 'Publikasi', quota: 2 },
   { id: 'logistik', name: 'Logistik', quota: 2 },
-  { id: 'danus', name: 'Dana Usaha', quota: 1 },
+  { id: 'danus', name: 'Sponsorship', quota: 1 },
 ];
 
 export type DemoStudent = {

@@ -9,3 +9,7 @@ export const isOrganogramWorkspace = (pathname: string): boolean =>
  */
 export const isFormBuilderWorkspace = (pathname: string): boolean =>
   /^\/(lembaga|mahasiswa)\/forms\/[^/]+\/?$/.test(pathname);
+
+/** Presentasi (`/slides/...`): satu layar penuh tanpa footer situs. */
+export const isSlidesPage = (pathname: string): boolean =>
+  /^\/slides(\/|$)/.test(pathname);

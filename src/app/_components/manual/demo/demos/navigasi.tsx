@@ -53,9 +53,9 @@ const PAGES: Record<string, string> = {
 };
 
 const RESULTS = [
-  { type: 'Kegiatan', name: 'Festival Karya 2026' },
+  { type: 'Kegiatan', name: 'Aku Masuk ITB 2027' },
   { type: 'Kegiatan', name: 'Festival Olahraga Kampus' },
-  { type: 'Lembaga', name: 'Himpunan Mahasiswa Contoh' },
+  { type: 'Lembaga', name: 'Kabinet KM ITB' },
   { type: 'Mahasiswa', name: 'Raka Pradipta' },
   { type: 'Mahasiswa', name: 'Citra Maharani' },
 ];
