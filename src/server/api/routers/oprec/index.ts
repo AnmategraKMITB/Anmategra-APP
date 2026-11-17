@@ -34,6 +34,7 @@ import {
   UpdateRecruitmentInputSchema,
 } from '../../types/oprec.type';
 import { lockForm } from '../form/services';
+import { announcementProcedures } from './announcement';
 import { applicantProcedures } from './applicants';
 import { assessProcedures } from './assess';
 import { assessorProcedures } from './assessors';
@@ -84,6 +85,7 @@ export const oprecRouter = createTRPCRouter({
   ...priorityProcedures,
   ...priorityImportProcedures,
   ...resultsProcedures,
+  ...announcementProcedures,
   list: oprecPeriodProcedure
     .input(ListRecruitmentsInputSchema)
     .query(async ({ ctx, input }) => {
