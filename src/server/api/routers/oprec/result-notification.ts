@@ -1,9 +1,10 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { recruitmentPublished } from '~/server/api/oprec-release';
 import { protectedProcedure } from '~/server/api/trpc';
 import { form, notifications, recruitment } from '~/server/db/schema';
 
+import { OFFER_NOTIFICATION_KIND } from './offer';
 import { type Database } from './services';
 
 type Tx = Pick<Database, 'execute'>;
@@ -62,8 +63,14 @@ export const resultNotificationProcedures = {
       .where(
         and(
           eq(notifications.user_id, ctx.session.user.id),
-          eq(notifications.kind, RESULT_NOTIFICATION_KIND),
-          recruitmentPublished,
+          or(
+            and(
+              eq(notifications.kind, RESULT_NOTIFICATION_KIND),
+              recruitmentPublished,
+            ),
+            // Tawaran tempat (offer.ts) tampil tanpa menunggu hasil tayang.
+            eq(notifications.kind, OFFER_NOTIFICATION_KIND),
+          ),
         ),
       )
       .orderBy(desc(notifications.created_at));
