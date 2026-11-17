@@ -136,7 +136,6 @@ export const announcementProcedures = {
           and(
             eq(events.org_id, input.lembagaId),
             input.periodId ? eq(events.id, input.periodId) : undefined,
-            eq(recruitment.resultsVisibleToApplicants, true),
             recruitmentPublished,
           ),
         )
@@ -162,12 +161,11 @@ export const announcementProcedures = {
           name: recruitment.name,
           resultsReleasedAt: recruitment.resultsReleasedAt,
           resultsPublishAt: recruitment.resultsPublishAt,
-          visible: recruitment.resultsVisibleToApplicants,
         })
         .from(recruitment)
         .where(eq(recruitment.id, input.recruitmentId));
       if (!row) notFound('Oprec tidak ditemukan.');
-      if (!row.visible || !resultsPublished(row)) {
+      if (!resultsPublished(row)) {
         return {
           published: false as const,
           name: row.name,

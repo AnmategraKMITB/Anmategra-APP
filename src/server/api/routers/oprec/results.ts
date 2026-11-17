@@ -339,12 +339,10 @@ export const resultsProcedures = {
         releasedAt: ctx.recruitment.resultsReleasedAt,
         publishAt: ctx.recruitment.resultsPublishAt,
         published: resultsPublished(ctx.recruitment),
-        visibleToApplicants: ctx.recruitment.resultsVisibleToApplicants,
         canRelease:
           ctx.assess.isAdmin &&
           !released &&
-          state === 'final' &&
-          ctx.recruitment.resultsVisibleToApplicants,
+          state === 'final',
         canWithdraw: ctx.assess.isAdmin && released,
         divisions: divisions.map((division) => {
           const done = accepted.get(division.id) ?? 0;
@@ -524,11 +522,6 @@ export const resultsProcedures = {
         if (row.placementState !== 'final') {
           conflict('Tetapkan penempatan final sebelum merilis hasil.');
         }
-        if (!row.resultsVisibleToApplicants) {
-          conflict(
-            'Pendaftar tidak memilih menerima hasil lewat Anmategra saat pengaturan.',
-          );
-        }
         if (row.resultsReleasedAt !== null) {
           conflict('Hasil sudah dirilis.');
         }
@@ -601,7 +594,6 @@ export const resultsProcedures = {
       const [row] = await ctx.db
         .select({
           id: recruitment.id,
-          visible: recruitment.resultsVisibleToApplicants,
           releasedAt: recruitment.resultsReleasedAt,
           publishAt: recruitment.resultsPublishAt,
         })
@@ -621,7 +613,6 @@ export const resultsProcedures = {
       if (!mine) notFound('Kamu tidak mendaftar di oprec ini.');
 
       if (
-        !row.visible ||
         !resultsPublished({
           resultsReleasedAt: row.releasedAt,
           resultsPublishAt: row.publishAt,

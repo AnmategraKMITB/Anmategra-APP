@@ -72,12 +72,7 @@ export function ReleasePanel({
           <h2 className="text-lg font-semibold text-neutral-1000">
             Rilis ke pendaftar
           </h2>
-          {!overview.visibleToApplicants ? (
-            <p className="mt-1 text-sm text-neutral-700">
-              Pendaftar tidak memilih menerima hasil lewat Anmategra. Hasil
-              diumumkan di luar aplikasi.
-            </p>
-          ) : overview.released ? (
+          {overview.released ? (
             <p className="mt-1 text-sm text-neutral-700">
               Dirilis pada {when(overview.releasedAt)} WIB.{' '}
               {overview.published
@@ -102,7 +97,7 @@ export function ReleasePanel({
           ) : (
             <Chip tone="muted">Belum dirilis</Chip>
           )}
-          {overview.visibleToApplicants && !overview.released ? (
+          {!overview.released ? (
             <Button
               disabled={!overview.canRelease || release.isPending}
               onClick={() => {
@@ -133,9 +128,7 @@ export function ReleasePanel({
         </div>
       </div>
 
-      {overview.visibleToApplicants &&
-      !overview.released &&
-      overview.state !== 'final' ? (
+      {!overview.released && overview.state !== 'final' ? (
         <p className="mt-2 text-sm text-neutral-700">
           Keadaan penempatan masih “{overview.state}”.{' '}
           {penempatanHref ? (

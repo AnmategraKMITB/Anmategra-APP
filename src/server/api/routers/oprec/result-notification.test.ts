@@ -42,7 +42,7 @@ async function world() {
   });
   await db
     .update(schema.recruitment)
-    .set({ placementState: 'final', resultsVisibleToApplicants: true })
+    .set({ placementState: 'final' })
     .where(eq(schema.recruitment.id, fx.recruitmentId));
 
   // Draf (belum terkirim): tidak diberi tahu.

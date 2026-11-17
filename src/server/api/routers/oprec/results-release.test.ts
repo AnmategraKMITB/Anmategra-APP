@@ -33,7 +33,7 @@ async function finalWorld() {
   });
   await db
     .update(schema.recruitment)
-    .set({ placementState: 'final', resultsVisibleToApplicants: true })
+    .set({ placementState: 'final' })
     .where(eq(schema.recruitment.id, fx.recruitmentId));
   const owner = callerFor(db, fx.owner);
   const applicant = callerFor(db, a.actor);

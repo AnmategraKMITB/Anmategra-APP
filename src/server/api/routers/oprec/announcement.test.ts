@@ -182,19 +182,6 @@ describe('oprec.announcement', () => {
     ).toEqual([]);
   });
 
-  it('tidak tayang bila hasil tidak diumumkan lewat Anmategra', async () => {
-    const { fx, viewer, publish } = await world();
-    await publish();
-    await db
-      .update(schema.recruitment)
-      .set({ resultsVisibleToApplicants: false })
-      .where(eq(schema.recruitment.id, fx.recruitmentId));
-    const r = await viewer.oprec.announcement({
-      recruitmentId: fx.recruitmentId,
-    });
-    expect(r.published).toBe(false);
-  });
-
   it('satu orang dengan dua penempatan di divisi sama tampil sekali', async () => {
     const { fx, accepted, viewer, publish } = await world();
     await publish();
