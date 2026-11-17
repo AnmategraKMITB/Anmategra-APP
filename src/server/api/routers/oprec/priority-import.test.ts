@@ -7,9 +7,14 @@ import {
   applicationChoice,
   choiceStatusOverride,
   divisionPriority,
+  formAnswer,
+  formField,
+  formSection,
+  formSubmission,
   recruitment,
   recruitmentDivision,
   recruitmentLog,
+  recruitmentSectionBinding,
 } from '~/server/db/schema';
 import { createOprecWorld as baseWorld, placeAt } from '~/test/oprec-fixtures';
 import {
@@ -113,7 +118,7 @@ async function apply(recruitmentId: string, divisionIds: string[]) {
       })),
     )
     .returning();
-  return { id: app!.id, nim: mhs.nim, choices };
+  return { id: app!.id, userId: user.id, nim: mhs.nim, choices };
 }
 
 async function usePriority(s: Setup) {
@@ -251,6 +256,122 @@ describe('templat prioritas', () => {
       recruitmentId: s.recruitmentId,
     });
     expect(adminView.rows[0]!.nim).not.toBeNull();
+  });
+
+  it('memuat jawaban formulir; pertanyaan khusus divisi lain dikosongkan', async () => {
+    const s = await setup();
+    await usePriority(s);
+    const [rec] = await db
+      .select({ formId: recruitment.formId })
+      .from(recruitment)
+      .where(eq(recruitment.id, s.recruitmentId));
+    const formId = rec!.formId;
+    const [umum] = await db
+      .insert(formSection)
+      .values({ formId, title: 'Umum uji', sortOrder: 90 })
+      .returning();
+    const [khusus] = await db
+      .insert(formSection)
+      .values({ formId, title: 'Khusus Logistik uji', sortOrder: 91 })
+      .returning();
+    await db.insert(recruitmentSectionBinding).values({
+      recruitmentId: s.recruitmentId,
+      formSectionId: khusus!.id,
+      divisionId: s.logistik.id,
+    });
+    const [motivasi] = await db
+      .insert(formField)
+      .values({
+        formId,
+        sectionId: umum!.id,
+        type: 'long_text',
+        label: 'Motivasi uji',
+        sortOrder: 0,
+      })
+      .returning();
+    const [alat] = await db
+      .insert(formField)
+      .values({
+        formId,
+        sectionId: khusus!.id,
+        type: 'short_text',
+        label: 'Alat yang dikuasai uji',
+        sortOrder: 0,
+      })
+      .returning();
+
+    const x = await apply(s.recruitmentId, [s.logistik.id, s.it.id]);
+    const now = new Date();
+    const [sub] = await db
+      .insert(formSubmission)
+      .values({ formId, userId: x.userId, submittedAt: now, updatedAt: now })
+      .returning();
+    await db
+      .update(application)
+      .set({ formSubmissionId: sub!.id })
+      .where(eq(application.id, x.id));
+    await db.insert(formAnswer).values([
+      {
+        submissionId: sub!.id,
+        fieldId: motivasi!.id,
+        fieldLabel: 'Motivasi uji',
+        fieldType: 'long_text',
+        value: 'Ingin membantu acara',
+      },
+      {
+        submissionId: sub!.id,
+        fieldId: alat!.id,
+        fieldLabel: 'Alat yang dikuasai uji',
+        fieldType: 'short_text',
+        value: '=Forklift',
+      },
+    ]);
+
+    const data = await s.admin.oprec.priorityTemplate({
+      recruitmentId: s.recruitmentId,
+    });
+    const iM = data.answerColumns.indexOf('Motivasi uji');
+    const iA = data.answerColumns.indexOf('Alat yang dikuasai uji');
+    expect(iM).toBeGreaterThanOrEqual(0);
+    expect(iA).toBeGreaterThanOrEqual(0);
+    const rowOf = (division: string) =>
+      data.rows.find(
+        (r) => r.division === division && r.applicationId === x.id,
+      )!;
+    expect(rowOf('Logistik').answers[iM]).toBe('Ingin membantu acara');
+    expect(rowOf('Logistik').answers[iA]).toBe('=Forklift');
+    // Pertanyaan khusus Logistik tidak tampil di baris IT.
+    expect(rowOf('IT').answers[iM]).toBe('Ingin membantu acara');
+    expect(rowOf('IT').answers[iA]).toBe('');
+
+    // Kadiv IT tidak mendapat kolom pertanyaan khusus Logistik.
+    const itOnly = await callerFor(s.heads[1]!).oprec.priorityTemplate({
+      recruitmentId: s.recruitmentId,
+    });
+    expect(itOnly.answerColumns).toContain('Motivasi uji');
+    expect(itOnly.answerColumns).not.toContain('Alat yang dikuasai uji');
+
+    // Kolom jawaban di kanan ID, teks mirip rumus diamankan, dan impor tetap
+    // membaca kolom Divisi/Urutan/ID yang benar.
+    const table = templateTable(data);
+    expect(table.header.indexOf('Jawaban: Motivasi uji')).toBeGreaterThan(
+      table.header.indexOf('ID (jangan diubah)'),
+    );
+    const iU = table.header.indexOf('Urutan');
+    const logBody = table.body.find(
+      (r) => r[0] === 'Logistik' && r.includes(x.id),
+    )!;
+    expect(logBody).toContain("'=Forklift");
+    const filled = table.body.map((r) => {
+      const copy = [...r];
+      if (copy[0] === 'Logistik') copy[iU] = 1;
+      return copy;
+    });
+    await importFile(s.admin, s, csv([table.header, ...filled]));
+    expect((await ranksOf(s.admin, s, s.logistik.id))[x.id]).toEqual({
+      rank: 1,
+      note: null,
+    });
   });
 });
 

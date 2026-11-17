@@ -135,11 +135,18 @@ export type TemplateRow = {
   rank: number | null;
   note: string | null;
   applicationId: string;
+  /**
+   * Jawaban formulir, sejajar dengan `TemplateData.answerColumns`. Kosong
+   * untuk pertanyaan di bagian khusus divisi lain.
+   */
+  answers: string[];
 };
 
 export type TemplateData = {
   recruitmentName: string;
   blind: boolean;
+  /** Judul pertanyaan formulir yang ikut di templat, urut seperti di form. */
+  answerColumns: string[];
   divisions: {
     name: string;
     quota: number;
@@ -154,7 +161,27 @@ function safeText(value: string): string {
   return /^[=+\-@\t\r]/.test(value) ? `'${value}` : value;
 }
 
-/** Tabel templat: judul dan isi, tanpa kolom identitas pada mode blind. */
+/** Batas isi satu sel (Excel menolak lebih dari 32.767 karakter). */
+const MAX_CELL = 32000;
+
+/**
+ * Judul kolom jawaban: diawali "Jawaban: " supaya tidak pernah tertukar dengan
+ * kolom Divisi/Urutan/ID saat impor, dan dibuat unik bila ada judul kembar.
+ */
+export function answerHeaders(labels: readonly string[]): string[] {
+  const seen = new Map<string, number>();
+  return labels.map((label) => {
+    const base = `Jawaban: ${label.replace(/\s+/g, ' ').trim() || 'Tanpa judul'}`;
+    const n = (seen.get(base) ?? 0) + 1;
+    seen.set(base, n);
+    return n === 1 ? base : `${base} (${n})`;
+  });
+}
+
+/**
+ * Tabel templat: judul dan isi, tanpa kolom identitas pada mode blind. Kolom
+ * jawaban formulir ada di paling kanan, setelah ID.
+ */
 export function templateTable(data: TemplateData) {
   const identity = !data.blind;
   const header = [
@@ -169,6 +196,7 @@ export function templateTable(data: TemplateData) {
     'Urutan',
     'Keterangan',
     'ID (jangan diubah)',
+    ...answerHeaders(data.answerColumns),
   ];
   const body = data.rows.map((r) => [
     safeText(r.division),
@@ -193,6 +221,9 @@ export function templateTable(data: TemplateData) {
     r.rank ?? '',
     safeText(r.note ?? ''),
     r.applicationId,
+    ...data.answerColumns.map((_, i) =>
+      safeText((r.answers[i] ?? '').slice(0, MAX_CELL)),
+    ),
   ]);
   return { header, body };
 }
@@ -209,6 +240,7 @@ const GUIDE = [
   '8. Jangan ubah kolom Divisi dan ID. Baris boleh disortir atau difilter. Kolom lain boleh dihapus, kecuali Divisi, Urutan, dan ID (atau NIM).',
   '9. Divisi yang ada di file diganti seluruh urutannya. Kandidat divisi itu yang barisnya dihapus dianggap tidak diambil. Divisi yang tidak ada di file tidak berubah.',
   '10. Simpan sebagai .xlsx atau .csv (Google Sheets: File → Download), lalu unggah lewat "Impor urutan" di tab Prioritas. Sistem menampilkan pratinjau dulu sebelum menyimpan.',
+  '11. Kolom "Jawaban: ..." di paling kanan berisi jawaban formulir pendaftar, untuk bahan menyeleksi. Pertanyaan khusus divisi lain dikosongkan. Kolom ini tidak dibaca saat impor.',
 ];
 
 /** Workbook templat: lembar Prioritas (diisi) dan Petunjuk (kuota per divisi). */
@@ -232,6 +264,7 @@ export async function templateWorkbook(
   widen('Urutan pilihan pendaftar', 36);
   widen('Keterangan', 40);
   widen('ID (jangan diubah)', 38);
+  for (const title of answerHeaders(data.answerColumns)) widen(title, 40);
   sheet.autoFilter = {
     from: { row: 1, column: 1 },
     to: { row: 1, column: table.header.length },

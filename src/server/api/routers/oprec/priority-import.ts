@@ -12,6 +12,7 @@
 import { TRPCError } from '@trpc/server';
 import { and, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { richTextToPlain } from '~/app/_components/forms/rich-text';
 import { candidacy, ownChoices } from '~/lib/oprec/priority';
 import {
   type DivisionPlan,
@@ -21,12 +22,17 @@ import {
 } from '~/lib/oprec/priority-import';
 import { oprecAssessProcedure } from '~/server/api/trpc';
 import {
+  application,
   divisionPriority,
+  formAnswer,
   mahasiswa,
   recruitmentDivision,
+  recruitmentSectionBinding,
 } from '~/server/db/schema';
 
-import { type Tx } from '../form/services';
+import { formatCsvAnswer } from '../form/csv';
+import { loadResponseFields } from '../form/responses';
+import { type Queryable as FormDb, type Tx } from '../form/services';
 import { type AssessAccess, canRankDivision } from './assess-access';
 import { logAction } from './log';
 import {
@@ -287,6 +293,97 @@ async function writeNotes(
   }
 }
 
+/**
+ * Pertanyaan formulir dan jawaban semua pendaftar untuk kolom templat, dimuat
+ * sekaligus (bukan per pendaftar). Pertanyaan umum selalu ikut. Pertanyaan di
+ * bagian yang terikat divisi hanya ikut bila pemanggil menyusun salah satu
+ * divisi itu, dan sel-nya dikosongkan pada baris divisi lain, sama dengan
+ * panel jawaban di papan prioritas.
+ */
+async function loadTemplateAnswers(
+  db: FormDb,
+  rec: { id: string; formId: string },
+  divisionIds: ReadonlySet<string>,
+) {
+  const [bindings, fields, apps] = await Promise.all([
+    db
+      .select({
+        sectionId: recruitmentSectionBinding.formSectionId,
+        divisionId: recruitmentSectionBinding.divisionId,
+      })
+      .from(recruitmentSectionBinding)
+      .where(eq(recruitmentSectionBinding.recruitmentId, rec.id)),
+    loadResponseFields(db, rec.formId),
+    db
+      .select({
+        id: application.id,
+        submissionId: application.formSubmissionId,
+      })
+      .from(application)
+      .where(eq(application.recruitmentId, rec.id)),
+  ]);
+
+  const boundTo = new Map<string, Set<string>>();
+  for (const b of bindings) {
+    const set = boundTo.get(b.sectionId) ?? new Set<string>();
+    set.add(b.divisionId);
+    boundTo.set(b.sectionId, set);
+  }
+  const columns = fields.flatMap((f) => {
+    if (f.type === 'unit_choice') return [];
+    const only = f.sectionId ? (boundTo.get(f.sectionId) ?? null) : null;
+    if (only && ![...only].some((d) => divisionIds.has(d))) return [];
+    const label = richTextToPlain(f.label);
+    return [
+      {
+        fieldId: f.id,
+        type: f.type,
+        label: f.archivedAt ? `${label} (diarsipkan)` : label,
+        only,
+      },
+    ];
+  });
+
+  const submissionOf = new Map<string, string>();
+  for (const a of apps) {
+    if (a.submissionId) submissionOf.set(a.id, a.submissionId);
+  }
+  const wanted = new Set(columns.map((c) => c.fieldId));
+  const valuesOf = new Map<string, Map<string, unknown>>();
+  if (wanted.size > 0) {
+    for (const part of chunks([...new Set(submissionOf.values())])) {
+      const rows = await db
+        .select({
+          submissionId: formAnswer.submissionId,
+          fieldId: formAnswer.fieldId,
+          value: formAnswer.value,
+        })
+        .from(formAnswer)
+        .where(inArray(formAnswer.submissionId, part));
+      for (const row of rows) {
+        if (!row.fieldId || !wanted.has(row.fieldId)) continue;
+        const values =
+          valuesOf.get(row.submissionId) ?? new Map<string, unknown>();
+        values.set(row.fieldId, row.value);
+        valuesOf.set(row.submissionId, values);
+      }
+    }
+  }
+
+  return {
+    labels: columns.map((c) => c.label),
+    answersFor(applicationId: string, divisionId: string): string[] {
+      const submissionId = submissionOf.get(applicationId);
+      const values = submissionId ? valuesOf.get(submissionId) : undefined;
+      return columns.map((c) =>
+        c.only && !c.only.has(divisionId)
+          ? ''
+          : formatCsvAnswer(c.type, values?.get(c.fieldId)),
+      );
+    },
+  };
+}
+
 export const priorityImportProcedures = {
   /**
    * Isi templat: satu baris per pendaftar per divisi yang boleh disusun
@@ -305,6 +402,10 @@ export const priorityImportProcedures = {
       const saved = new Map(
         pool.priorities.map((p) => [`${p.divisionId}:${p.applicationId}`, p]),
       );
+      const rankIds = new Set(
+        pool.divisions.filter((d) => canRankDivision(a, d.id)).map((d) => d.id),
+      );
+      const answers = await loadTemplateAnswers(ctx.db, rec, rankIds);
 
       const divisions: TemplateData['divisions'] = [];
       const rows: TemplateRow[] = [];
@@ -338,6 +439,7 @@ export const priorityImportProcedures = {
             rank: c.blocked ? null : (p?.rank ?? null),
             note: p?.note ?? null,
             applicationId: app.id,
+            answers: answers.answersFor(app.id, d.id),
           });
         }
         const group = (r: TemplateRow) =>
@@ -357,7 +459,13 @@ export const priorityImportProcedures = {
           rankable,
         });
       }
-      return { recruitmentName: rec.name, blind: hide, divisions, rows };
+      return {
+        recruitmentName: rec.name,
+        blind: hide,
+        answerColumns: answers.labels,
+        divisions,
+        rows,
+      };
     }),
 
   /** Baca file isian dan tampilkan apa yang akan berubah. Tidak menulis. */
