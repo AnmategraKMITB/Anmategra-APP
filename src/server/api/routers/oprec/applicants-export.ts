@@ -150,9 +150,80 @@ export function safeCell(value: string | number) {
     : value;
 }
 
+export type ResultsScope = 'diterima' | 'semua';
+
+export function parseResultsScope(value: string | null): ResultsScope {
+  return value === 'diterima' ? 'diterima' : 'semua';
+}
+
 export function resultsFilename(
   name: string,
   ext: 'csv' | 'xlsx',
+  opts: { scope?: ResultsScope; provisional?: boolean } = {},
 ): string {
-  return `${slugOf(name)}-hasil.${ext}`;
+  const scope = opts.scope === 'diterima' ? '-diterima' : '';
+  const temp = opts.provisional ? '-sementara' : '';
+  return `${slugOf(name)}-hasil${scope}${temp}.${ext}`;
+}
+
+export const DIVISION_HEADER = [
+  'Nama',
+  'NIM',
+  'Program studi',
+  'Angkatan',
+  'Gelombang',
+];
+
+type AcceptedRow = {
+  name: string | null;
+  nim: number | null;
+  prodi: string | null;
+  angkatan: number | null;
+  waveLabel: string | null;
+  acceptedDivisionId: string | null;
+};
+
+/** Hanya pendaftar yang diterima di suatu divisi. */
+export function acceptedOnly<T extends { acceptedDivisionId: string | null }>(
+  rows: T[],
+): T[] {
+  return rows.filter((row) => row.acceptedDivisionId !== null);
+}
+
+const divisionCells = (row: AcceptedRow) => [
+  row.name ?? '',
+  row.nim ?? '',
+  row.prodi ?? '',
+  row.angkatan ?? '',
+  row.waveLabel ?? '',
+];
+
+/** Satu tab per divisi (urutan divisi dipertahankan), berisi yang diterima. */
+export function divisionSheets(
+  rows: AcceptedRow[],
+  divisions: { id: string; label: string }[],
+) {
+  const used = new Set<string>();
+  return divisions.map((division) => ({
+    name: safeSheetName(division.label, used),
+    header: DIVISION_HEADER,
+    body: rows
+      .filter((row) => row.acceptedDivisionId === division.id)
+      .map(divisionCells),
+  }));
+}
+
+/** CSV datar untuk yang diterima: kolom divisi di depan. */
+export function acceptedFlatTable(
+  rows: AcceptedRow[],
+  divisions: { id: string; label: string }[],
+) {
+  const labels = new Map(divisions.map((d) => [d.id, d.label]));
+  return {
+    header: ['Divisi', ...DIVISION_HEADER],
+    body: acceptedOnly(rows).map((row) => [
+      labels.get(row.acceptedDivisionId!) ?? '',
+      ...divisionCells(row),
+    ]),
+  };
 }

@@ -43,6 +43,7 @@ import {
 import { type AssessAccess, canSeeSensitive } from './assess-access';
 import { resultsPublished } from '../../oprec-release';
 import { logAction } from './log';
+import { notifyResultsReleased } from './result-notification';
 import { loadPlacementDivisions } from './placement';
 import { type Queryable, conflict, notFound } from './services';
 
@@ -546,6 +547,7 @@ export const resultsProcedures = {
           entityId: row.id,
           detail: { undecided, publishAt },
         });
+        await notifyResultsReleased(tx, row);
         return { releasedAt, undecided, publishAt };
       });
     }),

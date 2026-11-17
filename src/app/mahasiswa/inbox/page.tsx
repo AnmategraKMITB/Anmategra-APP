@@ -2,6 +2,7 @@
 
 // import { useSession } from 'next-auth/react';
 import InboxTable from '~/app/mahasiswa/inbox/_components/inbox-table';
+import ResultNotifications from '~/app/mahasiswa/inbox/_components/result-notifications';
 import { api } from '~/trpc/react';
 
 export default function MahasiswaInboxPage() {
@@ -22,6 +23,7 @@ export default function MahasiswaInboxPage() {
 
   return (
     <main className="flex flex-col min-h-screen bg-[#FAFAFA] px-4 sm:px-8">
+      <ResultNotifications />
       <h1 className="text-[28px] sm:text-[32px] font-semibold mb-6">Pengajuan Asosiasi</h1>
 
       {isLoading ? (
