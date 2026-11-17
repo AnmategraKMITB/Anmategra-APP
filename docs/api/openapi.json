@@ -53972,6 +53972,9 @@
               "name": {
                 "type": "string"
               },
+              "final": {
+                "type": "boolean"
+              },
               "sections": {
                 "type": "array",
                 "items": {
@@ -54045,6 +54048,7 @@
             "required": [
               "published",
               "name",
+              "final",
               "sections"
             ],
             "additionalProperties": false

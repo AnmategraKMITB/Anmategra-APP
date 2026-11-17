@@ -1,4 +1,4 @@
-import { and, desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { recruitmentPublished } from '~/server/api/oprec-release';
 import { protectedProcedure } from '~/server/api/trpc';
@@ -10,6 +10,8 @@ import { type Database } from './services';
 type Tx = Pick<Database, 'execute'>;
 
 export const RESULT_NOTIFICATION_KIND = 'hasil_oprec';
+/** Dikirim saat penempatan ditetapkan final setelah hasil dirilis di masa banding. */
+export const FINAL_NOTIFICATION_KIND = 'hasil_oprec_final';
 
 /**
  * Pemberitahuan Inbox saat hasil dirilis, satu `INSERT ... SELECT` di dalam
@@ -21,9 +23,17 @@ export const RESULT_NOTIFICATION_KIND = 'hasil_oprec';
 export async function notifyResultsReleased(
   tx: Tx,
   row: { id: string; name: string; formId: string },
+  kind:
+    | typeof RESULT_NOTIFICATION_KIND
+    | typeof FINAL_NOTIFICATION_KIND = RESULT_NOTIFICATION_KIND,
 ) {
-  const title = `Hasil oprec ${row.name} sudah diumumkan`;
-  const content = `Hasil oprec ${row.name} sudah diumumkan. Buka hasil pribadimu atau lihat daftar lengkap penerima.`;
+  const final = kind === FINAL_NOTIFICATION_KIND;
+  const title = final
+    ? `Hasil final oprec ${row.name} sudah ditetapkan`
+    : `Hasil oprec ${row.name} sudah diumumkan`;
+  const content = final
+    ? `Masa banding oprec ${row.name} selesai dan hasil sudah final. Buka hasil pribadimu atau lihat daftar lengkap penerima.`
+    : `Hasil oprec ${row.name} sudah diumumkan. Buka hasil pribadimu atau lihat daftar lengkap penerima.`;
   const links = JSON.stringify([
     { label: 'Lihat hasil saya', href: `/forms/${row.formId}` },
     { label: 'Lihat daftar pengumuman', href: `/pengumuman/${row.id}` },
@@ -32,13 +42,13 @@ export async function notifyResultsReleased(
     INSERT INTO ${notifications}
       (id, user_id, title, content, type, recruitment_id, kind, links)
     SELECT gen_random_uuid()::text, a.user_id, ${title}, ${content},
-      'System', ${row.id}, ${RESULT_NOTIFICATION_KIND}, ${links}::jsonb
+      'System', ${row.id}, ${kind}, ${links}::jsonb
     FROM anmategra_application a
     WHERE a.recruitment_id = ${row.id}
       AND (a.submitted_at IS NOT NULL OR a.source = 'closerec')
       AND NOT EXISTS (
         SELECT 1 FROM ${notifications} n
-        WHERE n.recruitment_id = ${row.id} AND n.kind = ${RESULT_NOTIFICATION_KIND})
+        WHERE n.recruitment_id = ${row.id} AND n.kind = ${kind})
     ON CONFLICT DO NOTHING`);
 }
 
@@ -65,7 +75,10 @@ export const resultNotificationProcedures = {
           eq(notifications.user_id, ctx.session.user.id),
           or(
             and(
-              eq(notifications.kind, RESULT_NOTIFICATION_KIND),
+              inArray(notifications.kind, [
+                RESULT_NOTIFICATION_KIND,
+                FINAL_NOTIFICATION_KIND,
+              ]),
               recruitmentPublished,
             ),
             // Tawaran tempat (offer.ts) tampil tanpa menunggu hasil tayang.

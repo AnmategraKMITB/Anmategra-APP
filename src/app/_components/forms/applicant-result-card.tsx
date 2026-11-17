@@ -58,6 +58,13 @@ function ResultSection({ result }: { result: MyResult }) {
     );
   }
 
+  const note = result.final ? null : (
+    <p className="mt-2 text-xs text-neutral-700">
+      Hasil sementara: masa banding sedang berjalan dan hasil bisa berubah.
+      Hasil final diumumkan setelah penempatan final.
+    </p>
+  );
+
   if (result.accepted) {
     return (
       <section
@@ -72,6 +79,7 @@ function ResultSection({ result }: { result: MyResult }) {
           Diterima di <strong>{result.divisionLabel ?? 'divisi tujuan'}</strong>
           .
         </p>
+        {note}
       </section>
     );
   }
@@ -88,6 +96,7 @@ function ResultSection({ result }: { result: MyResult }) {
       <p className="mt-1 text-sm text-neutral-700">
         Terima kasih sudah mendaftar. Kamu belum diterima di oprec ini.
       </p>
+      {note}
     </section>
   );
 }

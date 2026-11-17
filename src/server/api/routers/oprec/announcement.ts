@@ -41,6 +41,8 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
   z.object({
     published: z.literal(true),
     name: z.string(),
+    /** false selama masa banding: daftar masih bisa berubah. */
+    final: z.boolean(),
     sections: z.array(
       z.object({
         label: z.string().nullable(),
@@ -174,6 +176,7 @@ export const announcementProcedures = {
         .select({
           id: recruitment.id,
           name: recruitment.name,
+          placementState: recruitment.placementState,
           resultsReleasedAt: recruitment.resultsReleasedAt,
           resultsPublishAt: recruitment.resultsPublishAt,
         })
@@ -257,6 +260,7 @@ export const announcementProcedures = {
       return {
         published: true as const,
         name: row.name,
+        final: row.placementState === 'final',
         sections: groupAnnouncement(
           divisions,
           rows.map(({ accountName, name, ...rest }) => ({
