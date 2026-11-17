@@ -241,6 +241,12 @@ export const ResultsListInputSchema = z.object({
   pageSize: z.number().int().min(1).max(RESULTS_MAX_PAGE_SIZE).default(50),
 });
 
+export const ResultsReleaseInputSchema = z.object({
+  recruitmentId: id,
+  /** Waktu tayang terjadwal; kosong = tayang langsung. */
+  publishAt: z.coerce.date().optional(),
+});
+
 export const ResultsWithdrawInputSchema = z.object({
   recruitmentId: id,
   reason: z.string().trim().min(3, 'Alasan wajib diisi.').max(500),

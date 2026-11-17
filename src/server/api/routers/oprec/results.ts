@@ -37,9 +37,11 @@ import {
   RecruitmentIdInputSchema,
   ResultsListInputSchema,
   ResultsLogExportInputSchema,
+  ResultsReleaseInputSchema,
   ResultsWithdrawInputSchema,
 } from '../../types/oprec.type';
 import { type AssessAccess, canSeeSensitive } from './assess-access';
+import { resultsPublished } from '../../oprec-release';
 import { logAction } from './log';
 import { loadPlacementDivisions } from './placement';
 import { type Queryable, conflict, notFound } from './services';
@@ -330,6 +332,8 @@ export const resultsProcedures = {
         state,
         released,
         releasedAt: ctx.recruitment.resultsReleasedAt,
+        publishAt: ctx.recruitment.resultsPublishAt,
+        published: resultsPublished(ctx.recruitment),
         visibleToApplicants: ctx.recruitment.resultsVisibleToApplicants,
         canRelease:
           ctx.assess.isAdmin &&
@@ -495,8 +499,8 @@ export const resultsProcedures = {
 
   /** Rilis hasil ke pendaftar; hanya admin, hanya setelah final, hanya bila S21 aktif. */
   resultsRelease: oprecAssessProcedure
-    .input(RecruitmentIdInputSchema)
-    .mutation(async ({ ctx }) => {
+    .input(ResultsReleaseInputSchema)
+    .mutation(async ({ ctx, input }) => {
       if (!ctx.assess.isAdmin) {
         throw new TRPCError({
           code: 'FORBIDDEN',
@@ -523,9 +527,16 @@ export const resultsProcedures = {
         }
         const undecided = await undecidedCount(tx, row.id, row.stagedPlacement);
         const releasedAt = new Date();
+        const publishAt = input.publishAt ?? null;
+        if (publishAt !== null && publishAt <= releasedAt) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Waktu tayang harus di masa depan.',
+          });
+        }
         await tx
           .update(recruitment)
-          .set({ resultsReleasedAt: releasedAt })
+          .set({ resultsReleasedAt: releasedAt, resultsPublishAt: publishAt })
           .where(eq(recruitment.id, row.id));
         await logAction(tx, {
           recruitmentId: row.id,
@@ -533,9 +544,9 @@ export const resultsProcedures = {
           action: 'hasil_dirilis',
           entityType: 'recruitment',
           entityId: row.id,
-          detail: { undecided },
+          detail: { undecided, publishAt },
         });
-        return { releasedAt, undecided };
+        return { releasedAt, undecided, publishAt };
       });
     }),
 
@@ -561,7 +572,7 @@ export const resultsProcedures = {
         }
         await tx
           .update(recruitment)
-          .set({ resultsReleasedAt: null })
+          .set({ resultsReleasedAt: null, resultsPublishAt: null })
           .where(eq(recruitment.id, row.id));
         await logAction(tx, {
           recruitmentId: row.id,
@@ -584,6 +595,7 @@ export const resultsProcedures = {
           id: recruitment.id,
           visible: recruitment.resultsVisibleToApplicants,
           releasedAt: recruitment.resultsReleasedAt,
+          publishAt: recruitment.resultsPublishAt,
         })
         .from(recruitment)
         .where(eq(recruitment.id, input.recruitmentId));
@@ -600,7 +612,13 @@ export const resultsProcedures = {
         );
       if (!mine) notFound('Kamu tidak mendaftar di oprec ini.');
 
-      if (!row.visible || row.releasedAt === null) {
+      if (
+        !row.visible ||
+        !resultsPublished({
+          resultsReleasedAt: row.releasedAt,
+          resultsPublishAt: row.publishAt,
+        })
+      ) {
         return { released: false as const };
       }
 
@@ -631,7 +649,7 @@ export const resultsProcedures = {
         released: true as const,
         accepted: accepted.length > 0,
         divisionLabel: accepted[0]?.label ?? null,
-        releasedAt: row.releasedAt,
+        releasedAt: row.releasedAt!,
       };
     }),
 

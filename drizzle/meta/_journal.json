@@ -400,6 +400,13 @@
       "when": 1794665597449,
       "tag": "0056_oprec_priority",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1794893001332,
+      "tag": "0057_pengumuman_hasil_oprec",
+      "breakpoints": true
     }
   ]
 }

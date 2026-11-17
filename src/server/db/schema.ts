@@ -606,8 +606,21 @@ export const notifications = createTable('notification', {
   content: text('content').notNull(),
   type: notificationTypeEnum('type').notNull(),
   read: boolean('read').notNull().default(false),
+  // Pemberitahuan hasil oprec: satu per (pengguna, oprec, jenis).
+  recruitmentId: varchar('recruitment_id', { length: 255 }).references(
+    () => recruitment.id,
+    { onDelete: 'cascade' },
+  ),
+  kind: varchar('kind', { length: 32 }),
+  // Tautan relatif yang dibuka dari Inbox.
+  links: jsonb('links').$type<{ label: string; href: string }[]>(),
   ...timestamps,
-});
+},
+(table) => ({
+  recruitmentKindUnique: uniqueIndex('notification_user_recruitment_kind_unique')
+    .on(table.user_id, table.recruitmentId, table.kind)
+    .where(sql`${table.recruitmentId} IS NOT NULL`),
+}));
 
 // Relations for Support
 export const supportRelations = relations(support, ({ many, one }) => ({
@@ -2081,6 +2094,11 @@ export const recruitment = createTable(
       .notNull()
       .default('berjalan'),
     resultsReleasedAt: timestamp('results_released_at', {
+      mode: 'date',
+      withTimezone: true,
+    }),
+    /** Waktu tayang terjadwal; kosong = tayang begitu dirilis. Dikosongkan saat rilis ditarik. */
+    resultsPublishAt: timestamp('results_publish_at', {
       mode: 'date',
       withTimezone: true,
     }),
