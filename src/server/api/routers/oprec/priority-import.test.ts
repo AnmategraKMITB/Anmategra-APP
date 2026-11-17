@@ -327,29 +327,54 @@ describe('templat prioritas', () => {
       },
     ]);
 
-    const data = await s.admin.oprec.priorityTemplate({
+    // Semua divisi: tanpa jawaban, supaya file tetap ringan.
+    const all = await s.admin.oprec.priorityTemplate({
       recruitmentId: s.recruitmentId,
     });
+    expect(all.answerColumns).toEqual([]);
+    expect(all.rows.every((r) => r.answers.length === 0)).toBe(true);
+    expect(new Set(all.rows.map((r) => r.division))).toEqual(
+      new Set(['Logistik', 'IT']),
+    );
+
+    // Satu divisi: hanya baris divisi itu, lengkap dengan jawaban.
+    const data = await s.admin.oprec.priorityTemplate({
+      recruitmentId: s.recruitmentId,
+      divisionId: s.logistik.id,
+    });
+    expect(data.rows.map((r) => r.division)).toEqual(['Logistik']);
+    expect(data.divisions.map((d) => d.name)).toEqual(['Logistik']);
     const iM = data.answerColumns.indexOf('Motivasi uji');
     const iA = data.answerColumns.indexOf('Alat yang dikuasai uji');
     expect(iM).toBeGreaterThanOrEqual(0);
     expect(iA).toBeGreaterThanOrEqual(0);
-    const rowOf = (division: string) =>
-      data.rows.find(
-        (r) => r.division === division && r.applicationId === x.id,
-      )!;
-    expect(rowOf('Logistik').answers[iM]).toBe('Ingin membantu acara');
-    expect(rowOf('Logistik').answers[iA]).toBe('=Forklift');
-    // Pertanyaan khusus Logistik tidak tampil di baris IT.
-    expect(rowOf('IT').answers[iM]).toBe('Ingin membantu acara');
-    expect(rowOf('IT').answers[iA]).toBe('');
+    expect(data.rows[0]!.answers[iM]).toBe('Ingin membantu acara');
+    expect(data.rows[0]!.answers[iA]).toBe('=Forklift');
 
-    // Kadiv IT tidak mendapat kolom pertanyaan khusus Logistik.
-    const itOnly = await callerFor(s.heads[1]!).oprec.priorityTemplate({
+    // Templat IT: pertanyaan khusus Logistik tidak ikut.
+    const it = await s.admin.oprec.priorityTemplate({
       recruitmentId: s.recruitmentId,
+      divisionId: s.it.id,
     });
-    expect(itOnly.answerColumns).toContain('Motivasi uji');
-    expect(itOnly.answerColumns).not.toContain('Alat yang dikuasai uji');
+    expect(it.answerColumns).toContain('Motivasi uji');
+    expect(it.answerColumns).not.toContain('Alat yang dikuasai uji');
+    expect(it.rows[0]!.answers[it.answerColumns.indexOf('Motivasi uji')]).toBe(
+      'Ingin membantu acara',
+    );
+
+    // Kadiv IT tidak boleh mengunduh templat Logistik; templat IT boleh.
+    const itHead = callerFor(s.heads[1]!);
+    await expect(
+      itHead.oprec.priorityTemplate({
+        recruitmentId: s.recruitmentId,
+        divisionId: s.logistik.id,
+      }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    const own = await itHead.oprec.priorityTemplate({
+      recruitmentId: s.recruitmentId,
+      divisionId: s.it.id,
+    });
+    expect(own.rows.map((r) => r.division)).toEqual(['IT']);
 
     // Kolom jawaban di kanan ID, teks mirip rumus diamankan, dan impor tetap
     // membaca kolom Divisi/Urutan/ID yang benar.

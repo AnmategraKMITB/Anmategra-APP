@@ -6,6 +6,7 @@
 import { TRPCError } from '@trpc/server';
 import { parse } from 'csv-parse/sync';
 import ExcelJS from 'exceljs';
+import { PassThrough } from 'node:stream';
 import { MAX_IMPORT_ROWS } from '~/lib/oprec/priority-import';
 
 /** Batas baris fisik yang dibaca; baris kosong di ekor dibuang dulu. */
@@ -240,58 +241,85 @@ const GUIDE = [
   '8. Jangan ubah kolom Divisi dan ID. Baris boleh disortir atau difilter. Kolom lain boleh dihapus, kecuali Divisi, Urutan, dan ID (atau NIM).',
   '9. Divisi yang ada di file diganti seluruh urutannya. Kandidat divisi itu yang barisnya dihapus dianggap tidak diambil. Divisi yang tidak ada di file tidak berubah.',
   '10. Simpan sebagai .xlsx atau .csv (Google Sheets: File → Download), lalu unggah lewat "Impor urutan" di tab Prioritas. Sistem menampilkan pratinjau dulu sebelum menyimpan.',
-  '11. Kolom "Jawaban: ..." di paling kanan berisi jawaban formulir pendaftar, untuk bahan menyeleksi. Pertanyaan khusus divisi lain dikosongkan. Kolom ini tidak dibaca saat impor.',
+  '11. Templat per divisi memuat kolom "Jawaban: ..." di paling kanan, berisi jawaban formulir pendaftar untuk bahan menyeleksi. Templat semua divisi tidak memuat jawaban. Kolom jawaban tidak dibaca saat impor.',
+  '12. Templat beberapa divisi boleh digabung atau diimpor satu per satu.',
 ];
 
-/** Workbook templat: lembar Prioritas (diisi) dan Petunjuk (kuota per divisi). */
+const WIDTHS: Record<string, number> = {
+  Nama: 28,
+  'Urutan pilihan pendaftar': 36,
+  Keterangan: 40,
+  'ID (jangan diubah)': 38,
+};
+
+/**
+ * Workbook templat: lembar Prioritas (diisi) dan Petunjuk (kuota per divisi).
+ * Ditulis bertahap (streaming): tiap baris langsung dikemas lalu dilepas,
+ * sehingga memori server tidak menahan seluruh workbook sekaligus.
+ */
 export async function templateWorkbook(
   data: TemplateData,
 ): Promise<ArrayBuffer> {
   const table = templateTable(data);
-  const workbook = new ExcelJS.Workbook();
-  const sheet = workbook.addWorksheet('Prioritas');
-  sheet.addRow(table.header).font = { bold: true };
-  for (const row of table.body) sheet.addRow(row);
-  sheet.views = [{ state: 'frozen', ySplit: 1 }];
-  sheet.columns.forEach((col) => {
-    col.width = 18;
+  const sink = new PassThrough();
+  const chunks: Buffer[] = [];
+  sink.on('data', (chunk: Buffer) => chunks.push(chunk));
+  const finished = new Promise<void>((resolve, reject) => {
+    sink.on('end', resolve);
+    sink.on('error', reject);
   });
-  const widen = (title: string, width: number) => {
-    const index = table.header.indexOf(title);
-    if (index >= 0) sheet.getColumn(index + 1).width = width;
-  };
-  widen('Nama', 28);
-  widen('Urutan pilihan pendaftar', 36);
-  widen('Keterangan', 40);
-  widen('ID (jangan diubah)', 38);
-  for (const title of answerHeaders(data.answerColumns)) widen(title, 40);
+
+  const workbook = new ExcelJS.stream.xlsx.WorkbookWriter({
+    stream: sink,
+    useStyles: true,
+    useSharedStrings: false,
+  });
+  const sheet = workbook.addWorksheet('Prioritas', {
+    views: [{ state: 'frozen', ySplit: 1 }],
+  });
+  sheet.columns = table.header.map((title) => ({
+    width: WIDTHS[title] ?? (title.startsWith('Jawaban: ') ? 40 : 18),
+  }));
   sheet.autoFilter = {
     from: { row: 1, column: 1 },
     to: { row: 1, column: table.header.length },
   };
+  const header = sheet.addRow(table.header);
+  header.font = { bold: true };
+  header.commit();
+  for (const row of table.body) sheet.addRow(row).commit();
+  sheet.commit();
 
   const guide = workbook.addWorksheet('Petunjuk');
-  guide.getColumn(1).width = 110;
-  guide.addRow([data.recruitmentName]).font = { bold: true, size: 14 };
-  guide.addRow([]);
+  guide.columns = [{ width: 110 }, { width: 12 }, { width: 12 }, { width: 16 }];
+  const title = guide.addRow([data.recruitmentName]);
+  title.font = { bold: true, size: 14 };
+  title.commit();
+  guide.addRow([]).commit();
   for (const [i, line] of GUIDE.entries()) {
     const row = guide.addRow([line]);
     if (i === 0) row.font = { bold: true };
     row.alignment = { wrapText: true, vertical: 'top' };
+    row.commit();
   }
-  guide.addRow([]);
+  guide.addRow([]).commit();
   const head = guide.addRow(['Divisi', 'Kuota', 'Kandidat', 'Bisa diurutkan']);
   head.font = { bold: true };
-  guide.getColumn(2).width = 12;
-  guide.getColumn(3).width = 12;
-  guide.getColumn(4).width = 16;
+  head.commit();
   for (const d of data.divisions) {
-    guide.addRow([
-      safeText(d.name),
-      d.quota === 0 ? 'Tanpa batas' : d.quota,
-      d.candidates,
-      d.rankable,
-    ]);
+    guide
+      .addRow([
+        safeText(d.name),
+        d.quota === 0 ? 'Tanpa batas' : d.quota,
+        d.candidates,
+        d.rankable,
+      ])
+      .commit();
   }
-  return workbook.xlsx.writeBuffer();
+  guide.commit();
+
+  await workbook.commit();
+  await finished;
+  const out = Buffer.concat(chunks);
+  return out.buffer.slice(out.byteOffset, out.byteOffset + out.byteLength);
 }

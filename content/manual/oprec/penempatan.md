@@ -135,10 +135,11 @@ divisi hanya bisa melihat nama, tanpa mengubah apa pun.
 Pada metode **Prioritas**, urutan ratusan pendaftar bisa disusun di Excel
 atau Google Sheets.
 
-1. Di bagian **Prioritas**, klik **Unduh templat**. Templat berisi satu baris
-   per pendaftar per divisi yang boleh Anda susun, beserta urutan dan
-   keterangan yang sudah tersimpan. Lembar **Petunjuk** memuat kuota tiap
-   divisi.
+1. Di bagian **Prioritas**, pilih divisinya lalu klik **Unduh templat**.
+   Templat berisi satu baris per kandidat divisi itu, beserta urutan dan
+   keterangan yang sudah tersimpan serta kolom **Jawaban** dari formulir.
+   Tautan **Semua divisi (tanpa jawaban)** mengunduh semua divisi yang boleh
+   Anda susun sekaligus. Lembar **Petunjuk** memuat kuota tiap divisi.
 2. Isi kolom **Urutan**: 1 berarti paling diinginkan divisi itu. Kosongkan
    untuk pendaftar yang tidak diambil. Kolom **Keterangan** boleh diisi.
 3. Jangan ubah kolom **Divisi** dan **ID**. Baris boleh disortir atau difilter.

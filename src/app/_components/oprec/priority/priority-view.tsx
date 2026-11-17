@@ -199,6 +199,8 @@ export function PriorityView({
             <>
               <PriorityImport
                 recruitmentId={recruitmentId}
+                divisionId={active.id}
+                divisionName={active.label}
                 canImport={data.state === 'berjalan'}
                 onImported={() => {
                   refresh();
