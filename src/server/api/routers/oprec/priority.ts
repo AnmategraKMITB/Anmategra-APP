@@ -77,7 +77,7 @@ function assertRanker(access: AssessAccess, divisionId: string) {
 }
 
 /** Daftar hanya bisa diubah pada metode prioritas selama penempatan berjalan. */
-function assertEditable(
+export function assertEditable(
   rec: Pick<Recruitment, 'placementMethod' | 'placementState'>,
 ) {
   if (rec.placementMethod !== 'prioritas') {
@@ -88,7 +88,7 @@ function assertEditable(
   }
 }
 
-function chunks<T>(rows: readonly T[]): T[][] {
+export function chunks<T>(rows: readonly T[]): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < rows.length; i += CHUNK) {
     out.push(rows.slice(i, i + CHUNK));
@@ -104,7 +104,7 @@ const displayName = sql<
 // Pemuatan data
 // ---------------------------------------------------------------------------
 
-type PoolApp = Omit<PoolApplication, 'choices'> & {
+export type PoolApp = Omit<PoolApplication, 'choices'> & {
   userId: string;
   name: string | null;
   nim: number | null;
@@ -137,7 +137,7 @@ type Pool = {
 };
 
 /** Semua pendaftar, pilihan, status efektif, dan daftar prioritas satu oprec. */
-async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
+export async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
   const [divisions, lockRows, appRows, choiceRows, priorityRows] =
     await Promise.all([
       loadPlacementDivisions(db, recruitmentId),
@@ -284,7 +284,7 @@ async function isRegistrationEnded(
 }
 
 /** Identitas pendaftar; pada mode blind hanya kode bagi yang bukan admin. */
-function identity(hide: boolean, app: PoolApp) {
+export function identity(hide: boolean, app: PoolApp) {
   return {
     code: blindCode(app.id),
     name: hide ? null : app.name,
@@ -570,7 +570,7 @@ async function writeMatching(
 const DivisionInput = z.object({ recruitmentId: id, divisionId: id });
 
 /** Kunci baris oprec (bersama) lalu baris divisi; ditolak bila bukan milik oprec. */
-async function lockDivision(tx: Tx, recruitmentId: string, divisionId: string) {
+export async function lockDivision(tx: Tx, recruitmentId: string, divisionId: string) {
   const [rec] = await tx
     .select()
     .from(recruitment)
