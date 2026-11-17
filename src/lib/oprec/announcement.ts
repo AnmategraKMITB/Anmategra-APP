@@ -15,6 +15,8 @@ export type AnnouncementRow = {
 export type AnnouncementDivision = {
   id: string;
   label: string;
+  /** Tautan grup LINE/WhatsApp; null bila belum diisi. */
+  inviteUrl: string | null;
   rows: AnnouncementRow[];
 };
 
@@ -33,11 +35,21 @@ const byName = (a: AnnouncementRow, b: AnnouncementRow) =>
  * semua divisi tanpa bidang (judul disembunyikan).
  */
 export function groupAnnouncement(
-  divisions: { id: string; label: string; groupLabel: string | null }[],
+  divisions: {
+    id: string;
+    label: string;
+    groupLabel: string | null;
+    inviteUrl?: string | null;
+  }[],
   rows: (AnnouncementRow & { divisionId: string })[],
 ): AnnouncementSection[] {
   if (divisions.length === 0) {
-    return [{ label: null, divisions: [{ id: '', label: '', rows: [] }] }];
+    return [
+      {
+        label: null,
+        divisions: [{ id: '', label: '', inviteUrl: null, rows: [] }],
+      },
+    ];
   }
   const allUngrouped = divisions.every((d) => d.groupLabel === null);
   const sections = new Map<string | null, AnnouncementSection>();
@@ -51,6 +63,7 @@ export function groupAnnouncement(
     section.divisions.push({
       id: division.id,
       label: division.label,
+      inviteUrl: division.inviteUrl ?? null,
       rows: rows
         .filter((r) => r.divisionId === division.id)
         .map(({ divisionId: _unused, ...rest }) => rest)
@@ -116,4 +129,25 @@ export function anchorSlugs(
       return slug;
     }),
   );
+}
+
+const INVITE_HOSTS = ['chat.whatsapp.com', 'whatsapp.com', 'line.me', 'lin.ee'];
+
+/**
+ * Tautan undangan grup: hanya https ke domain LINE/WhatsApp (mencegah skema
+ * `javascript:` dan tautan sembarang). Keaktifan tautan tidak diperiksa.
+ * Mengembalikan URL ternormalisasi, atau null bila tidak sah.
+ */
+export function parseInviteUrl(raw: string): string | null {
+  let url: URL;
+  try {
+    url = new URL(raw.trim());
+  } catch {
+    return null;
+  }
+  const host = url.hostname.toLowerCase();
+  const ok = INVITE_HOSTS.some((h) => host === h || host.endsWith(`.${h}`));
+  return url.protocol === 'https:' && ok && !url.username && !url.password
+    ? url.toString()
+    : null;
 }

@@ -40,7 +40,11 @@ import {
   ResultsReleaseInputSchema,
   ResultsWithdrawInputSchema,
 } from '../../types/oprec.type';
-import { type AssessAccess, canSeeSensitive } from './assess-access';
+import {
+  type AssessAccess,
+  canDecideDivision,
+  canSeeSensitive,
+} from './assess-access';
 import { resultsPublished } from '../../oprec-release';
 import { logAction } from './log';
 import { notifyResultsReleased } from './result-notification';
@@ -349,6 +353,8 @@ export const resultsProcedures = {
             id: division.id,
             label: division.label,
             groupLabel: division.groupLabel,
+            groupInviteUrl: division.groupInviteUrl,
+            canEditInvite: canDecideDivision(ctx.assess, division.id),
             quota: division.quota,
             accepted: done,
             extras: extra,

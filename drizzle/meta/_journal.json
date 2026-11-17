@@ -407,6 +407,13 @@
       "when": 1794893001332,
       "tag": "0057_pengumuman_hasil_oprec",
       "breakpoints": true
+    },
+    {
+      "idx": 58,
+      "version": "7",
+      "when": 1794909340024,
+      "tag": "0058_divisi_grup_undangan",
+      "breakpoints": true
     }
   ]
 }

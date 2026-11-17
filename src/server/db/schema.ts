@@ -2296,6 +2296,8 @@ export const recruitmentDivision = createTable(
       () => users.id,
       { onDelete: 'set null' },
     ),
+    /** Tautan grup LINE/WhatsApp untuk yang diterima; diisi Kadiv atau admin, tidak diperiksa keaktifannya. */
+    groupInviteUrl: varchar('group_invite_url', { length: 500 }),
   },
   (table) => ({
     unitIdx: index('recruitment_division_unit_idx').on(table.unitId),

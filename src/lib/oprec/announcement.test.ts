@@ -5,6 +5,7 @@ import {
   anchorSlugs,
   filterAnnouncement,
   groupAnnouncement,
+  parseInviteUrl,
 } from './announcement';
 
 const row = (name: string, nim = 1) => ({
@@ -115,5 +116,27 @@ describe('anchorSlugs', () => {
     ]);
     expect(slugs[0]).toEqual(['inti-humas-pr', 'inti-humas-pr-2']);
     expect(slugs[1]).toEqual(['acara']);
+  });
+});
+
+describe('parseInviteUrl', () => {
+  it.each([
+    'https://chat.whatsapp.com/AbC123',
+    'https://line.me/ti/g/abc',
+    'https://lin.ee/xyz',
+    'https://liff.line.me/1',
+  ])('menerima %s', (u) => {
+    expect(parseInviteUrl(u)).not.toBeNull();
+  });
+  it.each([
+    'javascript:alert(1)',
+    'http://chat.whatsapp.com/x',
+    'https://evil.com/chat.whatsapp.com',
+    'https://chat.whatsapp.com.evil.com/x',
+    'https://u:p@line.me/x',
+    'bukan url',
+    '',
+  ])('menolak %s', (u) => {
+    expect(parseInviteUrl(u)).toBeNull();
   });
 });

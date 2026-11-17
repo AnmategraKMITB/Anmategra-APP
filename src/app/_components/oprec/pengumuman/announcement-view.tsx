@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarClock, Search, X } from 'lucide-react';
+import { CalendarClock, ExternalLink, Search, X } from 'lucide-react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import {
@@ -249,6 +249,17 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
                   {d.rows.length} orang
                 </span>
               </div>
+            ) : null}
+            {d.inviteUrl ? (
+              <a
+                href={d.inviteUrl}
+                target="_blank"
+                rel="noopener noreferrer nofollow"
+                className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-primary-400 px-4 py-2 text-sm font-semibold text-neutral-50 transition-colors hover:bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+              >
+                Gabung grup LINE/WhatsApp
+                <ExternalLink className="size-4" aria-hidden />
+              </a>
             ) : null}
             {d.rows.length === 0 ? (
               <p className="rounded-[20px] border border-neutral-400 bg-neutral-50 px-4 py-5 text-sm text-neutral-700">

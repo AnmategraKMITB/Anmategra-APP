@@ -1,12 +1,13 @@
+import { TRPCError } from '@trpc/server';
 import { and, asc, desc, eq, isNull } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
-import { groupAnnouncement } from '~/lib/oprec/announcement';
+import { groupAnnouncement, parseInviteUrl } from '~/lib/oprec/announcement';
 import {
   recruitmentPublished,
   resultsPublished,
 } from '~/server/api/oprec-release';
-import { protectedProcedure } from '~/server/api/trpc';
+import { oprecAssessProcedure, protectedProcedure } from '~/server/api/trpc';
 import {
   applicationChoice,
   events,
@@ -19,6 +20,8 @@ import {
 } from '~/server/db/schema';
 
 import { RecruitmentIdInputSchema } from '../../types/oprec.type';
+import { canDecideDivision } from './assess-access';
+import { logAction } from './log';
 import { notFound } from './services';
 
 const RowSchema = z.object({
@@ -45,6 +48,7 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
           z.object({
             id: z.string(),
             label: z.string(),
+            inviteUrl: z.string().nullable(),
             rows: z.array(RowSchema),
           }),
         ),
@@ -54,6 +58,56 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
 ]);
 
 export const announcementProcedures = {
+  /**
+   * Isi atau kosongkan tautan grup LINE/WhatsApp sebuah divisi. Hanya admin
+   * oprec atau pengurus yang memegang keputusan divisi itu. Tautan hanya
+   * diperiksa bentuknya (https, domain LINE/WhatsApp), bukan keaktifannya.
+   */
+  setDivisionInviteUrl: oprecAssessProcedure
+    .input(
+      z.object({
+        recruitmentId: z.string().min(1).max(255),
+        divisionId: z.string().min(1).max(255),
+        url: z.string().trim().max(500),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!canDecideDivision(ctx.assess, input.divisionId)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Kamu tidak memegang penilaian untuk divisi itu.',
+        });
+      }
+      const url = input.url === '' ? null : parseInviteUrl(input.url);
+      if (input.url !== '' && url === null) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Tautan harus https dari LINE (line.me, lin.ee) atau WhatsApp (chat.whatsapp.com).',
+        });
+      }
+      const updated = await ctx.db
+        .update(recruitmentDivision)
+        .set({ groupInviteUrl: url })
+        .where(
+          and(
+            eq(recruitmentDivision.id, input.divisionId),
+            eq(recruitmentDivision.recruitmentId, ctx.recruitment.id),
+          ),
+        )
+        .returning({ id: recruitmentDivision.id });
+      if (updated.length === 0) notFound('Divisi tidak ditemukan.');
+      await logAction(ctx.db, {
+        recruitmentId: ctx.recruitment.id,
+        actorId: ctx.session.user.id,
+        action: 'tautan_grup_diubah',
+        entityType: 'recruitment_division',
+        entityId: input.divisionId,
+        detail: { set: url !== null },
+      });
+      return { success: true, url };
+    }),
+
   /** Pengumuman oprec yang sudah tayang milik satu lembaga, terbaru dulu. */
   lembagaAnnouncements: protectedProcedure
     .input(
@@ -128,6 +182,7 @@ export const announcementProcedures = {
           id: recruitmentDivision.id,
           label: organizationUnit.name,
           groupLabel: parent.name,
+          inviteUrl: recruitmentDivision.groupInviteUrl,
         })
         .from(recruitmentDivision)
         .innerJoin(

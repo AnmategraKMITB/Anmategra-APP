@@ -247,3 +247,69 @@ describe('oprec.lembagaAnnouncements', () => {
     ).toEqual([]);
   });
 });
+
+describe('oprec.setDivisionInviteUrl', () => {
+  const URL_WA = 'https://chat.whatsapp.com/AbC123';
+
+  it('Kadiv divisinya dan admin boleh mengisi; tampil di pengumuman', async () => {
+    const w = await world();
+    const acara = await db
+      .select()
+      .from(schema.recruitmentDivision)
+      .where(eq(schema.recruitmentDivision.recruitmentId, w.fx.recruitmentId));
+    const divisionId = acara[0]!.id;
+    const owner = callerFor(db, w.fx.owner);
+    await owner.oprec.setDivisionInviteUrl({
+      recruitmentId: w.fx.recruitmentId,
+      divisionId,
+      url: URL_WA,
+    });
+    await w.publish();
+    const r = await w.viewer.oprec.announcement({
+      recruitmentId: w.fx.recruitmentId,
+    });
+    expect(r.published).toBe(true);
+    if (r.published) {
+      const urls = r.sections
+        .flatMap((s) => s.divisions)
+        .map((d) => d.inviteUrl);
+      expect(urls).toContain(URL_WA);
+    }
+  });
+
+  it('Kadiv divisi lain ditolak, URL tak sah ditolak, kosong menghapus', async () => {
+    const w = await world();
+    const divs = await db
+      .select()
+      .from(schema.recruitmentDivision)
+      .where(eq(schema.recruitmentDivision.recruitmentId, w.fx.recruitmentId));
+    const acara =
+      divs.find((d) => d.id === w.fx.divisions.Acara!.id) ?? divs[0]!;
+    const other = divs.find((d) => d.id !== acara.id)!;
+    await expect(
+      w.kadiv.oprec.setDivisionInviteUrl({
+        recruitmentId: w.fx.recruitmentId,
+        divisionId: other.id,
+        url: URL_WA,
+      }),
+    ).rejects.toMatchObject({ code: 'FORBIDDEN' });
+    await expect(
+      w.kadiv.oprec.setDivisionInviteUrl({
+        recruitmentId: w.fx.recruitmentId,
+        divisionId: acara.id,
+        url: 'javascript:alert(1)',
+      }),
+    ).rejects.toMatchObject({ code: 'BAD_REQUEST' });
+    await w.kadiv.oprec.setDivisionInviteUrl({
+      recruitmentId: w.fx.recruitmentId,
+      divisionId: acara.id,
+      url: URL_WA,
+    });
+    const res = await w.kadiv.oprec.setDivisionInviteUrl({
+      recruitmentId: w.fx.recruitmentId,
+      divisionId: acara.id,
+      url: '',
+    });
+    expect(res.url).toBeNull();
+  });
+});

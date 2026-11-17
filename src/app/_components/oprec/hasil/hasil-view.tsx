@@ -327,6 +327,8 @@ export function HasilView({
           />
 
           <DivisionSummary
+            recruitmentId={recruitmentId}
+            onSaved={refresh}
             divisions={divisions}
             acceptedByDivision={acceptedByDivision}
             onPickDivision={(id) => {
