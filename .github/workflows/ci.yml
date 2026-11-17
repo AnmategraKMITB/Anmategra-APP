@@ -156,7 +156,9 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    if: github.event_name == 'pull_request'
+    # Butuh dependency graph dan GitHub Advanced Security. Dilewati selama
+    # variabel repo GHAS_ENABLED belum bernilai true (lihat codeql.yml).
+    if: github.event_name == 'pull_request' && vars.GHAS_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
