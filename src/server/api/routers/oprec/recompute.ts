@@ -68,8 +68,10 @@ export async function recomputeDivisions(
       ? divisions.map((d) => d.id)
       : divisions.filter((d) => divisionIds.includes(d.id)).map((d) => d.id);
   if (targets.length === 0) return [];
-  // Mode prioritas: urutan diterima ditentukan daftar prioritas divisi, jadi
-  // status tidak memotong menurut kuota. Gugur dan nilai minimum tetap berlaku.
+  // Mode prioritas: urutan diterima ditentukan daftar prioritas divisi, bukan
+  // nilai. Jadi status tidak dipotong menurut kuota dan nilai minimum tidak
+  // berlaku (tab Nilai disembunyikan, sehingga pendaftar yang pernah dinilai
+  // tidak bisa diperbaiki dan terblokir di papan prioritas). Gugur tetap berlaku.
   const rankByQuota = rec.placementMethod !== 'prioritas';
   const quotaOf = new Map(
     divisions.map((d) => [d.id, rankByQuota ? d.quota : 0]),
@@ -231,7 +233,7 @@ export async function recomputeDivisions(
           : [],
       ),
       rec.statusMethod,
-      rec.statusMinScore,
+      rankByQuota ? rec.statusMinScore : 0,
       quotaOf.get(divisionId) ?? 0,
     );
     for (const p of list) {

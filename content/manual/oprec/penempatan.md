@@ -130,6 +130,27 @@ boleh melihat nama yang sudah diterima divisi lain. Bawaan berlaku untuk semua
 pasangan divisi, dan Anda dapat menambah **pengecualian per pasangan**. Ketua
 divisi hanya bisa melihat nama, tanpa mengubah apa pun.
 
+## Menyusun urutan prioritas lewat spreadsheet
+
+Pada metode **Prioritas**, urutan ratusan pendaftar bisa disusun di Excel
+atau Google Sheets.
+
+1. Di bagian **Prioritas**, klik **Unduh templat**. Templat berisi satu baris
+   per pendaftar per divisi yang boleh Anda susun, beserta urutan dan
+   keterangan yang sudah tersimpan. Lembar **Petunjuk** memuat kuota tiap
+   divisi.
+2. Isi kolom **Urutan**: 1 berarti paling diinginkan divisi itu. Kosongkan
+   untuk pendaftar yang tidak diambil. Kolom **Keterangan** boleh diisi.
+3. Jangan ubah kolom **Divisi** dan **ID**. Baris boleh disortir atau difilter.
+4. Simpan sebagai .xlsx atau .csv, lalu klik **Impor urutan** dan pilih file.
+5. Periksa pratinjau. Jika ada masalah (urutan dobel, ID salah, divisi tidak
+   dikenal), perbaiki di file lalu unggah lagi. Klik **Terapkan** bila sudah
+   benar.
+
+Divisi yang ada di file diganti seluruh urutannya. Divisi yang tidak ada di
+file tidak berubah. Daftar yang sudah dikunci harus dibuka dulu. Jika daftar
+diubah orang lain setelah pratinjau, ulangi pratinjau.
+
 ## Riwayat tindakan
 
 Setiap baris pendaftar memiliki **Riwayat tindakan** yang mencatat siapa
