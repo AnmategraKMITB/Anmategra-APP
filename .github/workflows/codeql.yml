@@ -26,6 +26,11 @@ env:
 jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
+    # Code scanning butuh GitHub Advanced Security. Selama belum aktif di repo
+    # privat ini, job dilewati (bukan gagal). Setelah GHAS aktif, atur variabel
+    # repo GHAS_ENABLED=true (Settings > Secrets and variables > Actions >
+    # Variables) tanpa mengubah berkas ini.
+    if: vars.GHAS_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:
