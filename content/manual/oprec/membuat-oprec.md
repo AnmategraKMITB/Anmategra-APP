@@ -18,7 +18,7 @@ menjawab semuanya: pilih preset, ubah yang perlu, lalu periksa ringkasannya.
 
 ## Contoh kasus
 
-**Festival Karya 2026 membuka staf untuk empat divisi.** Pendaftar boleh
+**Aku Masuk ITB 2027 membuka staf untuk empat divisi.** Pendaftar boleh
 memilih dua divisi, wajib melampirkan CV, dan dinilai oleh ketua divisi
 masing-masing.
 

@@ -12,7 +12,7 @@ import { Btn, Empty, Field, inputClass, Modal, Pill } from '../ui';
 const STEPS: DemoStep[] = [
   {
     id: 'slot',
-    title: 'Pilih slot **Divisi Acara**',
+    title: 'Pilih slot **Divisi Event Organizer**',
     hint: 'Slot dibuat otomatis: satu untuk penilaian umum dan satu per divisi yang dibuka.',
   },
   { id: 'tambah', title: 'Klik **Tambah kriteria**' },
@@ -50,7 +50,7 @@ type Criterion = {
 
 const SLOTS = [
   { id: 'umum', label: 'Umum' },
-  { id: 'acara', label: 'Divisi Acara' },
+  { id: 'acara', label: 'Divisi Event Organizer' },
   { id: 'publikasi', label: 'Divisi Publikasi' },
 ] as const;
 type SlotId = (typeof SLOTS)[number]['id'];
@@ -85,7 +85,7 @@ export default function OprecKriteriaDemo() {
   return (
     <DemoFrame
       title="Kriteria penilaian oprec"
-      location="Lembaga › Forms › Pendaftaran Oprec Festival Karya 2026 › tab Penilaian"
+      location="Lembaga › Forms › Pendaftaran Oprec Aku Masuk ITB 2027 › tab Penilaian"
       steps={STEPS}
     >
       {(guide) => <Body guide={guide} />}

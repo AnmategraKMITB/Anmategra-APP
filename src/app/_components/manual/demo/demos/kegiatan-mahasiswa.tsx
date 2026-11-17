@@ -23,7 +23,7 @@ const STEPS: DemoStep[] = [
     id: 'filter',
     title: 'Ubah **Status Kegiatan** menjadi **Open Recruitment**',
   },
-  { id: 'buka', title: 'Pilih kartu **Festival Karya 2026**' },
+  { id: 'buka', title: 'Pilih kartu **Aku Masuk ITB 2027**' },
   {
     id: 'ajukan',
     title: 'Klik **Ajukan Asosiasi**',
@@ -42,9 +42,9 @@ type Event = {
 };
 
 const EVENTS: Event[] = [
-  { id: 'fk', name: 'Festival Karya 2026', host: 'Himpunan Mahasiswa Contoh', status: 'Coming Soon', oprec: true, participants: 24 },
+  { id: 'fk', name: 'Aku Masuk ITB 2027', host: 'Kabinet KM ITB', status: 'Coming Soon', oprec: true, participants: 24 },
   { id: 'kd', name: 'Kelas Desain Dasar', host: 'UKM Rupa', status: 'On going', oprec: false, participants: 8 },
-  { id: 'mk', name: 'Malam Keakraban 2026', host: 'Himpunan Mahasiswa Contoh', status: 'Ended', oprec: false, participants: 31 },
+  { id: 'mk', name: 'Malam Keakraban 2026', host: 'Kabinet KM ITB', status: 'Ended', oprec: false, participants: 31 },
 ];
 
 export default function KegiatanMahasiswaDemo() {

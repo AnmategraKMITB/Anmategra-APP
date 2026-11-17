@@ -2,11 +2,11 @@
 
 import { usePathname } from 'next/navigation';
 import type { ReactNode } from 'react';
-import { isOrganogramWorkspace } from '~/lib/workspace';
+import { isOrganogramWorkspace, isSlidesPage } from '~/lib/workspace';
 
 /** Menyembunyikan footer situs di halaman yang memakai seluruh tinggi layar. */
 export function FooterGate({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  if (isOrganogramWorkspace(pathname)) return null;
+  if (isOrganogramWorkspace(pathname) || isSlidesPage(pathname)) return null;
   return <>{children}</>;
 }
