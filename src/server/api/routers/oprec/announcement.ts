@@ -56,7 +56,13 @@ const AnnouncementOutputSchema = z.discriminatedUnion('published', [
 export const announcementProcedures = {
   /** Pengumuman oprec yang sudah tayang milik satu lembaga, terbaru dulu. */
   lembagaAnnouncements: protectedProcedure
-    .input(z.object({ lembagaId: z.string().min(1).max(255) }))
+    .input(
+      z.object({
+        lembagaId: z.string().min(1).max(255),
+        /** Batasi ke satu kegiatan/periode (profil kegiatan). */
+        periodId: z.string().min(1).max(255).optional(),
+      }),
+    )
     .output(
       z.array(
         z.object({ id: z.string(), name: z.string(), publishedAt: z.date() }),
@@ -75,6 +81,7 @@ export const announcementProcedures = {
         .where(
           and(
             eq(events.org_id, input.lembagaId),
+            input.periodId ? eq(events.id, input.periodId) : undefined,
             eq(recruitment.resultsVisibleToApplicants, true),
             recruitmentPublished,
           ),

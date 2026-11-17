@@ -234,6 +234,15 @@ describe('oprec.lembagaAnnouncements', () => {
     const list = await w.viewer.oprec.lembagaAnnouncements(input);
     expect(list.map((x) => x.id)).toEqual([w.fx.recruitmentId]);
     expect(
+      await w.viewer.oprec.lembagaAnnouncements({
+        ...input,
+        periodId: ev!.id,
+      }),
+    ).toHaveLength(1);
+    expect(
+      await w.viewer.oprec.lembagaAnnouncements({ ...input, periodId: 'lain' }),
+    ).toEqual([]);
+    expect(
       await w.viewer.oprec.lembagaAnnouncements({ lembagaId: 'lain' }),
     ).toEqual([]);
   });
