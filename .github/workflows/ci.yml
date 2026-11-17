@@ -2,12 +2,12 @@ name: CI
 
 on:
   pull_request:
-    branches: ['main', 'develop']
+    branches: ['develop']
   # Push hanya di main (jaring pengaman produksi). Untuk develop, kode yang
   # masuk sudah lulus CI di PR-nya (branch protection mewajibkan check hijau),
   # jadi menjalankan CI lagi setelah merge hanya membuang waktu runner.
-  push:
-    branches: ['main']
+  # push:
+    # branches: ['main']
 
 # Push baru ke PR yang sama membatalkan run sebelumnya. Run di main tidak
 # dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
