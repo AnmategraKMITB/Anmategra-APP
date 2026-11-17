@@ -1109,7 +1109,9 @@ export function SneakPeekDeck() {
 
       <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden">
         <div
-          className="relative overflow-hidden"
+          // shrink-0 penting: tanpa ini kanvas 1600px dipaksa selebar layar
+          // ponsel sebelum diskalakan, jadi isi slide ikut menyempit.
+          className="relative shrink-0 overflow-hidden"
           style={{
             width: STAGE_W,
             height: STAGE_H,
