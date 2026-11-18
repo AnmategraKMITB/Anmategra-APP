@@ -92,7 +92,7 @@ describe('hapus respons', () => {
   });
 
   it('mengabaikan respons milik form lain', async () => {
-    const { owner, lembaga, formId, submissionA } = await setup();
+    const { owner, lembaga, formId, submissionA, submissionB } = await setup();
     const otherOwner = await createUser(db, { role: 'lembaga' });
     const otherLembaga = await createLembaga(db, otherOwner.id, {
       name: 'Lembaga Lain',
@@ -131,6 +131,8 @@ describe('hapus respons', () => {
       .select()
       .from(formSubmission)
       .where(eq(formSubmission.formId, formId));
-    expect(left.map((row) => row.id)).toEqual([submissionA]);
+    expect(left.map((row) => row.id).sort()).toEqual(
+      [submissionA, submissionB].sort(),
+    );
   });
 });
