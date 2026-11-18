@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { NOTIFICATION_AUDIENCES } from '~/lib/oprec/notification-audience';
 import {
   APPLICATION_SOURCES,
   ASSESSOR_MODES,
@@ -256,6 +257,64 @@ export const ResultsLogExportInputSchema = z.object({
   recruitmentId: id,
   format: z.enum(['csv', 'xlsx']),
 });
+
+// ---------------------------------------------------------------------------
+// Pemberitahuan manual
+// ---------------------------------------------------------------------------
+
+const TANPA_NUL = /^[^\u0000]*$/;
+
+export const NotificationScopeSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('all') }),
+  z.object({ kind: z.literal('division'), divisionId: id }),
+  z.object({ kind: z.literal('group'), groupLabel: z.string().trim().min(1).max(255) }),
+]);
+export type NotificationScope = z.infer<typeof NotificationScopeSchema>;
+
+export const NotificationAudienceInputSchema = z.object({
+  recruitmentId: id,
+  scope: NotificationScopeSchema.default({ kind: 'all' }),
+});
+
+export const NotificationAudienceOutputSchema = z.object({
+  counts: z.object({
+    all: z.number().int(),
+    accepted: z.number().int(),
+    rejected: z.number().int(),
+    undecided: z.number().int(),
+  }),
+  divisions: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      /** Nama bidang induk; null bila divisi langsung di bawah akar. */
+      groupLabel: z.string().nullable(),
+    }),
+  ),
+});
+
+export const SendApplicantNotificationInputSchema = z.object({
+  recruitmentId: id,
+  audience: z.enum(NOTIFICATION_AUDIENCES),
+  scope: NotificationScopeSchema.default({ kind: 'all' }),
+  title: z
+    .string()
+    .trim()
+    .min(1, 'Judul wajib diisi.')
+    .max(255, 'Judul maksimal 255 karakter.')
+    .regex(TANPA_NUL, 'Judul memuat karakter yang tidak didukung.'),
+  content: z
+    .string()
+    .trim()
+    .min(1, 'Pesan wajib diisi.')
+    .max(2000, 'Pesan maksimal 2.000 karakter.')
+    .regex(TANPA_NUL, 'Pesan memuat karakter yang tidak didukung.'),
+});
+
+export const SendApplicantNotificationOutputSchema = z.object({
+  sent: z.number().int(),
+});
+
 
 // ---------------------------------------------------------------------------
 // Setup oprec (wizard)

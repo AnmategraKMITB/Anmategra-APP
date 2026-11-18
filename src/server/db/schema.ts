@@ -611,6 +611,7 @@ export const notifications = createTable('notification', {
     () => recruitment.id,
     { onDelete: 'cascade' },
   ),
+  /** `manual` = pesan bebas dari pengelola oprec; boleh dikirim berulang. */
   kind: varchar('kind', { length: 32 }),
   // Tautan relatif yang dibuka dari Inbox.
   links: jsonb('links').$type<{ label: string; href: string }[]>(),
@@ -619,7 +620,9 @@ export const notifications = createTable('notification', {
 (table) => ({
   recruitmentKindUnique: uniqueIndex('notification_user_recruitment_kind_unique')
     .on(table.user_id, table.recruitmentId, table.kind)
-    .where(sql`${table.recruitmentId} IS NOT NULL`),
+    .where(
+      sql`${table.recruitmentId} IS NOT NULL AND (${table.kind} IS NULL OR ${table.kind} <> 'manual')`,
+    ),
 }));
 
 // Relations for Support

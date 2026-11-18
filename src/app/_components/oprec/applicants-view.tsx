@@ -1,6 +1,6 @@
 'use client';
 
-import { Download, Search, X } from 'lucide-react';
+import { Download, Megaphone, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
 import { Button } from '~/components/ui/button';
@@ -9,6 +9,7 @@ import { api } from '~/trpc/react';
 import { ApplicantSheet } from './applicant-sheet';
 import { ApplicantsSummary } from './applicants-summary';
 import { ApplicantsTable } from './applicants-table';
+import { NotificationDialog } from './notification-dialog';
 
 const PAGE_SIZE = 50;
 
@@ -93,6 +94,7 @@ export function ApplicantsView({
   const [groupBy, setGroupBy] = useState<Group>('tanpa');
   const [pageState, setPageState] = useState({ key: '', page: 1 });
   const [openId, setOpenId] = useState<string | null>(null);
+  const [notifyOpen, setNotifyOpen] = useState(false);
 
   const deferredSearch = useDeferredValue(search.trim());
   const filters = {
@@ -166,6 +168,13 @@ export function ApplicantsView({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Button
+            variant="dark_blue_outline"
+            disabled={!total}
+            onClick={() => setNotifyOpen(true)}
+          >
+            <Megaphone /> Kirim pemberitahuan
+          </Button>
           {(['csv', 'xlsx'] as const).map((format) => (
             <Button
               key={format}
@@ -400,6 +409,11 @@ export function ApplicantsView({
         recruitmentId={recruitmentId}
         applicationId={openId}
         onClose={() => setOpenId(null)}
+      />
+      <NotificationDialog
+        recruitmentId={recruitmentId}
+        open={notifyOpen}
+        onOpenChange={setNotifyOpen}
       />
     </div>
   );
