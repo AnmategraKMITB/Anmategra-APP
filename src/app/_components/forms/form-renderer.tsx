@@ -708,6 +708,11 @@ export function FormRenderer({
                       <RichText value={field.description} />
                     </p>
                   ) : null}
+                  <Decor
+                    url={field.image?.url}
+                    alt={field.image?.alt}
+                    className="mt-3 max-h-64 rounded-xl object-contain"
+                  />
                 </div>
               );
             }

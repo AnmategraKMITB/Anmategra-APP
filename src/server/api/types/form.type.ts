@@ -1118,6 +1118,19 @@ export const ResponsesGetInputSchema = z.object({
   submissionId: IdSchema,
 });
 export const ResponsesSummaryInputSchema = z.object({ formId: IdSchema });
+export const ResponsesDeleteInputSchema = z.object({
+  formId: IdSchema,
+  /** Respons yang dihapus; dibatasi satu halaman tabel agar tidak membebani satu transaksi. */
+  submissionIds: z
+    .array(IdSchema)
+    .min(1)
+    .max(RESPONSES_MAX_PAGE_SIZE),
+});
+export const ResponsesDeleteOutputSchema = z.object({
+  success: z.literal(true),
+  message: z.string(),
+  deleted: z.number().int(),
+});
 
 export const ResponseColumnSchema = z.object({
   fieldId: z.string(),

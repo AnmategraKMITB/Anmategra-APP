@@ -22,6 +22,8 @@ import {
 } from '~/server/db/schema';
 
 import {
+  ResponsesDeleteInputSchema,
+  ResponsesDeleteOutputSchema,
   ResponsesGetInputSchema,
   ResponsesGetOutputSchema,
   ResponsesListInputSchema,
@@ -183,6 +185,35 @@ export const formResponsesRouter = createTRPCRouter({
         attachAnswers(ctx.db, [toRespondent(found)]),
       ]);
       return { columns: toColumns(fields), row: row! };
+    }),
+
+  /**
+   * Menghapus satu atau beberapa respons milik form ini. Jawaban ikut terhapus
+   * lewat cascade; pendaftar oprec yang terhubung tetap ada, hanya tautannya
+   * yang dikosongkan (lihat `application.formSubmissionId`).
+   */
+  delete: formScopedProcedure
+    .input(ResponsesDeleteInputSchema)
+    .output(ResponsesDeleteOutputSchema)
+    .mutation(async ({ ctx, input }) => {
+      const ids = [...new Set(input.submissionIds)];
+      const removed = await ctx.db
+        .delete(formSubmission)
+        .where(
+          and(
+            eq(formSubmission.formId, ctx.form.id),
+            inArray(formSubmission.id, ids),
+          ),
+        )
+        .returning({ id: formSubmission.id });
+      return {
+        success: true as const,
+        message:
+          removed.length === 0
+            ? 'Tidak ada respons yang dihapus.'
+            : `${removed.length} respons dihapus.`,
+        deleted: removed.length,
+      };
     }),
 
   /**
