@@ -112,6 +112,7 @@ export function ResponsesView({
           <ErrorNote message={list.error.message} />
         ) : list.data ? (
           <ResponsesTable
+            formId={formId}
             columns={list.data.columns}
             rows={list.data.rows}
             total={list.data.total}

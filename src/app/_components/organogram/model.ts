@@ -1,6 +1,9 @@
 import {
+  MAX_LEVEL,
   MAX_TREE_DEPTH,
+  NO_PARENT_DEPTH,
   type PositionNode,
+  ROOT_DEPTH,
   type Tree,
   type UnitNode,
   computeLevels,
@@ -674,9 +677,10 @@ export function editorReducer(
       }
 
       const parentLevel =
-        a.parentId === null ? 0 : computeLevels(units).get(a.parentId);
-      if (parentLevel === undefined || parentLevel + 1 > MAX_TREE_DEPTH)
-        return h;
+        a.parentId === null
+          ? NO_PARENT_DEPTH
+          : computeLevels(units).get(a.parentId);
+      if (parentLevel === undefined || parentLevel + 1 > MAX_LEVEL) return h;
 
       const name =
         a.name !== undefined && a.name.trim() !== ''
@@ -771,7 +775,8 @@ export function editorReducer(
 
       const levels = computeLevels(units);
       const ownLevel = levels.get(a.id);
-      const parentLevel = a.parentId === null ? 0 : levels.get(a.parentId);
+      const parentLevel =
+        a.parentId === null ? NO_PARENT_DEPTH : levels.get(a.parentId);
       if (ownLevel === undefined || parentLevel === undefined) return h;
 
       let subtreeHeight = 0;
@@ -780,7 +785,7 @@ export function editorReducer(
         if (level === undefined) return h;
         subtreeHeight = Math.max(subtreeHeight, level - ownLevel);
       }
-      if (parentLevel + 1 + subtreeHeight > MAX_TREE_DEPTH) return h;
+      if (parentLevel + 1 + subtreeHeight > MAX_LEVEL) return h;
 
       const reparented = units.map((unit) =>
         unit.id === a.id ? { ...unit, parentId: a.parentId } : unit,
@@ -1005,7 +1010,18 @@ export function editorReducer(
   }
 }
 
+/** Jumlah tingkat maksimum (akar ikut dihitung); dipakai di pesan. */
 export const MAX_DEPTH = MAX_TREE_DEPTH;
+/** Kedalaman terdalam yang boleh dibuat; akar = `ROOT_DEPTH`. */
+export { MAX_LEVEL, ROOT_DEPTH };
+
+/**
+ * Induk untuk tombol "tambah" di tingkat atas: akar bila sudah ada (bagian baru
+ * menjadi tingkat 1 di bawahnya), atau null untuk membuat akar pada struktur kosong.
+ */
+export function topLevelParent(units: Unit[]): string | null {
+  return childrenOf(units, null)[0]?.id ?? null;
+}
 
 export function childrenOf(units: Unit[], parentId: string | null): Unit[] {
   return units
@@ -1051,6 +1067,7 @@ export function descendantsOf(units: Unit[], id: string): Set<string> {
   return subtreeIds(units, [id]);
 }
 
+/** Nama tingkat untuk kedalaman `depth`: akar (0) memakai nama bawaan, tingkat d memakai `levelLabels[d - 1]`. */
 export function levelLabelFor(
   depth: number,
   levelLabels: string[] | null,
@@ -1113,7 +1130,8 @@ export function canMoveUnit(
     };
   }
 
-  const parentLevel = parentId === null ? 0 : levels.get(parentId);
+  const parentLevel =
+    parentId === null ? NO_PARENT_DEPTH : levels.get(parentId);
   if (parentLevel === undefined) {
     return { ok: false, reason: 'Unit induk tidak ditemukan.' };
   }
@@ -1127,7 +1145,7 @@ export function canMoveUnit(
     subtreeHeight = Math.max(subtreeHeight, level - ownLevel);
   }
 
-  if (parentLevel + 1 + subtreeHeight > MAX_TREE_DEPTH) {
+  if (parentLevel + 1 + subtreeHeight > MAX_LEVEL) {
     return {
       ok: false,
       reason: `Pemindahan melebihi kedalaman maksimum ${MAX_TREE_DEPTH} tingkat.`,
@@ -1174,6 +1192,7 @@ export function filledOfQuota(
 }
 
 export type DraftStats = {
+  /** Jumlah bagian per kedalaman; indeks 0 = akar. */
   levelCounts: number[];
   positionCount: number;
   depth: number;
@@ -1182,7 +1201,7 @@ export type DraftStats = {
 export function statsOf(d: Draft): DraftStats {
   const counts: number[] = [];
   for (const level of computeLevels(d.units).values()) {
-    const index = level - 1;
+    const index = level - ROOT_DEPTH;
     counts[index] = (counts[index] ?? 0) + 1;
   }
   const levelCounts = Array.from(
@@ -1192,7 +1211,8 @@ export function statsOf(d: Draft): DraftStats {
   return {
     levelCounts,
     positionCount: d.positions.length,
-    depth: levelCounts.length,
+    // Kedalaman terdalam (akar = 0), seperti di prototipe: akar > bidang > divisi = 2.
+    depth: Math.max(0, levelCounts.length - 1),
   };
 }
 
@@ -1234,7 +1254,7 @@ export function visibleRows(
         if (open) walk(unit.id, depth + 1);
       }
     };
-    walk(null, 1);
+    walk(null, ROOT_DEPTH);
     return rows;
   }
 
@@ -1257,7 +1277,7 @@ export function visibleRows(
     }
     return any;
   };
-  collect(null, 1);
+  collect(null, ROOT_DEPTH);
 
   const emitted = new Set<string>();
   const walkKept = (parentId: string | null, depth: number) => {
@@ -1271,7 +1291,7 @@ export function visibleRows(
       walkKept(unit.id, depth + 1);
     }
   };
-  walkKept(null, 1);
+  walkKept(null, ROOT_DEPTH);
   return rows;
 }
 

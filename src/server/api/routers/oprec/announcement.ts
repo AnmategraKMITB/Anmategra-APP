@@ -20,6 +20,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { ROOT_DEPTH } from '../organization/tree';
 import { canDecideDivision } from './assess-access';
 import { logAction } from './log';
 import { notFound } from './services';
@@ -206,7 +207,10 @@ export const announcementProcedures = {
         .select({
           id: recruitmentDivision.id,
           label: organizationUnit.name,
-          groupLabel: parent.name,
+          // Divisi yang langsung berada di bawah akar tidak punya bidang.
+          groupLabel: sql<string | null>`
+            case when ${parent.level} = ${ROOT_DEPTH} then null else ${parent.name} end
+          `,
           inviteUrl: recruitmentDivision.groupInviteUrl,
         })
         .from(recruitmentDivision)

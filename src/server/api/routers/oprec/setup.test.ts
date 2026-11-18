@@ -696,7 +696,7 @@ describe('createFromSetup: kelengkapan organogram (#383)', () => {
       .values({
         structure_id: structure!.id,
         name: 'Kosong',
-        level: 1,
+        level: 0,
         sort_order: 9,
       })
       .returning();
@@ -745,5 +745,34 @@ describe('createFromSetup: kelengkapan organogram (#383)', () => {
       { assessorMode: 'umum', headDecides: false },
     );
     expect(await db.select().from(recruitment)).toHaveLength(1);
+  });
+});
+
+describe('setupOptions: nama level dari organogram (akar = 0)', () => {
+  it('wizard menyebut Bidang dan Divisi, bukan nama akar', async () => {
+    const w = await createOprecWorld(db, ['IT']);
+    const [bidang] = await db
+      .select()
+      .from(organizationUnit)
+      .where(eq(organizationUnit.id, w.units[0]!.unitId));
+    await db.insert(organizationUnit).values({
+      structure_id: bidang!.structure_id,
+      parent_id: bidang!.id,
+      name: 'Website Development',
+      level: 2,
+    });
+    await db
+      .update(organizationStructure)
+      .set({ levelLabels: ['Bidang', 'Divisi', 'Subdivisi'] })
+      .where(eq(organizationStructure.id, bidang!.structure_id));
+
+    const { tree } = await callerFor(w.owner).oprec.setupOptions({
+      eventId: w.eventId,
+    });
+    expect(tree?.levelLabels).toEqual(['Bidang', 'Divisi']);
+    const levels = Object.fromEntries(
+      (tree?.units ?? []).map((u) => [u.name, u.level]),
+    );
+    expect(levels).toMatchObject({ IT: 1, 'Website Development': 2 });
   });
 });

@@ -213,7 +213,7 @@ export async function placeInEvent(
     .returning();
   const [unit] = await db
     .insert(schema.organizationUnit)
-    .values({ structure_id: structure!.id, name: 'Acara', level: 1 })
+    .values({ structure_id: structure!.id, name: 'Acara', level: 0 })
     .returning();
   const [position] = await db
     .insert(schema.organizationPosition)

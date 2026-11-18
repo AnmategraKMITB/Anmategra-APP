@@ -1,4 +1,4 @@
-import { NODE_WIDTH_DEFAULT, effectiveEvenRows, effectiveTier, rankIndexOf } from './model';
+import { NODE_WIDTH_DEFAULT, ROOT_DEPTH, effectiveEvenRows, effectiveTier, rankIndexOf } from './model';
 import type { Draft, Person, PlacementsByPosition, Rank, Unit } from './model';
 
 export const NODE_W = NODE_WIDTH_DEFAULT;
@@ -540,7 +540,7 @@ export function layoutChart(
   const placed: ChartNode[] = [];
   let cursorX = 0;
   for (const root of roots) {
-    const sub = layoutUnit(root, 1);
+    const sub = layoutUnit(root, ROOT_DEPTH);
     const nodeX = cursorX - sub.minX;
     for (const node of sub.nodes) {
       placed.push({ ...node, x: node.x + nodeX });

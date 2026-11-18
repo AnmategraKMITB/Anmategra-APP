@@ -64,7 +64,9 @@ import {
   type Draft,
   type EditorAction,
   MAX_DEPTH,
+  MAX_LEVEL,
   type PlacementsByPosition,
+  ROOT_DEPTH,
   type TreeRow as TreeRowData,
   type Unit,
   canMoveUnit,
@@ -76,6 +78,7 @@ import {
   pathOf,
   peopleCountBySubtree,
   planUnitsDrop,
+  topLevelParent,
   unitTypeLabel,
   visibleRows,
 } from './model';
@@ -251,7 +254,7 @@ function MoveToPopover({
         {canEditRoot ? (
           <CommandItem value="jadikan-teratas" onSelect={() => onMove(null)}>
             <span className="text-sm font-medium text-neutral-1000">
-              Jadikan {levelLabelFor(1, draft.levelLabels)} teratas
+              Jadikan tingkat teratas
             </span>
           </CommandItem>
         ) : null}
@@ -334,7 +337,7 @@ const TreeRow = memo(function TreeRow({
 
   const isHidden = unit.layout.hidden === true;
   const childLevelLabel = levelLabelFor(depth + 1, draft.levelLabels);
-  const childDisabled = depth + 1 > MAX_DEPTH;
+  const childDisabled = depth + 1 > MAX_LEVEL;
   const canMoveUp = siblingIndex > 0;
   const canMoveDown = siblingIndex < siblingCount - 1;
   const canOutdent = unit.parentId !== null;
@@ -407,7 +410,7 @@ const TreeRow = memo(function TreeRow({
                 style={{ width: depth * 12 }}
                 aria-hidden
               >
-                {Array.from({ length: depth - 1 }).map((_, index) => (
+                {Array.from({ length: depth - ROOT_DEPTH }).map((_, index) => (
                   <span
                     key={index}
                     className="absolute bottom-0 top-0 border-l border-neutral-200"
@@ -726,7 +729,7 @@ export function StructurePanel({
   const defaultExpanded = useMemo(() => {
     const set = new Set<string>();
     for (const unit of draft.units) {
-      if (levelOf(draft.units, unit.id) <= 2) set.add(unit.id);
+      if (levelOf(draft.units, unit.id) <= ROOT_DEPTH + 1) set.add(unit.id);
     }
     return set;
   }, [draft.units]);
@@ -874,8 +877,8 @@ export function StructurePanel({
       }
 
       const parentDepth =
-        parentId === null ? 0 : levelOf(draft.units, parentId);
-      if (parentDepth + 1 > MAX_DEPTH) {
+        parentId === null ? ROOT_DEPTH - 1 : levelOf(draft.units, parentId);
+      if (parentDepth + 1 > MAX_LEVEL) {
         announce(`Kedalaman maksimum ${MAX_DEPTH} tingkat.`);
         return;
       }
@@ -919,9 +922,11 @@ export function StructurePanel({
     [handleAdd],
   );
 
+  // Struktur hanya punya satu akar (lembaga/kepanitiaan itu sendiri): tombol di
+  // dasar pohon membuat akar bila kosong, selain itu tingkat 1 di bawah akar.
   const handleAddRoot = useCallback(() => {
-    handleAdd(null, false);
-  }, [handleAdd]);
+    handleAdd(topLevelParent(draft.units), false);
+  }, [handleAdd, draft.units]);
 
   /** Izin mengubah isi sebuah induk (null = tingkat teratas); mengumumkan alasan bila ditolak. */
   const mayEditParent = useCallback(
@@ -1441,7 +1446,11 @@ export function StructurePanel({
     ? (draft.units.find((unit) => unit.id === activeDragId) ?? null)
     : null;
 
-  const level1 = levelLabelFor(1, draft.levelLabels);
+  const hasRoot = topLevelParent(draft.units) !== null;
+  const level1 = levelLabelFor(
+    hasRoot ? ROOT_DEPTH + 1 : ROOT_DEPTH,
+    draft.levelLabels,
+  );
   // Tombol tambah di dasar pohon mengikuti pilihan: bagian terpilih mendapat anak dengan nama level berikutnya.
   const selectedUnit =
     selectedIds.length === 1

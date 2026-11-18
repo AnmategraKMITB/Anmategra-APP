@@ -34,7 +34,7 @@ import type { ChartNode, SeatRow } from './chart-layout';
 import {
   type ArrangeMode,
   type Draft,
-  MAX_DEPTH,
+  MAX_LEVEL,
   NODE_WIDTH_DEFAULT,
   NODE_WIDTH_MAX,
   NODE_WIDTH_MIN,
@@ -1394,7 +1394,7 @@ export function ChartView(props: ChartViewProps): JSX.Element {
                 (canEditUnit?.(node.id) ?? true)
               }
               childLabel={levelLabelFor(node.depth + 1, draft.levelLabels)}
-              canAddChild={node.depth + 1 <= MAX_DEPTH}
+              canAddChild={node.depth + 1 <= MAX_LEVEL}
               onAddChild={onAddChild}
               onRequestDelete={onRequestDelete}
               resizable={
