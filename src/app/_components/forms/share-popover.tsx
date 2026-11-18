@@ -135,7 +135,7 @@ export function SharePopover() {
                     value={slug}
                     placeholder={detail.id.slice(0, 8)}
                     maxLength={80}
-                    onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                    onChange={(e) => setSlug(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') e.currentTarget.blur();
                     }}
@@ -158,8 +158,8 @@ export function SharePopover() {
                   </Button>
                 </div>
                 <p className="text-sm text-neutral-700">
-                  Huruf kecil, angka, dan tanda hubung. Kosongkan untuk memakai
-                  id formulir.
+                  Huruf, angka, dan tanda hubung. Huruf besar dan kecil
+                  dibedakan. Kosongkan untuk memakai id formulir.
                 </p>
               </div>
               {detail.status === 'Published' ? (

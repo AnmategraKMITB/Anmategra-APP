@@ -51143,7 +51143,7 @@
             "nullable": true,
             "type": "string",
             "maxLength": 80,
-            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+            "pattern": "^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$"
           },
           "description": {
             "nullable": true,

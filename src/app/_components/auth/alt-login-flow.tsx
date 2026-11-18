@@ -13,7 +13,7 @@ import {
 } from '~/components/ui/card';
 import { Input } from '~/components/ui/input';
 import { env } from '~/env';
-import { pickFormsCallback } from '~/lib/forms-path';
+import { isFillFormPath, pickFormsCallback } from '~/lib/forms-path';
 import {
   connectGoogleDrive,
   prepareGoogleDrive,
@@ -64,12 +64,13 @@ export function AltLoginFlow() {
     const target = pickFormsCallback(window.location.search);
     if (!target) return;
     // Bangun ulang dari bagian yang sudah diparse dan pastikan tetap satu
-    // origin dan di jalur /forms/, bukan meneruskan string mentah dari URL.
+    // origin dan di jalur isi form (`/forms/` atau `/f/`), bukan meneruskan
+    // string mentah dari URL.
     try {
       const parsed = new URL(target, window.location.origin);
       if (
         parsed.origin === window.location.origin &&
-        parsed.pathname.startsWith('/forms/')
+        isFillFormPath(parsed.pathname)
       ) {
         window.location.assign(parsed.pathname + parsed.search);
       }

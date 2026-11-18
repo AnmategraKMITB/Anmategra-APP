@@ -6,7 +6,17 @@ export type FormsPathDecision =
 
 const ID_PATTERN = /^[A-Za-z0-9_-]{1,100}$/;
 
-/** Keputusan middleware untuk jalur /forms: pratinjau publik, halaman isi, atau bukan urusan ini. */
+/**
+ * Halaman isi form: `/forms/<slug|id>` dan alias singkatnya `/f/<slug|id>`.
+ * Slug peka huruf besar-kecil, sama seperti kolom `form.slug` di database.
+ */
+const FILL_PATH_PATTERN = /^\/(?:forms|f)\/[A-Za-z0-9_-]{1,100}$/;
+
+export function isFillFormPath(pathname: string): boolean {
+  return FILL_PATH_PATTERN.test(pathname);
+}
+
+/** Keputusan middleware untuk jalur /forms dan /f: pratinjau publik, halaman isi, atau bukan urusan ini. */
 export function decideFormsPath(
   pathname: string,
   search: string,
@@ -15,7 +25,7 @@ export function decideFormsPath(
   if (pathname === '/forms/preview') return { kind: 'public' };
   if (/^\/forms\/preview\/[^/]+$/.test(pathname)) return { kind: 'public' };
 
-  if (!/^\/forms\/[A-Za-z0-9_-]{1,100}$/.test(pathname)) {
+  if (!isFillFormPath(pathname)) {
     return { kind: 'not-forms' };
   }
 
@@ -48,15 +58,10 @@ export function isSafeFormsCallback(value: unknown): boolean {
   // Halaman pengumuman hasil oprec juga memakai alur login dengan callbackUrl.
   if (/^\/pengumuman\/[A-Za-z0-9_-]{1,100}$/.test(path)) return true;
 
-  if (!path.startsWith('/forms/')) return false;
-
   const previewMatch = /^\/forms\/preview\/([^/]+)$/.exec(path);
   if (previewMatch) return ID_PATTERN.test(previewMatch[1] ?? '');
 
-  const idMatch = /^\/forms\/([^/]+)$/.exec(path);
-  if (!idMatch) return false;
-
-  return ID_PATTERN.test(idMatch[1] ?? '');
+  return isFillFormPath(path);
 }
 
 /** Ambil callbackUrl yang aman dari query string halaman login; selain itu `undefined`. */
