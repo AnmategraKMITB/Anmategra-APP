@@ -14,6 +14,7 @@ import {
   type Draft,
   type EditorAction,
   MAX_DEPTH,
+  MAX_LEVEL,
   MAX_RANKS,
   MAX_RANK_LABEL,
   type RankDef,
@@ -61,7 +62,8 @@ export function SettingsView(props: SettingsViewProps): JSX.Element {
   const labels = draft.levelLabels ?? [];
   const treeDepth = Math.max(1, maxDepth(draft.units));
   const levelCount = Math.max(treeDepth, labels.length);
-  const canAddLevel = levelCount < MAX_DEPTH;
+  // Akar tidak punya nama level; tingkat di bawahnya paling banyak MAX_LEVEL.
+  const canAddLevel = levelCount < MAX_LEVEL;
   const canRemoveLevel = levelCount > treeDepth && levelCount > 1;
 
   const unitsAtDepth = (depth: number): number =>

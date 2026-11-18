@@ -271,10 +271,21 @@ it('seed mock oprec', async () => {
     })
     .returning();
 
+  // Akar (kedalaman 0) adalah kepanitiaannya; divisi di kedalaman 1.
+  const [root] = await db
+    .insert(schema.organizationUnit)
+    .values({ structure_id: structure!.id, name: 'Kepanitiaan', level: 0 })
+    .returning();
   const addUnit = async (name: string, sort: number, quota: number) => {
     const [unit] = await db
       .insert(schema.organizationUnit)
-      .values({ structure_id: structure!.id, name, level: 1, sort_order: sort })
+      .values({
+        structure_id: structure!.id,
+        parent_id: root!.id,
+        name,
+        level: 1,
+        sort_order: sort,
+      })
       .returning();
     const [head, staff] = await db
       .insert(schema.organizationPosition)

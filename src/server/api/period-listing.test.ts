@@ -159,7 +159,7 @@ describe('userKegiatanMemberships', () => {
       .returning();
     const [unit] = await db
       .insert(schema.organizationUnit)
-      .values({ structure_id: structure!.id, name: 'Divisi Acara', level: 1 })
+      .values({ structure_id: structure!.id, name: 'Divisi Acara', level: 0 })
       .returning();
     const [position] = await db
       .insert(schema.organizationPosition)

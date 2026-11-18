@@ -24,6 +24,8 @@ import {
   guessRank,
   isBlank,
 } from './import-plan';
+import { ensureRootUnit } from './root';
+import { ROOT_DEPTH } from './tree';
 
 /** `ctx.db` atau transaksi `tx` di dalam `ctx.db.transaction(...)`. */
 type Db = PgDatabase<PostgresJsQueryResultHKT, typeof schema>;
@@ -274,14 +276,16 @@ export async function upsertPlacementByText(
     .where(eq(organizationUnit.structure_id, structureId));
   let unit = units.find((u) => foldKey(u.name) === foldKey(divisionLabel));
   if (!unit) {
+    // Bagian baru masuk di bawah akar (tingkat 1), bukan menjadi akar kedua.
+    const rootId = await ensureRootUnit(db, structureId, input.periodId);
     const nextOrder = units.reduce((n, u) => Math.max(n, u.sortOrder), -1) + 1;
     const [created] = await db
       .insert(organizationUnit)
       .values({
         structure_id: structureId,
-        parent_id: null,
+        parent_id: rootId,
         name: divisionLabel,
-        level: 1,
+        level: ROOT_DEPTH + 1,
         sort_order: nextOrder,
       })
       .returning({

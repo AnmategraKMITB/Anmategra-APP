@@ -99,7 +99,8 @@ export function ExportDialog(props: {
   placements: PlacementsByPosition;
 }): JSX.Element {
   const { open, onOpenChange, draft, placements } = props;
-  const deepest = Math.max(1, maxDepth(draft.units));
+  // Kedalaman terdalam (akar = 0); pilihan 0 berarti hanya bagian puncak.
+  const deepest = maxDepth(draft.units);
   const [format, setFormat] = useState<Format>('png');
   const [depth, setDepth] = useState(deepest);
   const [showPositions, setShowPositions] = useState(true);
@@ -204,12 +205,14 @@ export function ExportDialog(props: {
                 onChange={(event) => setDepth(Number(event.target.value))}
                 className="h-9 w-full rounded-[8px] border border-neutral-400 bg-white px-3 text-sm text-neutral-1000"
               >
-                {Array.from({ length: deepest }, (_, index) => index + 1).map(
+                {Array.from({ length: deepest + 1 }, (_, level) => level).map(
                   (level) => (
                     <option key={level} value={level}>
                       {level === deepest
                         ? 'Seluruh struktur'
-                        : `Sampai ${levelLabelFor(level, draft.levelLabels)} (tingkat ${level})`}
+                        : level === 0
+                          ? 'Hanya bagian puncak'
+                          : `Sampai ${levelLabelFor(level, draft.levelLabels)} (tingkat ${level})`}
                     </option>
                   ),
                 )}

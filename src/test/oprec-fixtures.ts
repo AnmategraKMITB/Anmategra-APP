@@ -18,6 +18,11 @@ export async function createOprecWorld(
     .insert(schema.organizationStructure)
     .values({ eventId: event.id, name: 'Struktur Uji', is_active: true })
     .returning();
+  // Akar (kedalaman 0) adalah lembaganya; tujuan oprec berada di kedalaman 1.
+  const [root] = await db
+    .insert(schema.organizationUnit)
+    .values({ structure_id: structure!.id, name: 'Lembaga Uji', level: 0 })
+    .returning();
   const units: {
     unitId: string;
     headPositionId: string;
@@ -28,6 +33,7 @@ export async function createOprecWorld(
       .insert(schema.organizationUnit)
       .values({
         structure_id: structure!.id,
+        parent_id: root!.id,
         name,
         level: 1,
         sort_order: i,

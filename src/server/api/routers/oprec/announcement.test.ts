@@ -136,15 +136,15 @@ describe('oprec.announcement', () => {
 
   it('pengelompokan per bidang mengikuti unit induk', async () => {
     const { fx, viewer, publish } = await world();
+    const [acara] = await db
+      .select()
+      .from(schema.organizationUnit)
+      .where(eq(schema.organizationUnit.id, fx.divisions.Acara!.unitId));
     const [bidang] = await db
       .insert(schema.organizationUnit)
       .values({
-        structure_id: (
-          await db
-            .select()
-            .from(schema.organizationUnit)
-            .where(eq(schema.organizationUnit.id, fx.divisions.Acara!.unitId))
-        )[0]!.structure_id,
+        structure_id: acara!.structure_id,
+        parent_id: acara!.parent_id,
         name: 'Bidang Inti',
         level: 1,
         sort_order: 9,
