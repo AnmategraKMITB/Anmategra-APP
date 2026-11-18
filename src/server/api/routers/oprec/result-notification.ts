@@ -4,6 +4,7 @@ import { recruitmentPublished } from '~/server/api/oprec-release';
 import { protectedProcedure } from '~/server/api/trpc';
 import { form, notifications, recruitment } from '~/server/db/schema';
 
+import { MANUAL_NOTIFICATION_KIND } from './notification-kind';
 import { OFFER_NOTIFICATION_KIND } from './offer';
 import { type Database } from './services';
 
@@ -83,6 +84,8 @@ export const resultNotificationProcedures = {
             ),
             // Tawaran tempat (offer.ts) tampil tanpa menunggu hasil tayang.
             eq(notifications.kind, OFFER_NOTIFICATION_KIND),
+            // Pesan manual pengelola juga langsung tampil.
+            eq(notifications.kind, MANUAL_NOTIFICATION_KIND),
           ),
         ),
       )
