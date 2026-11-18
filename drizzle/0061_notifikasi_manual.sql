@@ -1,0 +1,2 @@
+DROP INDEX "notification_user_recruitment_kind_unique";--> statement-breakpoint
+CREATE UNIQUE INDEX "notification_user_recruitment_kind_unique" ON "anmategra_notification" USING btree ("user_id","recruitment_id","kind") WHERE "anmategra_notification"."recruitment_id" IS NOT NULL AND ("anmategra_notification"."kind" IS NULL OR "anmategra_notification"."kind" <> 'manual');
