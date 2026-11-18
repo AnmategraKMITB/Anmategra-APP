@@ -11,6 +11,9 @@ describe('isSafeFormsCallback', () => {
     '/forms/abc123',
     '/forms/abc123?ref=email&x=1',
     '/forms/preview/abc',
+    '/forms/Rapat-2026',
+    '/f/abc123',
+    '/f/Rapat-2026?ref=email&x=1',
   ])('menerima %s', (value) => {
     expect(isSafeFormsCallback(value)).toBe(true);
   });
@@ -34,6 +37,12 @@ describe('isSafeFormsCallback', () => {
     '/forms/a?next=<script>',
     '/forms/a\nb',
     `/forms/${'a'.repeat(301)}`,
+    '/f',
+    '/f/',
+    '/f/a/b',
+    '/f//evil.example',
+    '/f/..%2fadmin',
+    '/f/a?next=<script>',
   ])('menolak %j', (value) => {
     expect(isSafeFormsCallback(value)).toBe(false);
   });
@@ -61,5 +70,13 @@ describe('pickFormsCallback', () => {
     if (decision.kind !== 'login') return;
     const search = decision.location.slice(decision.location.indexOf('?'));
     expect(pickFormsCallback(search)).toBe('/forms/abc?ref=x');
+  });
+
+  it('konsisten untuk alias /f dengan slug berhuruf besar', () => {
+    const decision = decideFormsPath('/f/Rapat-2026', '?ref=x', false);
+    expect(decision.kind).toBe('login');
+    if (decision.kind !== 'login') return;
+    const search = decision.location.slice(decision.location.indexOf('?'));
+    expect(pickFormsCallback(search)).toBe('/f/Rapat-2026?ref=x');
   });
 });

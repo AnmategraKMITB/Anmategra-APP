@@ -1,6 +1,6 @@
 import { getToken } from 'next-auth/jwt';
 import { type NextRequest, NextResponse } from 'next/server';
-import { decideFormsPath } from '~/lib/forms-path';
+import { decideFormsPath, isFillFormPath } from '~/lib/forms-path';
 
 const AUTH_ROUTES = ['/authentication', '/authentication/alternatif'];
 const STATIC = [
@@ -76,7 +76,7 @@ export default async function middleware(req: NextRequest) {
   // tetap menolak lewat tRPC dan getServerAuthSession (default-deny).
   if (token?.alt) {
     const isPreview = pathname === '/forms/preview' || pathname.startsWith('/forms/preview/');
-    const isFillPage = /^\/forms\/[A-Za-z0-9_-]{1,100}$/.test(pathname) && !isPreview;
+    const isFillPage = isFillFormPath(pathname) && !isPreview;
     if (
       isPreview ||
       pathname === '/authentication/alternatif' ||
