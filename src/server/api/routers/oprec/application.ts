@@ -1,4 +1,4 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { isWithinDeadline } from '~/lib/forms/grace';
 import {
@@ -20,6 +20,7 @@ import {
   recruitmentWave,
 } from '~/server/db/schema';
 
+import { ROOT_DEPTH } from '../organization/tree';
 import { type Database, type Queryable } from './services';
 
 export type OprecDivision = {
@@ -52,7 +53,10 @@ export async function loadOprecForForm(
       .select({
         id: recruitmentDivision.id,
         label: organizationUnit.name,
-        groupLabel: parent.name,
+        // Divisi yang langsung berada di bawah akar tidak punya bidang.
+        groupLabel: sql<string | null>`
+          case when ${parent.level} = ${ROOT_DEPTH} then null else ${parent.name} end
+        `,
         quota: organizationPosition.quota,
         sortOrder: recruitmentDivision.sortOrder,
       })

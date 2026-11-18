@@ -41,6 +41,7 @@ import {
 } from '~/server/db/schema';
 
 import { type Tx } from '../form/services';
+import { ROOT_DEPTH } from '../organization/tree';
 import {
   type AssessAccess,
   canDecideDivision,
@@ -77,7 +78,10 @@ export async function loadPlacementDivisions(
     .select({
       id: recruitmentDivision.id,
       label: organizationUnit.name,
-      groupLabel: parent.name,
+      // Divisi yang langsung berada di bawah akar tidak punya bidang.
+      groupLabel: sql<string | null>`
+        case when ${parent.level} = ${ROOT_DEPTH} then null else ${parent.name} end
+      `,
       groupInviteUrl: recruitmentDivision.groupInviteUrl,
       quota: organizationPosition.quota,
       positionId: recruitmentDivision.positionId,
