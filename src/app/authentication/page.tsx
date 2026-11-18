@@ -17,7 +17,8 @@ import { DemoLoginForm } from "~/app/_components/auth/demo-login-form";
 import { pickFormsCallback } from "~/lib/forms-path";
 
 // Tautan form yang dibuka sebelum login: kembali ke sana setelah masuk (hanya
-// jalur /forms/..., supaya tidak bisa dipakai sebagai pengalihan terbuka).
+// jalur isi form `/forms/...` dan `/f/...`, supaya tidak bisa dipakai sebagai
+// pengalihan terbuka).
 const signInTo = (provider: "azure-ad" | "google") => {
   const callbackUrl = pickFormsCallback(window.location.search);
   return signIn(provider, callbackUrl ? { callbackUrl } : undefined);

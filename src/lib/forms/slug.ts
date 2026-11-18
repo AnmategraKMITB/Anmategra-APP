@@ -1,8 +1,10 @@
 /**
- * Stub publik formulir: `/forms/<slug>`. Huruf kecil, angka, dan tanda hubung.
+ * Stub publik formulir: `/forms/<slug>` (alias singkat `/f/<slug>`). Huruf,
+ * angka, dan tanda hubung. Huruf besar dan kecil dibedakan, jadi `Form` dan
+ * `form` adalah dua slug yang berbeda.
  * Slug tidak boleh bentrok dengan jalur yang sudah dipakai aplikasi.
  */
-export const FORM_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+export const FORM_SLUG_RE = /^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$/;
 
 export const RESERVED_FORM_SLUGS = new Set([
   'admin',

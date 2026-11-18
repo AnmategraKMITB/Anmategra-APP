@@ -769,11 +769,10 @@ export const UpdateFormInputSchema = z.object({
   slug: z
     .string()
     .trim()
-    .toLowerCase()
     .max(80, 'Slug maksimal 80 karakter')
     .regex(
       FORM_SLUG_RE,
-      'Slug hanya boleh huruf kecil, angka, dan tanda hubung.',
+      'Slug hanya boleh huruf, angka, dan tanda hubung. Huruf besar dan kecil dibedakan.',
     )
     .nullable()
     .optional(),

@@ -92,4 +92,18 @@ describe('regresi rute lain', () => {
       to: '/authentication?callbackUrl=%2Fforms%2Fabc',
     });
   });
+
+  it('alias /f juga membawa callbackUrl', async () => {
+    expect(await run('/f/abc', null)).toEqual({
+      kind: 'redirect',
+      to: '/authentication?callbackUrl=%2Ff%2Fabc',
+    });
+  });
+
+  it('slug berhuruf besar dipertahankan apa adanya', async () => {
+    expect(await run('/forms/Rapat-2026', null)).toEqual({
+      kind: 'redirect',
+      to: '/authentication?callbackUrl=%2Fforms%2FRapat-2026',
+    });
+  });
 });

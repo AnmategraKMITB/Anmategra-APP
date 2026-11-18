@@ -14,15 +14,21 @@ import { RichText } from './rich-text-view';
 import { SubmittedFill } from './submitted-fill';
 
 /**
- * Halaman mengisi form (`/forms/[formId]`), untuk semua peran yang sudah login.
- * Menentukan keadaannya di server: tidak berhak mengisi, sudah ditutup, sudah
- * mengirim, atau terbuka.
+ * Halaman mengisi form (`/forms/[formId]` dan aliasnya `/f/[formId]`), untuk
+ * semua peran yang sudah login. Menentukan keadaannya di server: tidak berhak
+ * mengisi, sudah ditutup, sudah mengirim, atau terbuka.
  */
-export async function FillPage({ formId }: { formId: string }) {
+export async function FillPage({
+  formId,
+  fillBasePath = '/forms',
+}: {
+  formId: string;
+  fillBasePath?: string;
+}) {
   // Akses alternatif (klaim aktif) boleh mengisi form; tamu tanpa klaim tidak.
   const session = await getServerAuthSessionWithAlt();
   if (!session || session.user.alt === 'guest') {
-    redirect(`/authentication?callbackUrl=/forms/${formId}`);
+    redirect(`/authentication?callbackUrl=${fillBasePath}/${formId}`);
   }
 
   let form: GetPublicFormOutput;
