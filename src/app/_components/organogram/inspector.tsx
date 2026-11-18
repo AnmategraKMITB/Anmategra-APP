@@ -19,6 +19,8 @@ import {
   type Draft,
   type EditorAction,
   MAX_DEPTH,
+  MAX_LEVEL,
+  ROOT_DEPTH,
   MAX_TIER,
   NODE_WIDTH_DEFAULT,
   NODE_WIDTH_MAX,
@@ -30,6 +32,7 @@ import {
   endIndexOfPositions,
   levelLabelFor,
   levelOf,
+  topLevelParent,
   pathOf,
   planPositionDrop,
   planUnitsDrop,
@@ -91,8 +94,9 @@ export function Inspector(props: InspectorProps): JSX.Element {
   const stats = statsOf(draft);
   const level1Label = levelLabelFor(1, draft.levelLabels);
   const level2Label = levelLabelFor(2, draft.levelLabels);
-  const level1Count = stats.levelCounts[0] ?? 0;
-  const level2Count = stats.levelCounts[1];
+  // Indeks 0 = akar; statistik dimulai dari tingkat 1 (mis. Bidang).
+  const level1Count = stats.levelCounts[1] ?? 0;
+  const level2Count = stats.levelCounts[2];
 
   const unit =
     selectedId === null
@@ -170,7 +174,10 @@ export function Inspector(props: InspectorProps): JSX.Element {
     });
   };
 
-  const targetDepth = unit === null ? 1 : unitDepth + 1;
+  // Tanpa pilihan, "tambah" membuat akar pada struktur kosong, selain itu tingkat 1 di bawah akar.
+  const topParent = topLevelParent(draft.units);
+  const targetDepth =
+    unit === null ? (topParent === null ? ROOT_DEPTH : ROOT_DEPTH + 1) : unitDepth + 1;
   const targetLevelLabel = levelLabelFor(targetDepth, draft.levelLabels);
   const canAdd = unit === null ? canEditRoot && !readOnly : unitEditable;
 
@@ -180,7 +187,7 @@ export function Inspector(props: InspectorProps): JSX.Element {
       unit === null
         ? 'Anda tidak berhak menambah di tingkat teratas.'
         : 'Anda tidak berhak menambah di bawah bagian ini.';
-  } else if (targetDepth > MAX_DEPTH) {
+  } else if (targetDepth > MAX_LEVEL) {
     addDisabledReason = `Kedalaman maksimum ${MAX_DEPTH} tingkat.`;
   }
   const addDisabled = addDisabledReason !== undefined;
@@ -196,7 +203,7 @@ export function Inspector(props: InspectorProps): JSX.Element {
 
   const handleAddUnit = () => {
     const id = newId();
-    dispatch({ type: 'addUnit', id, parentId: unit?.id ?? null });
+    dispatch({ type: 'addUnit', id, parentId: unit?.id ?? topParent });
     onSelect(id);
   };
 

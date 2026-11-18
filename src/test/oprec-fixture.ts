@@ -115,6 +115,11 @@ export async function createOprecFixture(
     .insert(schema.organizationStructure)
     .values({ eventId: event.id, name: 'Organogram Uji', is_active: true })
     .returning();
+  // Akar (kedalaman 0) adalah kepanitiaannya; divisi berada di kedalaman 1.
+  const [root] = await db
+    .insert(schema.organizationUnit)
+    .values({ structure_id: structure!.id, name: 'Kepanitiaan Uji', level: 0 })
+    .returning();
 
   const units = new Map<
     string,
@@ -125,6 +130,7 @@ export async function createOprecFixture(
       .insert(schema.organizationUnit)
       .values({
         structure_id: structure!.id,
+        parent_id: root!.id,
         name: spec.name,
         level: 1,
         sort_order: index,

@@ -10,6 +10,15 @@ import type {
  */
 
 export const MAX_TREE_DEPTH = 16;
+/**
+ * Kedalaman akar. Akar adalah lembaga atau kepanitiaan itu sendiri (tempat
+ * Ketua), jadi `level_labels[0]` menamai tingkat 1 (mis. Bidang), bukan akar.
+ */
+export const ROOT_DEPTH = 0;
+/** Kedalaman semu "induk" dari akar; titik awal saat menghitung kedalaman anak baru. */
+export const NO_PARENT_DEPTH = ROOT_DEPTH - 1;
+/** Kedalaman terdalam yang sah: akar 0 sampai sini, jadi `MAX_TREE_DEPTH` tingkat. */
+export const MAX_LEVEL = ROOT_DEPTH + MAX_TREE_DEPTH - 1;
 export const MAX_UNITS = 2000;
 export const MAX_POSITIONS = 10000;
 
@@ -36,7 +45,7 @@ export type PositionNode = {
 
 export type Tree = { units: UnitNode[]; positions: PositionNode[] };
 
-/** Kedalaman tiap unit (akar = 1). Unit yang induknya tidak ada atau yang berada dalam siklus tidak dimasukkan. */
+/** Kedalaman tiap unit (akar = `ROOT_DEPTH`). Unit yang induknya tidak ada atau yang berada dalam siklus tidak dimasukkan. */
 export function computeLevels(units: UnitNode[]): Map<string, number> {
   const byId = new Map(units.map((u) => [u.id, u]));
   const levels = new Map<string, number>();
@@ -50,7 +59,8 @@ export function computeLevels(units: UnitNode[]): Map<string, number> {
     const unit = byId.get(id);
     if (!unit) return undefined;
     visiting.add(id);
-    const parentLevel = unit.parentId === null ? 0 : resolve(unit.parentId);
+    const parentLevel =
+      unit.parentId === null ? NO_PARENT_DEPTH : resolve(unit.parentId);
     visiting.delete(id);
     if (parentLevel === undefined) {
       failed.add(id);
@@ -108,7 +118,7 @@ export function validateTree(tree: Tree): string[] {
       const level = levels.get(u.id);
       if (level === undefined) {
         errors.push(`Unit "${u.name}" berada dalam siklus induk-anak.`);
-      } else if (level > MAX_TREE_DEPTH) {
+      } else if (level > MAX_LEVEL) {
         errors.push(`Unit "${u.name}" melebihi kedalaman maksimum ${MAX_TREE_DEPTH} tingkat.`);
       }
     }

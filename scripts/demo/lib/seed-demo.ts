@@ -296,6 +296,18 @@ async function seedOrganogram(
     .insert(organizationStructure)
     .values({ id: structureId, eventId, name, is_active: true })
     .onConflictDoNothing();
+  // Akar (kedalaman 0) adalah kegiatannya sendiri; bagian demo di kedalaman 1.
+  const rootId = unitId(eventId, 'akar');
+  await db
+    .insert(organizationUnit)
+    .values({
+      id: rootId,
+      structure_id: structureId,
+      name,
+      typeLabel: 'Kepanitiaan',
+      level: 0,
+    })
+    .onConflictDoNothing();
   let order = 0;
   for (const unit of ORGANOGRAM) {
     await db
@@ -303,6 +315,7 @@ async function seedOrganogram(
       .values({
         id: unitId(eventId, unit.key),
         structure_id: structureId,
+        parent_id: rootId,
         name: unit.name,
         kind: unit.kind,
         level: 1,

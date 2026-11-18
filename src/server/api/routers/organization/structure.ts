@@ -25,6 +25,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { ensureRootUnit } from './root';
 import { isForeignKeyViolation, isUniqueViolation } from './services';
 import {
   type PositionNode,
@@ -201,11 +202,15 @@ export const organizationStructureRouter = createTRPCRouter({
       }
 
       try {
-        const [row] = await ctx.db
-          .insert(organizationStructure)
-          .values({ eventId: input.periodId, name: input.name ?? period.name, is_active: true })
-          .returning({ id: organizationStructure.id, version: organizationStructure.version });
-        return row!;
+        // Struktur baru langsung punya akar (lembaga/kepanitiaan itu sendiri).
+        return await ctx.db.transaction(async (tx) => {
+          const [row] = await tx
+            .insert(organizationStructure)
+            .values({ eventId: input.periodId, name: input.name ?? period.name, is_active: true })
+            .returning({ id: organizationStructure.id, version: organizationStructure.version });
+          await ensureRootUnit(tx, row!.id, input.periodId);
+          return row!;
+        });
       } catch (error) {
         if (isUniqueViolation(error)) {
           throw new TRPCError({

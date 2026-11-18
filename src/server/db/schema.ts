@@ -787,8 +787,9 @@ export const organizationStructure = createTable(
     }),
     name: varchar('name', { length: 255 }).notNull(),
     is_active: boolean('is_active').notNull().default(true),
-    // Nama level per kedalaman, mis. ["Kemenkoan", "Kementerian"]; UI memakai
-    // nama ini, bukan kata "unit". Null = pakai bawaan.
+    // Nama level per kedalaman di bawah akar: indeks 0 = kedalaman 1 (mis.
+    // ["Bidang", "Divisi"]); akar memakai `type_label`-nya. UI memakai nama ini,
+    // bukan kata "unit". Null = pakai bawaan.
     levelLabels: jsonb('level_labels').$type<string[]>(),
     // Daftar rank berurutan (senior ke junior), mis. [{ id: "head", label: "Ketua" }, ...].
     // Null = daftar bawaan (DEFAULT_ORGANIZATION_RANKS).
@@ -821,9 +822,10 @@ export const organizationStructure = createTable(
 );
 
 /**
- * Labels a unit carries. `level` is the unit's DEPTH in the tree (root = 1),
- * NOT a fixed function of `kind` — existing production data is flat, with
- * `Divisi` sitting at level 1 as a root. Ordering rules between kinds are
+ * Labels a unit carries. `level` is the unit's DEPTH in the tree (root = 0, see
+ * `ROOT_DEPTH`), NOT a fixed function of `kind`. The single root is the lembaga
+ * or kepanitiaan itself (where the Ketua sits); since 0057 every structure has
+ * one root and Bidang/Divisi start at depth 1. Ordering rules between kinds are
  * enforced in the router, not the database.
  */
 export const ORGANIZATION_UNIT_KINDS = [
@@ -857,7 +859,7 @@ export const organizationUnit = createTable(
     name: varchar('name', { length: 255 }).notNull(),
     // Dibuang saat Fase 2D selesai; unit baru memakai `typeLabel` dan kolom ini null.
     kind: varchar('kind', { length: 255 }).$type<OrganizationUnitKind>(),
-    // Kedalaman di pohon (akar = 1), tanpa batas atas sejak 0033; diisi editor baru.
+    // Kedalaman di pohon (akar = 0 sejak 0057), tanpa batas atas sejak 0033; diisi editor baru.
     level: integer('level').notNull(),
     sort_order: integer('sort_order').notNull().default(0),
     // Label bebas pengganti `kind` (Bidang/Divisi/Subdivisi); `kind` dan `level`

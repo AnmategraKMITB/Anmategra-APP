@@ -78,9 +78,9 @@ describe('pengurusOfUnits', () => {
 });
 
 /**
- * Fixture standar (Acara, Humas di akar, masing-masing punya Kadiv) disusun
+ * Fixture standar (Akar > Acara, Humas; masing-masing punya Kadiv) disusun
  * ulang: Akar > Bidang Kegiatan > Acara, dan Akar > Humas. Bidang berisi Kabid,
- * Wakabid, dan Staf; akar berisi Ketua.
+ * Wakabid, dan Staf; akar (kedalaman 0) berisi Ketua.
  */
 async function withHierarchy(fx: OprecFixture) {
   const [acara] = await db
@@ -109,16 +109,12 @@ async function withHierarchy(fx: OprecFixture) {
     return { id: user.id, role: 'mahasiswa' as const };
   };
 
-  const akar = await unit('Kepanitiaan', null, 1);
-  const bidang = await unit('Bidang Kegiatan', akar.id, 2);
+  const akar = { id: acara!.parent_id! };
+  const bidang = await unit('Bidang Kegiatan', akar.id, 1);
   await db
     .update(schema.organizationUnit)
-    .set({ parent_id: bidang.id, level: 3 })
+    .set({ parent_id: bidang.id, level: 2 })
     .where(eq(schema.organizationUnit.id, fx.divisions.Acara!.unitId));
-  await db
-    .update(schema.organizationUnit)
-    .set({ parent_id: akar.id, level: 2 })
-    .where(eq(schema.organizationUnit.id, fx.divisions.Humas!.unitId));
 
   return {
     ketua: await place(akar.id, 'head'),

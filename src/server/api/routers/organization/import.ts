@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, asc, count, eq } from 'drizzle-orm';
+import { and, asc, count, eq, isNotNull } from 'drizzle-orm';
 import { createHash } from 'node:crypto';
 import { canManageEvent, canManageLembaga } from '~/server/api/access';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
@@ -29,6 +29,8 @@ import {
   applyDecisions,
   planImport,
 } from './import-plan';
+import { ensureRootUnit } from './root';
+import { ROOT_DEPTH } from './tree';
 
 type Reader = Pick<typeof Db, 'select' | 'query'>;
 
@@ -122,10 +124,16 @@ async function loadStructure(database: Reader, periodId: string) {
     )
     .limit(1);
   if (!structure) return null;
+  // Akar (dibuat otomatis bersama struktur) tidak dihitung sebagai isi.
   const [units] = await database
     .select({ n: count() })
     .from(organizationUnit)
-    .where(eq(organizationUnit.structure_id, structure.id));
+    .where(
+      and(
+        eq(organizationUnit.structure_id, structure.id),
+        isNotNull(organizationUnit.parent_id),
+      ),
+    );
   return { ...structure, unitCount: units?.n ?? 0 };
 }
 
@@ -244,6 +252,7 @@ export const organizationImportRouter = createTRPCRouter({
           version = created!.version;
         }
 
+        const rootId = await ensureRootUnit(tx, structureId, period.id);
         const unitIds = new Map(
           final.units.map((u) => [u.key, crypto.randomUUID()]),
         );
@@ -255,9 +264,9 @@ export const organizationImportRouter = createTRPCRouter({
           final.units.map((u, index) => ({
             id: unitIds.get(u.key)!,
             structure_id: structureId,
-            parent_id: null,
+            parent_id: rootId,
             name: u.name,
-            level: 1,
+            level: ROOT_DEPTH + 1,
             sort_order: index,
           })),
         );
