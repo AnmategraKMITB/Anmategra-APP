@@ -40,7 +40,7 @@ import { api } from '~/trpc/react';
 import { ErrorNote, Loading, inputClass } from '../placement/shared';
 
 const PILL =
-  'inline-flex min-h-10 shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400';
+  'inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 sm:min-h-10';
 const PILL_ON = 'border-primary-400 bg-primary-400 text-neutral-50';
 const PILL_OFF =
   'border-neutral-400 bg-neutral-50 text-neutral-800 hover:border-neutral-500 hover:bg-neutral-200';
@@ -242,14 +242,18 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
             onChange={(e) => setQ(e.target.value)}
             placeholder="Cari nama atau NIM"
             aria-label="Cari nama atau NIM"
-            className={cn(inputClass, 'h-11 pl-9 pr-10 sm:h-10')}
+            className={cn(
+              inputClass,
+              'h-11 pl-9 pr-12 text-base sm:h-10 sm:pr-10 sm:text-sm',
+              '[&::-webkit-search-cancel-button]:appearance-none',
+            )}
           />
           {searching ? (
             <button
               type="button"
               onClick={() => setQ('')}
               aria-label="Hapus pencarian"
-              className="absolute right-1.5 top-1/2 flex size-8 -translate-y-1/2 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              className="absolute right-1 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-md text-neutral-700 transition-colors hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 sm:right-1.5 sm:size-8"
             >
               <X className="size-4" aria-hidden />
             </button>
@@ -332,7 +336,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
               <a
                 key={`${si}-${d.id}`}
                 href={`#${slugOf(si, d.id)}`}
-                className="shrink-0 rounded-full bg-primary-100 px-3 py-1 text-xs font-semibold text-primary-500 transition-colors hover:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-primary-100 px-3.5 py-1.5 text-xs font-semibold text-primary-500 transition-colors hover:bg-primary-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 sm:min-h-8 sm:px-3 sm:py-1"
               >
                 {d.label}
               </a>
@@ -353,7 +357,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
             key={`${si}-${d.id}`}
             id={slugOf(si, d.id)}
             aria-label={d.label || undefined}
-            className="scroll-mt-52"
+            className="scroll-mt-60 sm:scroll-mt-52"
           >
             {heading ? (
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-primary-400">
@@ -362,7 +366,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
             ) : null}
             {d.label ? (
               <div className="mb-3 flex items-baseline justify-between gap-3">
-                <h2 className="break-words text-xl font-semibold text-neutral-1000">
+                <h2 className="min-w-0 break-words text-xl font-semibold text-neutral-1000">
                   {d.label}
                 </h2>
                 <span className="shrink-0 text-sm text-neutral-700 tabular-nums">
@@ -375,7 +379,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
                 href={d.inviteUrl}
                 target="_blank"
                 rel="noopener noreferrer nofollow"
-                className="mb-3 inline-flex min-h-10 items-center gap-2 rounded-full bg-primary-400 px-4 py-2 text-sm font-semibold text-neutral-50 transition-colors hover:bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2"
+                className="mb-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-primary-400 px-4 py-2 text-sm font-semibold text-neutral-50 transition-colors hover:bg-primary-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 sm:min-h-10 sm:w-auto"
               >
                 Gabung grup LINE/WhatsApp
                 <ExternalLink className="size-4" aria-hidden />
@@ -386,47 +390,68 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
                 Belum ada yang diterima
               </p>
             ) : (
-              <div className="overflow-hidden rounded-[24px] border border-neutral-400 bg-neutral-50">
-                <Table className="min-w-[560px]">
-                  <TableHeader>
-                    <TableRow className="hover:bg-transparent">
-                      <TableHead className="sticky left-0 z-10 min-w-44 bg-neutral-50 px-4 text-xs font-semibold text-neutral-700 shadow-[1px_0_0_0_theme(colors.neutral.400)]">
-                        Nama
-                      </TableHead>
-                      <TableHead className="px-4 text-xs font-semibold text-neutral-700">
-                        NIM
-                      </TableHead>
-                      <TableHead className="px-4 text-xs font-semibold text-neutral-700">
-                        Prodi
-                      </TableHead>
-                      <TableHead className="px-4 text-xs font-semibold text-neutral-700">
-                        Angkatan
-                      </TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {d.rows.map((r, i) => (
-                      <TableRow
-                        key={`${r.nim}-${i}`}
-                        className="group hover:bg-primary-100/60"
-                      >
-                        <TableCell className="sticky left-0 z-10 bg-neutral-50 px-4 py-3 font-semibold text-neutral-1000 shadow-[1px_0_0_0_theme(colors.neutral.400)] group-hover:bg-primary-100">
-                          {r.name}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap px-4 py-3 text-neutral-800 tabular-nums">
-                          {r.nim}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap px-4 py-3 text-neutral-800">
-                          {r.prodi}
-                        </TableCell>
-                        <TableCell className="px-4 py-3 text-neutral-800 tabular-nums">
-                          {r.angkatan}
-                        </TableCell>
+              <>
+                <ul className="grid gap-2 sm:hidden">
+                  {d.rows.map((r, i) => (
+                    <li
+                      key={`${r.nim}-${i}`}
+                      className="rounded-[20px] border border-neutral-400 bg-neutral-50 px-4 py-3.5"
+                    >
+                      <p className="break-words font-semibold text-neutral-1000">
+                        {r.name}
+                      </p>
+                      <p className="mt-1 flex flex-wrap items-baseline gap-x-3 gap-y-0.5 text-sm text-neutral-700">
+                        <span className="tabular-nums">NIM {r.nim}</span>
+                        <span className="min-w-0 break-words">{r.prodi}</span>
+                        <span className="tabular-nums">
+                          Angkatan {r.angkatan}
+                        </span>
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+                <div className="hidden overflow-hidden rounded-[24px] border border-neutral-400 bg-neutral-50 sm:block">
+                  <Table className="min-w-[560px]">
+                    <TableHeader>
+                      <TableRow className="hover:bg-transparent">
+                        <TableHead className="sticky left-0 z-10 min-w-44 bg-neutral-50 px-4 text-xs font-semibold text-neutral-700 shadow-[1px_0_0_0_theme(colors.neutral.400)]">
+                          Nama
+                        </TableHead>
+                        <TableHead className="px-4 text-xs font-semibold text-neutral-700">
+                          NIM
+                        </TableHead>
+                        <TableHead className="px-4 text-xs font-semibold text-neutral-700">
+                          Prodi
+                        </TableHead>
+                        <TableHead className="px-4 text-xs font-semibold text-neutral-700">
+                          Angkatan
+                        </TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {d.rows.map((r, i) => (
+                        <TableRow
+                          key={`${r.nim}-${i}`}
+                          className="group hover:bg-primary-100/60"
+                        >
+                          <TableCell className="sticky left-0 z-10 bg-neutral-50 px-4 py-3 font-semibold text-neutral-1000 shadow-[1px_0_0_0_theme(colors.neutral.400)] group-hover:bg-primary-100">
+                            {r.name}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap px-4 py-3 text-neutral-800 tabular-nums">
+                            {r.nim}
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap px-4 py-3 text-neutral-800">
+                            {r.prodi}
+                          </TableCell>
+                          <TableCell className="px-4 py-3 text-neutral-800 tabular-nums">
+                            {r.angkatan}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
             )}
           </section>
         ))}
