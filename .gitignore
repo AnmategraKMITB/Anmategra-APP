@@ -34,6 +34,7 @@ next-env.d.ts
 # misc
 .DS_Store
 *.pem
+!ci/keys/*.pub.pem
 
 # debug
 npm-debug.log*
