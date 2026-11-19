@@ -194,7 +194,7 @@ jobs:
         with:
           name: nadina-release-${{ steps.version.outputs.value }}
           path: out/
-          if-no-files-found: error
+          if-no-files-found: warn
 
   deploy:
     name: Deploy (simulasi)
