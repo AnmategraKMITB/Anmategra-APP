@@ -1,0 +1,242 @@
+name: Nadina Pipeline Test
+
+on:
+  workflow_dispatch:
+    inputs:
+      scenario:
+        description: Skenario yang dijalankan
+        type: choice
+        options:
+          - all
+          - c02
+          - c03
+          - c04
+          - c05
+        default: all
+      version:
+        description: Versi artefak
+        type: string
+        default: "0.1.0"
+  push:
+    tags:
+      - "pipeline-test-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nadina-pipeline-test-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NADINA_IMAGE: docker.io/reletz/nadina@sha256:590e50e5e5e23f6f8ca58c4dd3d6b90218dfcc5a5c89eef53bf893e27aaaba72
+  VERSION: ${{ inputs.version || '0.1.0' }}
+
+jobs:
+  prepare:
+    name: Pilih skenario
+    runs-on: ubuntu-latest
+    outputs:
+      scenarios: ${{ steps.set.outputs.scenarios }}
+    steps:
+      - id: set
+        run: |
+          if [ "${{ inputs.scenario }}" = "all" ] || [ -z "${{ inputs.scenario }}" ]; then
+            echo 'scenarios=["c02","c03","c04","c05"]' >> "$GITHUB_OUTPUT"
+          else
+            echo "scenarios=[\"${{ inputs.scenario }}\"]" >> "$GITHUB_OUTPUT"
+          fi
+
+  scenario:
+    name: ${{ matrix.scenario }}
+    needs: prepare
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: nadina-release
+    strategy:
+      fail-fast: false
+      matrix:
+        scenario: ${{ fromJSON(needs.prepare.outputs.scenarios) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Validasi image
+        run: |
+          case "$NADINA_IMAGE" in
+            *@sha256:*) ;;
+            *) echo "NADINA_IMAGE harus memakai digest @sha256:"; exit 1 ;;
+          esac
+      - name: Tarik image
+        run: docker pull "$NADINA_IMAGE"
+      - name: Bangun artefak
+        run: |
+          set -eu
+          mkdir -p dist out
+          git archive --format=zip --prefix=anmategra/ -o "dist/anmategra-$VERSION.zip" HEAD
+          sha256sum "dist/anmategra-$VERSION.zip" > "out/anmategra-$VERSION.zip.sha256"
+      - name: Tandatangani
+        if: ${{ matrix.scenario != 'c05' }}
+        env:
+          KEY_ECDSA: ${{ secrets.NADINA_KEY_ECDSA_P256 }}
+        run: |
+          set -eu
+          test -n "$KEY_ECDSA"
+          umask 077
+          key_file="$RUNNER_TEMP/signing.key.pem"
+          trap 'rm -f "$key_file"' EXIT
+          printf '%s\n' "$KEY_ECDSA" > "$key_file"
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/dist:/input:ro" \
+            -v "$PWD/out:/output" \
+            -v "$key_file:/run/signing.key.pem:ro" \
+            "$NADINA_IMAGE" sign \
+            --file "/input/anmategra-$VERSION.zip" \
+            --package anmategra \
+            --version "$VERSION" \
+            --key /run/signing.key.pem \
+            --out "/output/anmategra-$VERSION.zip.bundle.json"
+
+      - name: C02 ubah satu byte artefak
+        if: ${{ matrix.scenario == 'c02' }}
+        run: |
+          set -eu
+          python3 - "$VERSION" <<'PY'
+          import sys
+          from pathlib import Path
+
+          path = Path("dist") / f"anmategra-{sys.argv[1]}.zip"
+          data = bytearray(path.read_bytes())
+          data[len(data) // 2] ^= 1
+          path.write_bytes(data)
+          PY
+          sha256sum "dist/anmategra-$VERSION.zip" > "out/anmategra-$VERSION.zip.tampered.sha256"
+
+      - name: C02 verifikasi harus ditolak
+        if: ${{ matrix.scenario == 'c02' }}
+        run: |
+          set +e
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/dist:/input:ro" \
+            -v "$PWD/out:/output:ro" \
+            -v "$PWD/ci/trust.json:/trust.json:ro" \
+            "$NADINA_IMAGE" verify \
+            --file "/input/anmategra-$VERSION.zip" \
+            --bundle "/output/anmategra-$VERSION.zip.bundle.json" \
+            --trust-store /trust.json \
+            --package anmategra \
+            --version "$VERSION" \
+            --json > "out/anmategra-$VERSION.zip.verification.json"
+          code=$?
+          set -e
+          test "$code" -eq 1
+          grep -q '"status":"ARTIFACT_MISMATCH"' "out/anmategra-$VERSION.zip.verification.json"
+          test ! -f out/deployed.txt
+          printf 'tidak ada\n' > out/marker-status.txt
+
+      - name: C03 verifikasi dengan trust store kosong
+        if: ${{ matrix.scenario == 'c03' }}
+        run: |
+          set +e
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/dist:/input:ro" \
+            -v "$PWD/out:/output:ro" \
+            -v "$PWD/ci/trust-empty.json:/trust.json:ro" \
+            "$NADINA_IMAGE" verify \
+            --file "/input/anmategra-$VERSION.zip" \
+            --bundle "/output/anmategra-$VERSION.zip.bundle.json" \
+            --trust-store /trust.json \
+            --package anmategra \
+            --version "$VERSION" \
+            --json > "out/anmategra-$VERSION.zip.verification.json"
+          code=$?
+          set -e
+          test "$code" -eq 1
+          grep -q '"status":"KEY_NOT_TRUSTED"' "out/anmategra-$VERSION.zip.verification.json"
+          test ! -f out/deployed.txt
+          printf 'tidak ada\n' > out/marker-status.txt
+
+      - name: C04 verifikasi dengan artefak tidak tersedia
+        if: ${{ matrix.scenario == 'c04' }}
+        run: |
+          set +e
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/dist:/input:ro" \
+            -v "$PWD/out:/output:ro" \
+            -v "$PWD/ci/trust.json:/trust.json:ro" \
+            "$NADINA_IMAGE" verify \
+            --file "/input/tidak-ada.zip" \
+            --bundle "/output/anmategra-$VERSION.zip.bundle.json" \
+            --trust-store /trust.json \
+            --package anmategra \
+            --version "$VERSION" \
+            --json > "out/anmategra-$VERSION.zip.verification.json"
+          code=$?
+          set -e
+          test "$code" -eq 2
+          grep -q '"status":"INPUT_ERROR"' "out/anmategra-$VERSION.zip.verification.json"
+          test ! -f out/deployed.txt
+          printf 'tidak ada\n' > out/marker-status.txt
+
+      - name: C05 jalankan CLI dengan UID runner tanpa TTY
+        if: ${{ matrix.scenario == 'c05' }}
+        run: |
+          set -eu
+          mkdir -p out/c05
+          id -u > out/uid.txt
+          id -g > out/gid.txt
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            "$NADINA_IMAGE" -version | tee out/version.txt
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/out:/output" \
+            "$NADINA_IMAGE" keygen -algorithm ed25519 -out /output/c05/key
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/out:/output" \
+            "$NADINA_IMAGE" trust add \
+            -key /output/c05/key.pub.pem \
+            -package anmategra \
+            -store /output/c05/trust.json
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/dist:/input:ro" \
+            -v "$PWD/out:/output" \
+            "$NADINA_IMAGE" sign \
+            --file "/input/anmategra-$VERSION.zip" \
+            --package anmategra \
+            --version "$VERSION" \
+            --key /output/c05/key.key.pem \
+            --out /output/c05/release.json
+          docker run --rm --network none --user "$(id -u):$(id -g)" \
+            -v "$PWD/dist:/input:ro" \
+            -v "$PWD/out:/output:ro" \
+            "$NADINA_IMAGE" verify \
+            --file "/input/anmategra-$VERSION.zip" \
+            --bundle /output/c05/release.json \
+            --trust-store /output/c05/trust.json \
+            --package anmategra \
+            --version "$VERSION" \
+            --json > out/verification.json
+          grep -q '"valid":true' out/verification.json
+          grep -q '"status":"OK"' out/verification.json
+
+      - name: Catat identitas
+        if: always()
+        run: |
+          mkdir -p out
+          printf '%s\n' "$NADINA_IMAGE" > out/image.txt
+          printf '%s\n' "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" > out/run-url.txt
+          {
+            echo "### ${{ matrix.scenario }}"
+            echo "- image: $NADINA_IMAGE"
+            for f in out/*.verification.json; do
+              if [ -f "$f" ]; then echo "- $(basename "$f"): $(cat "$f")"; fi
+            done
+            if [ -f out/verification.json ]; then echo "- verification: $(cat out/verification.json)"; fi
+            if [ -f out/marker-status.txt ]; then echo "- marker: $(cat out/marker-status.txt)"; fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: pipeline-test-${{ matrix.scenario }}
+          path: out/
+          if-no-files-found: warn
