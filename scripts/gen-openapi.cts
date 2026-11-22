@@ -120,7 +120,7 @@ const TAG_DESCRIPTIONS: Record<string, string> = {
   riwayat: 'Histori permanen keanggotaan lembaga dan kepanitiaan (H-03).',
   users: 'Akun dan data mahasiswa.',
   excel:
-    'Endpoint REST (non-tRPC) untuk ekspor/impor anggota dan nilai lewat berkas Excel.',
+    'Endpoint REST (non-tRPC) untuk ekspor/impor lewat berkas Excel: anggota dan nilai lembaga, respons Forms, serta ekspor Oprec per tahap dan lengkap.',
 };
 
 function readJson<T>(file: string, fallback: T): T {
