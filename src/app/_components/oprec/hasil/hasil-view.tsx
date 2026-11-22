@@ -4,6 +4,7 @@ import { Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
 import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecQuestions } from '~/app/_components/export/question-picker';
 import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { type RouterOutputs, api } from '~/trpc/react';
 
@@ -222,6 +223,7 @@ export function HasilView({
               label="Ekspor anggota diterima"
               variant="dark_blue"
               disabled={acceptedCount === 0}
+              questions={oprecQuestions(recruitmentId)}
               note="Data terbaru saat diekspor: tab gabungan berkolom Divisi, lalu satu tab per divisi, lengkap dengan data diri."
             />
             <ExportMenu
@@ -229,6 +231,7 @@ export function HasilView({
               filename={`${fileSlug(overview.data?.name ?? '', 'oprec')}-hasil`}
               label="Ekspor semua pendaftar"
               disabled={!canExportAll}
+              questions={oprecQuestions(recruitmentId)}
               note="Rekap semua pendaftar, lalu anggota yang diterima per divisi."
             />
           </div>

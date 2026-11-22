@@ -811,6 +811,15 @@
               "default": "xlsx"
             },
             "description": "Format berkas. CSV hanya memuat tab pertama."
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id pertanyaan dipisah koma (dari dialog Pilih pertanyaan). Tidak diisi = bawaan route; kosong = tanpa jawaban. Pertanyaan di luar hak akses pengekspor diabaikan."
           }
         ],
         "responses": {
@@ -902,6 +911,15 @@
               "default": "csv"
             },
             "description": "Format berkas. CSV hanya memuat tab pertama."
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id pertanyaan dipisah koma (dari dialog Pilih pertanyaan). Tidak diisi = bawaan route; kosong = tanpa jawaban. Pertanyaan di luar hak akses pengekspor diabaikan."
           }
         ],
         "responses": {
@@ -993,6 +1011,15 @@
               "default": "xlsx"
             },
             "description": "Format berkas. CSV hanya memuat tab pertama."
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id pertanyaan dipisah koma (dari dialog Pilih pertanyaan). Tidak diisi = bawaan route; kosong = tanpa jawaban. Pertanyaan di luar hak akses pengekspor diabaikan."
           }
         ],
         "responses": {
@@ -1184,6 +1211,15 @@
               "default": "xlsx"
             },
             "description": "Format berkas. CSV hanya memuat tab pertama."
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id pertanyaan dipisah koma (dari dialog Pilih pertanyaan). Tidak diisi = bawaan route; kosong = tanpa jawaban. Pertanyaan di luar hak akses pengekspor diabaikan."
           }
         ],
         "responses": {
@@ -1285,6 +1321,15 @@
               "default": "csv"
             },
             "description": "Format berkas. CSV hanya memuat tab pertama."
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id pertanyaan dipisah koma (dari dialog Pilih pertanyaan). Tidak diisi = bawaan route; kosong = tanpa jawaban. Pertanyaan di luar hak akses pengekspor diabaikan."
           }
         ],
         "responses": {
@@ -1365,6 +1410,15 @@
               "type": "string"
             },
             "description": "ID oprec."
+          },
+          {
+            "name": "fields",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Id pertanyaan dipisah koma (dari dialog Pilih pertanyaan). Tidak diisi = bawaan route; kosong = tanpa jawaban. Pertanyaan di luar hak akses pengekspor diabaikan."
           }
         ],
         "responses": {

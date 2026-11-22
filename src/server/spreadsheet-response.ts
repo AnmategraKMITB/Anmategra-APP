@@ -18,6 +18,23 @@ export function parseFormat(
 }
 
 /**
+ * `?fields=id1,id2` dari dialog Pilih pertanyaan: daftar id pertanyaan yang
+ * jawabannya ikut diekspor. Tidak ada = bawaan route; kosong = tanpa jawaban.
+ */
+export function parseFields(params: URLSearchParams): string[] | undefined {
+  const raw = params.get('fields');
+  if (raw === null) return undefined;
+  return [
+    ...new Set(
+      raw
+        .split(',')
+        .map((id) => id.trim())
+        .filter(Boolean),
+    ),
+  ].slice(0, 500);
+}
+
+/**
  * Kirim workbook sebagai unduhan. CSV hanya memuat satu tab, jadi pemanggil
  * memilih tab mana (bawaan: tab pertama).
  */

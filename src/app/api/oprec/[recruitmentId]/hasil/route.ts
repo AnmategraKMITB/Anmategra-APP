@@ -8,12 +8,14 @@ import {
 import { createTRPCContext } from '~/server/api/trpc';
 import {
   acceptedSheets,
+  loadAnswers,
   loadContacts,
   loadResults,
   resultsSheet,
 } from '~/server/export/oprec';
 import {
   exportErrorResponse,
+  parseFields,
   parseFormat,
   spreadsheetResponse,
   unlessForbidden,
@@ -23,8 +25,9 @@ import {
  * Ekspor Hasil sebagai XLSX atau CSV (`?format=`). `scope=semua`: rekap semua
  * pendaftar lalu anggota yang diterima; `scope=diterima`: hanya anggota yang
  * diterima, satu tab gabungan dan satu tab per divisi, lengkap dengan data diri
- * bila boleh dilihat. CSV memuat tab pertama. Tidak memuat alasan, flag, atau
- * catatan sensitif.
+ * bila boleh dilihat. `?fields=` menambah jawaban pertanyaan terpilih (tab
+ * divisi juga memuat pertanyaan bagian divisi itu). CSV memuat tab pertama.
+ * Tidak memuat alasan, flag, atau catatan sensitif.
  */
 export async function GET(
   req: NextRequest,
@@ -41,11 +44,24 @@ export async function GET(
       loadResults(api, recruitmentId),
       unlessForbidden(() => loadContacts(api, recruitmentId)),
     ]);
+    const fields = parseFields(req.nextUrl.searchParams);
+    const answers = fields?.length
+      ? await unlessForbidden(() => loadAnswers(api, recruitmentId, fields))
+      : null;
     const banner = overview.published ? undefined : PROVISIONAL_BANNER;
-    const accepted = acceptedSheets(rows, overview.divisions, contacts, banner);
+    const accepted = acceptedSheets(
+      rows,
+      overview.divisions,
+      contacts,
+      banner,
+      answers,
+    );
     const sheets =
       scope === 'semua'
-        ? [resultsSheet(rows, overview.maxChoices, banner), ...accepted]
+        ? [
+            resultsSheet(rows, overview.maxChoices, banner, answers),
+            ...accepted,
+          ]
         : accepted;
 
     await api.oprec.resultsLogExport({ recruitmentId, format });

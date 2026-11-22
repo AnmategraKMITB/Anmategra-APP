@@ -1,4 +1,5 @@
-import { type SheetTable } from '~/lib/spreadsheet/workbook';
+import { plainLabel } from '~/lib/forms/plain-label';
+import { type SheetCell, type SheetTable } from '~/lib/spreadsheet/workbook';
 import { type createCaller } from '~/server/api/root';
 import {
   type ResponseColumn,
@@ -12,12 +13,6 @@ import {
 
 type Caller = ReturnType<typeof createCaller>;
 
-const stripMarkdownLite = (text: string) =>
-  text
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/\*\*([^*]+)\*\*/g, '$1')
-    .replace(/_([^_]+)_/g, '$1')
-    .replace(/\+\+([^+]+)\+\+/g, '$1');
 
 /**
  * Semua respons satu form lewat prosedur halaman respons (akses ikut
@@ -42,6 +37,16 @@ export async function collectResponses(api: Caller, formId: string) {
   return { columns, rows };
 }
 
+/** Satu sel jawaban: angka tetap angka, selebihnya teks seperti di CSV. */
+export function answerCell(type: string, raw: unknown): SheetCell {
+  const numeric = type === 'number' || type === 'scale';
+  return numeric && typeof raw === 'number' ? raw : formatCsvAnswer(type, raw);
+}
+
+/** Judul kolom jawaban: label tanpa format, ditandai bila pertanyaannya diarsipkan. */
+export const answerTitle = (c: { label: string; archived: boolean }) =>
+  `${plainLabel(c.label)}${c.archived ? ' (diarsipkan)' : ''}`;
+
 /** Tab respons: kolom yang sama dengan CSV, angka tetap angka. */
 export function responsesSheet(
   name: string,
@@ -55,10 +60,7 @@ export function responsesSheet(
       'Nama',
       'NIM',
       'Email',
-      ...columns.map(
-        (c) =>
-          `${stripMarkdownLite(c.label)}${c.archived ? ' (diarsipkan)' : ''}`,
-      ),
+      ...columns.map(answerTitle),
     ],
     rows: rows.map((row) => [
       formatWib(row.submittedAt),
@@ -66,13 +68,9 @@ export function responsesSheet(
       row.respondent.name,
       row.respondent.nim,
       row.respondent.email,
-      ...columns.map((column) => {
-        const raw = row.answers[column.fieldId];
-        const numeric = column.type === 'number' || column.type === 'scale';
-        return numeric && typeof raw === 'number'
-          ? raw
-          : formatCsvAnswer(column.type, raw);
-      }),
+      ...columns.map((column) =>
+        answerCell(column.type, row.answers[column.fieldId]),
+      ),
     ]),
     wrap: columns
       .map((c, i) => (c.type === 'long_text' || c.type === 'file' ? i + 5 : -1))

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ExportMenu } from '~/app/_components/export/export-menu';
+import { formQuestions } from '~/app/_components/export/question-picker';
 import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { cn } from '~/lib/utils';
 import { api } from '~/trpc/react';
@@ -57,6 +58,7 @@ export function ResponsesView({
           label="Ekspor respons"
           variant="dark_blue"
           disabled={total === 0}
+          questions={formQuestions(formId)}
         />
       </header>
 

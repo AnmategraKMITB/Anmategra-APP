@@ -4,6 +4,7 @@ import { Search, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
 import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecQuestions } from '~/app/_components/export/question-picker';
 import { Button } from '~/components/ui/button';
 import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { type RouterOutputs, api } from '~/trpc/react';
@@ -275,6 +276,7 @@ export function PlacementView({
           href={`/api/oprec/${recruitmentId}/penempatan`}
           filename={`${fileSlug(overview.data?.name ?? '', 'oprec')}-penempatan`}
           disabled={!overview.data}
+          questions={oprecQuestions(recruitmentId)}
           note="Satu tab per divisi yang keputusannya kamu pegang. Alasan keputusan tidak ikut."
         />
       </header>

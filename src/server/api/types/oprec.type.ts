@@ -15,6 +15,8 @@ import {
   STATUS_METHODS,
 } from '~/server/db/schema';
 
+import { ExportFieldIdsSchema, ExportPresetNameSchema } from './form.type';
+
 const id = z.string().min(1).max(255);
 
 export const MAX_WAVES_PER_RECRUITMENT = 20;
@@ -468,3 +470,18 @@ export const AssessStatusesSchema = z.array(
       .nullable(),
   }),
 );
+
+/** `fieldIds` kosong = tanpa jawaban; tidak diisi = semua pertanyaan yang boleh dilihat. */
+export const OprecExportAnswersInputSchema = z.object({
+  recruitmentId: id,
+  fieldIds: ExportFieldIdsSchema.optional(),
+});
+export const OprecExportPresetSaveInputSchema = z.object({
+  recruitmentId: id,
+  name: ExportPresetNameSchema,
+  fieldIds: ExportFieldIdsSchema,
+});
+export const OprecExportPresetDeleteInputSchema = z.object({
+  recruitmentId: id,
+  presetId: id,
+});

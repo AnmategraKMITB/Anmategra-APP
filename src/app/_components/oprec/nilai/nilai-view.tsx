@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecQuestions } from '~/app/_components/export/question-picker';
 import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { api } from '~/trpc/react';
 
@@ -57,6 +58,7 @@ export function NilaiView({
           href={`/api/oprec/${recruitmentId}/nilai`}
           filename={`${fileSlug(data?.name ?? '', 'oprec')}-nilai`}
           disabled={!data || data.scopes.length === 0}
+          questions={oprecQuestions(recruitmentId)}
           note={
             data?.isAdmin
               ? 'Satu tab per lingkup; nilai per kriteria berupa rata-rata semua penilai.'

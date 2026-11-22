@@ -4,6 +4,7 @@ import { Megaphone, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
 import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecQuestions } from '~/app/_components/export/question-picker';
 import { Button } from '~/components/ui/button';
 import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { api } from '~/trpc/react';
@@ -179,6 +180,7 @@ export function ApplicantsView({
             href={`/api/oprec/${recruitmentId}/pendaftar`}
             filename={`${fileSlug(name, 'oprec')}-pendaftar`}
             disabled={exportDisabled}
+            questions={oprecQuestions(recruitmentId)}
             note="Semua pendaftar dengan pilihan divisi dan data diri."
           />
         </div>

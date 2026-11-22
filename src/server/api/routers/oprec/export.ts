@@ -193,6 +193,7 @@ export const exportProcedures = {
                   });
           return {
             label: scope.label,
+            divisionId: scope.divisionId,
             isDivision: scope.divisionId !== null,
             criteria: list.map((c) => ({
               id: c.id,
@@ -228,6 +229,7 @@ export const exportProcedures = {
                 }
               }
               return {
+                applicationId: app.id,
                 code: blindCode(app.id),
                 name: hideIdentity ? null : app.name,
                 nim: hideIdentity ? null : app.nim,

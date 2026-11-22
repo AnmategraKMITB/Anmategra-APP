@@ -1112,6 +1112,28 @@ export const ResponsesListInputSchema = z.object({
   /** Hanya respons sampai waktu ini; dipakai ekspor agar halaman tidak bergeser. */
   until: z.date().optional(),
 });
+/** Nama preset ekspor (pilihan pertanyaan yang disimpan bersama). */
+export const ExportPresetNameSchema = z
+  .string()
+  .trim()
+  .min(1, 'Nama preset wajib diisi')
+  .max(80, 'Nama preset maksimal 80 karakter')
+  .regex(TANPA_NUL, PESAN_NUL);
+export const ExportFieldIdsSchema = z
+  .array(IdSchema)
+  .max(500, 'Terlalu banyak pertanyaan');
+
+export const FormExportOptionsInputSchema = z.object({ formId: IdSchema });
+export const FormExportPresetSaveInputSchema = z.object({
+  formId: IdSchema,
+  name: ExportPresetNameSchema,
+  fieldIds: ExportFieldIdsSchema,
+});
+export const FormExportPresetDeleteInputSchema = z.object({
+  formId: IdSchema,
+  presetId: IdSchema,
+});
+
 export const ResponsesGetInputSchema = z.object({
   formId: IdSchema,
   submissionId: IdSchema,
