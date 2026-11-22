@@ -1,9 +1,11 @@
 'use client';
 
-import { Download, Search, X } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
-import { Button } from '~/components/ui/button';
+import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecQuestions } from '~/app/_components/export/question-picker';
+import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { type RouterOutputs, api } from '~/trpc/react';
 
 import {
@@ -215,34 +217,23 @@ export function HasilView({
             <Chip tone="muted">Sementara - belum final</Chip>
           ) : null}
           <div className="flex flex-wrap items-center justify-end gap-2">
-            {(
-              [
-                ['diterima', 'Hanya yang diterima'],
-                ['semua', 'Semua pendaftar'],
-              ] as const
-            ).flatMap(([scope, label]) =>
-              (['csv', 'xlsx'] as const).map((format) => {
-                const disabled =
-                  scope === 'diterima' ? acceptedCount === 0 : !canExportAll;
-                return (
-                  <Button
-                    key={`${scope}-${format}`}
-                    asChild
-                    variant="dark_blue_outline"
-                    aria-disabled={disabled}
-                    className={disabled ? 'pointer-events-none opacity-50' : ''}
-                  >
-                    <a
-                      href={`/api/oprec/${recruitmentId}/hasil?format=${format}&scope=${scope}`}
-                      download
-                      tabIndex={disabled ? -1 : undefined}
-                    >
-                      <Download /> {label} ({format.toUpperCase()})
-                    </a>
-                  </Button>
-                );
-              }),
-            )}
+            <ExportMenu
+              href={`/api/oprec/${recruitmentId}/hasil?scope=diterima`}
+              filename={`${fileSlug(overview.data?.name ?? '', 'oprec')}-diterima`}
+              label="Ekspor anggota diterima"
+              variant="dark_blue"
+              disabled={acceptedCount === 0}
+              questions={oprecQuestions(recruitmentId)}
+              note="Data terbaru saat diekspor: tab gabungan berkolom Divisi, lalu satu tab per divisi, lengkap dengan data diri."
+            />
+            <ExportMenu
+              href={`/api/oprec/${recruitmentId}/hasil?scope=semua`}
+              filename={`${fileSlug(overview.data?.name ?? '', 'oprec')}-hasil`}
+              label="Ekspor semua pendaftar"
+              disabled={!canExportAll}
+              questions={oprecQuestions(recruitmentId)}
+              note="Rekap semua pendaftar, lalu anggota yang diterima per divisi."
+            />
           </div>
         </div>
       </header>

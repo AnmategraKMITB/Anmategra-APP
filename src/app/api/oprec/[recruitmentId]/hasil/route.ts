@@ -1,152 +1,83 @@
-import { TRPCError } from '@trpc/server';
-import ExcelJS from 'exceljs';
-import { type NextRequest, NextResponse } from 'next/server';
+import { type NextRequest } from 'next/server';
 import { createCaller } from '~/server/api/root';
 import {
-  DIVISION_HEADER,
   PROVISIONAL_BANNER,
-  acceptedFlatTable,
-  applicantCsv,
-  divisionSheets,
   parseResultsScope,
   resultsFilename,
-  resultsTable,
-  safeCell,
 } from '~/server/api/routers/oprec/applicants-export';
 import { createTRPCContext } from '~/server/api/trpc';
-import { RESULTS_MAX_PAGE_SIZE } from '~/server/api/types/oprec.type';
-
-const STATUS: Partial<Record<TRPCError['code'], number>> = {
-  UNAUTHORIZED: 401,
-  FORBIDDEN: 403,
-  NOT_FOUND: 404,
-  BAD_REQUEST: 400,
-  CONFLICT: 409,
-};
+import {
+  acceptedSheets,
+  loadAnswers,
+  loadContacts,
+  loadResults,
+  resultsSheet,
+} from '~/server/export/oprec';
+import {
+  exportErrorResponse,
+  parseFields,
+  parseFormat,
+  spreadsheetResponse,
+  unlessForbidden,
+} from '~/server/spreadsheet-response';
 
 /**
- * Ekspor Hasil sebagai CSV atau XLSX (`?format=`): rekap utama ditambah satu
- * tab per divisi untuk XLSX. Tidak memuat alasan, flag, atau catatan sensitif.
+ * Ekspor Hasil sebagai XLSX atau CSV (`?format=`). `scope=semua`: rekap semua
+ * pendaftar lalu anggota yang diterima; `scope=diterima`: hanya anggota yang
+ * diterima, satu tab gabungan dan satu tab per divisi, lengkap dengan data diri
+ * bila boleh dilihat. `?fields=` menambah jawaban pertanyaan terpilih (tab
+ * divisi juga memuat pertanyaan bagian divisi itu). CSV memuat tab pertama.
+ * Tidak memuat alasan, flag, atau catatan sensitif.
  */
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ recruitmentId: string }> },
 ) {
   const { recruitmentId } = await params;
-  const format =
-    req.nextUrl.searchParams.get('format') === 'xlsx' ? 'xlsx' : 'csv';
+  const format = parseFormat(req.nextUrl.searchParams.get('format'), 'csv');
   const scope = parseResultsScope(req.nextUrl.searchParams.get('scope'));
   const api = createCaller(await createTRPCContext({ headers: req.headers }));
 
   try {
     const overview = await api.oprec.resultsOverview({ recruitmentId });
-    const rows: Awaited<ReturnType<typeof api.oprec.resultsList>>['rows'] = [];
-    for (let page = 1; ; page++) {
-      const data = await api.oprec.resultsList({
-        recruitmentId,
-        page,
-        pageSize: RESULTS_MAX_PAGE_SIZE,
-      });
-      rows.push(...data.rows);
-      if (rows.length >= data.total || data.rows.length === 0) break;
-    }
-
-    const table = resultsTable(
-      rows.map((row) => ({
-        name: row.name,
-        nim: row.nim,
-        prodi: row.prodi,
-        angkatan: row.angkatan,
-        waveLabel: row.waveLabel,
-        acceptedLabel: row.acceptedLabel,
-        choices: row.choices.map((choice) => ({
-          rank: choice.rank,
-          label: choice.label,
-          status:
-            choice.decision === 'terima'
-              ? ('diterima' as const)
-              : choice.decision === 'tolak'
-                ? ('ditolak' as const)
-                : ('belum' as const),
-        })),
-      })),
-      overview.maxChoices,
-    );
-    const filename = resultsFilename(overview.name, format, {
-      scope,
-      provisional: !overview.published,
-    });
-
+    const [rows, contacts] = await Promise.all([
+      loadResults(api, recruitmentId),
+      unlessForbidden(() => loadContacts(api, recruitmentId)),
+    ]);
+    const fields = parseFields(req.nextUrl.searchParams);
+    const answers = fields?.length
+      ? await unlessForbidden(() => loadAnswers(api, recruitmentId, fields))
+      : null;
     const banner = overview.published ? undefined : PROVISIONAL_BANNER;
+    const accepted = acceptedSheets(
+      rows,
+      overview.divisions,
+      contacts,
+      banner,
+      answers,
+    );
+    const sheets =
+      scope === 'semua'
+        ? [
+            resultsSheet(rows, overview.maxChoices, banner, answers),
+            ...accepted,
+          ]
+        : accepted;
 
     await api.oprec.resultsLogExport({ recruitmentId, format });
 
-    if (format === 'csv') {
-      const csvTable =
-        scope === 'diterima'
-          ? acceptedFlatTable(rows, overview.divisions)
-          : table;
-      return new Response(applicantCsv(csvTable, banner), {
-        headers: {
-          'Content-Type': 'text/csv; charset=utf-8',
-          'Content-Disposition': `attachment; filename="${filename}"`,
-          'Cache-Control': 'private, no-store',
-        },
-      });
-    }
-
-    const workbook = new ExcelJS.Workbook();
-    workbook.title = `Hasil ${overview.name}${overview.published ? '' : ' - SEMENTARA (belum final)'}`;
-    const style = (sheet: ExcelJS.Worksheet) => {
-      sheet.views = [{ state: 'frozen', ySplit: banner ? 2 : 1 }];
-      sheet.columns.forEach((column) => {
-        column.width = 22;
-      });
-    };
-    if (scope === 'semua') {
-      const main = workbook.addWorksheet('Rekap');
-      if (banner)
-        main.addRow([banner]).font = {
-          bold: true,
-          color: { argb: 'FFB91C1C' },
-        };
-      main.addRow(table.header).font = { bold: true };
-      for (const row of table.body) main.addRow(row.map(safeCell));
-      style(main);
-    }
-    const sheets = divisionSheets(rows, overview.divisions);
-    for (const data of sheets) {
-      const name =
-        scope === 'semua' && data.name.toLowerCase() === 'rekap'
-          ? 'Rekap (2)'
-          : data.name;
-      const sheet = workbook.addWorksheet(name);
-      if (banner)
-        sheet.addRow([banner]).font = {
-          bold: true,
-          color: { argb: 'FFB91C1C' },
-        };
-      sheet.addRow(DIVISION_HEADER).font = { bold: true };
-      for (const row of data.body) sheet.addRow(row.map(safeCell));
-      style(sheet);
-    }
-
-    const buffer = await workbook.xlsx.writeBuffer();
-    return new Response(buffer, {
-      headers: {
-        'Content-Type':
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Disposition': `attachment; filename="${filename}"`,
-        'Cache-Control': 'private, no-store',
+    return await spreadsheetResponse(
+      {
+        title: `Hasil ${overview.name}${overview.published ? '' : ' - SEMENTARA (belum final)'}`,
+        sheets,
       },
-    });
+      resultsFilename(overview.name, format, {
+        scope,
+        provisional: !overview.published,
+      }).replace(/\.(csv|xlsx)$/, ''),
+      format,
+    );
   } catch (err) {
-    if (err instanceof TRPCError) {
-      return NextResponse.json(
-        { message: err.message },
-        { status: STATUS[err.code] ?? 500 },
-      );
-    }
-    throw err;
+    return exportErrorResponse(err);
   }
 }

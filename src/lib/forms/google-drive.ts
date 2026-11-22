@@ -351,3 +351,69 @@ export async function deleteFromGoogleDrive(itemId: string): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Token Drive untuk ekspor. Panggil langsung dari penangan klik (tanpa
+ * `await` sebelumnya) agar popup izin tidak diblokir.
+ */
+export function googleDriveToken(): Promise<string> {
+  const clientId = env.NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID;
+  if (!clientId) {
+    return Promise.reject(
+      new Error('Google Drive Client ID belum dikonfigurasi.'),
+    );
+  }
+  if (hasGoogleDriveToken()) return Promise.resolve(tokenCache!.value);
+  if (window.google?.accounts?.oauth2) return requestToken(clientId);
+  return getAccessToken(clientId);
+}
+
+export function googleSheetsAvailable(): boolean {
+  return Boolean(env.NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID);
+}
+
+const XLSX_TYPE =
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+
+/**
+ * Unggah XLSX ke Drive pengguna sebagai Google Sheets (Drive mengonversinya,
+ * semua tab ikut). Scope `drive.file`: aplikasi hanya bisa melihat berkas yang
+ * ia buat sendiri. Mengembalikan tautan untuk membuka spreadsheet.
+ */
+export async function uploadAsGoogleSheet(
+  xlsx: Blob,
+  name: string,
+  token: string,
+): Promise<string> {
+  const boundary = `anmategra-${crypto.randomUUID()}`;
+  const metadata = {
+    name,
+    mimeType: 'application/vnd.google-apps.spreadsheet',
+    description: 'Ekspor dari Anmategra',
+  };
+  const body = new Blob([
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`,
+    `--${boundary}\r\nContent-Type: ${XLSX_TYPE}\r\n\r\n`,
+    xlsx,
+    `\r\n--${boundary}--`,
+  ]);
+  const res = await fetchTimed(
+    `${DRIVE_UPLOAD_API}/files?uploadType=multipart&fields=id,webViewLink`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': `multipart/related; boundary=${boundary}`,
+      },
+      body,
+    },
+    UPLOAD_TIMEOUT_MS,
+  );
+  if (!res.ok) throw await responseError(res);
+  const file = (await res.json()) as { id?: string; webViewLink?: string };
+  if (!file.id) throw new Error('Google Drive tidak mengembalikan file ID.');
+  return (
+    file.webViewLink ??
+    `https://docs.google.com/spreadsheets/d/${encodeURIComponent(file.id)}/edit`
+  );
+}

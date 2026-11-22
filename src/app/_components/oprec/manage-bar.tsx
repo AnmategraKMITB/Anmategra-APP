@@ -4,6 +4,8 @@ import { FileText } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecFullQuestions } from '~/app/_components/export/question-picker';
 import { Button } from '~/components/ui/button';
 import { cn } from '~/lib/utils';
 import { api } from '~/trpc/react';
@@ -17,7 +19,7 @@ import {
 
 /**
  * Aksi pengelola di halaman oprec: status oprec, tautan ke formulir terikat,
- * dan tombol pindah status (Buka, Tutup, Buka lagi). Menutup dan membuka lagi
+ * ekspor lengkap, dan tombol pindah status (Buka, Tutup, Buka lagi). Menutup dan membuka lagi
  * minta konfirmasi; alasan penolakan server ditampilkan apa adanya.
  */
 export function OprecManageBar({
@@ -61,6 +63,14 @@ export function OprecManageBar({
             <FileText /> Formulir
           </Link>
         </Button>
+        <ExportMenu
+          href={`/api/oprec/${recruitmentId}/lengkap`}
+          csv={false}
+          questions={oprecFullQuestions(recruitmentId)}
+          filename="oprec-lengkap"
+          label="Ekspor lengkap"
+          note="Satu spreadsheet, satu tab per tahap: Ringkasan, Pendaftar, Jawaban formulir, Nilai, Prioritas, Penempatan, Hasil, dan anggota diterima per divisi."
+        />
         {!confirming ? (
           <Button
             type="button"

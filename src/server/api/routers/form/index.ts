@@ -1,6 +1,7 @@
 import { createTRPCRouter, mergeTRPCRouters } from '~/server/api/trpc';
 
 import { formEndingRouter } from './ending';
+import { formExportRouter } from './export-presets';
 import { formFieldRouter } from './field';
 import { formFormRouter } from './form';
 import { formResponsesRouter } from './responses';
@@ -21,5 +22,6 @@ export const formRouter = mergeTRPCRouters(
     section: formSectionRouter,
     ending: formEndingRouter,
     responses: formResponsesRouter,
+    export: formExportRouter,
   }),
 );

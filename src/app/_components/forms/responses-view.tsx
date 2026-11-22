@@ -1,9 +1,10 @@
 'use client';
 
-import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { Button } from '~/components/ui/button';
+import { ExportMenu } from '~/app/_components/export/export-menu';
+import { formQuestions } from '~/app/_components/export/question-picker';
+import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { cn } from '~/lib/utils';
 import { api } from '~/trpc/react';
 
@@ -12,7 +13,7 @@ import { ResponsesTable } from './responses-table';
 
 const PAGE_SIZE = 50;
 
-/** Halaman respons satu form: Ringkasan dan Tabel, plus ekspor CSV. */
+/** Halaman respons satu form: Ringkasan dan Tabel, plus ekspor Excel, Google Sheets, dan CSV. */
 export function ResponsesView({
   formId,
   title,
@@ -51,16 +52,14 @@ export function ResponsesView({
             {total === undefined ? '' : ` · ${total} respons`}
           </p>
         </div>
-        <Button
-          asChild
+        <ExportMenu
+          href={`/api/forms/${formId}/respons`}
+          filename={`${fileSlug(title, 'form')}-respons`}
+          label="Ekspor respons"
           variant="dark_blue"
-          className={cn(total === 0 && 'pointer-events-none opacity-50')}
-          aria-disabled={total === 0}
-        >
-          <a href={`/api/forms/${formId}/respons.csv`} download>
-            <Download /> Ekspor CSV
-          </a>
-        </Button>
+          disabled={total === 0}
+          questions={formQuestions(formId)}
+        />
       </header>
 
       <div

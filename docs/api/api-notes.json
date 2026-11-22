@@ -137,5 +137,32 @@
   "form.submit": {
     "summary": "Kirim jawaban formulir",
     "description": "Hanya mahasiswa aktif. Format `value` per tipe: teks dan tanggal (`YYYY-MM-DD`) = string, `number` = angka, `single_choice` = id opsi, `multiple_choice` = array id opsi, `checkbox` = boolean. Pertanyaan opsional boleh tidak dikirim. Preset `config.pattern` (`email`, `nomor_hp`, `nim`) harus cocok dengan seluruh jawaban. Kesalahan validasi dibalas `BAD_REQUEST` dengan pesan per pertanyaan di `data.zodError.fieldErrors[fieldId]`. Submit kedua dibalas `CONFLICT` kecuali `allowMultipleSubmissions` aktif."
+  },
+  "form.export.options": {
+    "summary": "Pilihan pertanyaan untuk ekspor respons",
+    "description": "Semua pertanyaan yang bisa dijawab (termasuk yang diarsipkan) beserta judul bagiannya, dan preset ekspor bersama form ini. Dipakai dialog **Pilih pertanyaan** di menu Ekspor respons."
+  },
+  "form.export.presetSave": {
+    "summary": "Simpan preset ekspor",
+    "description": "Menyimpan pilihan pertanyaan sebagai preset bersama (mis. \"Data diri\"). Nama yang sama menimpa preset lama. Id yang bukan pertanyaan form ini dibuang. Maksimal 30 preset per form."
+  },
+  "form.export.presetDelete": {
+    "summary": "Hapus preset ekspor"
+  },
+  "oprec.exportOptions": {
+    "summary": "Pilihan pertanyaan untuk ekspor oprec",
+    "description": "Pertanyaan formulir oprec yang boleh dilihat pemanggil, dengan divisi tempat bagiannya terikat, plus preset bersama form oprec. Admin melihat semua pertanyaan; pengurus dan penilai divisi hanya pertanyaan umum dan bagian divisinya. `canSavePresets` hanya `true` untuk admin."
+  },
+  "oprec.exportAnswers": {
+    "summary": "Jawaban formulir untuk ekspor oprec",
+    "description": "Jawaban mentah per pendaftar untuk pertanyaan terpilih (`fieldIds`; tidak diisi = semua yang boleh dilihat). Admin dan penilai umum melihat semua pendaftar, yang lain hanya pendaftar yang memilih divisinya. Dipakai route ekspor `/api/oprec/{id}/*?fields=`."
+  },
+  "oprec.exportPresetSave": {
+    "summary": "Simpan preset ekspor oprec",
+    "description": "Sama seperti `form.export.presetSave`, untuk form oprec ini. Hanya admin oprec."
+  },
+  "oprec.exportPresetDelete": {
+    "summary": "Hapus preset ekspor oprec",
+    "description": "Hanya admin oprec."
   }
 }

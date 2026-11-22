@@ -3,7 +3,10 @@
 import { Search, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
+import { ExportMenu } from '~/app/_components/export/export-menu';
+import { oprecQuestions } from '~/app/_components/export/question-picker';
 import { Button } from '~/components/ui/button';
+import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { type RouterOutputs, api } from '~/trpc/react';
 
 import { AutofillDialog } from './placement/autofill-dialog';
@@ -132,9 +135,10 @@ export function PlacementView({
 
   const move = api.oprec.directMove.useMutation();
   const transfer = api.oprec.transferRequest.useMutation();
-  const [actionRow, setActionRow] = useState<
-    { row: Row; kind: 'move' | 'transfer' } | null
-  >(null);
+  const [actionRow, setActionRow] = useState<{
+    row: Row;
+    kind: 'move' | 'transfer';
+  } | null>(null);
   const [actionDivision, setActionDivision] = useState('');
   const [actionReason, setActionReason] = useState('');
 
@@ -244,27 +248,37 @@ export function PlacementView({
       })) ?? [];
 
   const acceptedDivisionOf = (row: Row) =>
-    row.choices.find((choice) => choice.decision === 'terima')?.divisionId ?? '';
+    row.choices.find((choice) => choice.decision === 'terima')?.divisionId ??
+    '';
 
   return (
     <div className="py-6 sm:py-8">
-      <header>
-        {backHref ? (
-          <Link
-            href={backHref}
-            className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-          >
-            ← Kembali ke oprec
-          </Link>
-        ) : null}
-        <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
-          Penempatan
-        </h1>
-        <p className="mt-1 text-sm text-neutral-700">
-          {overview.data?.name ?? 'Oprec'}
-          {periodName ? ` · ${periodName}` : ''}. Putuskan tiap pilihan dan
-          pantau kuota divisi.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          {backHref ? (
+            <Link
+              href={backHref}
+              className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            >
+              ← Kembali ke oprec
+            </Link>
+          ) : null}
+          <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
+            Penempatan
+          </h1>
+          <p className="mt-1 text-sm text-neutral-700">
+            {overview.data?.name ?? 'Oprec'}
+            {periodName ? ` · ${periodName}` : ''}. Putuskan tiap pilihan dan
+            pantau kuota divisi.
+          </p>
+        </div>
+        <ExportMenu
+          href={`/api/oprec/${recruitmentId}/penempatan`}
+          filename={`${fileSlug(overview.data?.name ?? '', 'oprec')}-penempatan`}
+          disabled={!overview.data}
+          questions={oprecQuestions(recruitmentId)}
+          note="Satu tab per divisi yang keputusannya kamu pegang. Alasan keputusan tidak ikut."
+        />
       </header>
 
       {tabs}
@@ -302,233 +316,248 @@ export function PlacementView({
                 ) : (
                   'tab Prioritas'
                 )}
-                . Halaman ini terbuka lagi saat masa banding; sekarang yang
-                bisa diatur hanya closerec dan visibilitas antar divisi.
-              </Notice>
-            </div>
-          ) : (
-          <>
-          <StateBar
-            recruitmentId={recruitmentId}
-            overview={overview.data}
-            onChanged={refresh}
-            announce={announce}
-            onError={setError}
-          />
-
-          {activeDivision === null ? (
-            <div className="mt-6">
-              <Notice>
-                Belum ada divisi tujuan. Tambahkan divisi lewat pengaturan
-                oprec.
+                . Halaman ini terbuka lagi saat masa banding; sekarang yang bisa
+                diatur hanya closerec dan visibilitas antar divisi.
               </Notice>
             </div>
           ) : (
             <>
-              <div className="mt-6 flex flex-wrap items-start justify-between gap-3">
-                <nav aria-label="Divisi" className="flex flex-wrap gap-1">
-                  {divisions.map((division) => {
-                    const active = division.id === activeDivision.id;
-                    return (
+              <StateBar
+                recruitmentId={recruitmentId}
+                overview={overview.data}
+                onChanged={refresh}
+                announce={announce}
+                onError={setError}
+              />
+
+              {activeDivision === null ? (
+                <div className="mt-6">
+                  <Notice>
+                    Belum ada divisi tujuan. Tambahkan divisi lewat pengaturan
+                    oprec.
+                  </Notice>
+                </div>
+              ) : (
+                <>
+                  <div className="mt-6 flex flex-wrap items-start justify-between gap-3">
+                    <nav aria-label="Divisi" className="flex flex-wrap gap-1">
+                      {divisions.map((division) => {
+                        const active = division.id === activeDivision.id;
+                        return (
+                          <button
+                            key={division.id}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => {
+                              setPickedDivision(division.id);
+                              setSearch('');
+                            }}
+                            className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
+                              active
+                                ? 'bg-primary-200 text-primary-400'
+                                : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
+                            }`}
+                          >
+                            {division.label}
+                          </button>
+                        );
+                      })}
+                    </nav>
+                    <Button
+                      size="sm"
+                      variant="dark_blue_outline"
+                      disabled={isFinal}
+                      onClick={() => setAutofillOpen(true)}
+                    >
+                      <Sparkles /> Isi dari penilaian
+                    </Button>
+                  </div>
+
+                  <div className="mt-4 grid gap-2 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
+                        Kuota
+                      </p>
+                      <p className="text-lg font-semibold text-neutral-1000">
+                        {activeDivision.quota === 0
+                          ? 'Tanpa batas'
+                          : activeDivision.quota}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
+                        Diterima
+                      </p>
+                      <p className="text-lg font-semibold text-neutral-1000">
+                        {activeDivision.accepted}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
+                        Sisa
+                      </p>
+                      <p className="text-lg font-semibold text-neutral-1000">
+                        {activeDivision.remaining === null
+                          ? 'Tanpa batas'
+                          : Math.max(0, activeDivision.remaining)}
+                      </p>
+                    </div>
+                    {activeDivision.overQuota ? (
+                      <p className="sm:col-span-3 rounded-xl bg-warning-light px-3 py-2 text-sm text-neutral-1000">
+                        Diterima melebihi kuota ({activeDivision.accepted} dari{' '}
+                        {activeDivision.quota}). Penerimaan tetap sah, tetapi
+                        perlu ditinjau.
+                      </p>
+                    ) : null}
+                    <p className="sm:col-span-3 text-sm text-neutral-700">
+                      {activeDivision.pending} pilihan aktif belum diputuskan ·{' '}
+                      {activeDivision.waiting} menunggu pilihan sebelumnya.
+                    </p>
+                  </div>
+
+                  <div className="mt-4 flex flex-wrap items-center gap-1">
+                    <button
+                      type="button"
+                      aria-pressed={rank === null}
+                      onClick={() =>
+                        setRankState({ key: divisionKey, rank: null })
+                      }
+                      className={`rounded-full px-3 py-1 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
+                        rank === null
+                          ? 'bg-primary-200 text-primary-400'
+                          : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
+                      }`}
+                    >
+                      Semua
+                    </button>
+                    {activeDivision.ranks.map((row) => (
                       <button
-                        key={division.id}
+                        key={row.rank}
                         type="button"
-                        aria-pressed={active}
-                        onClick={() => {
-                          setPickedDivision(division.id);
-                          setSearch('');
-                        }}
-                        className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
-                          active
+                        aria-pressed={rank === row.rank}
+                        onClick={() =>
+                          setRankState({ key: divisionKey, rank: row.rank })
+                        }
+                        className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
+                          rank === row.rank
                             ? 'bg-primary-200 text-primary-400'
                             : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
                         }`}
                       >
-                        {division.label}
+                        Pilihan {row.rank}
+                        {row.pending > 0 ? (
+                          <Chip tone="warning">{row.pending}</Chip>
+                        ) : row.done === row.total && row.total > 0 ? (
+                          <span
+                            aria-label="selesai"
+                            className="text-success-dark"
+                          >
+                            ✓
+                          </span>
+                        ) : null}
                       </button>
-                    );
-                  })}
-                </nav>
-                <Button
-                  size="sm"
-                  variant="dark_blue_outline"
-                  disabled={isFinal}
-                  onClick={() => setAutofillOpen(true)}
-                >
-                  <Sparkles /> Isi dari penilaian
-                </Button>
-              </div>
+                    ))}
+                  </div>
 
-              <div className="mt-4 grid gap-2 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 sm:grid-cols-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
-                    Kuota
-                  </p>
-                  <p className="text-lg font-semibold text-neutral-1000">
-                    {activeDivision.quota === 0
-                      ? 'Tanpa batas'
-                      : activeDivision.quota}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
-                    Diterima
-                  </p>
-                  <p className="text-lg font-semibold text-neutral-1000">
-                    {activeDivision.accepted}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
-                    Sisa
-                  </p>
-                  <p className="text-lg font-semibold text-neutral-1000">
-                    {activeDivision.remaining === null
-                      ? 'Tanpa batas'
-                      : Math.max(0, activeDivision.remaining)}
-                  </p>
-                </div>
-                {activeDivision.overQuota ? (
-                  <p className="sm:col-span-3 rounded-xl bg-warning-light px-3 py-2 text-sm text-neutral-1000">
-                    Diterima melebihi kuota ({activeDivision.accepted} dari{' '}
-                    {activeDivision.quota}). Penerimaan tetap sah, tetapi perlu
-                    ditinjau.
-                  </p>
-                ) : null}
-                <p className="sm:col-span-3 text-sm text-neutral-700">
-                  {activeDivision.pending} pilihan aktif belum diputuskan ·{' '}
-                  {activeDivision.waiting} menunggu pilihan sebelumnya.
-                </p>
-              </div>
+                  <div className="mt-4">
+                    <div className="relative">
+                      <Search
+                        aria-hidden
+                        className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-500"
+                      />
+                      <input
+                        type="search"
+                        value={search}
+                        onChange={(event) => setSearch(event.target.value)}
+                        placeholder="Cari nama atau NIM"
+                        aria-label="Cari nama atau NIM"
+                        className={`${inputClass} pl-9`}
+                      />
+                    </div>
+                  </div>
 
-              <div className="mt-4 flex flex-wrap items-center gap-1">
-                <button
-                  type="button"
-                  aria-pressed={rank === null}
-                  onClick={() => setRankState({ key: divisionKey, rank: null })}
-                  className={`rounded-full px-3 py-1 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
-                    rank === null
-                      ? 'bg-primary-200 text-primary-400'
-                      : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
-                  }`}
-                >
-                  Semua
-                </button>
-                {activeDivision.ranks.map((row) => (
-                  <button
-                    key={row.rank}
-                    type="button"
-                    aria-pressed={rank === row.rank}
-                    onClick={() =>
-                      setRankState({ key: divisionKey, rank: row.rank })
-                    }
-                    className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
-                      rank === row.rank
-                        ? 'bg-primary-200 text-primary-400'
-                        : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
-                    }`}
+                  <div
+                    className="mt-4"
+                    role="region"
+                    aria-label="Daftar pendaftar divisi"
                   >
-                    Pilihan {row.rank}
-                    {row.pending > 0 ? (
-                      <Chip tone="warning">{row.pending}</Chip>
-                    ) : row.done === row.total && row.total > 0 ? (
-                      <span aria-label="selesai" className="text-success-dark">
-                        ✓
-                      </span>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
+                    {rows.isError ? (
+                      <ErrorNote message={rows.error.message} />
+                    ) : rows.isLoading || !rows.data ? (
+                      <Loading label="Memuat pendaftar…" />
+                    ) : rows.data.total === 0 ? (
+                      <Notice>
+                        Tidak ada pendaftar yang cocok di divisi dan pilihan
+                        ini.
+                      </Notice>
+                    ) : (
+                      <DecisionTable
+                        recruitmentId={recruitmentId}
+                        data={rows.data}
+                        division={{
+                          id: activeDivision.id,
+                          label: activeDivision.label,
+                          quota: activeDivision.quota,
+                        }}
+                        state={state}
+                        isAdmin={isAdmin}
+                        page={page}
+                        onPage={(next) =>
+                          setPageState({ key: filterKey, page: next })
+                        }
+                        loading={rows.isFetching}
+                        onDecide={onDecide}
+                        onAppeal={(choice) => {
+                          setAppealReason('');
+                          setAppealChoice(choice);
+                        }}
+                        onMove={(row) => {
+                          setActionDivision('');
+                          setActionReason('');
+                          setActionRow({ row, kind: 'move' });
+                        }}
+                        onRequestTransfer={(row) => {
+                          setActionDivision('');
+                          setActionReason('');
+                          setActionRow({ row, kind: 'transfer' });
+                        }}
+                      />
+                    )}
+                  </div>
+                </>
+              )}
 
-              <div className="mt-4">
-                <div className="relative">
-                  <Search
-                    aria-hidden
-                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-neutral-500"
-                  />
-                  <input
-                    type="search"
-                    value={search}
-                    onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Cari nama atau NIM"
-                    aria-label="Cari nama atau NIM"
-                    className={`${inputClass} pl-9`}
-                  />
-                </div>
-              </div>
+              {!isAdmin ? (
+                <OtherDivisions
+                  recruitmentId={recruitmentId}
+                  divisions={visibleTargets}
+                />
+              ) : null}
 
-              <div className="mt-4" role="region" aria-label="Daftar pendaftar divisi">
-                {rows.isError ? (
-                  <ErrorNote message={rows.error.message} />
-                ) : rows.isLoading || !rows.data ? (
-                  <Loading label="Memuat pendaftar…" />
-                ) : rows.data.total === 0 ? (
-                  <Notice>
-                    Tidak ada pendaftar yang cocok di divisi dan pilihan ini.
-                  </Notice>
-                ) : (
-                  <DecisionTable
+              {state === 'masa_banding' ? (
+                <section
+                  aria-label="Permintaan pindah"
+                  className="mt-8 grid gap-2"
+                >
+                  <h2 className="text-lg font-semibold text-neutral-1000">
+                    Permintaan pindah
+                  </h2>
+                  <TransferInbox
                     recruitmentId={recruitmentId}
-                    data={rows.data}
-                    division={{
-                      id: activeDivision.id,
-                      label: activeDivision.label,
-                      quota: activeDivision.quota,
-                    }}
-                    state={state}
-                    isAdmin={isAdmin}
-                    page={page}
-                    onPage={(next) => setPageState({ key: filterKey, page: next })}
-                    loading={rows.isFetching}
-                    onDecide={onDecide}
-                    onAppeal={(choice) => {
-                      setAppealReason('');
-                      setAppealChoice(choice);
-                    }}
-                    onMove={(row) => {
-                      setActionDivision('');
-                      setActionReason('');
-                      setActionRow({ row, kind: 'move' });
-                    }}
-                    onRequestTransfer={(row) => {
-                      setActionDivision('');
-                      setActionReason('');
-                      setActionRow({ row, kind: 'transfer' });
-                    }}
+                    announce={announce}
+                    onError={setError}
+                    onChanged={refresh}
                   />
-                )}
-              </div>
+                </section>
+              ) : null}
             </>
-          )}
-
-          {!isAdmin ? (
-            <OtherDivisions
-              recruitmentId={recruitmentId}
-              divisions={visibleTargets}
-            />
-          ) : null}
-
-          {state === 'masa_banding' ? (
-            <section aria-label="Permintaan pindah" className="mt-8 grid gap-2">
-              <h2 className="text-lg font-semibold text-neutral-1000">
-                Permintaan pindah
-              </h2>
-              <TransferInbox
-                recruitmentId={recruitmentId}
-                announce={announce}
-                onError={setError}
-                onChanged={refresh}
-              />
-            </section>
-          ) : null}
-
-          </>
           )}
 
           {isAdmin ? (
             <details
               open={manualLocked}
-              className="mt-8 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
+              className="mt-8 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4"
+            >
               <summary className="cursor-pointer text-lg font-semibold text-neutral-1000 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400">
                 Closerec
               </summary>
@@ -591,11 +620,7 @@ export function PlacementView({
               disabled={decide.isPending}
               onClick={() => {
                 if (!quotaDecide) return;
-                sendDecision(
-                  quotaDecide.choiceId,
-                  quotaDecide.decision,
-                  true,
-                );
+                sendDecision(quotaDecide.choiceId, quotaDecide.decision, true);
               }}
             >
               Tetap terima
@@ -628,11 +653,7 @@ export function PlacementView({
               disabled={appeal.isPending || appealReason.trim() === ''}
               onClick={() => {
                 if (appealChoice) {
-                  submitAppeal(
-                    appealChoice.id,
-                    appealReason.trim(),
-                    false,
-                  );
+                  submitAppeal(appealChoice.id, appealReason.trim(), false);
                 }
               }}
             >
@@ -667,11 +688,7 @@ export function PlacementView({
               disabled={appeal.isPending}
               onClick={() => {
                 if (quotaAppeal) {
-                  submitAppeal(
-                    quotaAppeal.choiceId,
-                    quotaAppeal.reason,
-                    true,
-                  );
+                  submitAppeal(quotaAppeal.choiceId, quotaAppeal.reason, true);
                 }
               }}
             >
@@ -681,8 +698,7 @@ export function PlacementView({
         }
       >
         <p className="text-sm text-neutral-700">
-          Alasan banding tetap tersimpan dan penerimaan melewati kuota
-          ditandai.
+          Alasan banding tetap tersimpan dan penerimaan melewati kuota ditandai.
         </p>
       </Modal>
 

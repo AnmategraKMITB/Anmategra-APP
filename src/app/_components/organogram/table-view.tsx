@@ -8,17 +8,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table';
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronsUpDown,
-  Download,
-  Search,
-} from 'lucide-react';
-import { useMemo, useRef, useState } from 'react';
+import { ArrowDown, ArrowUp, ChevronsUpDown, Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import type { JSX } from 'react';
-import { toast } from 'sonner';
-import { Button } from '~/components/ui/button';
+import { ExportMenu } from '~/app/_components/export/export-menu';
 import { Input } from '~/components/ui/input';
 import {
   Table,
@@ -30,14 +23,8 @@ import {
 } from '~/components/ui/table';
 import { cn } from '~/lib/utils';
 
-import { downloadBlob, exportFileStem } from './export-image';
-import {
-  EXPORT_HEADER,
-  buildXlsx,
-  guardCell,
-  rowCells,
-  toTsv,
-} from './export-table';
+import { exportFileStem } from './export-image';
+import { organogramSheet } from './export-table';
 import {
   type Draft,
   type PlacementsByPosition,
@@ -194,18 +181,6 @@ const COLUMNS: ColumnDef<Row>[] = [
   },
 ];
 
-const csvCell = (value: string | number): string => {
-  const text = guardCell(value);
-  return /[",\n\r;]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-};
-
-/** CSV dari baris yang sedang tampil (urutan dan pencarian ikut); "Orang" berisi nama, dipisah titik koma. */
-function toCsv(rows: Row[]): string {
-  const lines = [EXPORT_HEADER.join(',')];
-  for (const row of rows) lines.push(rowCells(row).map(csvCell).join(','));
-  return lines.join('\r\n');
-}
-
 function sortIcon(sorted: false | 'asc' | 'desc'): JSX.Element {
   if (sorted === 'asc') return <ArrowUp className="size-4" />;
   if (sorted === 'desc') return <ArrowDown className="size-4" />;
@@ -297,41 +272,8 @@ export function TableView(props: {
     getRowId: (row) => row.positionId,
   });
 
-  const [copied, setCopied] = useState(false);
-  const copiedTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const shownRows = table.getRowModel().rows.map((row) => row.original);
-
   const fileStem = `organogram-${exportFileStem(draft.name)}`;
-
-  /** TSV, bukan CSV: ditempel ke Google Sheets atau Excel, kolomnya langsung terpisah. */
-  const copyForSheets = async () => {
-    try {
-      await navigator.clipboard.writeText(toTsv(shownRows));
-      setCopied(true);
-      if (copiedTimer.current) clearTimeout(copiedTimer.current);
-      copiedTimer.current = setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error('Penyalinan diblokir peramban. Pakai Unduh Excel atau CSV.');
-    }
-  };
-
-  const downloadCsv = () => {
-    // BOM supaya Excel membaca UTF-8 dengan benar.
-    downloadBlob(
-      new Blob(['\uFEFF', toCsv(shownRows)], {
-        type: 'text/csv;charset=utf-8',
-      }),
-      `${fileStem}.csv`,
-    );
-  };
-
-  const downloadXlsx = async () => {
-    try {
-      downloadBlob(await buildXlsx(shownRows, draft.name), `${fileStem}.xlsx`);
-    } catch {
-      toast.error('Berkas Excel gagal dibuat. Coba Unduh CSV.');
-    }
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -347,26 +289,17 @@ export function TableView(props: {
         <span className="text-sm tabular-nums text-neutral-700">
           {shownRows.length} baris
         </span>
-        <Button
-          variant="dark_blue_outline"
+        <ExportMenu
+          build={() => ({
+            title: `Organogram ${draft.name}`,
+            sheets: [organogramSheet(shownRows, draft.name)],
+          })}
+          copy
+          filename={fileStem}
+          label="Ekspor tabel"
           size="sm"
-          onClick={() => void copyForSheets()}
-          aria-live="polite"
-        >
-          {copied ? 'Tersalin' : 'Salin untuk Sheets'}
-        </Button>
-        <Button
-          variant="dark_blue_outline"
-          size="sm"
-          onClick={() => void downloadXlsx()}
-        >
-          <Download className="size-4" />
-          Unduh Excel
-        </Button>
-        <Button variant="dark_blue_outline" size="sm" onClick={downloadCsv}>
-          <Download className="size-4" />
-          Unduh CSV
-        </Button>
+          note="Baris yang sedang tampil, mengikuti urutan dan pencarian."
+        />
       </div>
       <div className="min-h-0 flex-1 overflow-auto [&>div]:overflow-visible">
         <Table className="text-sm">
