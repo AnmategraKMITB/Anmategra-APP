@@ -7,13 +7,11 @@ import {
 } from '~/server/api/routers/oprec/applicants-export';
 import { createTRPCContext } from '~/server/api/trpc';
 import {
-  collectResponses,
-  responsesSheet,
-} from '~/server/export/form-responses';
-import {
   acceptedSheets,
+  answersSheets,
   applicantsSheet,
   assessmentSheets,
+  loadAnswers,
   loadApplicants,
   loadContacts,
   loadPlacement,
@@ -25,6 +23,7 @@ import {
 } from '~/server/export/oprec';
 import {
   exportErrorResponse,
+  parseFields,
   spreadsheetResponse,
   unlessForbidden,
 } from '~/server/spreadsheet-response';
@@ -48,7 +47,10 @@ export async function GET(
   try {
     // Hanya pengelola oprec yang bisa membuka detail; ini juga gerbang aksesnya.
     const detail = await api.oprec.get({ recruitmentId });
-    const formId = detail.formId;
+    // Tanpa `?fields=`: tab Jawaban memuat semua pertanyaan, tab lain tanpa
+    // jawaban. Dengan `?fields=`: hanya pertanyaan itu, dan ikut ditempel ke
+    // tab Pendaftar, Nilai, Penempatan, Hasil, dan Diterima.
+    const fields = parseFields(req.nextUrl.searchParams);
 
     const [
       applicants,
@@ -62,9 +64,9 @@ export async function GET(
     ] = await Promise.all([
       loadApplicants(api, recruitmentId),
       unlessForbidden(() => loadContacts(api, recruitmentId)),
-      formId
-        ? unlessForbidden(() => collectResponses(api, formId))
-        : Promise.resolve(null),
+      fields?.length === 0
+        ? Promise.resolve(null)
+        : unlessForbidden(() => loadAnswers(api, recruitmentId, fields)),
       unlessForbidden(() => api.oprec.exportAssessment({ recruitmentId })),
       unlessForbidden(() => api.oprec.priorityTemplate({ recruitmentId })),
       unlessForbidden(() => loadPlacement(api, recruitmentId)),
@@ -74,30 +76,42 @@ export async function GET(
 
     const banner =
       overview && !overview.published ? PROVISIONAL_BANNER : undefined;
+    const extra = fields ? responses : null;
     const parts: [string, SheetTable[] | null][] = [
-      ['Pendaftar', [applicantsSheet(applicants, detail.maxChoices, contacts)]],
+      [
+        'Pendaftar',
+        [applicantsSheet(applicants, detail.maxChoices, contacts, extra)],
+      ],
       [
         'Jawaban formulir',
-        responses ? [responsesSheet('Jawaban formulir', responses)] : null,
+        responses?.columns.length ? answersSheets(applicants, responses) : null,
       ],
-      ['Nilai', assessment ? assessmentSheets(assessment) : null],
+      ['Nilai', assessment ? assessmentSheets(assessment, extra) : null],
       ['Prioritas', priority ? [prioritySheet(priority)] : null],
-      ['Penempatan', placement?.length ? placementSheets(placement) : null],
+      [
+        'Penempatan',
+        placement?.length ? placementSheets(placement, extra) : null,
+      ],
       [
         'Hasil',
         overview && results
-          ? [resultsSheet(results, overview.maxChoices, banner)]
+          ? [resultsSheet(results, overview.maxChoices, banner, extra)]
           : null,
       ],
       [
         'Diterima per divisi',
         overview && results
-          ? acceptedSheets(results, overview.divisions, contacts, banner)
+          ? acceptedSheets(results, overview.divisions, contacts, banner, extra)
           : null,
       ],
     ];
     const included = parts.filter(([, s]) => s).map(([name]) => name);
-    const skipped = parts.filter(([, s]) => !s).map(([name]) => name);
+    const skipped = parts
+      .filter(
+        ([name, s]) =>
+          !s && !(name === 'Jawaban formulir' && fields?.length === 0),
+      )
+      .map(([name]) => name);
     if (!contacts) skipped.push('Data diri (email, WhatsApp, LINE)');
 
     const sheets = [

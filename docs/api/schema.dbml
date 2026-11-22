@@ -488,6 +488,20 @@ table anmategra_form_ending {
   }
 }
 
+table anmategra_form_export_preset {
+  id varchar(255) [pk, not null]
+  form_id varchar(255) [not null]
+  name varchar(80) [not null]
+  field_ids jsonb [not null, default: `[]`]
+  created_by varchar(255)
+  created_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+  updated_at "timestamp with time zone" [not null, default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (form_id, name) [name: 'form_export_preset_form_name_unique', unique]
+  }
+}
+
 table anmategra_form_field {
   id varchar(255) [pk, not null]
   form_id varchar(255) [not null]

@@ -1932,6 +1932,37 @@ export const formAnswer = createTable(
   }),
 );
 
+/**
+ * Pilihan pertanyaan ekspor yang disimpan bersama per form (mis. "Data diri":
+ * foto, kontak darurat, MBTI). Dipakai ekspor respons Forms dan ekspor Oprec
+ * yang memakai form ini. Pertanyaan yang sudah terhapus diabaikan saat dibaca.
+ */
+export const formExportPreset = createTable(
+  'form_export_preset',
+  {
+    id: varchar('id', { length: 255 })
+      .notNull()
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    formId: varchar('form_id', { length: 255 })
+      .notNull()
+      .references(() => form.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 80 }).notNull(),
+    fieldIds: jsonb('field_ids').$type<string[]>().notNull().default([]),
+    createdBy: varchar('created_by', { length: 255 }).references(
+      () => users.id,
+      { onDelete: 'set null' },
+    ),
+    ...timestamps,
+  },
+  (table) => ({
+    formNameUnique: uniqueIndex('form_export_preset_form_name_unique').on(
+      table.formId,
+      table.name,
+    ),
+  }),
+);
+
 export const formRelations = relations(form, ({ one, many }) => ({
   lembaga: one(lembaga, {
     fields: [form.lembagaId],

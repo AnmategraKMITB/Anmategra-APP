@@ -2,11 +2,17 @@ import { type NextRequest } from 'next/server';
 import { createCaller } from '~/server/api/root';
 import { slugOf } from '~/server/api/routers/oprec/applicants-export';
 import { createTRPCContext } from '~/server/api/trpc';
-import { loadPlacement, placementSheets } from '~/server/export/oprec';
+import {
+  loadAnswers,
+  loadPlacement,
+  placementSheets,
+} from '~/server/export/oprec';
 import {
   exportErrorResponse,
+  parseFields,
   parseFormat,
   spreadsheetResponse,
+  unlessForbidden,
 } from '~/server/spreadsheet-response';
 
 /**
@@ -23,7 +29,14 @@ export async function GET(
 
   try {
     const { name } = await api.oprec.assessScopes({ recruitmentId });
-    const sheets = placementSheets(await loadPlacement(api, recruitmentId));
+    const fields = parseFields(req.nextUrl.searchParams);
+    const answers = fields?.length
+      ? await unlessForbidden(() => loadAnswers(api, recruitmentId, fields))
+      : null;
+    const sheets = placementSheets(
+      await loadPlacement(api, recruitmentId),
+      answers,
+    );
     return await spreadsheetResponse(
       { title: `Penempatan ${name}`, sheets },
       `${slugOf(name)}-penempatan`,
