@@ -779,6 +779,646 @@
           }
         }
       }
+    },
+    "/api/forms/{formId}/respons": {
+      "get": {
+        "operationId": "spreadsheet_export_form_responses",
+        "tags": ["excel"],
+        "summary": "Ekspor respons form (XLSX)",
+        "description": "Semua respons form dalam satu tab. `format=csv` dialihkan ke `/respons.csv` (dialirkan per halaman). Akses sama dengan halaman Respons.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "formId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID form."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["xlsx", "csv"],
+              "default": "xlsx"
+            },
+            "description": "Format berkas. CSV hanya memuat tab pertama."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oprec/{recruitmentId}/pendaftar": {
+      "get": {
+        "operationId": "spreadsheet_export_oprec_applicants",
+        "tags": ["excel"],
+        "summary": "Ekspor pendaftar oprec",
+        "description": "Identitas, gelombang, pilihan, waktu kirim; data diri (NIM TPB, email, WhatsApp, LINE) ikut untuk admin oprec, atau kontak yang dibuka publik untuk pengurus divisi.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recruitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID oprec."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["xlsx", "csv"],
+              "default": "csv"
+            },
+            "description": "Format berkas. CSV hanya memuat tab pertama."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oprec/{recruitmentId}/nilai": {
+      "get": {
+        "operationId": "spreadsheet_export_oprec_assessment",
+        "tags": ["excel"],
+        "summary": "Ekspor nilai oprec",
+        "description": "Satu tab per lingkup penilaian yang boleh dibuka pemanggil. Admin: rata-rata semua penilai per kriteria dan jumlah penilai; penilai lain: nilainya sendiri. Mode blind menyembunyikan identitas bagi yang bukan admin. Catatan penilai tidak ikut.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recruitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID oprec."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["xlsx", "csv"],
+              "default": "xlsx"
+            },
+            "description": "Format berkas. CSV hanya memuat tab pertama."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oprec/{recruitmentId}/prioritas": {
+      "get": {
+        "operationId": "spreadsheet_export_oprec_priority",
+        "tags": ["excel"],
+        "summary": "Ekspor/templat daftar prioritas",
+        "description": "Daftar prioritas per divisi yang boleh disusun pemanggil; berkas yang sama diimpor lagi lewat Impor urutan. `divisi=<id>` untuk satu divisi beserta jawaban formulir.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recruitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID oprec."
+          },
+          {
+            "name": "divisi",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID divisi (opsional)."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["xlsx", "csv"],
+              "default": "xlsx"
+            },
+            "description": "Format berkas. CSV hanya memuat tab pertama."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oprec/{recruitmentId}/penempatan": {
+      "get": {
+        "operationId": "spreadsheet_export_oprec_placement",
+        "tags": ["excel"],
+        "summary": "Ekspor penempatan oprec",
+        "description": "Satu tab per divisi yang keputusannya dipegang pemanggil: pilihan ke-, jalur, skor, status penilaian, tahap, keputusan, label. Alasan keputusan tidak ikut.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recruitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID oprec."
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["xlsx", "csv"],
+              "default": "xlsx"
+            },
+            "description": "Format berkas. CSV hanya memuat tab pertama."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oprec/{recruitmentId}/hasil": {
+      "get": {
+        "operationId": "spreadsheet_export_oprec_results",
+        "tags": ["excel"],
+        "summary": "Ekspor hasil dan anggota diterima",
+        "description": "`scope=diterima`: anggota yang diterima saat diekspor, satu tab gabungan berkolom Divisi lalu satu tab per divisi, dengan data diri. `scope=semua`: rekap semua pendaftar di depan. Hasil yang belum dirilis diberi baris penanda SEMENTARA. Dicatat di log oprec (`hasil_diekspor`).",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recruitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID oprec."
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["semua", "diterima"],
+              "default": "semua"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["xlsx", "csv"],
+              "default": "csv"
+            },
+            "description": "Format berkas. CSV hanya memuat tab pertama."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "text/csv": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/oprec/{recruitmentId}/lengkap": {
+      "get": {
+        "operationId": "spreadsheet_export_oprec_full",
+        "tags": ["excel"],
+        "summary": "Ekspor lengkap oprec (XLSX)",
+        "description": "Satu workbook, satu tab per tahap: Ringkasan, Pendaftar, Jawaban formulir, Nilai per lingkup, Prioritas, Penempatan per divisi, Hasil, anggota diterima (gabungan dan per divisi). Hanya pengelola oprec; bagian di luar hak akses dilewati dan disebut di tab Ringkasan.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "recruitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID oprec."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Berkas spreadsheet sebagai attachment. XLSX yang sama dipakai tombol \"Buka di Google Sheets\" (diunggah ke Drive pengguna dari peramban).",
+            "headers": {
+              "Content-Disposition": {
+                "description": "attachment; filename=\"...\"",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "`UNAUTHORIZED` — belum login.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "`FORBIDDEN` — tidak punya akses ke halaman sumber datanya.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`NOT_FOUND` — resource tidak ditemukan.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RestError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

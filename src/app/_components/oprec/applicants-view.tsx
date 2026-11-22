@@ -1,9 +1,11 @@
 'use client';
 
-import { Download, Megaphone, Search, X } from 'lucide-react';
+import { Megaphone, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useDeferredValue, useState } from 'react';
+import { ExportMenu } from '~/app/_components/export/export-menu';
 import { Button } from '~/components/ui/button';
+import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { api } from '~/trpc/react';
 
 import { ApplicantSheet } from './applicant-sheet';
@@ -144,8 +146,6 @@ export function ApplicantsView({
     setFlagLabelId('');
   };
   const total = summary.data?.total;
-  const exportHref = (format: 'csv' | 'xlsx') =>
-    `/api/oprec/${recruitmentId}/pendaftar?format=${format}`;
   const exportDisabled = !total;
 
   return (
@@ -175,23 +175,12 @@ export function ApplicantsView({
           >
             <Megaphone /> Kirim pemberitahuan
           </Button>
-          {(['csv', 'xlsx'] as const).map((format) => (
-            <Button
-              key={format}
-              asChild
-              variant="dark_blue_outline"
-              aria-disabled={exportDisabled}
-              className={exportDisabled ? 'pointer-events-none opacity-50' : ''}
-            >
-              <a
-                href={exportHref(format)}
-                download
-                tabIndex={exportDisabled ? -1 : undefined}
-              >
-                <Download /> Ekspor {format.toUpperCase()}
-              </a>
-            </Button>
-          ))}
+          <ExportMenu
+            href={`/api/oprec/${recruitmentId}/pendaftar`}
+            filename={`${fileSlug(name, 'oprec')}-pendaftar`}
+            disabled={exportDisabled}
+            note="Semua pendaftar dengan pilihan divisi dan data diri."
+          />
         </div>
       </header>
 

@@ -2,17 +2,19 @@
 
 import Link from 'next/link';
 import { useCallback, useState } from 'react';
+import { ExportMenu } from '~/app/_components/export/export-menu';
 import { Button } from '~/components/ui/button';
+import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { api } from '~/trpc/react';
 
 import { ErrorNote, Loading, Modal, Notice } from '../placement/shared';
 import { StateBar } from '../placement/state-bar';
-import { MatchingPanel } from './matching-panel';
 import { DivisionPicker } from './division-picker';
+import { PriorityImport } from './import-dialog';
+import { MatchingPanel } from './matching-panel';
+import { OfferPanel } from './offer-panel';
 import { DEFAULT_PAGE_SIZE } from './pager';
 import { PriorityBoard } from './priority-board';
-import { PriorityImport } from './import-dialog';
-import { OfferPanel } from './offer-panel';
 
 /** Layar Prioritas: daftar prioritas per divisi dan penempatan otomatis. */
 export function PriorityView({
@@ -37,7 +39,8 @@ export function PriorityView({
     { recruitmentId },
     {
       retry: false,
-      enabled: overview.data?.isAdmin === true && overview.data.method === 'prioritas',
+      enabled:
+        overview.data?.isAdmin === true && overview.data.method === 'prioritas',
     },
   );
   const setMethod = api.oprec.prioritySetMethod.useMutation();
@@ -83,24 +86,32 @@ export function PriorityView({
 
   return (
     <div className="py-6 sm:py-8">
-      <header>
-        {backHref ? (
-          <Link
-            href={backHref}
-            className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-          >
-            ← Kembali ke oprec
-          </Link>
-        ) : null}
-        <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
-          Prioritas
-        </h1>
-        <p className="mt-1 text-sm text-neutral-700">
-          {data?.name ?? 'Oprec'}
-          {periodName ? ` · ${periodName}` : ''}. Urutkan pendaftar yang
-          diinginkan tiap divisi; sistem menempatkan mereka sesuai pilihan dan
-          kuota.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          {backHref ? (
+            <Link
+              href={backHref}
+              className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            >
+              ← Kembali ke oprec
+            </Link>
+          ) : null}
+          <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
+            Prioritas
+          </h1>
+          <p className="mt-1 text-sm text-neutral-700">
+            {data?.name ?? 'Oprec'}
+            {periodName ? ` · ${periodName}` : ''}. Urutkan pendaftar yang
+            diinginkan tiap divisi; sistem menempatkan mereka sesuai pilihan dan
+            kuota.
+          </p>
+        </div>
+        <ExportMenu
+          href={`/api/oprec/${recruitmentId}/prioritas`}
+          filename={`${fileSlug(data?.name ?? '', 'oprec')}-prioritas`}
+          disabled={!data}
+          note="Daftar prioritas semua divisimu. Berkas ini juga bisa diisi lalu diimpor lagi lewat Impor urutan."
+        />
       </header>
 
       {tabs}
@@ -192,9 +203,9 @@ export function PriorityView({
           {!data.registrationEnded ? (
             <div className="mt-4">
               <Notice>
-                Pendaftaran masih berjalan. Daftar bisa disusun sekarang,
-                tetapi baru bisa dikunci setelah pendaftaran berakhir supaya
-                pendaftar baru tidak terlewat.
+                Pendaftaran masih berjalan. Daftar bisa disusun sekarang, tetapi
+                baru bisa dikunci setelah pendaftaran berakhir supaya pendaftar
+                baru tidak terlewat.
               </Notice>
             </div>
           ) : null}

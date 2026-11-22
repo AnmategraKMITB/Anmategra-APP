@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
+import { ExportMenu } from '~/app/_components/export/export-menu';
+import { fileSlug } from '~/lib/spreadsheet/workbook';
 import { api } from '~/trpc/react';
 
 import { BerkasView } from './berkas';
@@ -33,22 +35,34 @@ export function NilaiView({
 
   return (
     <div className="py-6 sm:py-8">
-      <header className="min-w-0">
-        {basePath ? (
-          <Link
-            href={basePath}
-            className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
-          >
-            ← Kembali ke oprec
-          </Link>
-        ) : null}
-        <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
-          Nilai
-        </h1>
-        <p className="mt-1 break-words text-sm text-neutral-700">
-          {data ? data.name : 'Memuat oprec…'}
-          {periodName ? ` · ${periodName}` : ''}.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          {basePath ? (
+            <Link
+              href={basePath}
+              className="text-sm text-primary-400 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+            >
+              ← Kembali ke oprec
+            </Link>
+          ) : null}
+          <h1 className="mt-2 break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
+            Nilai
+          </h1>
+          <p className="mt-1 break-words text-sm text-neutral-700">
+            {data ? data.name : 'Memuat oprec…'}
+            {periodName ? ` · ${periodName}` : ''}.
+          </p>
+        </div>
+        <ExportMenu
+          href={`/api/oprec/${recruitmentId}/nilai`}
+          filename={`${fileSlug(data?.name ?? '', 'oprec')}-nilai`}
+          disabled={!data || data.scopes.length === 0}
+          note={
+            data?.isAdmin
+              ? 'Satu tab per lingkup; nilai per kriteria berupa rata-rata semua penilai.'
+              : 'Satu tab per lingkupmu; nilai per kriteria berupa nilaimu sendiri.'
+          }
+        />
       </header>
 
       {tabs}
