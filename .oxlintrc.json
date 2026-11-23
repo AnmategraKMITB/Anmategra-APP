@@ -159,9 +159,9 @@
     {
       "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       "rules": {
-      // Mati untuk TypeScript: kompilernya sudah menolak nama yang tidak ada, dan
-      // aturan ini salah menandai global dari tipe (console, process). Sama dengan ESLint lama.
-      "no-undef": "off",
+        // Mati untuk TypeScript: kompilernya sudah menolak nama yang tidak ada, dan
+        // aturan ini salah menandai global dari tipe (console, process). Sama dengan ESLint lama.
+        "no-undef": "off",
         "no-var": "error",
         "prefer-const": [
           "error",
