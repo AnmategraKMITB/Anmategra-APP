@@ -12,45 +12,48 @@ import {
   sql,
 } from 'drizzle-orm';
 import { env } from '~/env';
+import {
+  ADMIN_PERMISSIONS,
+  type AdminPermission,
+} from '~/server/api/admin-permissions';
+import { periodHasMembers } from '~/server/api/routers/organization/membership';
 import { assertConfirmEmail } from '~/server/api/superadmin';
-import { ADMIN_PERMISSIONS, type AdminPermission } from '~/server/api/admin-permissions';
 import {
   adminPermissionProcedure,
-  loadAdminAccess,
   createTRPCRouter,
+  loadAdminAccess,
   protectedProcedure,
 } from '~/server/api/trpc';
-import type { db as database } from '~/server/db';
-import { periodHasMembers } from '~/server/api/routers/organization/membership';
 import {
   AdminAuditListInputSchema,
   AdminEventCreateInputSchema,
   AdminEventDeleteInputSchema,
+  AdminEventSearchInputSchema,
   AdminEventUpdateInputSchema,
   AdminGrantRevokeInputSchema,
   AdminGrantSetInputSchema,
   AdminGrantsListInputSchema,
   AdminLembagaDetailInputSchema,
+  AdminLembagaListInputSchema,
   AdminLembagaProfileDeleteInputSchema,
   AdminLembagaProfileListInputSchema,
   AdminLembagaProfileUpsertInputSchema,
-  AdminLembagaListInputSchema,
   AdminLembagaSearchInputSchema,
   AdminLembagaUpdateInputSchema,
-  AdminPositionSearchInputSchema,
-  AdminEventSearchInputSchema,
   AdminMembershipRemoveInputSchema,
   AdminMembershipUpsertInputSchema,
   AdminOperatorPermissionRevokeInputSchema,
   AdminOperatorPermissionSetInputSchema,
   AdminPlacementAddInputSchema,
   AdminPlacementRemoveInputSchema,
+  AdminPositionSearchInputSchema,
   AdminUserCreateInputSchema,
   AdminUserDetailInputSchema,
   AdminUserSearchInputSchema,
   AdminUserUpdateInputSchema,
   AdminUsersListInputSchema,
 } from '~/server/api/types/admin-console.type';
+import type { db as database } from '~/server/db';
 import {
   accessGrant,
   adminAudit,
@@ -117,19 +120,29 @@ function canUseRoles(permissions: readonly string[]): boolean {
 function generateShortId(byteLength = 8) {
   const array = new Uint8Array(byteLength);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join(
+    '',
+  );
 }
 
 export const adminConsoleRouter = createTRPCRouter({
   stats: adminPermissionProcedure('accounts.read').query(async ({ ctx }) => {
-    const [[userCount], [demoCount], [hiddenCount], [lembagaCount], [eventCount]] =
-      await Promise.all([
-        ctx.db.select({ n: count() }).from(users),
-        ctx.db.select({ n: count() }).from(users).where(eq(users.isDemo, true)),
-        ctx.db.select({ n: count() }).from(users).where(sql`${users.hiddenAt} is not null`),
-        ctx.db.select({ n: count() }).from(lembaga),
-        ctx.db.select({ n: count() }).from(events),
-      ]);
+    const [
+      [userCount],
+      [demoCount],
+      [hiddenCount],
+      [lembagaCount],
+      [eventCount],
+    ] = await Promise.all([
+      ctx.db.select({ n: count() }).from(users),
+      ctx.db.select({ n: count() }).from(users).where(eq(users.isDemo, true)),
+      ctx.db
+        .select({ n: count() })
+        .from(users)
+        .where(sql`${users.hiddenAt} is not null`),
+      ctx.db.select({ n: count() }).from(lembaga),
+      ctx.db.select({ n: count() }).from(events),
+    ]);
     return {
       users: userCount?.n ?? 0,
       demoUsers: demoCount?.n ?? 0,
@@ -284,101 +297,119 @@ export const adminConsoleRouter = createTRPCRouter({
         .limit(1);
       if (!user) throw new TRPCError({ code: 'NOT_FOUND' });
 
-      const [memberships, placements, grants, bestKegiatan, bestLembaga, riwayatOrg, riwayatPanitia] =
-        await Promise.all([
-          ctx.db
-            .select({
-              id: lembagaMembership.id,
-              lembagaId: lembagaMembership.lembagaId,
-              lembagaName: lembaga.name,
-              cohortYear: lembagaMembership.cohortYear,
-              cohortLabel: lembagaMembership.cohortLabel,
-              status: lembagaMembership.status,
-              source: lembagaMembership.source,
-              joinedAt: lembagaMembership.joinedAt,
-              endedAt: lembagaMembership.endedAt,
-            })
-            .from(lembagaMembership)
-            .leftJoin(lembaga, eq(lembaga.id, lembagaMembership.lembagaId))
-            .where(eq(lembagaMembership.userId, input.userId))
-            .orderBy(desc(lembagaMembership.joinedAt)),
-          ctx.db
-            .select({
-              id: placement.id,
-              positionId: placement.positionId,
-              positionTitle: organizationPosition.title,
-              unitId: organizationUnit.id,
-              unitName: organizationUnit.name,
-              structureId: organizationStructure.id,
-              structureName: organizationStructure.name,
-              lembagaId: organizationStructure.lembagaId,
-              eventId: organizationStructure.eventId,
-              periodName: events.name,
-              lembagaName: lembaga.name,
-              source: placement.source,
-              note: placement.note,
-            })
-            .from(placement)
-            .innerJoin(organizationPosition, eq(organizationPosition.id, placement.positionId))
-            .innerJoin(organizationUnit, eq(organizationUnit.id, organizationPosition.unitId))
-            .innerJoin(
-              organizationStructure,
-              eq(organizationStructure.id, organizationUnit.structure_id),
-            )
-            .leftJoin(events, eq(events.id, organizationStructure.eventId))
-            .leftJoin(lembaga, eq(lembaga.id, organizationStructure.lembagaId))
-            .where(eq(placement.userId, input.userId)),
-          ctx.db
-            .select({
-              id: accessGrant.id,
-              lembagaId: accessGrant.lembagaId,
-              lembagaName: lembaga.name,
-              periodId: accessGrant.periodId,
-              periodName: events.name,
-              features: accessGrant.features,
-              propagate: accessGrant.propagate,
-              createdAt: accessGrant.created_at,
-            })
-            .from(accessGrant)
-            .leftJoin(lembaga, eq(lembaga.id, accessGrant.lembagaId))
-            .leftJoin(events, eq(events.id, accessGrant.periodId))
-            .where(and(eq(accessGrant.userId, input.userId), eq(accessGrant.status, 'active')))
-            .orderBy(desc(accessGrant.created_at)),
-          ctx.db
-            .select({
-              id: bestStaffKegiatan.id,
-              eventId: bestStaffKegiatan.eventId,
-              eventName: events.name,
-              division: bestStaffKegiatan.division,
-              startDate: bestStaffKegiatan.startDate,
-              endDate: bestStaffKegiatan.endDate,
-            })
-            .from(bestStaffKegiatan)
-            .leftJoin(events, eq(events.id, bestStaffKegiatan.eventId))
-            .where(eq(bestStaffKegiatan.mahasiswaId, input.userId)),
-          ctx.db
-            .select({
-              id: bestStaffLembaga.id,
-              lembagaId: bestStaffLembaga.lembagaId,
-              lembagaName: lembaga.name,
-              division: bestStaffLembaga.division,
-              startDate: bestStaffLembaga.startDate,
-              endDate: bestStaffLembaga.endDate,
-            })
-            .from(bestStaffLembaga)
-            .leftJoin(lembaga, eq(lembaga.id, bestStaffLembaga.lembagaId))
-            .where(eq(bestStaffLembaga.mahasiswaId, input.userId)),
-          ctx.db
-            .select()
-            .from(riwayatOrganisasi)
-            .where(eq(riwayatOrganisasi.userId, input.userId))
-            .orderBy(desc(riwayatOrganisasi.startedAt)),
-          ctx.db
-            .select()
-            .from(riwayatKepanitiaan)
-            .where(eq(riwayatKepanitiaan.userId, input.userId))
-            .orderBy(desc(riwayatKepanitiaan.startedAt)),
-        ]);
+      const [
+        memberships,
+        placements,
+        grants,
+        bestKegiatan,
+        bestLembaga,
+        riwayatOrg,
+        riwayatPanitia,
+      ] = await Promise.all([
+        ctx.db
+          .select({
+            id: lembagaMembership.id,
+            lembagaId: lembagaMembership.lembagaId,
+            lembagaName: lembaga.name,
+            cohortYear: lembagaMembership.cohortYear,
+            cohortLabel: lembagaMembership.cohortLabel,
+            status: lembagaMembership.status,
+            source: lembagaMembership.source,
+            joinedAt: lembagaMembership.joinedAt,
+            endedAt: lembagaMembership.endedAt,
+          })
+          .from(lembagaMembership)
+          .leftJoin(lembaga, eq(lembaga.id, lembagaMembership.lembagaId))
+          .where(eq(lembagaMembership.userId, input.userId))
+          .orderBy(desc(lembagaMembership.joinedAt)),
+        ctx.db
+          .select({
+            id: placement.id,
+            positionId: placement.positionId,
+            positionTitle: organizationPosition.title,
+            unitId: organizationUnit.id,
+            unitName: organizationUnit.name,
+            structureId: organizationStructure.id,
+            structureName: organizationStructure.name,
+            lembagaId: organizationStructure.lembagaId,
+            eventId: organizationStructure.eventId,
+            periodName: events.name,
+            lembagaName: lembaga.name,
+            source: placement.source,
+            note: placement.note,
+          })
+          .from(placement)
+          .innerJoin(
+            organizationPosition,
+            eq(organizationPosition.id, placement.positionId),
+          )
+          .innerJoin(
+            organizationUnit,
+            eq(organizationUnit.id, organizationPosition.unitId),
+          )
+          .innerJoin(
+            organizationStructure,
+            eq(organizationStructure.id, organizationUnit.structure_id),
+          )
+          .leftJoin(events, eq(events.id, organizationStructure.eventId))
+          .leftJoin(lembaga, eq(lembaga.id, organizationStructure.lembagaId))
+          .where(eq(placement.userId, input.userId)),
+        ctx.db
+          .select({
+            id: accessGrant.id,
+            lembagaId: accessGrant.lembagaId,
+            lembagaName: lembaga.name,
+            periodId: accessGrant.periodId,
+            periodName: events.name,
+            features: accessGrant.features,
+            propagate: accessGrant.propagate,
+            createdAt: accessGrant.created_at,
+          })
+          .from(accessGrant)
+          .leftJoin(lembaga, eq(lembaga.id, accessGrant.lembagaId))
+          .leftJoin(events, eq(events.id, accessGrant.periodId))
+          .where(
+            and(
+              eq(accessGrant.userId, input.userId),
+              eq(accessGrant.status, 'active'),
+            ),
+          )
+          .orderBy(desc(accessGrant.created_at)),
+        ctx.db
+          .select({
+            id: bestStaffKegiatan.id,
+            eventId: bestStaffKegiatan.eventId,
+            eventName: events.name,
+            division: bestStaffKegiatan.division,
+            startDate: bestStaffKegiatan.startDate,
+            endDate: bestStaffKegiatan.endDate,
+          })
+          .from(bestStaffKegiatan)
+          .leftJoin(events, eq(events.id, bestStaffKegiatan.eventId))
+          .where(eq(bestStaffKegiatan.mahasiswaId, input.userId)),
+        ctx.db
+          .select({
+            id: bestStaffLembaga.id,
+            lembagaId: bestStaffLembaga.lembagaId,
+            lembagaName: lembaga.name,
+            division: bestStaffLembaga.division,
+            startDate: bestStaffLembaga.startDate,
+            endDate: bestStaffLembaga.endDate,
+          })
+          .from(bestStaffLembaga)
+          .leftJoin(lembaga, eq(lembaga.id, bestStaffLembaga.lembagaId))
+          .where(eq(bestStaffLembaga.mahasiswaId, input.userId)),
+        ctx.db
+          .select()
+          .from(riwayatOrganisasi)
+          .where(eq(riwayatOrganisasi.userId, input.userId))
+          .orderBy(desc(riwayatOrganisasi.startedAt)),
+        ctx.db
+          .select()
+          .from(riwayatKepanitiaan)
+          .where(eq(riwayatKepanitiaan.userId, input.userId))
+          .orderBy(desc(riwayatKepanitiaan.startedAt)),
+      ]);
 
       return {
         user,
@@ -473,7 +504,8 @@ export const adminConsoleRouter = createTRPCRouter({
       ) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Butuh izin accounts.roles untuk mengubah email/role/verifikasi.',
+          message:
+            'Butuh izin accounts.roles untuk mengubah email/role/verifikasi.',
         });
       }
 
@@ -494,11 +526,13 @@ export const adminConsoleRouter = createTRPCRouter({
       }
       if (before.role === 'admin') {
         const changesRole = input.role !== undefined && input.role !== 'admin';
-        const changesEmail = input.email !== undefined && input.email !== before.email;
+        const changesEmail =
+          input.email !== undefined && input.email !== before.email;
         if (changesRole || changesEmail) {
           throw new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Email dan role Superadmin hanya bisa diubah lewat halaman Superadmin.',
+            message:
+              'Email dan role Superadmin hanya bisa diubah lewat halaman Superadmin.',
           });
         }
       }
@@ -520,27 +554,34 @@ export const adminConsoleRouter = createTRPCRouter({
           if (input.image !== undefined) userPatch.image = input.image;
           if (input.role !== undefined) userPatch.role = input.role;
           if (input.isDemo !== undefined) userPatch.isDemo = input.isDemo;
-          if (input.hidden !== undefined) userPatch.hiddenAt = input.hidden ? new Date() : null;
+          if (input.hidden !== undefined)
+            userPatch.hiddenAt = input.hidden ? new Date() : null;
           if (input.emailVerified !== undefined) {
             userPatch.emailVerified = input.emailVerified ? new Date() : null;
           }
           if (Object.keys(userPatch).length > 0) {
-            await tx.update(users).set(userPatch).where(eq(users.id, input.userId));
+            await tx
+              .update(users)
+              .set(userPatch)
+              .where(eq(users.id, input.userId));
           }
 
           const m = input.mahasiswa;
           if (m && beforeMahasiswa) {
             const mahasiswaPatch: Record<string, unknown> = {};
             if (m.nim !== undefined) mahasiswaPatch.nim = Number(m.nim);
-            if (m.nimTpb !== undefined) mahasiswaPatch.nimTpb = m.nimTpb ? Number(m.nimTpb) : null;
+            if (m.nimTpb !== undefined)
+              mahasiswaPatch.nimTpb = m.nimTpb ? Number(m.nimTpb) : null;
             if (m.nama !== undefined) mahasiswaPatch.nama = m.nama;
             if (m.jurusan !== undefined) mahasiswaPatch.jurusan = m.jurusan;
             if (m.angkatan !== undefined) mahasiswaPatch.angkatan = m.angkatan;
             if (m.lineId !== undefined) mahasiswaPatch.lineId = m.lineId;
             if (m.whatsapp !== undefined) mahasiswaPatch.whatsapp = m.whatsapp;
-            if (m.raporVisible !== undefined) mahasiswaPatch.raporVisible = m.raporVisible;
+            if (m.raporVisible !== undefined)
+              mahasiswaPatch.raporVisible = m.raporVisible;
             if (m.status !== undefined) mahasiswaPatch.status = m.status;
-            if (input.name !== undefined && m.nama === undefined) mahasiswaPatch.nama = input.name;
+            if (input.name !== undefined && m.nama === undefined)
+              mahasiswaPatch.nama = input.name;
             if (Object.keys(mahasiswaPatch).length > 0) {
               await tx
                 .update(mahasiswa)
@@ -629,14 +670,16 @@ export const adminConsoleRouter = createTRPCRouter({
       };
     }),
 
-  lembagaGroups: adminPermissionProcedure('lembaga.read').query(async ({ ctx }) => {
-    const rows = await ctx.db
-      .select({ type: lembaga.type, n: count() })
-      .from(lembaga)
-      .groupBy(lembaga.type)
-      .orderBy(asc(lembaga.type));
-    return rows;
-  }),
+  lembagaGroups: adminPermissionProcedure('lembaga.read').query(
+    async ({ ctx }) => {
+      const rows = await ctx.db
+        .select({ type: lembaga.type, n: count() })
+        .from(lembaga)
+        .groupBy(lembaga.type)
+        .orderBy(asc(lembaga.type));
+      return rows;
+    },
+  ),
 
   lembagaSearch: adminPermissionProcedure('lembaga.read')
     .input(AdminLembagaSearchInputSchema)
@@ -681,7 +724,9 @@ export const adminConsoleRouter = createTRPCRouter({
         })
         .from(events)
         .leftJoin(lembaga, eq(lembaga.id, events.org_id))
-        .where(or(ilike(events.name, likeOf(q)), ilike(lembaga.name, likeOf(q))))
+        .where(
+          or(ilike(events.name, likeOf(q)), ilike(lembaga.name, likeOf(q))),
+        )
         .orderBy(
           sql`case when ${events.name} ilike ${`${q}%`} then 0 else 1 end`,
           asc(events.name),
@@ -703,8 +748,14 @@ export const adminConsoleRouter = createTRPCRouter({
           periodName: events.name,
         })
         .from(organizationPosition)
-        .innerJoin(organizationUnit, eq(organizationUnit.id, organizationPosition.unitId))
-        .innerJoin(organizationStructure, eq(organizationStructure.id, organizationUnit.structure_id))
+        .innerJoin(
+          organizationUnit,
+          eq(organizationUnit.id, organizationPosition.unitId),
+        )
+        .innerJoin(
+          organizationStructure,
+          eq(organizationStructure.id, organizationUnit.structure_id),
+        )
         .leftJoin(lembaga, eq(lembaga.id, organizationStructure.lembagaId))
         .leftJoin(events, eq(events.id, organizationStructure.eventId))
         .where(
@@ -787,7 +838,12 @@ export const adminConsoleRouter = createTRPCRouter({
         ctx.db
           .select({ n: count() })
           .from(lembagaMembership)
-          .where(and(eq(lembagaMembership.lembagaId, input.lembagaId), eq(lembagaMembership.status, 'aktif'))),
+          .where(
+            and(
+              eq(lembagaMembership.lembagaId, input.lembagaId),
+              eq(lembagaMembership.status, 'aktif'),
+            ),
+          ),
         ctx.db
           .select({
             id: profilLembaga.id,
@@ -817,7 +873,10 @@ export const adminConsoleRouter = createTRPCRouter({
         .where(eq(lembaga.id, input.lembagaId));
       if (!row) throw new TRPCError({ code: 'NOT_FOUND' });
       if (input.parentId === input.lembagaId) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Lembaga tidak bisa menjadi induk dirinya sendiri.' });
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Lembaga tidak bisa menjadi induk dirinya sendiri.',
+        });
       }
 
       try {
@@ -826,21 +885,38 @@ export const adminConsoleRouter = createTRPCRouter({
             .update(lembaga)
             .set({
               ...(input.name !== undefined ? { name: input.name } : {}),
-              ...(input.acronym !== undefined ? { acronym: input.acronym } : {}),
+              ...(input.acronym !== undefined
+                ? { acronym: input.acronym }
+                : {}),
               ...(input.type !== undefined ? { type: input.type } : {}),
-              ...(input.description !== undefined ? { description: input.description } : {}),
-              ...(input.parentId !== undefined ? { parentId: input.parentId } : {}),
-              ...(input.foundingDate !== undefined ? { foundingDate: input.foundingDate } : {}),
-              ...(input.endingDate !== undefined ? { endingDate: input.endingDate } : {}),
+              ...(input.description !== undefined
+                ? { description: input.description }
+                : {}),
+              ...(input.parentId !== undefined
+                ? { parentId: input.parentId }
+                : {}),
+              ...(input.foundingDate !== undefined
+                ? { foundingDate: input.foundingDate }
+                : {}),
+              ...(input.endingDate !== undefined
+                ? { endingDate: input.endingDate }
+                : {}),
               ...(input.major !== undefined ? { major: input.major } : {}),
               ...(input.field !== undefined ? { field: input.field } : {}),
-              ...(input.memberCount !== undefined ? { memberCount: input.memberCount } : {}),
-              ...(input.raporVisible !== undefined ? { raporVisible: input.raporVisible } : {}),
+              ...(input.memberCount !== undefined
+                ? { memberCount: input.memberCount }
+                : {}),
+              ...(input.raporVisible !== undefined
+                ? { raporVisible: input.raporVisible }
+                : {}),
             })
             .where(eq(lembaga.id, input.lembagaId));
 
           if (input.image !== undefined) {
-            await tx.update(users).set({ image: input.image }).where(eq(users.id, row.userId));
+            await tx
+              .update(users)
+              .set({ image: input.image })
+              .where(eq(users.id, row.userId));
           }
 
           await audit(
@@ -855,7 +931,10 @@ export const adminConsoleRouter = createTRPCRouter({
         });
       } catch (error) {
         if ((error as { code?: string }).code === '23505') {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Nama lembaga sudah dipakai.' });
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Nama lembaga sudah dipakai.',
+          });
         }
         throw error;
       }
@@ -899,7 +978,8 @@ export const adminConsoleRouter = createTRPCRouter({
   eventUpdate: adminPermissionProcedure('lembaga.events')
     .input(AdminEventUpdateInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const { id, lembagaId, kind, label, start_date, end_date, ...rest } = input;
+      const { id, lembagaId, kind, label, start_date, end_date, ...rest } =
+        input;
       const [existing] = await ctx.db
         .select({ id: events.id, name: events.name, org_id: events.org_id })
         .from(events)
@@ -936,7 +1016,9 @@ export const adminConsoleRouter = createTRPCRouter({
       const [existing] = await ctx.db
         .select({ id: events.id, name: events.name })
         .from(events)
-        .where(and(eq(events.id, input.id), eq(events.org_id, input.lembagaId)));
+        .where(
+          and(eq(events.id, input.id), eq(events.org_id, input.lembagaId)),
+        );
       if (!existing) throw new TRPCError({ code: 'NOT_FOUND' });
       if (await periodHasMembers(ctx.db, input.id)) {
         throw new TRPCError({
@@ -983,7 +1065,12 @@ export const adminConsoleRouter = createTRPCRouter({
         const [existing] = await ctx.db
           .select({ id: profilLembaga.id })
           .from(profilLembaga)
-          .where(and(eq(profilLembaga.id, input.profilId), eq(profilLembaga.lembagaId, input.lembagaId)));
+          .where(
+            and(
+              eq(profilLembaga.id, input.profilId),
+              eq(profilLembaga.lembagaId, input.lembagaId),
+            ),
+          );
         if (!existing) throw new TRPCError({ code: 'NOT_FOUND' });
         await ctx.db
           .update(profilLembaga)
@@ -1011,7 +1098,9 @@ export const adminConsoleRouter = createTRPCRouter({
   lembagaProfileDelete: adminPermissionProcedure('lembaga.write')
     .input(AdminLembagaProfileDeleteInputSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(profilLembaga).where(eq(profilLembaga.id, input.profilId));
+      await ctx.db
+        .delete(profilLembaga)
+        .where(eq(profilLembaga.id, input.profilId));
       await audit(
         ctx.db as unknown as Db,
         ctx.session.user.id,
@@ -1023,27 +1112,34 @@ export const adminConsoleRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  accessOptions: adminPermissionProcedure('access.read').query(async ({ ctx }) => {
-    const [lembagaRows, eventRows] = await Promise.all([
-      ctx.db
-        .select({ id: lembaga.id, name: lembaga.name, type: lembaga.type, acronym: lembaga.acronym })
-        .from(lembaga)
-        .orderBy(lembaga.name)
-        .limit(500),
-      ctx.db
-        .select({
-          id: events.id,
-          name: events.name,
-          orgId: events.org_id,
-          orgName: lembaga.name,
-        })
-        .from(events)
-        .leftJoin(lembaga, eq(lembaga.id, events.org_id))
-        .orderBy(desc(events.start_date))
-        .limit(500),
-    ]);
-    return { lembaga: lembagaRows, events: eventRows };
-  }),
+  accessOptions: adminPermissionProcedure('access.read').query(
+    async ({ ctx }) => {
+      const [lembagaRows, eventRows] = await Promise.all([
+        ctx.db
+          .select({
+            id: lembaga.id,
+            name: lembaga.name,
+            type: lembaga.type,
+            acronym: lembaga.acronym,
+          })
+          .from(lembaga)
+          .orderBy(lembaga.name)
+          .limit(500),
+        ctx.db
+          .select({
+            id: events.id,
+            name: events.name,
+            orgId: events.org_id,
+            orgName: lembaga.name,
+          })
+          .from(events)
+          .leftJoin(lembaga, eq(lembaga.id, events.org_id))
+          .orderBy(desc(events.start_date))
+          .limit(500),
+      ]);
+      return { lembaga: lembagaRows, events: eventRows };
+    },
+  ),
 
   grantsList: adminPermissionProcedure('access.read')
     .input(AdminGrantsListInputSchema)
@@ -1106,13 +1202,21 @@ export const adminConsoleRouter = createTRPCRouter({
           .leftJoin(events, eq(events.id, accessGrant.periodId))
           .where(where),
       ]);
-      return { rows, total: total?.n ?? 0, page: input.page, pageSize: input.pageSize };
+      return {
+        rows,
+        total: total?.n ?? 0,
+        page: input.page,
+        pageSize: input.pageSize,
+      };
     }),
 
   grantSet: adminPermissionProcedure('access.write')
     .input(AdminGrantSetInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const target = await findUserByIdentifier(ctx.db as unknown as Db, input.identifier);
+      const target = await findUserByIdentifier(
+        ctx.db as unknown as Db,
+        input.identifier,
+      );
       if (!target) {
         throw new TRPCError({
           code: 'NOT_FOUND',
@@ -1187,7 +1291,11 @@ export const adminConsoleRouter = createTRPCRouter({
         input.kind,
         input.targetId,
         `${input.revoke ? 'Mencabut' : 'Memberi'} akses ${input.features.join(', ')} ${input.kind} untuk ${target.email}`,
-        { identifier: input.identifier, targetId: input.targetId, features: input.features },
+        {
+          identifier: input.identifier,
+          targetId: input.targetId,
+          features: input.features,
+        },
       );
       return { success: true };
     }),
@@ -1197,7 +1305,11 @@ export const adminConsoleRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .update(accessGrant)
-        .set({ status: 'revoked', revokedAt: new Date(), revokedBy: ctx.session.user.id })
+        .set({
+          status: 'revoked',
+          revokedAt: new Date(),
+          revokedBy: ctx.session.user.id,
+        })
         .where(eq(accessGrant.id, input.grantId));
       await audit(
         ctx.db as unknown as Db,
@@ -1210,33 +1322,46 @@ export const adminConsoleRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  operatorPermissionsList: adminPermissionProcedure('access.read').query(async ({ ctx }) => {
-    return ctx.db
-      .select({
-        id: adminPermission.id,
-        userId: adminPermission.userId,
-        userName: users.name,
-        userEmail: users.email,
-        permissions: adminPermission.permissions,
-        expiresAt: adminPermission.expiresAt,
-        revokedAt: adminPermission.revokedAt,
-        createdAt: adminPermission.created_at,
-      })
-      .from(adminPermission)
-      .innerJoin(users, eq(users.id, adminPermission.userId))
-      .orderBy(desc(adminPermission.created_at));
-  }),
+  operatorPermissionsList: adminPermissionProcedure('access.read').query(
+    async ({ ctx }) => {
+      return ctx.db
+        .select({
+          id: adminPermission.id,
+          userId: adminPermission.userId,
+          userName: users.name,
+          userEmail: users.email,
+          permissions: adminPermission.permissions,
+          expiresAt: adminPermission.expiresAt,
+          revokedAt: adminPermission.revokedAt,
+          createdAt: adminPermission.created_at,
+        })
+        .from(adminPermission)
+        .innerJoin(users, eq(users.id, adminPermission.userId))
+        .orderBy(desc(adminPermission.created_at));
+    },
+  ),
 
   operatorPermissionSet: adminPermissionProcedure('access.write')
     .input(AdminOperatorPermissionSetInputSchema)
     .mutation(async ({ ctx, input }) => {
-      const target = await findUserByIdentifier(ctx.db as unknown as Db, input.identifier);
-      if (!target) throw new TRPCError({ code: 'NOT_FOUND', message: 'Akun tidak ditemukan.' });
+      const target = await findUserByIdentifier(
+        ctx.db as unknown as Db,
+        input.identifier,
+      );
+      if (!target)
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Akun tidak ditemukan.',
+        });
       const invalid = input.permissions.filter(
-        (permission) => !ADMIN_PERMISSIONS.includes(permission as AdminPermission),
+        (permission) =>
+          !ADMIN_PERMISSIONS.includes(permission as AdminPermission),
       );
       if (invalid.length > 0) {
-        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Izin tidak dikenal.' });
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Izin tidak dikenal.',
+        });
       }
       if (ctx.session.user.role !== 'admin') {
         const own = ctx.adminPermissions as readonly string[];
@@ -1246,7 +1371,8 @@ export const adminConsoleRouter = createTRPCRouter({
         ) {
           throw new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Operator tidak boleh memberi izin melebihi izinnya sendiri.',
+            message:
+              'Operator tidak boleh memberi izin melebihi izinnya sendiri.',
           });
         }
       }
@@ -1312,6 +1438,9 @@ export const adminConsoleRouter = createTRPCRouter({
         .from(lembaga)
         .where(eq(lembaga.id, input.lembagaId));
       if (!lembagaRow) throw new TRPCError({ code: 'NOT_FOUND' });
+      // Sama dengan endMembership: keluar selalu bertanggal, aktif tidak pernah.
+      const endedAt =
+        input.status === 'keluar' ? (input.endedAt ?? new Date()) : null;
       const [existing] = await ctx.db
         .select({ id: lembagaMembership.id })
         .from(lembagaMembership)
@@ -1330,7 +1459,7 @@ export const adminConsoleRouter = createTRPCRouter({
             cohortLabel: input.cohortLabel ?? null,
             status: input.status,
             joinedAt: input.joinedAt ?? undefined,
-            endedAt: input.endedAt ?? undefined,
+            endedAt,
           })
           .where(eq(lembagaMembership.id, existing.id));
       } else {
@@ -1342,7 +1471,7 @@ export const adminConsoleRouter = createTRPCRouter({
           status: input.status,
           source: 'manual',
           joinedAt: input.joinedAt ?? undefined,
-          endedAt: input.endedAt ?? undefined,
+          endedAt,
         });
       }
       await audit(
@@ -1359,7 +1488,9 @@ export const adminConsoleRouter = createTRPCRouter({
   membershipRemove: adminPermissionProcedure('accounts.write')
     .input(AdminMembershipRemoveInputSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(lembagaMembership).where(eq(lembagaMembership.id, input.membershipId));
+      await ctx.db
+        .delete(lembagaMembership)
+        .where(eq(lembagaMembership.id, input.membershipId));
       await audit(
         ctx.db as unknown as Db,
         ctx.session.user.id,
@@ -1378,7 +1509,11 @@ export const adminConsoleRouter = createTRPCRouter({
         .select({ id: organizationPosition.id })
         .from(organizationPosition)
         .where(eq(organizationPosition.id, input.positionId));
-      if (!position) throw new TRPCError({ code: 'NOT_FOUND', message: 'Jabatan tidak ditemukan.' });
+      if (!position)
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Jabatan tidak ditemukan.',
+        });
       try {
         await ctx.db.insert(placement).values({
           userId: input.userId,
@@ -1389,7 +1524,10 @@ export const adminConsoleRouter = createTRPCRouter({
         });
       } catch (error) {
         if ((error as { code?: string }).code === '23505') {
-          throw new TRPCError({ code: 'CONFLICT', message: 'Sudah ditempatkan di jabatan ini.' });
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'Sudah ditempatkan di jabatan ini.',
+          });
         }
         throw error;
       }
@@ -1430,12 +1568,15 @@ export const adminConsoleRouter = createTRPCRouter({
             )
           : undefined,
         input.action ? eq(adminAudit.action, input.action) : undefined,
-        input.entityType ? eq(adminAudit.entityType, input.entityType) : undefined,
+        input.entityType
+          ? eq(adminAudit.entityType, input.entityType)
+          : undefined,
         input.actorId ? eq(adminAudit.actorId, input.actorId) : undefined,
         input.from ? sql`${adminAudit.created_at} >= ${input.from}` : undefined,
         input.to ? sql`${adminAudit.created_at} <= ${input.to}` : undefined,
       );
-      const order = input.sort === 'action' ? adminAudit.action : adminAudit.created_at;
+      const order =
+        input.sort === 'action' ? adminAudit.action : adminAudit.created_at;
       const [rows, [total]] = await Promise.all([
         ctx.db
           .select({
@@ -1457,6 +1598,11 @@ export const adminConsoleRouter = createTRPCRouter({
           .offset((input.page - 1) * input.pageSize),
         ctx.db.select({ n: count() }).from(adminAudit).where(where),
       ]);
-      return { rows, total: total?.n ?? 0, page: input.page, pageSize: input.pageSize };
+      return {
+        rows,
+        total: total?.n ?? 0,
+        page: input.page,
+        pageSize: input.pageSize,
+      };
     }),
 });
