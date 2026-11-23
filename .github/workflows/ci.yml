@@ -31,7 +31,7 @@ jobs:
   checks:
     # Semua pengecekan kecil sekaligus; semua kegagalan dicetak di akhir.
     name: Checks
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra
@@ -57,12 +57,12 @@ jobs:
       # Lint, format, tipe, docs, migrasi, drift schema. Lihat skripnya untuk
       # cara memperbaiki tiap kegagalan.
       - run: bash scripts/ci/checks.sh
-      - run: sh scripts/ci/budget.sh check 90
+      - run: sh scripts/ci/budget.sh check 35
 
   build:
     # Nama ini dipakai sebagai required status check di branch protection.
     name: Build and Check
-    runs-on: ubuntu-latest
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 20
     steps:
       - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
@@ -90,20 +90,21 @@ jobs:
       # rute yang ia buat di .next/types (lebih banyak dari `next typegen`) dicek di sini.
       - name: Check types of the build output
         run: bun check --no-script
-      - run: sh scripts/ci/budget.sh check 180
+      - run: sh scripts/ci/budget.sh check 35
 
   test:
     # Tiap shard: runner, Postgres, dan database sendiri. Bagiannya dihitung dari
     # durasi per berkas yang dicatat run penuh di develop (scripts/ci/test-shards.ts).
-    name: Test (${{ matrix.shard }}/3)
-    runs-on: ubuntu-latest
+    # Core dulu, baru shard: satu runner 16 vCPU (16 worker) menggantikan 3 shard.
+    name: Test (${{ matrix.shard }}/1)
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        shard: [1, 2, 3]
+        shard: [1]
     env:
-      SHARDS: 3
+      SHARDS: 1
       # Tiap worker `bun test` membuat database sendiri: anmategra_test_w<n>.
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra_test
     steps:
@@ -184,7 +185,7 @@ jobs:
         with:
           path: .timings/${{ matrix.shard }}.json
           key: test-timings-${{ matrix.shard }}-${{ github.run_id }}
-      - run: sh scripts/ci/budget.sh check 90
+      - run: sh scripts/ci/budget.sh check 35
 
   dependency-review:
     name: Dependency review
