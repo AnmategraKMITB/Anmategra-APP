@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { LembagaScopeInput } from '~/server/api/types/scope';
 import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
@@ -9,6 +8,7 @@ import {
   mahasiswaProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import {
   associationRequests,
   associationRequestsLembaga,
@@ -19,14 +19,7 @@ import {
   users,
 } from '~/server/db/schema';
 
-import {
-  currentLembagaPeriodId,
-  lembagaMemberIds,
-  lembagaMembersSq,
-  periodMemberIds,
-  periodMembersSq,
-  periodTextOptions,
-} from './organization/membership';
+import { byNim, byUserId, loadMahasiswaProfile } from '../mahasiswa-profile';
 import {
   ToggleRaporVisibilityMahasiswaInputSchema,
   ToggleRaporVisibilityOutputSchema,
@@ -65,8 +58,15 @@ import {
   SubmitReportInputSchema,
   SubmitReportOutputSchema,
 } from '../types/user.type';
-import { byNim, byUserId, loadMahasiswaProfile } from '../mahasiswa-profile';
 import { toggleRaporVisibility } from './event/update';
+import {
+  currentLembagaPeriodId,
+  lembagaMemberIds,
+  lembagaMembersSq,
+  periodMemberIds,
+  periodMembersSq,
+  periodTextOptions,
+} from './organization/membership';
 
 export const userRouter = createTRPCRouter({
   /*
@@ -153,7 +153,10 @@ export const userRouter = createTRPCRouter({
       });
 
       if (!kegiatan) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Kegiatan tidak ditemukan' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Kegiatan tidak ditemukan',
+        });
       }
 
       if (kegiatan.org_id !== ctx.lembagaId) {
@@ -427,12 +430,14 @@ export const userRouter = createTRPCRouter({
             and(
               eq(associationRequestsLembaga.lembagaId, input.lembaga_id),
               eq(associationRequestsLembaga.user_id, ctx.session.user.id),
+              eq(associationRequestsLembaga.status, 'Pending'),
             ),
         });
       if (!existingRequest) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Permintaan asosiasi tidak ditemukan',
+          message:
+            'Permintaan asosiasi tidak ditemukan atau tidak dapat diubah',
         });
       }
       await ctx.db
@@ -440,12 +445,12 @@ export const userRouter = createTRPCRouter({
         .set({
           division: input.division,
           position: input.position,
-          status: 'Pending', // Reset status to Pending
         })
         .where(
           and(
             eq(associationRequestsLembaga.lembagaId, input.lembaga_id),
             eq(associationRequestsLembaga.user_id, ctx.session.user.id),
+            eq(associationRequestsLembaga.status, 'Pending'),
           ),
         );
       return { success: true, message: 'Permintaan asosiasi berhasil diubah' };

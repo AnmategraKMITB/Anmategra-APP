@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { LembagaScopeInput } from '~/server/api/types/scope';
 import {
   type SQL,
   and,
@@ -19,6 +18,7 @@ import {
   lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import { type Prodi } from '~/server/auth';
 import {
   associationRequests,
@@ -112,6 +112,19 @@ import {
   upsertPlacementByText,
 } from './organization/membership';
 import { isUniqueViolation } from './organization/services';
+
+/**
+ * Status permintaan berubah di antara pengecekan dan penulisan, biasanya karena
+ * pengurus lain baru saja memutuskannya. Penulisan status selalu bersyarat
+ * `status = 'Pending'`, jadi keputusan yang pertama masuk yang berlaku.
+ */
+function requestAlreadyDecided(): never {
+  throw new TRPCError({
+    code: 'CONFLICT',
+    message:
+      'Permintaan asosiasi ini baru saja diproses. Muat ulang untuk melihat statusnya.',
+  });
+}
 
 export const lembagaRouter = createTRPCRouter({
   // Fetch lembaga general information
@@ -241,10 +254,7 @@ export const lembagaRouter = createTRPCRouter({
           .from(associationRequestsLembaga)
           .where(
             and(
-              eq(
-                associationRequestsLembaga.lembagaId,
-                ctx.lembagaId,
-              ),
+              eq(associationRequestsLembaga.lembagaId, ctx.lembagaId),
               eq(associationRequestsLembaga.status, 'Pending'),
             ),
           );
@@ -744,15 +754,8 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         await ctx.db.transaction(async (tx) => {
-          await upsertPlacementByText(tx, {
-            periodId: input.event_id,
-            userId: input.user_id,
-            division: input.division,
-            position: input.position,
-            createdBy: ctx.session.user.id,
-          });
-
-          await tx
+          // Klaim permintaan lebih dulu; penempatan hanya ditulis bila klaim berhasil.
+          const claimed = await tx
             .update(associationRequests)
             .set({
               status: 'Accepted',
@@ -761,8 +764,19 @@ export const lembagaRouter = createTRPCRouter({
               and(
                 eq(associationRequests.event_id, input.event_id),
                 eq(associationRequests.user_id, input.user_id),
+                eq(associationRequests.status, 'Pending'),
               ),
-            );
+            )
+            .returning({ id: associationRequests.id });
+          if (claimed.length === 0) requestAlreadyDecided();
+
+          await upsertPlacementByText(tx, {
+            periodId: input.event_id,
+            userId: input.user_id,
+            division: input.division,
+            position: input.position,
+            createdBy: ctx.session.user.id,
+          });
         });
 
         return {
@@ -811,7 +825,7 @@ export const lembagaRouter = createTRPCRouter({
           });
         }
 
-        await ctx.db
+        const declined = await ctx.db
           .update(associationRequests)
           .set({
             status: 'Declined',
@@ -820,8 +834,11 @@ export const lembagaRouter = createTRPCRouter({
             and(
               eq(associationRequests.event_id, input.event_id),
               eq(associationRequests.user_id, input.user_id),
+              eq(associationRequests.status, 'Pending'),
             ),
-          );
+          )
+          .returning({ id: associationRequests.id });
+        if (declined.length === 0) requestAlreadyDecided();
 
         return {
           success: true,
@@ -923,10 +940,7 @@ export const lembagaRouter = createTRPCRouter({
     .output(GetAllRequestAssociationLembagaOutputSchema)
     .query(async ({ ctx, input }) => {
       const conditions = [
-        eq(
-          associationRequestsLembaga.lembagaId,
-          ctx.lembagaId,
-        ),
+        eq(associationRequestsLembaga.lembagaId, ctx.lembagaId),
       ];
 
       conditions.push(eq(associationRequestsLembaga.status, 'Pending'));
@@ -970,10 +984,7 @@ export const lembagaRouter = createTRPCRouter({
           .from(associationRequestsLembaga)
           .where(
             and(
-              eq(
-                associationRequestsLembaga.lembagaId,
-                ctx.lembagaId,
-              ),
+              eq(associationRequestsLembaga.lembagaId, ctx.lembagaId),
               eq(associationRequestsLembaga.user_id, input.user_id),
               eq(associationRequestsLembaga.status, 'Pending'),
             ),
@@ -988,13 +999,7 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         // Check if user is already a member of the lembaga
-        if (
-          await isLembagaMember(
-            ctx.db,
-            ctx.lembagaId,
-            input.user_id,
-          )
-        ) {
+        if (await isLembagaMember(ctx.db, ctx.lembagaId, input.user_id)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message:
@@ -1003,7 +1008,22 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         await ctx.db.transaction(async (tx) => {
-          // Add user to the lembaga
+          // Klaim permintaan lebih dulu; anggota hanya ditambahkan bila klaim berhasil.
+          const claimed = await tx
+            .update(associationRequestsLembaga)
+            .set({
+              status: 'Accepted',
+            })
+            .where(
+              and(
+                eq(associationRequestsLembaga.lembagaId, ctx.lembagaId),
+                eq(associationRequestsLembaga.user_id, input.user_id),
+                eq(associationRequestsLembaga.status, 'Pending'),
+              ),
+            )
+            .returning({ id: associationRequestsLembaga.id });
+          if (claimed.length === 0) requestAlreadyDecided();
+
           await addLembagaMember(tx, {
             lembagaId: ctx.lembagaId,
             userId: input.user_id,
@@ -1011,22 +1031,6 @@ export const lembagaRouter = createTRPCRouter({
             position: input.position,
             actorId: ctx.session.user.id,
           });
-
-          // Update the association request status to 'Accepted'
-          await tx
-            .update(associationRequestsLembaga)
-            .set({
-              status: 'Accepted',
-            })
-            .where(
-              and(
-                eq(
-                  associationRequestsLembaga.lembagaId,
-                  ctx.lembagaId,
-                ),
-                eq(associationRequestsLembaga.user_id, input.user_id),
-              ),
-            );
         });
 
         return {
@@ -1056,10 +1060,7 @@ export const lembagaRouter = createTRPCRouter({
           .from(associationRequestsLembaga)
           .where(
             and(
-              eq(
-                associationRequestsLembaga.lembagaId,
-                ctx.lembagaId,
-              ),
+              eq(associationRequestsLembaga.lembagaId, ctx.lembagaId),
               eq(associationRequestsLembaga.user_id, input.user_id),
               eq(associationRequestsLembaga.status, 'Pending'),
             ),
@@ -1074,20 +1075,20 @@ export const lembagaRouter = createTRPCRouter({
         }
 
         // Update the association request status to 'Declined'
-        await ctx.db
+        const declined = await ctx.db
           .update(associationRequestsLembaga)
           .set({
             status: 'Declined',
           })
           .where(
             and(
-              eq(
-                associationRequestsLembaga.lembagaId,
-                ctx.lembagaId,
-              ),
+              eq(associationRequestsLembaga.lembagaId, ctx.lembagaId),
               eq(associationRequestsLembaga.user_id, input.user_id),
+              eq(associationRequestsLembaga.status, 'Pending'),
             ),
-          );
+          )
+          .returning({ id: associationRequestsLembaga.id });
+        if (declined.length === 0) requestAlreadyDecided();
 
         return {
           success: true,
@@ -1612,10 +1613,7 @@ export const lembagaRouter = createTRPCRouter({
           });
         }
 
-        const periodId = await currentLembagaPeriodId(
-          ctx.db,
-          input.lembagaId,
-        );
+        const periodId = await currentLembagaPeriodId(ctx.db, input.lembagaId);
         if (periodId) {
           await ctx.db.transaction((tx) =>
             reorderPeriodMembers(tx, periodId, input.user_ids),
