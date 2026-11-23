@@ -78,6 +78,11 @@ jobs:
           # PR dari fork tidak mendapat secrets; build tetap butuh URL (robots/sitemap).
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'https://anmategra.com' }}
 
+      # `next build` tidak lagi mengecek tipe sendiri (lihat next.config.js). Tipe
+      # rute yang ia buat di .next/types (lebih banyak dari `next typegen`) dicek di sini.
+      - name: Check types of the build output
+        run: bun check --no-script
+
   test:
     name: Test
     runs-on: ubuntu-latest
