@@ -37,6 +37,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '~/components/ui/sheet';
+import { check } from '~/lib/lifecycle/define';
+import { formLifecycle } from '~/lib/lifecycle/form';
 import { cn } from '~/lib/utils';
 
 import { AddMenu } from './add-menu';
@@ -233,7 +235,10 @@ export function FormBuilder({
           </Link>
         </Button>
         <SharePopover />
-        <StatusActions status={detail.status} />
+        <StatusActions
+          status={detail.status}
+          submissions={detail.submissionCount}
+        />
       </div>
     </div>
   );
@@ -535,9 +540,37 @@ export function FormBuilder({
   );
 }
 
-function StatusActions({ status }: { status: FormStatus }) {
+function StatusActions({
+  status,
+  submissions,
+}: {
+  status: FormStatus;
+  submissions: number;
+}) {
   const builder = useBuilder();
   const [confirmClose, setConfirmClose] = useState(false);
+  const toDraft =
+    status === 'Draft'
+      ? null
+      : check(formLifecycle, status, 'Draft', { submissions });
+  const backToDraft = toDraft ? (
+    toDraft.ok ? (
+      <Button
+        variant="dark_blue_outline"
+        onClick={() => void builder.changeStatus('Draft')}
+      >
+        Kembali ke draf
+      </Button>
+    ) : (
+      // Tombol nonaktif tidak menerima hover, jadi alasannya dipasang di pembungkus.
+      <span title={toDraft.message}>
+        <Button variant="dark_blue_outline" disabled>
+          Kembali ke draf
+          <span className="sr-only"> ({toDraft.message})</span>
+        </Button>
+      </span>
+    )
+  ) : null;
   return (
     <>
       {status === 'Draft' ? (
@@ -550,12 +583,7 @@ function StatusActions({ status }: { status: FormStatus }) {
       ) : null}
       {status === 'Published' ? (
         <>
-          <Button
-            variant="dark_blue_outline"
-            onClick={() => void builder.changeStatus('Draft')}
-          >
-            Kembali ke draf
-          </Button>
+          {backToDraft}
           <Button
             variant="warning_outline"
             onClick={() => setConfirmClose(true)}
@@ -594,12 +622,7 @@ function StatusActions({ status }: { status: FormStatus }) {
       ) : null}
       {status === 'Closed' ? (
         <>
-          <Button
-            variant="dark_blue_outline"
-            onClick={() => void builder.changeStatus('Draft')}
-          >
-            Kembali ke draf
-          </Button>
+          {backToDraft}
           <Button
             variant="light_blue"
             onClick={() => void builder.changeStatus('Published')}

@@ -11,9 +11,14 @@ import {
   or,
   sql,
 } from 'drizzle-orm';
+import {
+  releaseStateOf,
+  resultsReleaseLifecycle,
+} from '~/lib/lifecycle/results-release';
 import { deriveChoiceStage } from '~/lib/oprec/allocation';
 import { fallbackReason, finalStatus, resultsMode } from '~/lib/oprec/results';
 import { aggregateCriterion, effectiveStatus } from '~/lib/oprec/scoring';
+import { assertMove } from '~/server/api/lifecycle';
 import { oprecAssessProcedure, protectedProcedure } from '~/server/api/trpc';
 import {
   application,
@@ -46,7 +51,7 @@ import {
 import { logAction } from './log';
 import { loadPlacementDivisions } from './placement';
 import { notifyResultsReleased } from './result-notification';
-import { type Queryable, conflict, notFound } from './services';
+import { type Queryable, notFound } from './services';
 
 type ResultsMode = 'admin' | 'admin_ketua' | 'semua';
 type Status = Parameters<typeof effectiveStatus>[0];
@@ -487,7 +492,11 @@ export const resultsProcedures = {
       };
     }),
 
-  /** Rilis hasil ke pendaftar; hanya admin, hanya setelah final, hanya bila S21 aktif. */
+  /**
+   * Rilis hasil ke pendaftar; hanya admin, hanya bila S21 aktif, dan tidak
+   * selagi penempatan berjalan. Rilis saat masa banding berarti hasil
+   * sementara; menetapkan final kemudian mengirim notifikasi lagi.
+   */
   resultsRelease: oprecAssessProcedure
     .input(ResultsReleaseInputSchema)
     .mutation(async ({ ctx, input }) => {
@@ -504,14 +513,12 @@ export const resultsProcedures = {
           .where(eq(recruitment.id, ctx.recruitment.id))
           .for('update');
         if (!row) notFound('Oprec tidak ditemukan.');
-        if (row.placementState === 'berjalan') {
-          conflict(
-            'Buka masa banding atau tetapkan final sebelum merilis hasil.',
-          );
-        }
-        if (row.resultsReleasedAt !== null) {
-          conflict('Hasil sudah dirilis.');
-        }
+        assertMove(
+          resultsReleaseLifecycle,
+          releaseStateOf(row.resultsReleasedAt),
+          'dirilis',
+          { placementState: row.placementState },
+        );
         const undecided = await undecidedCount(tx, row.id, row.stagedPlacement);
         const releasedAt = new Date();
         const publishAt = input.publishAt ?? null;
@@ -555,9 +562,12 @@ export const resultsProcedures = {
           .where(eq(recruitment.id, ctx.recruitment.id))
           .for('update');
         if (!row) notFound('Oprec tidak ditemukan.');
-        if (row.resultsReleasedAt === null) {
-          conflict('Hasil belum dirilis.');
-        }
+        assertMove(
+          resultsReleaseLifecycle,
+          releaseStateOf(row.resultsReleasedAt),
+          'belum_dirilis',
+          { placementState: row.placementState },
+        );
         await tx
           .update(recruitment)
           .set({ resultsReleasedAt: null, resultsPublishAt: null })

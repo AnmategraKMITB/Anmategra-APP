@@ -8,4 +8,6 @@ dist
 build
 # Artefak generate — biar tidak bentrok dengan format keluaran generator.
 docs/api/openapi.json
+docs/api/lifecycles.json
+docs/api/lifecycles.md
 docs/api/schema.dbml

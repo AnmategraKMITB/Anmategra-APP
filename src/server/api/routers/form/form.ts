@@ -1,6 +1,9 @@
 import { TRPCError } from '@trpc/server';
 import { desc, eq, sql } from 'drizzle-orm';
 import { isReservedFormSlug } from '~/lib/forms/slug';
+import { formLifecycle } from '~/lib/lifecycle/form';
+import { oprecLifecycle, oprecStatusForForm } from '~/lib/lifecycle/oprec';
+import { assertMove, transition } from '~/server/api/lifecycle';
 import {
   createTRPCRouter,
   eventFormsProcedure,
@@ -38,8 +41,10 @@ import {
   UpdateFormInputSchema,
   UpdateFormOutputSchema,
 } from '../../types/form.type';
+import { countApplications, oprecOpenProblems } from '../oprec/services';
 import {
   type Queryable,
+  type Tx,
   assertOwnedImageUrl,
   assertPublishable,
   countSubmissions,
@@ -53,11 +58,9 @@ import {
   lockForm,
   ownedImageKeys,
   rethrow,
-  type Tx,
   toFormOutput,
   unreferencedImageKeys,
 } from './services';
-import { countApplications, oprecOpenProblems } from '../oprec/services';
 
 async function listWithCounts(
   db: Queryable,
@@ -83,39 +86,29 @@ async function syncOprecToForm(
   rec: typeof recruitment.$inferSelect,
   status: FormStatus,
 ) {
-  const next =
-    status === 'Published' ? 'open' : status === 'Closed' ? 'closed' : 'draft';
+  const next = oprecStatusForForm(status);
   if (rec.status === next) return;
-  if (next === 'open') {
-    const problems = await oprecOpenProblems(tx, rec);
-    if (problems.length > 0) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: `Oprec belum bisa dibuka: ${problems.join(' ')}`,
-      });
-    }
-  }
-  if (next === 'draft' && (await countApplications(tx, rec.id)) > 0) {
+  const openProblems = next === 'open' ? await oprecOpenProblems(tx, rec) : [];
+  // Dari builder form, semua kekurangan disebut sekaligus (oprec.setStatus
+  // hanya menyebut yang pertama), jadi pesannya dibuat di sini.
+  if (openProblems.length > 0) {
     throw new TRPCError({
-      code: 'CONFLICT',
-      message: 'Oprec yang sudah punya pendaftar tidak bisa kembali ke draf.',
+      code: 'BAD_REQUEST',
+      message: `Oprec belum bisa dibuka: ${openProblems.join(' ')}`,
     });
   }
-  await tx
-    .update(recruitment)
-    .set({ status: next })
-    .where(eq(recruitment.id, rec.id));
+  await transition(tx, oprecLifecycle, {
+    table: recruitment,
+    column: recruitment.status,
+    where: eq(recruitment.id, rec.id),
+    from: rec.status,
+    to: next,
+    ctx: {
+      openProblems,
+      applications: next === 'draft' ? await countApplications(tx, rec.id) : 0,
+    },
+  });
 }
-
-/**
- * Which status moves are allowed. Going back to Draft is only possible while
- * nobody has submitted — checked separately, under the row lock.
- */
-const TRANSITIONS: Record<FormStatus, readonly FormStatus[]> = {
-  Draft: ['Published'],
-  Published: ['Closed', 'Draft'],
-  Closed: ['Published', 'Draft'],
-};
 
 /**
  * Menyunting jawaban hanya masuk akal untuk form satu respons. Kombinasi
@@ -466,40 +459,30 @@ export const formFormRouter = createTRPCRouter({
           const current = await lockForm(tx, ctx.form.id);
           if (current.status === input.status) return current;
 
-          if (!TRANSITIONS[current.status].includes(input.status)) {
-            throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: `Status formulir tidak dapat diubah dari ${current.status} ke ${input.status}.`,
-            });
-          }
+          const lifecycleCtx = {
+            submissions:
+              (await countSubmissions(tx, [current.id])).get(current.id) ?? 0,
+          };
+          assertMove(formLifecycle, current.status, input.status, lifecycleCtx);
 
           if (input.status === 'Published') {
             assertPublishable(current, await loadActiveFields(tx, current.id));
           }
 
-          if (input.status === 'Draft') {
-            const counts = await countSubmissions(tx, [current.id]);
-            if ((counts.get(current.id) ?? 0) > 0) {
-              throw new TRPCError({
-                code: 'CONFLICT',
-                message:
-                  'Formulir yang sudah memiliki jawaban tidak dapat dikembalikan ke Draft.',
-              });
-            }
-          }
-
           if (rec) await syncOprecToForm(tx, rec, input.status);
 
-          const [updated] = await tx
-            .update(form)
-            .set({
-              status: input.status,
+          return transition(tx, formLifecycle, {
+            table: form,
+            column: form.status,
+            where: eq(form.id, current.id),
+            from: current.status,
+            to: input.status,
+            ctx: lifecycleCtx,
+            set: {
               ...(input.status === 'Published' &&
                 current.publishedAt === null && { publishedAt: new Date() }),
-            })
-            .where(eq(form.id, current.id))
-            .returning();
-          return updated!;
+            },
+          });
         });
         return toFormOutput(row);
       } catch (error) {

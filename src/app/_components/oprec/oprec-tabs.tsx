@@ -1,6 +1,9 @@
 import { count, eq } from 'drizzle-orm';
 import Link from 'next/link';
+import { nextMoves } from '~/lib/lifecycle/define';
+import { oprecLifecycle } from '~/lib/lifecycle/oprec';
 import { cn } from '~/lib/utils';
+import { oprecOpenProblems } from '~/server/api/routers/oprec/services';
 import { db } from '~/server/db';
 import { application, recruitment } from '~/server/db/schema';
 
@@ -48,6 +51,9 @@ export async function OprecTabs({
 }) {
   const [row] = await db
     .select({
+      id: recruitment.id,
+      formId: recruitment.formId,
+      setupCompletedAt: recruitment.setupCompletedAt,
       status: recruitment.status,
       placementMethod: recruitment.placementMethod,
       placementState: recruitment.placementState,
@@ -113,12 +119,23 @@ export async function OprecTabs({
         )}
       </nav>
     );
+  // Syarat pindah status dinilai di server, supaya tombol yang belum boleh
+  // langsung nonaktif beserta alasannya.
+  const statusMoves =
+    manage && row
+      ? nextMoves(oprecLifecycle, row.status, {
+          openProblems:
+            row.status === 'open' ? [] : await oprecOpenProblems(db, row),
+          applications: applicants?.n ?? 0,
+        })
+      : [];
   return (
     <>
       {manage ? (
         <OprecManageBar
           basePath={basePath}
           recruitmentId={recruitmentId}
+          statusMoves={statusMoves}
           {...manage}
         />
       ) : null}

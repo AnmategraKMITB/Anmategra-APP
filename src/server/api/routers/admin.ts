@@ -2,6 +2,8 @@ import { TRPCError } from '@trpc/server';
 import { eq, ilike, inArray } from 'drizzle-orm';
 import { and, desc, or } from 'drizzle-orm';
 import { z } from 'zod';
+import { supportLifecycle } from '~/lib/lifecycle/support';
+import { transition } from '~/server/api/lifecycle';
 import { adminPermissionProcedure, createTRPCRouter } from '~/server/api/trpc';
 import {
   GetAllReportsAdminInputSchema,
@@ -78,27 +80,14 @@ export const adminRouter = createTRPCRouter({
         };
       }
 
-      const statusOrder = {
-        Draft: 0,
-        Reported: 1,
-        'In Progress': 2,
-        Resolved: 3,
-      } as const;
-
-      const currentOrder = statusOrder[existingReport.status];
-      const newOrder = statusOrder[input.status];
-
-      // Prevent going backward
-      if (newOrder < currentOrder) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: `Tidak dapat mengubah status laporan mundur dari ${existingReport.status} ke ${input.status}`,
-        });
-      }
-      await ctx.db
-        .update(support)
-        .set({ status: input.status })
-        .where(eq(support.id, input.id));
+      await transition(ctx.db, supportLifecycle, {
+        table: support,
+        column: support.status,
+        where: eq(support.id, input.id),
+        from: existingReport.status,
+        to: input.status,
+        ctx: undefined,
+      });
       return { success: true, message: 'Status laporan berhasil diperbarui' };
     }),
 
