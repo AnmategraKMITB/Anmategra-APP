@@ -1,7 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('~/env', () => ({
+await vi.mock('~/env', () => ({
   env: { SUPERADMIN_EMAILS: [], APP_ENV: 'development' },
 }));
 

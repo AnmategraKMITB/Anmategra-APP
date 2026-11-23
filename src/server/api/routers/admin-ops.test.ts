@@ -1,10 +1,9 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createCallerFactory } from '~/server/api/trpc';
 import {
   adminAudit,
   adminPermission,
-  alumniPending,
   lembaga,
   lembagaMembership,
   mahasiswa,
@@ -25,7 +24,7 @@ import { adminConsoleRouter } from './admin-console';
 import { adminOpsRouter } from './admin-ops';
 
 // Daftar email darurat dibuat tetap agar tes tidak bergantung pada .env.
-vi.mock('~/env', () => ({
+await vi.mock('~/env', () => ({
   env: { SUPERADMIN_EMAILS: ['darurat@test.local'], APP_ENV: 'development' },
 }));
 
@@ -33,7 +32,6 @@ const { db, close } = createTestDb();
 
 beforeEach(async () => {
   await resetDb(db);
-  await db.execute(sql`TRUNCATE TABLE ${verifiedUsers}, ${alumniPending}`);
 });
 afterAll(async () => {
   await close();
