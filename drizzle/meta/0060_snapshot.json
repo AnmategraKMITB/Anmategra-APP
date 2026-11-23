@@ -217,54 +217,78 @@
         "anmategra_access_grant_user_id_anmategra_user_id_fk": {
           "name": "anmategra_access_grant_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_access_grant",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_access_grant_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_access_grant_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_access_grant",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_access_grant_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_access_grant_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_access_grant",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_access_grant_parent_grant_id_anmategra_access_grant_id_fk": {
           "name": "anmategra_access_grant_parent_grant_id_anmategra_access_grant_id_fk",
           "tableFrom": "anmategra_access_grant",
-          "columnsFrom": ["parent_grant_id"],
+          "columnsFrom": [
+            "parent_grant_id"
+          ],
           "tableTo": "anmategra_access_grant",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_access_grant_granted_by_anmategra_user_id_fk": {
           "name": "anmategra_access_grant_granted_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_access_grant",
-          "columnsFrom": ["granted_by"],
+          "columnsFrom": [
+            "granted_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_access_grant_revoked_by_anmategra_user_id_fk": {
           "name": "anmategra_access_grant_revoked_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_access_grant",
-          "columnsFrom": ["revoked_by"],
+          "columnsFrom": [
+            "revoked_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -367,9 +391,13 @@
         "anmategra_account_user_id_anmategra_user_id_fk": {
           "name": "anmategra_account_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_account",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -377,7 +405,10 @@
       "compositePrimaryKeys": {
         "anmategra_account_provider_provider_account_id_pk": {
           "name": "anmategra_account_provider_provider_account_id_pk",
-          "columns": ["provider", "provider_account_id"]
+          "columns": [
+            "provider",
+            "provider_account_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -481,9 +512,13 @@
         "anmategra_admin_audit_actor_id_anmategra_user_id_fk": {
           "name": "anmategra_admin_audit_actor_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_admin_audit",
-          "columnsFrom": ["actor_id"],
+          "columnsFrom": [
+            "actor_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -598,27 +633,39 @@
         "anmategra_admin_permission_user_id_anmategra_user_id_fk": {
           "name": "anmategra_admin_permission_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_admin_permission",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_admin_permission_granted_by_anmategra_user_id_fk": {
           "name": "anmategra_admin_permission_granted_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_admin_permission",
-          "columnsFrom": ["granted_by"],
+          "columnsFrom": [
+            "granted_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_admin_permission_revoked_by_anmategra_user_id_fk": {
           "name": "anmategra_admin_permission_revoked_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_admin_permission",
-          "columnsFrom": ["revoked_by"],
+          "columnsFrom": [
+            "revoked_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -777,27 +824,39 @@
         "anmategra_alt_login_claim_user_id_anmategra_user_id_fk": {
           "name": "anmategra_alt_login_claim_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_alt_login_claim",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_alt_login_claim_approved_by_anmategra_user_id_fk": {
           "name": "anmategra_alt_login_claim_approved_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_alt_login_claim",
-          "columnsFrom": ["approved_by"],
+          "columnsFrom": [
+            "approved_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_alt_login_claim_revoked_by_anmategra_user_id_fk": {
           "name": "anmategra_alt_login_claim_revoked_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_alt_login_claim",
-          "columnsFrom": ["revoked_by"],
+          "columnsFrom": [
+            "revoked_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -872,9 +931,13 @@
         "anmategra_alumni_pending_uploaded_by_anmategra_user_id_fk": {
           "name": "anmategra_alumni_pending_uploaded_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_alumni_pending",
-          "columnsFrom": ["uploaded_by"],
+          "columnsFrom": [
+            "uploaded_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1038,45 +1101,65 @@
         "anmategra_application_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_application_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_application",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_application_user_id_anmategra_user_id_fk": {
           "name": "anmategra_application_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_application",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_application_wave_id_anmategra_recruitment_wave_id_fk": {
           "name": "anmategra_application_wave_id_anmategra_recruitment_wave_id_fk",
           "tableFrom": "anmategra_application",
-          "columnsFrom": ["wave_id"],
+          "columnsFrom": [
+            "wave_id"
+          ],
           "tableTo": "anmategra_recruitment_wave",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_application_form_submission_id_anmategra_form_submission_id_fk": {
           "name": "anmategra_application_form_submission_id_anmategra_form_submission_id_fk",
           "tableFrom": "anmategra_application",
-          "columnsFrom": ["form_submission_id"],
+          "columnsFrom": [
+            "form_submission_id"
+          ],
           "tableTo": "anmategra_form_submission",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_application_offer_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_application_offer_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_application",
-          "columnsFrom": ["offer_division_id"],
+          "columnsFrom": [
+            "offer_division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -1204,18 +1287,26 @@
         "anmategra_application_choice_application_id_anmategra_application_id_fk": {
           "name": "anmategra_application_choice_application_id_anmategra_application_id_fk",
           "tableFrom": "anmategra_application_choice",
-          "columnsFrom": ["application_id"],
+          "columnsFrom": [
+            "application_id"
+          ],
           "tableTo": "anmategra_application",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_application_choice_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_application_choice_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_application_choice",
-          "columnsFrom": ["division_id"],
+          "columnsFrom": [
+            "division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "restrict"
         }
@@ -1310,27 +1401,39 @@
         "anmategra_application_flag_application_id_anmategra_application_id_fk": {
           "name": "anmategra_application_flag_application_id_anmategra_application_id_fk",
           "tableFrom": "anmategra_application_flag",
-          "columnsFrom": ["application_id"],
+          "columnsFrom": [
+            "application_id"
+          ],
           "tableTo": "anmategra_application",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_application_flag_label_id_anmategra_flag_label_id_fk": {
           "name": "anmategra_application_flag_label_id_anmategra_flag_label_id_fk",
           "tableFrom": "anmategra_application_flag",
-          "columnsFrom": ["label_id"],
+          "columnsFrom": [
+            "label_id"
+          ],
           "tableTo": "anmategra_flag_label",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_application_flag_applied_by_anmategra_user_id_fk": {
           "name": "anmategra_application_flag_applied_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_application_flag",
-          "columnsFrom": ["applied_by"],
+          "columnsFrom": [
+            "applied_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -1500,36 +1603,52 @@
         "anmategra_assessment_application_id_anmategra_application_id_fk": {
           "name": "anmategra_assessment_application_id_anmategra_application_id_fk",
           "tableFrom": "anmategra_assessment",
-          "columnsFrom": ["application_id"],
+          "columnsFrom": [
+            "application_id"
+          ],
           "tableTo": "anmategra_application",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_assessment_choice_id_anmategra_application_choice_id_fk": {
           "name": "anmategra_assessment_choice_id_anmategra_application_choice_id_fk",
           "tableFrom": "anmategra_assessment",
-          "columnsFrom": ["choice_id"],
+          "columnsFrom": [
+            "choice_id"
+          ],
           "tableTo": "anmategra_application_choice",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_assessment_criterion_id_anmategra_criterion_id_fk": {
           "name": "anmategra_assessment_criterion_id_anmategra_criterion_id_fk",
           "tableFrom": "anmategra_assessment",
-          "columnsFrom": ["criterion_id"],
+          "columnsFrom": [
+            "criterion_id"
+          ],
           "tableTo": "anmategra_criterion",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_assessment_assessor_id_anmategra_user_id_fk": {
           "name": "anmategra_assessment_assessor_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_assessment",
-          "columnsFrom": ["assessor_id"],
+          "columnsFrom": [
+            "assessor_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1614,36 +1733,52 @@
         "anmategra_association_request_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_association_request_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_association_request",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_association_request_user_id_anmategra_user_id_fk": {
           "name": "anmategra_association_request_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_association_request",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_association_request_org_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_association_request_org_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_association_request",
-          "columnsFrom": ["org_unit_id"],
+          "columnsFrom": [
+            "org_unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_association_request_org_role_id_anmategra_organization_role_id_fk": {
           "name": "anmategra_association_request_org_role_id_anmategra_organization_role_id_fk",
           "tableFrom": "anmategra_association_request",
-          "columnsFrom": ["org_role_id"],
+          "columnsFrom": [
+            "org_role_id"
+          ],
           "tableTo": "anmategra_organization_role",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -1728,36 +1863,52 @@
         "anmategra_association_request_lembaga_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_association_request_lembaga_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_association_request_lembaga",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_association_request_lembaga_user_id_anmategra_user_id_fk": {
           "name": "anmategra_association_request_lembaga_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_association_request_lembaga",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_association_request_lembaga_org_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_association_request_lembaga_org_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_association_request_lembaga",
-          "columnsFrom": ["org_unit_id"],
+          "columnsFrom": [
+            "org_unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_association_request_lembaga_org_role_id_anmategra_organization_role_id_fk": {
           "name": "anmategra_association_request_lembaga_org_role_id_anmategra_organization_role_id_fk",
           "tableFrom": "anmategra_association_request_lembaga",
-          "columnsFrom": ["org_role_id"],
+          "columnsFrom": [
+            "org_role_id"
+          ],
           "tableTo": "anmategra_organization_role",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -1814,18 +1965,26 @@
         "anmategra_best_staff_kegiatan_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_best_staff_kegiatan_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_best_staff_kegiatan",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_best_staff_kegiatan_mahasiswa_id_anmategra_mahasiswa_user_id_fk": {
           "name": "anmategra_best_staff_kegiatan_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_best_staff_kegiatan",
-          "columnsFrom": ["mahasiswa_id"],
+          "columnsFrom": [
+            "mahasiswa_id"
+          ],
           "tableTo": "anmategra_mahasiswa",
-          "columnsTo": ["user_id"],
+          "columnsTo": [
+            "user_id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -1882,18 +2041,26 @@
         "anmategra_best_staff_lembaga_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_best_staff_lembaga_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_best_staff_lembaga",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_best_staff_lembaga_mahasiswa_id_anmategra_mahasiswa_user_id_fk": {
           "name": "anmategra_best_staff_lembaga_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_best_staff_lembaga",
-          "columnsFrom": ["mahasiswa_id"],
+          "columnsFrom": [
+            "mahasiswa_id"
+          ],
           "tableTo": "anmategra_mahasiswa",
-          "columnsTo": ["user_id"],
+          "columnsTo": [
+            "user_id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -2008,18 +2175,26 @@
         "anmategra_choice_status_override_choice_id_anmategra_application_choice_id_fk": {
           "name": "anmategra_choice_status_override_choice_id_anmategra_application_choice_id_fk",
           "tableFrom": "anmategra_choice_status_override",
-          "columnsFrom": ["choice_id"],
+          "columnsFrom": [
+            "choice_id"
+          ],
           "tableTo": "anmategra_application_choice",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_choice_status_override_set_by_anmategra_user_id_fk": {
           "name": "anmategra_choice_status_override_set_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_choice_status_override",
-          "columnsFrom": ["set_by"],
+          "columnsFrom": [
+            "set_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -2140,18 +2315,26 @@
         "anmategra_criterion_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_criterion_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_criterion",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_criterion_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_criterion_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_criterion",
-          "columnsFrom": ["division_id"],
+          "columnsFrom": [
+            "division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -2200,18 +2383,26 @@
         "anmategra_criterion_field_criterion_id_anmategra_criterion_id_fk": {
           "name": "anmategra_criterion_field_criterion_id_anmategra_criterion_id_fk",
           "tableFrom": "anmategra_criterion_field",
-          "columnsFrom": ["criterion_id"],
+          "columnsFrom": [
+            "criterion_id"
+          ],
           "tableTo": "anmategra_criterion",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_criterion_field_form_field_id_anmategra_form_field_id_fk": {
           "name": "anmategra_criterion_field_form_field_id_anmategra_form_field_id_fk",
           "tableFrom": "anmategra_criterion_field",
-          "columnsFrom": ["form_field_id"],
+          "columnsFrom": [
+            "form_field_id"
+          ],
           "tableTo": "anmategra_form_field",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -2219,7 +2410,10 @@
       "compositePrimaryKeys": {
         "anmategra_criterion_field_criterion_id_form_field_id_pk": {
           "name": "anmategra_criterion_field_criterion_id_form_field_id_pk",
-          "columns": ["criterion_id", "form_field_id"]
+          "columns": [
+            "criterion_id",
+            "form_field_id"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -2339,27 +2533,39 @@
         "anmategra_division_priority_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_division_priority_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_division_priority",
-          "columnsFrom": ["division_id"],
+          "columnsFrom": [
+            "division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_division_priority_application_id_anmategra_application_id_fk": {
           "name": "anmategra_division_priority_application_id_anmategra_application_id_fk",
           "tableFrom": "anmategra_division_priority",
-          "columnsFrom": ["application_id"],
+          "columnsFrom": [
+            "application_id"
+          ],
           "tableTo": "anmategra_application",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_division_priority_updated_by_anmategra_user_id_fk": {
           "name": "anmategra_division_priority_updated_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_division_priority",
-          "columnsFrom": ["updated_by"],
+          "columnsFrom": [
+            "updated_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -2547,9 +2753,13 @@
         "anmategra_lembaga_period_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_lembaga_period_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_lembaga_period",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -2629,18 +2839,26 @@
         "anmategra_flag_label_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_flag_label_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_flag_label",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_flag_label_created_by_anmategra_user_id_fk": {
           "name": "anmategra_flag_label_created_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_flag_label",
-          "columnsFrom": ["created_by"],
+          "columnsFrom": [
+            "created_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -2851,27 +3069,39 @@
         "anmategra_form_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_form_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_form",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_form_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_form_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_form",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_form_created_by_anmategra_user_id_fk": {
           "name": "anmategra_form_created_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_form",
-          "columnsFrom": ["created_by"],
+          "columnsFrom": [
+            "created_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -2965,18 +3195,26 @@
         "anmategra_form_answer_submission_id_anmategra_form_submission_id_fk": {
           "name": "anmategra_form_answer_submission_id_anmategra_form_submission_id_fk",
           "tableFrom": "anmategra_form_answer",
-          "columnsFrom": ["submission_id"],
+          "columnsFrom": [
+            "submission_id"
+          ],
           "tableTo": "anmategra_form_submission",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_form_answer_field_id_anmategra_form_field_id_fk": {
           "name": "anmategra_form_answer_field_id_anmategra_form_field_id_fk",
           "tableFrom": "anmategra_form_answer",
-          "columnsFrom": ["field_id"],
+          "columnsFrom": [
+            "field_id"
+          ],
           "tableTo": "anmategra_form_field",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3069,9 +3307,13 @@
         "anmategra_form_ending_form_id_anmategra_form_id_fk": {
           "name": "anmategra_form_ending_form_id_anmategra_form_id_fk",
           "tableFrom": "anmategra_form_ending",
-          "columnsFrom": ["form_id"],
+          "columnsFrom": [
+            "form_id"
+          ],
           "tableTo": "anmategra_form",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -3224,18 +3466,26 @@
         "anmategra_form_field_form_id_anmategra_form_id_fk": {
           "name": "anmategra_form_field_form_id_anmategra_form_id_fk",
           "tableFrom": "anmategra_form_field",
-          "columnsFrom": ["form_id"],
+          "columnsFrom": [
+            "form_id"
+          ],
           "tableTo": "anmategra_form",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_form_field_section_id_anmategra_form_section_id_fk": {
           "name": "anmategra_form_field_section_id_anmategra_form_section_id_fk",
           "tableFrom": "anmategra_form_field",
-          "columnsFrom": ["section_id"],
+          "columnsFrom": [
+            "section_id"
+          ],
           "tableTo": "anmategra_form_section",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "restrict"
         }
@@ -3322,9 +3572,13 @@
         "anmategra_form_field_option_field_id_anmategra_form_field_id_fk": {
           "name": "anmategra_form_field_option_field_id_anmategra_form_field_id_fk",
           "tableFrom": "anmategra_form_field_option",
-          "columnsFrom": ["field_id"],
+          "columnsFrom": [
+            "field_id"
+          ],
           "tableTo": "anmategra_form_field",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -3393,9 +3647,13 @@
         "anmategra_form_image_form_id_anmategra_form_id_fk": {
           "name": "anmategra_form_image_form_id_anmategra_form_id_fk",
           "tableFrom": "anmategra_form_image",
-          "columnsFrom": ["form_id"],
+          "columnsFrom": [
+            "form_id"
+          ],
           "tableTo": "anmategra_form",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -3488,9 +3746,13 @@
         "anmategra_form_section_form_id_anmategra_form_id_fk": {
           "name": "anmategra_form_section_form_id_anmategra_form_id_fk",
           "tableFrom": "anmategra_form_section",
-          "columnsFrom": ["form_id"],
+          "columnsFrom": [
+            "form_id"
+          ],
           "tableTo": "anmategra_form",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -3571,27 +3833,39 @@
         "anmategra_form_submission_form_id_anmategra_form_id_fk": {
           "name": "anmategra_form_submission_form_id_anmategra_form_id_fk",
           "tableFrom": "anmategra_form_submission",
-          "columnsFrom": ["form_id"],
+          "columnsFrom": [
+            "form_id"
+          ],
           "tableTo": "anmategra_form",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_form_submission_user_id_anmategra_user_id_fk": {
           "name": "anmategra_form_submission_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_form_submission",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_form_submission_ending_id_anmategra_form_ending_id_fk": {
           "name": "anmategra_form_submission_ending_id_anmategra_form_ending_id_fk",
           "tableFrom": "anmategra_form_submission",
-          "columnsFrom": ["ending_id"],
+          "columnsFrom": [
+            "ending_id"
+          ],
           "tableTo": "anmategra_form_ending",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3733,36 +4007,52 @@
         "anmategra_keanggotaan_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_keanggotaan_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_keanggotaan",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_keanggotaan_user_id_anmategra_user_id_fk": {
           "name": "anmategra_keanggotaan_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_keanggotaan",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_keanggotaan_org_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_keanggotaan_org_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_keanggotaan",
-          "columnsFrom": ["org_unit_id"],
+          "columnsFrom": [
+            "org_unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_keanggotaan_org_role_id_anmategra_organization_role_id_fk": {
           "name": "anmategra_keanggotaan_org_role_id_anmategra_organization_role_id_fk",
           "tableFrom": "anmategra_keanggotaan",
-          "columnsFrom": ["org_role_id"],
+          "columnsFrom": [
+            "org_role_id"
+          ],
           "tableTo": "anmategra_organization_role",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -3898,36 +4188,52 @@
         "anmategra_kehimpunan_user_id_anmategra_user_id_fk": {
           "name": "anmategra_kehimpunan_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_kehimpunan",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_kehimpunan_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_kehimpunan_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_kehimpunan",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_kehimpunan_org_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_kehimpunan_org_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_kehimpunan",
-          "columnsFrom": ["org_unit_id"],
+          "columnsFrom": [
+            "org_unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_kehimpunan_org_role_id_anmategra_organization_role_id_fk": {
           "name": "anmategra_kehimpunan_org_role_id_anmategra_organization_role_id_fk",
           "tableFrom": "anmategra_kehimpunan",
-          "columnsFrom": ["org_role_id"],
+          "columnsFrom": [
+            "org_role_id"
+          ],
           "tableTo": "anmategra_organization_role",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -4059,18 +4365,26 @@
         "anmategra_lembaga_parent_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_lembaga_parent_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_lembaga",
-          "columnsFrom": ["parent_id"],
+          "columnsFrom": [
+            "parent_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_lembaga_user_id_anmategra_user_id_fk": {
           "name": "anmategra_lembaga_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_lembaga",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4215,18 +4529,26 @@
         "anmategra_lembaga_membership_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_lembaga_membership_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_lembaga_membership",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_lembaga_membership_user_id_anmategra_user_id_fk": {
           "name": "anmategra_lembaga_membership_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_lembaga_membership",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4345,9 +4667,13 @@
         "anmategra_mahasiswa_user_id_anmategra_user_id_fk": {
           "name": "anmategra_mahasiswa_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_mahasiswa",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4414,18 +4740,26 @@
         "anmategra_nilai_profil_kegiatan_profil_id_anmategra_profil_kegiatan_id_fk": {
           "name": "anmategra_nilai_profil_kegiatan_profil_id_anmategra_profil_kegiatan_id_fk",
           "tableFrom": "anmategra_nilai_profil_kegiatan",
-          "columnsFrom": ["profil_id"],
+          "columnsFrom": [
+            "profil_id"
+          ],
           "tableTo": "anmategra_profil_kegiatan",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_nilai_profil_kegiatan_mahasiswa_id_anmategra_mahasiswa_user_id_fk": {
           "name": "anmategra_nilai_profil_kegiatan_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_nilai_profil_kegiatan",
-          "columnsFrom": ["mahasiswa_id"],
+          "columnsFrom": [
+            "mahasiswa_id"
+          ],
           "tableTo": "anmategra_mahasiswa",
-          "columnsTo": ["user_id"],
+          "columnsTo": [
+            "user_id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4492,18 +4826,26 @@
         "anmategra_nilai_profil_lembaga_profil_id_anmategra_profil_lembaga_id_fk": {
           "name": "anmategra_nilai_profil_lembaga_profil_id_anmategra_profil_lembaga_id_fk",
           "tableFrom": "anmategra_nilai_profil_lembaga",
-          "columnsFrom": ["profil_id"],
+          "columnsFrom": [
+            "profil_id"
+          ],
           "tableTo": "anmategra_profil_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_nilai_profil_lembaga_mahasiswa_id_anmategra_mahasiswa_user_id_fk": {
           "name": "anmategra_nilai_profil_lembaga_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_nilai_profil_lembaga",
-          "columnsFrom": ["mahasiswa_id"],
+          "columnsFrom": [
+            "mahasiswa_id"
+          ],
           "tableTo": "anmategra_mahasiswa",
-          "columnsTo": ["user_id"],
+          "columnsTo": [
+            "user_id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4623,18 +4965,26 @@
         "anmategra_notification_user_id_anmategra_user_id_fk": {
           "name": "anmategra_notification_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_notification",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_notification_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_notification_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_notification",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4737,9 +5087,13 @@
         "anmategra_organization_position_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_organization_position_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_organization_position",
-          "columnsFrom": ["unit_id"],
+          "columnsFrom": [
+            "unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4821,9 +5175,13 @@
         "anmategra_organization_role_structure_id_anmategra_organization_structure_id_fk": {
           "name": "anmategra_organization_role_structure_id_anmategra_organization_structure_id_fk",
           "tableFrom": "anmategra_organization_role",
-          "columnsFrom": ["structure_id"],
+          "columnsFrom": [
+            "structure_id"
+          ],
           "tableTo": "anmategra_organization_structure",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -4960,27 +5318,39 @@
         "anmategra_organization_structure_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_organization_structure_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_organization_structure",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_organization_structure_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_organization_structure_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_organization_structure",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_organization_structure_locked_by_anmategra_user_id_fk": {
           "name": "anmategra_organization_structure_locked_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_organization_structure",
-          "columnsFrom": ["locked_by"],
+          "columnsFrom": [
+            "locked_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -5134,18 +5504,26 @@
         "anmategra_organization_unit_structure_id_anmategra_organization_structure_id_fk": {
           "name": "anmategra_organization_unit_structure_id_anmategra_organization_structure_id_fk",
           "tableFrom": "anmategra_organization_unit",
-          "columnsFrom": ["structure_id"],
+          "columnsFrom": [
+            "structure_id"
+          ],
           "tableTo": "anmategra_organization_structure",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_organization_unit_parent_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_organization_unit_parent_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_organization_unit",
-          "columnsFrom": ["parent_id"],
+          "columnsFrom": [
+            "parent_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -5206,18 +5584,26 @@
         "anmategra_pemetaan_profil_kegiatan_profil_kegiatan_id_anmategra_profil_kegiatan_id_fk": {
           "name": "anmategra_pemetaan_profil_kegiatan_profil_kegiatan_id_anmategra_profil_kegiatan_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_kegiatan",
-          "columnsFrom": ["profil_kegiatan_id"],
+          "columnsFrom": [
+            "profil_kegiatan_id"
+          ],
           "tableTo": "anmategra_profil_kegiatan",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_pemetaan_profil_kegiatan_profil_km_id_anmategra_profil_km_id_fk": {
           "name": "anmategra_pemetaan_profil_kegiatan_profil_km_id_anmategra_profil_km_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_kegiatan",
-          "columnsFrom": ["profil_km_id"],
+          "columnsFrom": [
+            "profil_km_id"
+          ],
           "tableTo": "anmategra_profil_km",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -5278,18 +5664,26 @@
         "anmategra_pemetaan_profil_lembaga_profil_lembaga_id_anmategra_profil_lembaga_id_fk": {
           "name": "anmategra_pemetaan_profil_lembaga_profil_lembaga_id_anmategra_profil_lembaga_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_lembaga",
-          "columnsFrom": ["profil_lembaga_id"],
+          "columnsFrom": [
+            "profil_lembaga_id"
+          ],
           "tableTo": "anmategra_profil_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_pemetaan_profil_lembaga_profil_km_id_anmategra_profil_km_id_fk": {
           "name": "anmategra_pemetaan_profil_lembaga_profil_km_id_anmategra_profil_km_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_lembaga",
-          "columnsFrom": ["profil_km_id"],
+          "columnsFrom": [
+            "profil_km_id"
+          ],
           "tableTo": "anmategra_profil_km",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -5411,36 +5805,52 @@
         "anmategra_placement_position_id_anmategra_organization_position_id_fk": {
           "name": "anmategra_placement_position_id_anmategra_organization_position_id_fk",
           "tableFrom": "anmategra_placement",
-          "columnsFrom": ["position_id"],
+          "columnsFrom": [
+            "position_id"
+          ],
           "tableTo": "anmategra_organization_position",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "anmategra_placement_user_id_anmategra_user_id_fk": {
           "name": "anmategra_placement_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_placement",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_placement_application_choice_id_anmategra_application_choice_id_fk": {
           "name": "anmategra_placement_application_choice_id_anmategra_application_choice_id_fk",
           "tableFrom": "anmategra_placement",
-          "columnsFrom": ["application_choice_id"],
+          "columnsFrom": [
+            "application_choice_id"
+          ],
           "tableTo": "anmategra_application_choice",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_placement_created_by_anmategra_user_id_fk": {
           "name": "anmategra_placement_created_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_placement",
-          "columnsFrom": ["created_by"],
+          "columnsFrom": [
+            "created_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -5542,18 +5952,26 @@
         "anmategra_placement_decision_choice_id_anmategra_application_choice_id_fk": {
           "name": "anmategra_placement_decision_choice_id_anmategra_application_choice_id_fk",
           "tableFrom": "anmategra_placement_decision",
-          "columnsFrom": ["choice_id"],
+          "columnsFrom": [
+            "choice_id"
+          ],
           "tableTo": "anmategra_application_choice",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_placement_decision_decided_by_anmategra_user_id_fk": {
           "name": "anmategra_placement_decision_decided_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_placement_decision",
-          "columnsFrom": ["decided_by"],
+          "columnsFrom": [
+            "decided_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -5623,9 +6041,13 @@
         "anmategra_profil_kegiatan_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_profil_kegiatan_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_profil_kegiatan",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -5670,9 +6092,13 @@
         "anmategra_profil_lembaga_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_profil_lembaga_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_profil_lembaga",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -5967,27 +6393,39 @@
         "anmategra_recruitment_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_recruitment_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_recruitment",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_form_id_anmategra_form_id_fk": {
           "name": "anmategra_recruitment_form_id_anmategra_form_id_fk",
           "tableFrom": "anmategra_recruitment",
-          "columnsFrom": ["form_id"],
+          "columnsFrom": [
+            "form_id"
+          ],
           "tableTo": "anmategra_form",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "anmategra_recruitment_general_assessor_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_recruitment_general_assessor_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_recruitment",
-          "columnsFrom": ["general_assessor_unit_id"],
+          "columnsFrom": [
+            "general_assessor_unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -6075,27 +6513,39 @@
         "anmategra_recruitment_assessor_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_assessor_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_assessor",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_assessor_user_id_anmategra_user_id_fk": {
           "name": "anmategra_recruitment_assessor_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_recruitment_assessor",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_assessor_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_recruitment_assessor_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_recruitment_assessor",
-          "columnsFrom": ["division_id"],
+          "columnsFrom": [
+            "division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6236,36 +6686,52 @@
         "anmategra_recruitment_division_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_division_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_division",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_division_unit_id_anmategra_organization_unit_id_fk": {
           "name": "anmategra_recruitment_division_unit_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_recruitment_division",
-          "columnsFrom": ["unit_id"],
+          "columnsFrom": [
+            "unit_id"
+          ],
           "tableTo": "anmategra_organization_unit",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "anmategra_recruitment_division_position_id_anmategra_organization_position_id_fk": {
           "name": "anmategra_recruitment_division_position_id_anmategra_organization_position_id_fk",
           "tableFrom": "anmategra_recruitment_division",
-          "columnsFrom": ["position_id"],
+          "columnsFrom": [
+            "position_id"
+          ],
           "tableTo": "anmategra_organization_position",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "restrict"
         },
         "anmategra_recruitment_division_priority_locked_by_anmategra_user_id_fk": {
           "name": "anmategra_recruitment_division_priority_locked_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_recruitment_division",
-          "columnsFrom": ["priority_locked_by"],
+          "columnsFrom": [
+            "priority_locked_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -6332,9 +6798,13 @@
         "anmategra_recruitment_eligibility_rule_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_eligibility_rule_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_eligibility_rule",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6441,18 +6911,26 @@
         "anmategra_recruitment_log_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_log_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_log",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_log_actor_id_anmategra_user_id_fk": {
           "name": "anmategra_recruitment_log_actor_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_recruitment_log",
-          "columnsFrom": ["actor_id"],
+          "columnsFrom": [
+            "actor_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -6540,27 +7018,39 @@
         "anmategra_recruitment_section_binding_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_section_binding_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_section_binding",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_section_binding_form_section_id_anmategra_form_section_id_fk": {
           "name": "anmategra_recruitment_section_binding_form_section_id_anmategra_form_section_id_fk",
           "tableFrom": "anmategra_recruitment_section_binding",
-          "columnsFrom": ["form_section_id"],
+          "columnsFrom": [
+            "form_section_id"
+          ],
           "tableTo": "anmategra_form_section",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_section_binding_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_recruitment_section_binding_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_recruitment_section_binding",
-          "columnsFrom": ["division_id"],
+          "columnsFrom": [
+            "division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6655,18 +7145,26 @@
         "anmategra_recruitment_setup_draft_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_recruitment_setup_draft_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_recruitment_setup_draft",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_setup_draft_user_id_anmategra_user_id_fk": {
           "name": "anmategra_recruitment_setup_draft_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_recruitment_setup_draft",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6745,27 +7243,39 @@
         "anmategra_recruitment_visibility_override_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_visibility_override_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_visibility_override",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_visibility_override_viewer_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_recruitment_visibility_override_viewer_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_recruitment_visibility_override",
-          "columnsFrom": ["viewer_division_id"],
+          "columnsFrom": [
+            "viewer_division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_recruitment_visibility_override_target_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_recruitment_visibility_override_target_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_recruitment_visibility_override",
-          "columnsFrom": ["target_division_id"],
+          "columnsFrom": [
+            "target_division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6839,9 +7349,13 @@
         "anmategra_recruitment_wave_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_recruitment_wave_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_recruitment_wave",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         }
@@ -6959,27 +7473,39 @@
         "anmategra_riwayat_kepanitiaan_user_id_anmategra_user_id_fk": {
           "name": "anmategra_riwayat_kepanitiaan_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_riwayat_kepanitiaan",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_riwayat_kepanitiaan_period_id_anmategra_lembaga_period_id_fk": {
           "name": "anmategra_riwayat_kepanitiaan_period_id_anmategra_lembaga_period_id_fk",
           "tableFrom": "anmategra_riwayat_kepanitiaan",
-          "columnsFrom": ["period_id"],
+          "columnsFrom": [
+            "period_id"
+          ],
           "tableTo": "anmategra_lembaga_period",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         },
         "anmategra_riwayat_kepanitiaan_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_riwayat_kepanitiaan_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_riwayat_kepanitiaan",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -7092,18 +7618,26 @@
         "anmategra_riwayat_organisasi_user_id_anmategra_user_id_fk": {
           "name": "anmategra_riwayat_organisasi_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_riwayat_organisasi",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_riwayat_organisasi_lembaga_id_anmategra_lembaga_id_fk": {
           "name": "anmategra_riwayat_organisasi_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_riwayat_organisasi",
-          "columnsFrom": ["lembaga_id"],
+          "columnsFrom": [
+            "lembaga_id"
+          ],
           "tableTo": "anmategra_lembaga",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -7158,9 +7692,13 @@
         "anmategra_session_user_id_anmategra_user_id_fk": {
           "name": "anmategra_session_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_session",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -7241,9 +7779,13 @@
         "anmategra_support_user_id_anmategra_user_id_fk": {
           "name": "anmategra_support_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_support",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -7302,18 +7844,26 @@
         "anmategra_support_reply_user_id_anmategra_user_id_fk": {
           "name": "anmategra_support_reply_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_support_reply",
-          "columnsFrom": ["user_id"],
+          "columnsFrom": [
+            "user_id"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_support_reply_support_id_anmategra_support_id_fk": {
           "name": "anmategra_support_reply_support_id_anmategra_support_id_fk",
           "tableFrom": "anmategra_support_reply",
-          "columnsFrom": ["support_id"],
+          "columnsFrom": [
+            "support_id"
+          ],
           "tableTo": "anmategra_support",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         }
@@ -7462,54 +8012,78 @@
         "anmategra_transfer_request_recruitment_id_anmategra_recruitment_id_fk": {
           "name": "anmategra_transfer_request_recruitment_id_anmategra_recruitment_id_fk",
           "tableFrom": "anmategra_transfer_request",
-          "columnsFrom": ["recruitment_id"],
+          "columnsFrom": [
+            "recruitment_id"
+          ],
           "tableTo": "anmategra_recruitment",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_transfer_request_application_id_anmategra_application_id_fk": {
           "name": "anmategra_transfer_request_application_id_anmategra_application_id_fk",
           "tableFrom": "anmategra_transfer_request",
-          "columnsFrom": ["application_id"],
+          "columnsFrom": [
+            "application_id"
+          ],
           "tableTo": "anmategra_application",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_transfer_request_from_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_transfer_request_from_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_transfer_request",
-          "columnsFrom": ["from_division_id"],
+          "columnsFrom": [
+            "from_division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_transfer_request_to_division_id_anmategra_recruitment_division_id_fk": {
           "name": "anmategra_transfer_request_to_division_id_anmategra_recruitment_division_id_fk",
           "tableFrom": "anmategra_transfer_request",
-          "columnsFrom": ["to_division_id"],
+          "columnsFrom": [
+            "to_division_id"
+          ],
           "tableTo": "anmategra_recruitment_division",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "cascade"
         },
         "anmategra_transfer_request_requested_by_anmategra_user_id_fk": {
           "name": "anmategra_transfer_request_requested_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_transfer_request",
-          "columnsFrom": ["requested_by"],
+          "columnsFrom": [
+            "requested_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "no action"
         },
         "anmategra_transfer_request_resolved_by_anmategra_user_id_fk": {
           "name": "anmategra_transfer_request_resolved_by_anmategra_user_id_fk",
           "tableFrom": "anmategra_transfer_request",
-          "columnsFrom": ["resolved_by"],
+          "columnsFrom": [
+            "resolved_by"
+          ],
           "tableTo": "anmategra_user",
-          "columnsTo": ["id"],
+          "columnsTo": [
+            "id"
+          ],
           "onUpdate": "no action",
           "onDelete": "set null"
         }
@@ -7597,7 +8171,9 @@
       "uniqueConstraints": {
         "anmategra_user_email_unique": {
           "name": "anmategra_user_email_unique",
-          "columns": ["email"],
+          "columns": [
+            "email"
+          ],
           "nullsNotDistinct": false
         }
       },
@@ -7633,7 +8209,10 @@
       "compositePrimaryKeys": {
         "anmategra_verification_token_identifier_token_pk": {
           "name": "anmategra_verification_token_identifier_token_pk",
-          "columns": ["identifier", "token"]
+          "columns": [
+            "identifier",
+            "token"
+          ]
         }
       },
       "uniqueConstraints": {},
@@ -7671,17 +8250,28 @@
     "public.admin_grant_status": {
       "name": "admin_grant_status",
       "schema": "public",
-      "values": ["active", "revoked"]
+      "values": [
+        "active",
+        "revoked"
+      ]
     },
     "public.association_request_status": {
       "name": "association_request_status",
       "schema": "public",
-      "values": ["Pending", "Accepted", "Declined"]
+      "values": [
+        "Pending",
+        "Accepted",
+        "Declined"
+      ]
     },
     "public.event_status": {
       "name": "event_status",
       "schema": "public",
-      "values": ["Coming Soon", "On going", "Ended"]
+      "values": [
+        "Coming Soon",
+        "On going",
+        "Ended"
+      ]
     },
     "public.lembaga_type": {
       "name": "lembaga_type",
@@ -7699,37 +8289,62 @@
     "public.mahasiswa_status": {
       "name": "mahasiswa_status",
       "schema": "public",
-      "values": ["aktif", "alumni"]
+      "values": [
+        "aktif",
+        "alumni"
+      ]
     },
     "public.membership_source": {
       "name": "membership_source",
       "schema": "public",
-      "values": ["import", "manual", "kaderisasi"]
+      "values": [
+        "import",
+        "manual",
+        "kaderisasi"
+      ]
     },
     "public.membership_status": {
       "name": "membership_status",
       "schema": "public",
-      "values": ["aktif", "keluar"]
+      "values": [
+        "aktif",
+        "keluar"
+      ]
     },
     "public.notification_type": {
       "name": "notification_type",
       "schema": "public",
-      "values": ["Association Request", "System"]
+      "values": [
+        "Association Request",
+        "System"
+      ]
     },
     "public.placement_source": {
       "name": "placement_source",
       "schema": "public",
-      "values": ["oprec", "closerec", "manual", "import"]
+      "values": [
+        "oprec",
+        "closerec",
+        "manual",
+        "import"
+      ]
     },
     "public.riwayat_end_reason": {
       "name": "riwayat_end_reason",
       "schema": "public",
-      "values": ["removed", "left"]
+      "values": [
+        "removed",
+        "left"
+      ]
     },
     "public.role": {
       "name": "role",
       "schema": "public",
-      "values": ["admin", "lembaga", "mahasiswa"]
+      "values": [
+        "admin",
+        "lembaga",
+        "mahasiswa"
+      ]
     },
     "public.support_status": {
       "name": "support_status",
@@ -7747,7 +8362,11 @@
     "public.support_urgent": {
       "name": "support_urgent",
       "schema": "public",
-      "values": ["Low", "Medium", "High"]
+      "values": [
+        "Low",
+        "Medium",
+        "High"
+      ]
     }
   },
   "schemas": {},
