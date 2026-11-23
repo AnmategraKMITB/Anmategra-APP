@@ -46,7 +46,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - uses: ./.github/actions/setup-bun
-      - run: bun run typecheck
+      - run: bun run check
 
   build:
     # Nama ini dipakai sebagai required status check di branch protection.

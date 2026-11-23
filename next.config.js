@@ -11,6 +11,12 @@ const config = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Tipe dicek terpisah oleh `bun run check` (TypeScript 7, job "Typecheck" di
+  // CI), termasuk .next/types dari `next typegen`. Pengecekan bawaan `next
+  // build` memakai TypeScript 6 dan hanya mengulang pekerjaan yang sama.
+  typescript: {
+    ignoreBuildErrors: true,
+  },
   experimental: {
     optimizeCss: true,
   },
