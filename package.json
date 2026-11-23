@@ -150,6 +150,9 @@
     },
     "next": {
       "postcss": "^8.5.23"
+    },
+    "@trivago/prettier-plugin-sort-imports": {
+      "minimatch": "^11.0.1"
     }
   }
 }
