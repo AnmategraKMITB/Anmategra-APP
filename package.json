@@ -103,7 +103,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@trivago/prettier-plugin-sort-imports": "^5.2.2",
+    "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/csv-parse": "^1.1.12",
     "@types/eslint": "^8.56.10",
     "@types/node": "^20.17.10",
