@@ -48,9 +48,6 @@
     "no-await-in-loop": {
       "count": 5
     },
-    "no-undef": {
-      "count": 8
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -61,16 +58,6 @@
     },
     "unicorn/consistent-function-scoping": {
       "count": 2
-    }
-  },
-  "scripts/demo/hash-password.ts": {
-    "no-undef": {
-      "count": 5
-    }
-  },
-  "scripts/demo/lib/guard.ts": {
-    "no-undef": {
-      "count": 1
     }
   },
   "scripts/demo/lib/reset-demo.test.ts": {
@@ -108,38 +95,12 @@
       "count": 1
     }
   },
-  "scripts/demo/reset.ts": {
-    "no-undef": {
-      "count": 8
-    }
-  },
-  "scripts/demo/seed.ts": {
-    "no-undef": {
-      "count": 4
-    }
-  },
-  "scripts/docker-entrypoint.test.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "scripts/gen-dbml.ts": {
-    "no-undef": {
-      "count": 4
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
-  "scripts/gen-lifecycles.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "scripts/gen-openapi.cts": {
-    "no-undef": {
-      "count": 10
-    },
     "no-underscore-dangle": {
       "count": 4
     },
@@ -169,9 +130,6 @@
     "no-await-in-loop": {
       "count": 6
     },
-    "no-undef": {
-      "count": 25
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     },
@@ -200,9 +158,6 @@
     "no-await-in-loop": {
       "count": 2
     },
-    "no-undef": {
-      "count": 6
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     },
@@ -217,9 +172,6 @@
     "no-await-in-loop": {
       "count": 11
     },
-    "no-undef": {
-      "count": 7
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 2
     },
@@ -233,9 +185,6 @@
   "scripts/organogram/backfill.ts": {
     "no-await-in-loop": {
       "count": 4
-    },
-    "no-undef": {
-      "count": 6
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
@@ -337,9 +286,6 @@
     }
   },
   "src/app/_components/admin/akun-detail.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "no-use-before-define": {
       "count": 32
     },
@@ -422,9 +368,6 @@
     "jsx-a11y/label-has-associated-control": {
       "count": 1
     },
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
     }
@@ -441,9 +384,6 @@
     }
   },
   "src/app/_components/admin/lembaga-detail.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "no-use-before-define": {
       "count": 23
     },
@@ -498,18 +438,12 @@
     "jsx-a11y/label-has-associated-control": {
       "count": 3
     },
-    "no-undef": {
-      "count": 7
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 7
     }
   },
   "src/app/_components/auth/demo-login-form.tsx": {
     "jsx-a11y/label-has-associated-control": {
-      "count": 2
-    },
-    "no-undef": {
       "count": 2
     },
     "react-perf/jsx-no-new-function-as-prop": {
@@ -555,17 +489,11 @@
     }
   },
   "src/app/_components/carousel/layout-carousel-best-staff.tsx": {
-    "no-undef": {
-      "count": 3
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 2
     }
   },
   "src/app/_components/csv-form/csv-form.tsx": {
-    "no-undef": {
-      "count": 3
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -586,9 +514,6 @@
     }
   },
   "src/app/_components/export/export-menu.tsx": {
-    "no-undef": {
-      "count": 14
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 8
     },
@@ -597,9 +522,6 @@
     }
   },
   "src/app/_components/export/question-picker.tsx": {
-    "no-undef": {
-      "count": 3
-    },
     "react-perf/jsx-no-jsx-as-prop": {
       "count": 1
     },
@@ -619,9 +541,6 @@
     }
   },
   "src/app/_components/form/action-cell.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
     },
@@ -630,17 +549,11 @@
     }
   },
   "src/app/_components/form/edit-anggota-dialog.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 2
     }
   },
   "src/app/_components/form/edit-anggota-kegiatan-form.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 4
     }
@@ -657,17 +570,11 @@
     }
   },
   "src/app/_components/form/tambah-anggota-kegiatan-form.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 8
     }
   },
   "src/app/_components/form/tambah-edit-anggota-form.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -701,9 +608,6 @@
     }
   },
   "src/app/_components/forms/builder-shell.tsx": {
-    "no-undef": {
-      "count": 8
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -740,9 +644,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 15
     },
@@ -768,9 +669,6 @@
     }
   },
   "src/app/_components/forms/design-sheet.tsx": {
-    "no-undef": {
-      "count": 4
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 15
     },
@@ -787,11 +685,6 @@
   "src/app/_components/forms/draft-writer.test.ts": {
     "vitest/require-mock-type-parameters": {
       "count": 4
-    }
-  },
-  "src/app/_components/forms/draft-writer.ts": {
-    "no-undef": {
-      "count": 5
     }
   },
   "src/app/_components/forms/endings-panel.tsx": {
@@ -832,9 +725,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 4
-    },
     "no-use-before-define": {
       "count": 2
     },
@@ -860,9 +750,6 @@
     },
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 7
     },
     "no-use-before-define": {
       "count": 11
@@ -899,9 +786,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 2
     },
-    "no-undef": {
-      "count": 9
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
     },
@@ -922,9 +806,6 @@
     }
   },
   "src/app/_components/forms/form-validate.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/consistent-return": {
       "count": 1
     },
@@ -935,9 +816,6 @@
   "src/app/_components/forms/forms-list.tsx": {
     "jsx-a11y/no-autofocus": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 2
     },
     "no-use-before-define": {
       "count": 1
@@ -982,9 +860,6 @@
     "import/no-extraneous-dependencies": {
       "count": 1
     },
-    "no-undef": {
-      "count": 10
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 6
     },
@@ -1027,9 +902,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 3
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -1041,9 +913,6 @@
     }
   },
   "src/app/_components/forms/penilaian/sheet-dialog.tsx": {
-    "no-undef": {
-      "count": 10
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 13
     },
@@ -1143,9 +1012,6 @@
     }
   },
   "src/app/_components/forms/section-card.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 11
     },
@@ -1162,9 +1028,6 @@
     }
   },
   "src/app/_components/forms/share-popover.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 11
     }
@@ -1217,9 +1080,6 @@
     "no-await-in-loop": {
       "count": 3
     },
-    "no-undef": {
-      "count": 4
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -1265,9 +1125,6 @@
     }
   },
   "src/app/_components/landing/hero.tsx": {
-    "no-undef": {
-      "count": 18
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -1316,9 +1173,6 @@
     }
   },
   "src/app/_components/laporan/board/kanban-board.tsx": {
-    "no-undef": {
-      "count": 3
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -1383,9 +1237,6 @@
     "jsx-a11y/no-static-element-interactions": {
       "count": 1
     },
-    "no-undef": {
-      "count": 3
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -1423,9 +1274,6 @@
     }
   },
   "src/app/_components/laporan/laporan-main-container.tsx": {
-    "no-undef": {
-      "count": 4
-    },
     "react-perf/jsx-no-jsx-as-prop": {
       "count": 1
     },
@@ -1446,9 +1294,6 @@
     }
   },
   "src/app/_components/laporan/list/accordion-display.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -1501,9 +1346,6 @@
     "jsx-a11y/no-static-element-interactions": {
       "count": 1
     },
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 10
     },
@@ -1523,9 +1365,6 @@
     }
   },
   "src/app/_components/layout/search-bar.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 6
     },
@@ -1560,9 +1399,6 @@
     }
   },
   "src/app/_components/layout/width-wrapper.tsx": {
-    "no-undef": {
-      "count": 4
-    },
     "react/exhaustive-effect-dependencies": {
       "count": 1
     },
@@ -1630,9 +1466,6 @@
   },
   "src/app/_components/manual/demo/demos/forms-builder.tsx": {
     "jsx-a11y/prefer-tag-over-role": {
-      "count": 2
-    },
-    "no-undef": {
       "count": 2
     },
     "no-use-before-define": {
@@ -1854,9 +1687,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 4
     },
-    "no-undef": {
-      "count": 1
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -1940,9 +1770,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 8
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -2001,9 +1828,6 @@
     }
   },
   "src/app/_components/manual/demo/demos/rapor.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -2017,9 +1841,6 @@
     },
     "jsx-a11y/prefer-tag-over-role": {
       "count": 2
-    },
-    "no-undef": {
-      "count": 4
     },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
@@ -2061,9 +1882,6 @@
     }
   },
   "src/app/_components/manual/docs-toc.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "react/exhaustive-effect-dependencies": {
       "count": 1
     },
@@ -2167,9 +1985,6 @@
     "no-await-in-loop": {
       "count": 1
     },
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-array-as-prop": {
       "count": 2
     },
@@ -2223,9 +2038,6 @@
   "src/app/_components/oprec/nilai/berkas.tsx": {
     "jsx-a11y/prefer-tag-over-role": {
       "count": 3
-    },
-    "no-undef": {
-      "count": 4
     },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 7
@@ -2320,9 +2132,6 @@
   "src/app/_components/oprec/pengumuman/announcement-view.tsx": {
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 2
     },
     "no-use-before-define": {
       "count": 9
@@ -2442,9 +2251,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 5
     },
@@ -2506,9 +2312,6 @@
     },
     "no-shadow": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 2
     },
     "react-perf/jsx-no-new-array-as-prop": {
       "count": 1
@@ -2721,9 +2524,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 5
     },
-    "no-undef": {
-      "count": 1
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -2767,9 +2567,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 2
     },
-    "no-undef": {
-      "count": 7
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 34
     },
@@ -2787,9 +2584,6 @@
     }
   },
   "src/app/_components/organogram/export-dialog.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-array-as-prop": {
       "count": 2
     },
@@ -2800,9 +2594,6 @@
   "src/app/_components/organogram/export-image.ts": {
     "no-shadow": {
       "count": 3
-    },
-    "no-undef": {
-      "count": 14
     },
     "no-useless-assignment": {
       "count": 1
@@ -2863,9 +2654,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 13
-    },
     "no-use-before-define": {
       "count": 5
     },
@@ -2892,9 +2680,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 6
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -2908,9 +2693,6 @@
   "src/app/_components/organogram/person-picker.tsx": {
     "jsx-a11y/no-autofocus": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 5
     },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
@@ -2951,9 +2733,6 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 7
-    },
     "no-useless-assignment": {
       "count": 1
     },
@@ -2988,9 +2767,6 @@
     }
   },
   "src/app/_components/organogram/use-organogram-editor.ts": {
-    "no-undef": {
-      "count": 10
-    },
     "typescript/consistent-return": {
       "count": 1
     }
@@ -3048,17 +2824,11 @@
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
     },
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 1
     }
   },
   "src/app/_components/profile-mahasiswa/edit-profile-dialog.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 12
     },
@@ -3184,9 +2954,6 @@
     "no-shadow": {
       "count": 2
     },
-    "no-undef": {
-      "count": 6
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 12
     },
@@ -3210,9 +2977,6 @@
     }
   },
   "src/app/_components/rapor/rapor-visibility-switch.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 1
     },
@@ -3229,9 +2993,6 @@
     },
     "jsx-a11y/no-static-element-interactions": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 19
     },
     "react-perf/jsx-no-new-array-as-prop": {
       "count": 9
@@ -3278,26 +3039,8 @@
       "count": 1
     }
   },
-  "src/app/api/docs/openapi.json/route.ts": {
-    "no-undef": {
-      "count": 4
-    }
-  },
-  "src/app/api/docs/route.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
-  "src/app/api/forms/[formId]/respons.csv/route.ts": {
-    "no-undef": {
-      "count": 3
-    }
-  },
   "src/app/api/lembaga/[lembaga_id]/anggota/route.ts": {
     "no-await-in-loop": {
-      "count": 3
-    },
-    "no-undef": {
       "count": 3
     },
     "typescript/no-unnecessary-condition": {
@@ -3314,9 +3057,6 @@
     "no-shadow": {
       "count": 4
     },
-    "no-undef": {
-      "count": 4
-    },
     "typescript/no-unnecessary-condition": {
       "count": 7
     },
@@ -3330,9 +3070,6 @@
     },
     "no-shadow": {
       "count": 4
-    },
-    "no-undef": {
-      "count": 3
     },
     "typescript/no-unnecessary-condition": {
       "count": 5
@@ -3348,9 +3085,6 @@
     "no-shadow": {
       "count": 6
     },
-    "no-undef": {
-      "count": 3
-    },
     "typescript/no-unnecessary-condition": {
       "count": 7
     },
@@ -3358,21 +3092,8 @@
       "count": 1
     }
   },
-  "src/app/api/manual/route.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "src/app/api/oprec/[recruitmentId]/prioritas/route.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "unicorn/consistent-function-scoping": {
-      "count": 1
-    }
-  },
-  "src/app/api/trpc/[trpc]/route.ts": {
-    "no-undef": {
       "count": 1
     }
   },
@@ -3382,17 +3103,11 @@
     }
   },
   "src/app/authentication/page.tsx": {
-    "no-undef": {
-      "count": 5
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
     }
   },
   "src/app/layout.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unnecessary-template-expression": {
       "count": 1
     }
@@ -3403,9 +3118,6 @@
     },
     "no-shadow": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 2
     },
     "react-perf/jsx-no-new-array-as-prop": {
       "count": 1
@@ -3433,9 +3145,6 @@
     }
   },
   "src/app/lembaga/_components/histori-best-staff-content.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -3456,9 +3165,6 @@
     }
   },
   "src/app/lembaga/_components/tambah-anggota-dialog.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 4
     }
@@ -3475,9 +3181,6 @@
     }
   },
   "src/app/lembaga/anggota/_components/anggota-content.tsx": {
-    "no-undef": {
-      "count": 8
-    },
     "react-hooks/exhaustive-deps": {
       "count": 1
     },
@@ -3503,9 +3206,6 @@
     },
     "no-shadow": {
       "count": 2
-    },
-    "no-undef": {
-      "count": 5
     },
     "react-perf/jsx-no-new-array-as-prop": {
       "count": 1
@@ -3578,11 +3278,6 @@
   "src/app/lembaga/inbox/[slug]/page.tsx": {
     "typescript/no-unnecessary-condition": {
       "count": 1
-    }
-  },
-  "src/app/lembaga/inbox/_components/inbox-content.tsx": {
-    "no-undef": {
-      "count": 2
     }
   },
   "src/app/lembaga/inbox/_components/inbox-detail-content.tsx": {
@@ -3661,9 +3356,6 @@
     }
   },
   "src/app/lembaga/kegiatan/_components/form/dropzone.tsx": {
-    "no-undef": {
-      "count": 6
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 3
     },
@@ -3678,9 +3370,6 @@
     }
   },
   "src/app/lembaga/kegiatan/_components/form/tambah-edit-kegiatan-form.tsx": {
-    "no-undef": {
-      "count": 3
-    },
     "no-unused-vars": {
       "count": 3
     },
@@ -3822,9 +3511,6 @@
     }
   },
   "src/app/lembaga/profile-kegiatan/_components/ajuan-asosiasi-form.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -3891,9 +3577,6 @@
     }
   },
   "src/app/lembaga/profile-lembaga/_components/edit-profil-lembaga.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 10
     },
@@ -3934,9 +3617,6 @@
     }
   },
   "src/app/mahasiswa/inbox/_components/inbox-table.tsx": {
-    "no-undef": {
-      "count": 2
-    },
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 4
     },
@@ -3955,9 +3635,6 @@
     }
   },
   "src/app/mahasiswa/kegiatan/_components/kegiatan-list.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/consistent-return": {
       "count": 1
     }
@@ -4047,9 +3724,6 @@
     }
   },
   "src/app/mahasiswa/profile-lembaga/[lembagaId]/page.tsx": {
-    "no-undef": {
-      "count": 1
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -4158,17 +3832,9 @@
       "count": 1
     }
   },
-  "src/app/prototype/layout.tsx": {
-    "no-undef": {
-      "count": 4
-    }
-  },
   "src/app/prototype/oprec/_components/wizard.tsx": {
     "jsx-a11y/prefer-tag-over-role": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 20
     },
     "no-use-before-define": {
       "count": 2
@@ -4194,11 +3860,6 @@
       "count": 2
     }
   },
-  "src/components/debounceHook.tsx": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "src/env.js": {
     "no-undef": {
       "count": 27
@@ -4208,9 +3869,6 @@
     "no-shadow": {
       "count": 2
     },
-    "no-undef": {
-      "count": 2
-    },
     "no-use-before-define": {
       "count": 1
     },
@@ -4218,21 +3876,6 @@
       "count": 1
     },
     "typescript/consistent-return": {
-      "count": 1
-    }
-  },
-  "src/instrumentation-node.ts": {
-    "no-undef": {
-      "count": 9
-    }
-  },
-  "src/instrumentation.ts": {
-    "no-undef": {
-      "count": 1
-    }
-  },
-  "src/lib/forms-path.ts": {
-    "no-undef": {
       "count": 1
     }
   },
@@ -4255,9 +3898,6 @@
     }
   },
   "src/lib/forms/google-drive.ts": {
-    "no-undef": {
-      "count": 13
-    },
     "preserve-caught-error": {
       "count": 1
     },
@@ -4266,9 +3906,6 @@
     }
   },
   "src/lib/forms/onedrive.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "typescript/no-misused-spread": {
       "count": 1
     },
@@ -4326,9 +3963,6 @@
     }
   },
   "src/lib/oprec/announcement.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "unicorn/no-array-sort": {
       "count": 1
     }
@@ -4339,9 +3973,6 @@
     }
   },
   "src/lib/oprec/matching.test.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "unicorn/no-array-reverse": {
       "count": 2
     },
@@ -4355,11 +3986,6 @@
   "src/lib/oprec/matching.ts": {
     "unicorn/no-array-sort": {
       "count": 2
-    }
-  },
-  "src/lib/oprec/notification-audience.test.ts": {
-    "no-undef": {
-      "count": 1
     }
   },
   "src/lib/oprec/priority-import.ts": {
@@ -4404,9 +4030,6 @@
     }
   },
   "src/middleware.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "vitest/hoisted-apis-on-top": {
       "count": 1
     },
@@ -4415,9 +4038,6 @@
     }
   },
   "src/middleware.ts": {
-    "no-undef": {
-      "count": 14
-    },
     "unicorn/prefer-set-has": {
       "count": 1
     }
@@ -4440,9 +4060,6 @@
     "no-await-in-loop": {
       "count": 4
     },
-    "no-undef": {
-      "count": 2
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     },
@@ -4455,9 +4072,6 @@
       "count": 2
     },
     "no-await-in-loop": {
-      "count": 2
-    },
-    "no-undef": {
       "count": 2
     },
     "typescript/no-unnecessary-type-assertion": {
@@ -4474,9 +4088,6 @@
     }
   },
   "src/server/alt-login.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "no-unused-vars": {
       "count": 2
     },
@@ -4490,9 +4101,6 @@
     },
     "no-await-in-loop": {
       "count": 4
-    },
-    "no-undef": {
-      "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -4525,16 +4133,8 @@
       "count": 2
     }
   },
-  "src/server/api/lifecycle-writes.test.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "src/server/api/lifecycle.test.ts": {
     "drizzle/enforce-update-with-where": {
-      "count": 1
-    },
-    "no-undef": {
       "count": 1
     },
     "typescript/no-unsafe-type-assertion": {
@@ -4553,16 +4153,8 @@
     }
   },
   "src/server/api/log-error.test.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
-    }
-  },
-  "src/server/api/log-error.ts": {
-    "no-undef": {
-      "count": 2
     }
   },
   "src/server/api/mahasiswa-profile.test.ts": {
@@ -4630,9 +4222,6 @@
     "drizzle/enforce-update-with-where": {
       "count": 7
     },
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 15
     },
@@ -4660,9 +4249,6 @@
   "src/server/api/routers/admin-ops.test.ts": {
     "drizzle/enforce-update-with-where": {
       "count": 3
-    },
-    "no-undef": {
-      "count": 2
     },
     "no-underscore-dangle": {
       "count": 1
@@ -4705,18 +4291,10 @@
     }
   },
   "src/server/api/routers/association-request.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     },
     "unicorn/consistent-function-scoping": {
-      "count": 1
-    }
-  },
-  "src/server/api/routers/event/create.ts": {
-    "no-undef": {
       "count": 1
     }
   },
@@ -4777,9 +4355,6 @@
     }
   },
   "src/server/api/routers/form/responses-delete.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     },
@@ -4804,9 +4379,6 @@
     "no-shadow": {
       "count": 1
     },
-    "no-undef": {
-      "count": 5
-    },
     "no-use-before-define": {
       "count": 4
     },
@@ -4822,9 +4394,6 @@
   },
   "src/server/api/routers/form/submission.ts": {
     "no-shadow": {
-      "count": 1
-    },
-    "no-undef": {
       "count": 1
     },
     "oxc/no-map-spread": {
@@ -4852,9 +4421,6 @@
     }
   },
   "src/server/api/routers/form/update-submission.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -4891,41 +4457,26 @@
     }
   },
   "src/server/api/routers/lembaga-anggota.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
   },
   "src/server/api/routers/lembaga-best-staff.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
   },
   "src/server/api/routers/lembaga-inbox.test.ts": {
-    "no-undef": {
-      "count": 3
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
   },
   "src/server/api/routers/lembaga-kegiatan.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     }
   },
   "src/server/api/routers/lembaga-profil-rapor.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -4936,9 +4487,6 @@
     },
     "no-shadow": {
       "count": 15
-    },
-    "no-undef": {
-      "count": 2
     },
     "no-unused-vars": {
       "count": 4
@@ -5048,9 +4596,6 @@
     "no-shadow": {
       "count": 2
     },
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -5072,9 +4617,6 @@
   "src/server/api/routers/oprec/notification.ts": {
     "no-await-in-loop": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 1
     }
   },
   "src/server/api/routers/oprec/offer.test.ts": {
@@ -5084,18 +4626,12 @@
     "no-await-in-loop": {
       "count": 3
     },
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
   },
   "src/server/api/routers/oprec/offer.ts": {
     "no-await-in-loop": {
-      "count": 1
-    },
-    "no-undef": {
       "count": 1
     },
     "oxc/no-map-spread": {
@@ -5166,9 +4702,6 @@
     "no-shadow": {
       "count": 1
     },
-    "no-undef": {
-      "count": 5
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -5180,9 +4713,6 @@
     "no-await-in-loop": {
       "count": 10
     },
-    "no-undef": {
-      "count": 1
-    },
     "unicorn/consistent-function-scoping": {
       "count": 2
     },
@@ -5191,9 +4721,6 @@
     }
   },
   "src/server/api/routers/oprec/priority-sheet.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "no-useless-assignment": {
       "count": 1
     },
@@ -5210,9 +4737,6 @@
     },
     "no-await-in-loop": {
       "count": 3
-    },
-    "no-undef": {
-      "count": 1
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
@@ -5287,17 +4811,11 @@
     "no-await-in-loop": {
       "count": 2
     },
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
   "src/server/api/routers/oprec/setup-draft.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     }
@@ -5308,9 +4826,6 @@
     },
     "no-await-in-loop": {
       "count": 4
-    },
-    "no-undef": {
-      "count": 2
     },
     "typescript/no-unnecessary-type-assertion": {
       "count": 3
@@ -5346,9 +4861,6 @@
     "no-await-in-loop": {
       "count": 2
     },
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -5373,9 +4885,6 @@
     "no-await-in-loop": {
       "count": 1
     },
-    "no-undef": {
-      "count": 3
-    },
     "unicorn/no-array-sort": {
       "count": 1
     }
@@ -5387,9 +4896,6 @@
     "no-await-in-loop": {
       "count": 2
     },
-    "no-undef": {
-      "count": 1
-    },
     "unicorn/no-array-sort": {
       "count": 1
     }
@@ -5400,9 +4906,6 @@
     }
   },
   "src/server/api/routers/organization/root.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     },
@@ -5496,9 +4999,6 @@
     "no-shadow": {
       "count": 24
     },
-    "no-undef": {
-      "count": 3
-    },
     "no-unused-vars": {
       "count": 1
     },
@@ -5512,9 +5012,6 @@
     }
   },
   "src/server/api/trpc.test.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     },
@@ -5525,9 +5022,6 @@
   "src/server/api/trpc.ts": {
     "no-await-in-loop": {
       "count": 2
-    },
-    "no-undef": {
-      "count": 1
     },
     "typescript/no-unnecessary-condition": {
       "count": 7
@@ -5544,17 +5038,9 @@
       "count": 1
     }
   },
-  "src/server/api/types/form.constants.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "src/server/api/types/form.type.ts": {
     "no-control-regex": {
       "count": 2
-    },
-    "no-undef": {
-      "count": 1
     },
     "unicorn/consistent-function-scoping": {
       "count": 1
@@ -5573,9 +5059,6 @@
   "src/server/auth.ts": {
     "drizzle/enforce-update-with-where": {
       "count": 2
-    },
-    "no-undef": {
-      "count": 3
     },
     "no-unreachable": {
       "count": 1
@@ -5603,17 +5086,11 @@
     }
   },
   "src/server/db/index.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
   },
   "src/server/db/schema.ts": {
-    "no-undef": {
-      "count": 53
-    },
     "no-use-before-define": {
       "count": 36
     }
@@ -5621,9 +5098,6 @@
   "src/server/db/seed.ts": {
     "import/no-unassigned-import": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 6
     }
   },
   "src/server/db/seeding/backfill-lembaga-descriptions.ts": {
@@ -5636,9 +5110,6 @@
     "no-await-in-loop": {
       "count": 1
     },
-    "no-undef": {
-      "count": 8
-    },
     "typescript/no-unnecessary-type-assertion": {
       "count": 1
     }
@@ -5646,9 +5117,6 @@
   "src/server/db/seeding/clear-db.ts": {
     "import/no-unassigned-import": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 12
     },
     "typescript/no-unnecessary-condition": {
       "count": 1
@@ -5670,9 +5138,6 @@
     "no-await-in-loop": {
       "count": 1
     },
-    "no-undef": {
-      "count": 34
-    },
     "typescript/no-base-to-string": {
       "count": 1
     },
@@ -5690,9 +5155,6 @@
     "no-await-in-loop": {
       "count": 3
     },
-    "no-undef": {
-      "count": 32
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
     }
@@ -5704,9 +5166,6 @@
     "import/no-unassigned-import": {
       "count": 1
     },
-    "no-undef": {
-      "count": 59
-    },
     "typescript/no-unnecessary-condition": {
       "count": 1
     },
@@ -5715,9 +5174,6 @@
     }
   },
   "src/server/demo-auth.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 2
     }
@@ -5756,9 +5212,6 @@
     "no-await-in-loop": {
       "count": 4
     },
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-unsafe-argument": {
       "count": 4
     },
@@ -5772,30 +5225,14 @@
       "count": 1
     }
   },
-  "src/server/spreadsheet-response.ts": {
-    "no-undef": {
-      "count": 2
-    }
-  },
   "src/server/uploads.ts": {
-    "no-undef": {
-      "count": 2
-    },
     "unicorn/prefer-array-find": {
       "count": 1
-    }
-  },
-  "src/test/global-setup.ts": {
-    "no-undef": {
-      "count": 2
     }
   },
   "src/test/oprec-fixture.ts": {
     "no-await-in-loop": {
       "count": 6
-    },
-    "no-undef": {
-      "count": 1
     },
     "oxc/no-map-spread": {
       "count": 1
@@ -5809,17 +5246,9 @@
       "count": 3
     }
   },
-  "src/test/preload.ts": {
-    "no-undef": {
-      "count": 15
-    }
-  },
   "src/test/test-db.ts": {
     "no-await-in-loop": {
       "count": 2
-    },
-    "no-undef": {
-      "count": 7
     },
     "no-unmodified-loop-condition": {
       "count": 1
@@ -5840,9 +5269,6 @@
     "import/no-named-as-default": {
       "count": 1
     },
-    "no-undef": {
-      "count": 6
-    },
     "no-use-before-define": {
       "count": 1
     }
@@ -5850,20 +5276,9 @@
   "src/trpc/server.ts": {
     "import/no-unassigned-import": {
       "count": 1
-    },
-    "no-undef": {
-      "count": 1
-    }
-  },
-  "src/utils/api-error.ts": {
-    "no-undef": {
-      "count": 1
     }
   },
   "tailwind.config.ts": {
-    "no-undef": {
-      "count": 1
-    },
     "typescript/no-require-imports": {
       "count": 1
     }
