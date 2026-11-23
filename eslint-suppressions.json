@@ -7,6 +7,11 @@
       "count": 3
     }
   },
+  "scripts/oprec/seed-mock.seed.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
   "src/app/(public)/profile-kegiatan/[profileKegiatanId]/page.tsx": {
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 2
@@ -17,9 +22,44 @@
       "count": 1
     }
   },
+  "src/app/_components/admin/akun-page.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/audit-page.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/lembaga-page.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "src/app/_components/card/lembaga-card.tsx": {
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 2
+    }
+  },
+  "src/app/_components/forms/design-sheet.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/type-editors.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/use-form-builder.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/kelola-admin/kelola-admin-panel.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
     }
   },
   "src/app/_components/landing/hero.tsx": {
@@ -33,6 +73,9 @@
     }
   },
   "src/app/_components/layout/navbar.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    },
     "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     }
@@ -49,6 +92,21 @@
   },
   "src/app/_components/manual/docs-shell.tsx": {
     "react-hooks/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/settings/model.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/wizard/model.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/model.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
       "count": 1
     }
   },
@@ -73,6 +131,9 @@
     }
   },
   "src/app/_components/rapor/rapor-table.tsx": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 4
+    },
     "@typescript-eslint/prefer-optional-chain": {
       "count": 1
     },
@@ -188,6 +249,76 @@
       "count": 1
     }
   },
+  "src/lib/spreadsheet/workbook.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/akun/gabung-akun.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/alt-login.db.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/access.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/contact.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/lifecycle.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/mahasiswa-profile.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/managed-scope.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/period-listing.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/admin-console.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 15
+    }
+  },
+  "src/server/api/routers/admin-ops.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/event/getByID.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/form/csv.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/kegiatan.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "src/server/api/routers/landing.ts": {
     "@typescript-eslint/no-unsafe-call": {
       "count": 6
@@ -199,7 +330,80 @@
       "count": 5
     }
   },
+  "src/server/api/routers/lembaga.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/announcement.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/applicants.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/server/api/routers/oprec/application.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/criteria.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/export.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/pengurus.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/placement.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 7
+    }
+  },
+  "src/server/api/routers/oprec/priority-import.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/priority.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/priority.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/setup.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/oprec/status-sync.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/organization/root.test.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
   "src/server/api/routers/profile.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 2
+    },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 2
     }
@@ -229,6 +433,16 @@
     },
     "@typescript-eslint/prefer-nullish-coalescing": {
       "count": 4
+    }
+  },
+  "src/server/db/seeding/seed.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/export/oprec.ts": {
+    "@typescript-eslint/no-unnecessary-type-assertion": {
+      "count": 1
     }
   },
   "src/server/manual/docs.ts": {

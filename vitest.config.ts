@@ -5,6 +5,9 @@ export default defineConfig({
   resolve: {
     alias: { '~': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  // tsconfig memakai `jsx: preserve` untuk Next; Vite 8 (oxc) mengikutinya dan
+  // membiarkan JSX di berkas .tsx yang diimpor tes, jadi ubah JSX di sini.
+  oxc: { jsx: { runtime: 'automatic' } },
   test: {
     environment: 'node',
     // Modul yang memuat `~/env` (mis. trpc.ts) tidak memvalidasi variabel lingkungan saat tes.
