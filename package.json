@@ -37,7 +37,7 @@
     "test": "bun test --parallel --isolate=modules",
     "test:watch": "bun test --isolate=modules --watch",
     "start": "next start",
-    "prepare": "husky"
+    "prepare": "sh scripts/install-hk.sh"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^1.11.3",
@@ -110,8 +110,6 @@
     "bun-types": "1.4.5-canary.20261123T141143",
     "drizzle-dbml-generator": "^0.10.0",
     "drizzle-kit": "^0.31.11",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.6",
     "postcss": "^8.4.39",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.5",
@@ -119,12 +117,6 @@
   },
   "ct3aMetadata": {
     "initVersion": "7.37.0"
-  },
-  "lint-staged": {
-    "*.{js,cjs,ts,tsx}": [
-      "bun fmt",
-      "bun lint --fix"
-    ]
   },
   "packageManager": "bun@1.4.5-canary.20261123.1",
   "overrides": {
