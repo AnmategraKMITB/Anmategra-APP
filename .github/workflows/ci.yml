@@ -3,14 +3,18 @@ name: CI
 on:
   pull_request:
     branches: ['develop']
+  # Merge queue: tiap PR diuji lagi di atas develop terbaru, dengan seluruh tes,
+  # sebelum benar-benar masuk.
+  merge_group:
   # Tiap PR lulus CI sendiri-sendiri, tetapi beberapa PR yang di-merge berurutan
   # tanpa rebase bisa rusak saat digabung (mis. bun.lock hasil merge
   # otomatis membuat `bun install --frozen-lockfile` gagal). Jalankan lagi setelah merge ke develop.
+  # Run di develop juga mengisi cache yang dibaca PR.
   push:
     branches: ['develop']
 
-# Push baru ke PR yang sama membatalkan run sebelumnya. Run di develop tidak
-# dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
+# Push baru ke PR yang sama membatalkan run sebelumnya. Run di develop dan merge
+# queue tidak dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
@@ -21,33 +25,39 @@ permissions:
 env:
   SKIP_ENV_VALIDATION: 1
 
+# Tiga job berjalan paralel dan tidak ada yang menunggu job lain. Tiap job
+# punya anggaran waktu (langkah terakhir); melewatinya membuat job gagal.
 jobs:
-  lint:
-    name: Lint
+  checks:
+    # Semua pengecekan kecil sekaligus; semua kegagalan dicetak di akhir.
+    name: Checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra
     steps:
+      - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
+      # Database kosong untuk pengecekan migrasi. Dijalankan duluan supaya
+      # booting bersamaan dengan checkout dan install.
+      - name: Start Postgres
+        run: >-
+          docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres
+          -e POSTGRES_DB=anmategra --tmpfs /var/lib/postgresql/data postgres:15-alpine
+          -c fsync=off -c synchronous_commit=off -c full_page_writes=off
       - uses: actions/checkout@v7
+        with:
+          filter: blob:none
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - uses: ./.github/actions/setup-bun
-      # Pelanggaran lama dicatat di oxlint-suppressions.json; pelanggaran baru gagal.
-      # Kalau kamu memperbaiki pelanggaran lama, jalankan `bun run lint:prune`.
-      - run: bun run lint
-      - run: bun fmt --check
-
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-      - uses: ./.github/actions/setup-bun
-      - run: bun run check
+      # Lewat TCP: server sementara saat initdb hanya mendengar socket Unix.
+      - name: Wait for Postgres
+        run: timeout 30 sh -c 'until docker exec pg pg_isready -h 127.0.0.1 -U postgres -q; do sleep 0.2; done'
+      # Lint, format, tipe, docs, migrasi, drift schema. Lihat skripnya untuk
+      # cara memperbaiki tiap kegagalan.
+      - run: bash scripts/ci/checks.sh
+      - run: sh scripts/ci/budget.sh check 90
 
   build:
     # Nama ini dipakai sebagai required status check di branch protection.
@@ -55,17 +65,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
       - uses: actions/checkout@v7
+        with:
+          filter: blob:none
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
       - uses: ./.github/actions/setup-bun
-
-      # Docs di docs/api/ di-generate dari router tRPC dan schema Drizzle.
-      # Kalau ada procedure/tabel baru tapi docs belum di-regenerate, step ini gagal.
-      # Perbaikannya: jalankan `bun run docs` lalu commit hasilnya.
-      - name: Check generated docs are up to date
-        run: bun run docs:check
 
       - uses: actions/cache@v6
         with:
@@ -83,6 +90,7 @@ jobs:
       # rute yang ia buat di .next/types (lebih banyak dari `next typegen`) dicek di sini.
       - name: Check types of the build output
         run: bun check --no-script
+      - run: sh scripts/ci/budget.sh check 180
 
   test:
     name: Test
@@ -92,6 +100,7 @@ jobs:
       # Tiap worker `bun test` membuat database sendiri: anmategra_test_w<n>.
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra_test
     steps:
+      - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
       # Postgres sekali pakai di tmpfs tanpa fsync: TRUNCATE per tes ~10x lebih
       # cepat. Tidak lewat `services` karena butuh argumen server. Dijalankan
       # duluan supaya booting bersamaan dengan checkout dan install.
@@ -101,6 +110,8 @@ jobs:
           --tmpfs /var/lib/postgresql/data postgres:15-alpine
           -c fsync=off -c synchronous_commit=off -c full_page_writes=off
       - uses: actions/checkout@v7
+        with:
+          filter: blob:none
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -109,50 +120,7 @@ jobs:
       - name: Wait for Postgres
         run: timeout 30 sh -c 'until docker exec pg pg_isready -h 127.0.0.1 -U postgres -q; do sleep 0.2; done'
       - run: bun run test
-
-  migrations:
-    name: Migrations
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    services:
-      postgres:
-        # Samakan dengan versi Postgres di production.
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: anmategra
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-      - uses: ./.github/actions/setup-bun
-
-      # Semua migrasi harus bisa dijalankan dari database kosong (developer baru,
-      # environment baru), bukan hanya di atas database yang sudah ada.
-      - name: Apply all migrations to an empty database
-        run: bun run db:migrate
-
-      # Snapshot terakhir di drizzle/meta harus sama dengan src/server/db/schema.ts.
-      # Kalau gagal: jalankan `bun run db:generate`, lalu commit migrasi barunya.
-      - name: Check schema.ts has no ungenerated changes
-        run: |
-          bunx drizzle-kit generate
-          if [ -n "$(git status --porcelain drizzle)" ]; then
-            echo "::error::schema.ts berubah tanpa migrasi. Jalankan 'bun run db:generate' lalu commit hasilnya."
-            git status --porcelain drizzle
-            exit 1
-          fi
+      - run: sh scripts/ci/budget.sh check 120
 
   dependency-review:
     name: Dependency review
