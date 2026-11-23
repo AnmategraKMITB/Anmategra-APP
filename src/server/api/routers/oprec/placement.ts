@@ -14,12 +14,15 @@ import {
 } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
+import { placementLifecycle } from '~/lib/lifecycle/placement';
+import { transferLifecycle } from '~/lib/lifecycle/transfer';
 import {
   type Decision,
   deriveChoiceStage,
   planAutofill,
 } from '~/lib/oprec/allocation';
 import { effectiveStatus } from '~/lib/oprec/scoring';
+import { assertMove, transition } from '~/server/api/lifecycle';
 import { oprecAssessProcedure } from '~/server/api/trpc';
 import {
   type DecisionTag,
@@ -1108,28 +1111,10 @@ export const placementProcedures = {
         if (current === input.state) {
           return { success: true, state: current } as const;
         }
-        const transitions: Record<typeof current, string[]> = {
-          berjalan: ['masa_banding'],
-          masa_banding: ['berjalan', 'final'],
-          final: ['masa_banding'],
+        const lifecycleCtx = {
+          resultsReleased: rec.resultsReleasedAt !== null,
         };
-        if (!transitions[current].includes(input.state)) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message:
-              input.state === 'final'
-                ? 'Menuju final harus lewat masa banding.'
-                : 'Perpindahan keadaan penempatan itu tidak diizinkan.',
-          });
-        }
-
-        if (input.state === 'berjalan' && rec.resultsReleasedAt !== null) {
-          throw new TRPCError({
-            code: 'CONFLICT',
-            message:
-              'Tarik rilis hasil dulu sebelum mengembalikan penempatan ke berjalan.',
-          });
-        }
+        assertMove(placementLifecycle, current, input.state, lifecycleCtx);
 
         const open = await openTransferRows(tx, ctx.recruitment.id);
         if (input.state === 'final' && open.length > 0) {
@@ -1250,10 +1235,14 @@ export const placementProcedures = {
             );
         }
 
-        await tx
-          .update(recruitment)
-          .set({ placementState: input.state })
-          .where(eq(recruitment.id, ctx.recruitment.id));
+        await transition(tx, placementLifecycle, {
+          table: recruitment,
+          column: recruitment.placementState,
+          where: eq(recruitment.id, ctx.recruitment.id),
+          from: current,
+          to: input.state,
+          ctx: lifecycleCtx,
+        });
 
         await logAction(tx, {
           recruitmentId: ctx.recruitment.id,
@@ -1549,23 +1538,27 @@ export const placementProcedures = {
           )
           .for('update');
         if (!request) notFound('Permintaan pindah itu tidak ditemukan.');
-        if (request.status !== 'diminta') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Permintaan ini sudah diputuskan.',
-          });
-        }
+        assertMove(
+          transferLifecycle,
+          request.status,
+          input.resolution === 'setuju' ? 'disetujui' : 'ditolak',
+          undefined,
+        );
         assertDecider(ctx.assess, request.toDivisionId);
         if (input.resolution === 'tolak') {
-          await tx
-            .update(transferRequest)
-            .set({
-              status: 'ditolak',
+          await transition(tx, transferLifecycle, {
+            table: transferRequest,
+            column: transferRequest.status,
+            where: eq(transferRequest.id, request.id),
+            from: request.status,
+            to: 'ditolak',
+            ctx: undefined,
+            set: {
               resolvedBy: ctx.session.user.id,
               resolvedAt: new Date(),
               resolutionNote: input.note ?? null,
-            })
-            .where(eq(transferRequest.id, request.id));
+            },
+          });
           await logAction(tx, {
             recruitmentId: ctx.recruitment.id,
             actorId: ctx.session.user.id,
@@ -1610,6 +1603,9 @@ export const placementProcedures = {
           reason: request.reason,
           tag: 'pindahan',
         });
+        // Bukan `transition`: moveAcceptance baru saja menutup semua permintaan
+        // terbuka pendaftar ini, termasuk yang ini. Perpindahannya sudah
+        // diperiksa di atas, di bawah kunci baris.
         await tx
           .update(transferRequest)
           .set({
@@ -1651,26 +1647,25 @@ export const placementProcedures = {
           )
           .for('update');
         if (!request) notFound('Permintaan pindah itu tidak ditemukan.');
-        if (request.status !== 'diminta') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Permintaan ini sudah diputuskan.',
-          });
-        }
+        assertMove(transferLifecycle, request.status, 'dibatalkan', undefined);
         if (
           !ctx.assess.isAdmin &&
           request.requestedBy !== ctx.session.user.id
         ) {
           throw new TRPCError({ code: 'FORBIDDEN' });
         }
-        await tx
-          .update(transferRequest)
-          .set({
-            status: 'dibatalkan',
+        await transition(tx, transferLifecycle, {
+          table: transferRequest,
+          column: transferRequest.status,
+          where: eq(transferRequest.id, request.id),
+          from: request.status,
+          to: 'dibatalkan',
+          ctx: undefined,
+          set: {
             resolvedBy: ctx.session.user.id,
             resolvedAt: new Date(),
-          })
-          .where(eq(transferRequest.id, request.id));
+          },
+        });
         await logAction(tx, {
           recruitmentId: ctx.recruitment.id,
           actorId: ctx.session.user.id,

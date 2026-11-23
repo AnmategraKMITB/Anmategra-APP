@@ -8,6 +8,7 @@ import {
   lembaga,
   lembagaMembership,
   mahasiswa,
+  support,
   users,
   verifiedUsers,
 } from '~/server/db/schema';
@@ -532,5 +533,84 @@ describe('membershipUpsert', () => {
     const [row] = await s.rows();
     expect(row!.status).toBe('aktif');
     expect(row!.endedAt).toBeNull();
+  });
+});
+
+describe('setReportStatus', () => {
+  async function reportWith(
+    status: (typeof support.$inferInsert)['status'] & string,
+  ) {
+    const id = crypto.randomUUID();
+    await db
+      .insert(support)
+      .values({ id, subject: 'Uji', description: 'Uji', status });
+    return id;
+  }
+  async function statusOf(id: string) {
+    const [row] = await db
+      .select({ status: support.status })
+      .from(support)
+      .where(eq(support.id, id));
+    return row!.status;
+  }
+  async function errorOf(promise: Promise<unknown>) {
+    try {
+      await promise;
+      return null;
+    } catch (error) {
+      const e = error as { code?: string; message?: string };
+      return { code: e.code, message: e.message };
+    }
+  }
+
+  it('maju, boleh melompat', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Reported');
+    const out = await legacy(actor).setReportStatus({ id, status: 'Resolved' });
+    expect(out.message).toBe('Status laporan berhasil diperbarui');
+    expect(await statusOf(id)).toBe('Resolved');
+  });
+
+  it('mundur ditolak dengan pesan yang sama', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Resolved');
+    expect(
+      await errorOf(legacy(actor).setReportStatus({ id, status: 'Reported' })),
+    ).toEqual({
+      code: 'BAD_REQUEST',
+      message:
+        'Tidak dapat mengubah status laporan mundur dari Resolved ke Reported',
+    });
+    expect(await statusOf(id)).toBe('Resolved');
+  });
+
+  it('status yang sama berhasil tanpa perubahan', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Reported');
+    const out = await legacy(actor).setReportStatus({ id, status: 'Reported' });
+    expect(out.message).toBe(
+      'Status laporan sudah diatur ke nilai yang diinginkan',
+    );
+  });
+
+  it('laporan yang tidak ada NOT_FOUND', async () => {
+    const actor = await makeSuperadmin();
+    expect(
+      (
+        await errorOf(
+          legacy(actor).setReportStatus({
+            id: 'tidak-ada',
+            status: 'Resolved',
+          }),
+        )
+      )?.code,
+    ).toBe('NOT_FOUND');
+  });
+
+  it('status lama di luar urutan tetap bebas', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Open');
+    await legacy(actor).setReportStatus({ id, status: 'Draft' });
+    expect(await statusOf(id)).toBe('Draft');
   });
 });
