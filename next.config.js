@@ -6,8 +6,8 @@ await import('./src/env.js');
 
 /** @type {import("next").NextConfig} */
 const config = {
-  // Lint dijalankan terpisah (`bun run lint`, job "Lint" di CI). Lint bawaan
-  // `next build` di Next 14 tidak kompatibel dengan ESLint 9 / flat config.
+  // Lint dijalankan terpisah (`bun lint`, job "Lint" di CI); ESLint tidak
+  // terpasang, jadi lint bawaan `next build` dimatikan.
   eslint: {
     ignoreDuringBuilds: true,
   },

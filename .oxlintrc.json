@@ -1,0 +1,512 @@
+// Semua kategori bun lint menyala sebagai error (aturan lama yang dulu "warn" juga), ditambah setiap aturan tanpa
+// kategori. Yang dimatikan hanya aturan yang bertentangan dengan aturan lain atau
+// dengan platform; alasannya ada di atas tiap aturan. Pelanggaran lama dicatat di
+// oxlint-suppressions.json (bun run lint:prune setelah memperbaikinya).
+{
+  "plugins": [
+    "typescript",
+    "react",
+    "nextjs",
+    "import",
+    "jsx-a11y",
+    "unicorn",
+    "oxc",
+    "promise",
+    "node",
+    "react-perf",
+    "vitest"
+  ],
+  "jsPlugins": [
+    "./lint/drizzle.js"
+  ],
+  "ignorePatterns": [
+    ".next/**",
+    "node_modules/**",
+    "next-env.d.ts",
+    "src/components/ui/**",
+    "docs/**",
+    "drizzle/**",
+    "public/**",
+    "src/app/prototype/oprec/_components/*.jsx"
+  ],
+  "rules": {
+    "@typescript-eslint/class-methods-use-this": "error",
+    "@typescript-eslint/default-param-last": "error",
+    "@typescript-eslint/init-declarations": "error",
+    "@typescript-eslint/max-params": "error",
+    "@typescript-eslint/member-ordering": "error",
+    "@typescript-eslint/naming-convention": "error",
+    "@typescript-eslint/no-array-constructor": "error",
+    "@typescript-eslint/no-dupe-class-members": "error",
+    "@typescript-eslint/no-empty-function": "error",
+    "@typescript-eslint/no-invalid-this": "error",
+    "@typescript-eslint/no-magic-numbers": "error",
+    "@typescript-eslint/no-redeclare": "error",
+    "@typescript-eslint/no-shadow": "error",
+    "@typescript-eslint/no-unsafe-enum-assignment": "error",
+    "@typescript-eslint/no-unused-expressions": "error",
+    "@typescript-eslint/no-unused-private-class-members": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-use-before-define": "error",
+    "@typescript-eslint/no-useless-constructor": "error",
+    "@typescript-eslint/prefer-destructuring": "error",
+    "bun/axios-no-unbounded-requests": "error",
+    "bun/consistent-directive-prefix": "error",
+    "bun/fast-check-no-unseeded-random": "error",
+    "bun/format": "error",
+    "bun/jsx-no-forbidden-nesting": "error",
+    "bun/no-array-just-to-count": "error",
+    "bun/no-cast-to-brand": "error",
+    "bun/no-console-window-flash": "error",
+    "bun/no-cwd-dependent-path": "error",
+    "bun/no-eager-dynamic-import": "error",
+    "bun/no-eager-native-addon": "error",
+    "bun/no-env-at-module-scope": "error",
+    "bun/no-literal-temp-dir": "error",
+    "bun/no-negative-repeat-count": "error",
+    "bun/no-redundant-catch-type": "error",
+    "bun/no-restricted-text": "error",
+    "bun/no-side-effects-on-import": "error",
+    "bun/no-unhandled-emitter-errors": "error",
+    "bun/no-unportable-commands": "error",
+    "bun/no-useless-spread-fallback": "error",
+    "bun/prefer-builtin-sleep": "error",
+    "bun/prefer-local-module": "error",
+    "bun/prefer-timeout-signal": "error",
+    "bun/prefer-url-for-sibling-files": "error",
+    "bun/react-no-latest-value-ref": "error",
+    "bun/react-no-local-render-helpers": "error",
+    "bun/react-no-namespace-hooks": "error",
+    "bun/react-prefer-updater-function": "error",
+    "bun/zod-prefer-lazy-schema": "error",
+    "bun:test/consistent-test-filename": "error",
+    "bun:test/consistent-test-it": "error",
+    "bun:test/expect-expect": "error",
+    "bun:test/max-expects": "error",
+    "bun:test/max-nested-describe": "error",
+    "bun:test/no-alias-methods": "error",
+    "bun:test/no-commented-out-tests": "error",
+    "bun:test/no-conditional-expect": "error",
+    "bun:test/no-conditional-in-test": "error",
+    "bun:test/no-conditional-tests": "error",
+    "bun:test/no-disabled-tests": "error",
+    "bun:test/no-done-callback": "error",
+    "bun:test/no-duplicate-hooks": "error",
+    "bun:test/no-export": "error",
+    "bun:test/no-focused-tests": "error",
+    "bun:test/no-hooks": "error",
+    "bun:test/no-identical-title": "error",
+    "bun:test/no-interpolation-in-snapshots": "error",
+    "bun:test/no-large-snapshots": "error",
+    "bun:test/no-restricted-jest-methods": "error",
+    "bun:test/no-restricted-matchers": "error",
+    "bun:test/no-standalone-expect": "error",
+    "bun:test/no-test-prefixes": "error",
+    "bun:test/no-test-return-statement": "error",
+    "bun:test/no-unneeded-async-expect-function": "error",
+    "bun:test/padding-around-after-all-blocks": "error",
+    "bun:test/padding-around-test-blocks": "error",
+    "bun:test/prefer-called-once": "error",
+    "bun:test/prefer-called-times": "error",
+    "bun:test/prefer-called-with": "error",
+    "bun:test/prefer-comparison-matcher": "error",
+    "bun:test/prefer-describe-function-title": "error",
+    "bun:test/prefer-each": "error",
+    "bun:test/prefer-ending-with-an-expect": "error",
+    "bun:test/prefer-equality-matcher": "error",
+    "bun:test/prefer-expect-assertions": "error",
+    "bun:test/prefer-expect-resolves": "error",
+    "bun:test/prefer-expect-type-of": "error",
+    "bun:test/prefer-hooks-in-order": "error",
+    "bun:test/prefer-hooks-on-top": "error",
+    "bun:test/prefer-lowercase-title": "error",
+    "bun:test/prefer-mock-promise-shorthand": "error",
+    "bun:test/prefer-mock-return-shorthand": "error",
+    "bun:test/prefer-snapshot-hint": "error",
+    "bun:test/prefer-spy-on": "error",
+    "bun:test/prefer-strict-boolean-matchers": "error",
+    "bun:test/prefer-strict-equal": "error",
+    "bun:test/prefer-to-be": "error",
+    "bun:test/prefer-to-be-falsy": "error",
+    "bun:test/prefer-to-be-truthy": "error",
+    "bun:test/prefer-to-contain": "error",
+    "bun:test/prefer-to-have-been-called": "error",
+    "bun:test/prefer-to-have-been-called-times": "error",
+    "bun:test/prefer-to-have-length": "error",
+    "bun:test/prefer-todo": "error",
+    "bun:test/require-hook": "error",
+    "bun:test/require-mock-type-parameters": "error",
+    "bun:test/require-test-timeout": "error",
+    "bun:test/require-to-throw-message": "error",
+    "bun:test/require-top-level-describe": "error",
+    "bun:test/valid-describe-callback": "error",
+    "bun:test/valid-expect": "error",
+    "bun:test/valid-expect-in-promise": "error",
+    "bun:test/valid-title": "error",
+    "bun:test/warn-todo": "error",
+    "camelcase": "error",
+    "consistent-return": "error",
+    "consistent-this": "error",
+    "dot-notation": "error",
+    // Mati: bertentangan dengan unicorn/prefer-ternary.
+    "eslint/no-ternary": "off",
+    // no-floating-promises meminta `void promise` sebagai pernyataan.
+    "eslint/no-void": [
+      "error",
+      {
+        "allowAsStatement": true
+      }
+    ],
+    // Mati: urutan import diatur formatter (bun fmt).
+    "eslint/sort-imports": "off",
+    // selaras dengan typescript/consistent-type-imports (inline-type-imports).
+    "import/consistent-type-specifier-style": [
+      "error",
+      "prefer-inline"
+    ],
+    "import/dynamic-import-chunkname": "error",
+    "import/enforce-node-protocol-usage": "error",
+    "import/no-anonymous-default-export": "error",
+    "import/no-deprecated": "error",
+    "import/no-extraneous-dependencies": "error",
+    "import/no-import-module-exports": "error",
+    "import/no-internal-modules": "error",
+    // Mati: bertentangan dengan import/no-default-export; sebuah modul harus mengekspor sesuatu.
+    "import/no-named-export": "off",
+    // Mati: kode server dan skrip butuh modul bawaan Node.
+    "import/no-nodejs-modules": "off",
+    "import/no-relative-packages": "error",
+    "import/no-restricted-paths": "error",
+    // impor CSS global Next.
+    "import/no-unassigned-import": [
+      "error",
+      {
+        "allow": [
+          "**/*.css"
+        ]
+      }
+    ],
+    // Mati: bug bun canary: paths tsconfig hanya ter-resolve bila satu berkas di-lint (2718 positif palsu); impor yang tidak ada tetap gagal di bun check (TS2307).
+    "import/no-unresolved": "off",
+    "import/no-unused-modules": "error",
+    "import/no-useless-path-segments": "error",
+    "import/order": "error",
+    // Mati: bertentangan dengan import/no-default-export.
+    "import/prefer-default-export": "off",
+    "jsx-a11y/alt-text": [
+      "error",
+      {
+        "elements": [
+          "img"
+        ],
+        "img": [
+          "Image"
+        ]
+      }
+    ],
+    "jsx-a11y/aria-props": "error",
+    "jsx-a11y/aria-proptypes": "error",
+    "jsx-a11y/aria-unsupported-elements": "error",
+    "jsx-a11y/role-has-required-aria-props": "error",
+    "jsx-a11y/role-supports-aria-props": "error",
+    "n/no-process-exit": "error",
+    "n/no-unsupported-features/es-builtins": "error",
+    "n/no-unsupported-features/es-syntax": "error",
+    "n/no-unsupported-features/node-builtins": "error",
+    "nextjs/google-font-display": "error",
+    "nextjs/google-font-preconnect": "error",
+    "nextjs/inline-script-id": "error",
+    "nextjs/next-script-for-ga": "error",
+    "nextjs/no-assign-module-variable": "error",
+    "nextjs/no-async-client-component": "error",
+    "nextjs/no-before-interactive-script-outside-document": "error",
+    "nextjs/no-css-tags": "error",
+    "nextjs/no-document-import-in-page": "error",
+    "nextjs/no-duplicate-head": "error",
+    "nextjs/no-head-element": "error",
+    "nextjs/no-head-import-in-document": "error",
+    "nextjs/no-html-link-for-pages": "error",
+    "nextjs/no-img-element": "error",
+    "nextjs/no-page-custom-font": "error",
+    "nextjs/no-script-component-in-head": "error",
+    "nextjs/no-styled-jsx-in-document": "error",
+    "nextjs/no-sync-scripts": "error",
+    "nextjs/no-title-in-document-head": "error",
+    "nextjs/no-typos": "error",
+    "nextjs/no-unwanted-polyfillio": "error",
+    "no-dupe-args": "error",
+    "no-invalid-this": "error",
+    "no-octal": "error",
+    "no-octal-escape": "error",
+    "no-restricted-syntax": "error",
+    "no-undef-init": "error",
+    // Mati: untuk target tanpa async/await; target tsconfig ES2022.
+    "oxc/no-async-await": "off",
+    // Mati: untuk target tanpa ?.; target tsconfig ES2022.
+    "oxc/no-optional-chaining": "off",
+    // Mati: untuk target tanpa spread objek; target tsconfig ES2022.
+    "oxc/no-rest-spread-properties": "off",
+    "prettier/prettier": "error",
+    "react-hooks/component-hook-factories": "error",
+    "react-hooks/config": "error",
+    "react-hooks/error-boundaries": "error",
+    "react-hooks/exhaustive-deps": "error",
+    "react-hooks/fbt": "error",
+    "react-hooks/gating": "error",
+    "react-hooks/globals": "error",
+    "react-hooks/immutability": "error",
+    "react-hooks/incompatible-library": "error",
+    "react-hooks/memoized-effect-dependencies": "error",
+    "react-hooks/preserve-manual-memoization": "error",
+    "react-hooks/purity": "error",
+    "react-hooks/refs": "error",
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/set-state-in-effect": "error",
+    "react-hooks/set-state-in-render": "error",
+    "react-hooks/static-components": "error",
+    "react-hooks/unsupported-syntax": "error",
+    "react-hooks/use-memo": "error",
+    "react/boolean-prop-naming": "error",
+    "react/default-props-match-prop-types": "error",
+    "react/destructuring-assignment": "error",
+    "react/display-name": "error",
+    "react/forbid-foreign-prop-types": "error",
+    "react/forbid-prop-types": "error",
+    "react/jsx-child-element-spacing": "error",
+    "react/jsx-closing-bracket-location": "error",
+    "react/jsx-closing-tag-location": "error",
+    "react/jsx-curly-newline": "error",
+    "react/jsx-curly-spacing": "error",
+    "react/jsx-equals-spacing": "error",
+    "react/jsx-filename-extension": [
+      "error",
+      {
+        "extensions": [
+          ".jsx",
+          ".tsx"
+        ]
+      }
+    ],
+    "react/jsx-first-prop-new-line": "error",
+    "react/jsx-indent": "error",
+    "react/jsx-indent-props": "error",
+    "react/jsx-key": "error",
+    "react/jsx-max-props-per-line": "error",
+    "react/jsx-newline": "error",
+    "react/jsx-no-bind": "error",
+    "react/jsx-no-comment-textnodes": "error",
+    "react/jsx-no-duplicate-props": "error",
+    "react/jsx-no-leaked-render": "error",
+    "react/jsx-no-undef": "error",
+    "react/jsx-one-expression-per-line": "error",
+    "react/jsx-props-no-multi-spaces": "error",
+    "react/jsx-sort-props": "error",
+    "react/jsx-tag-spacing": "error",
+    "react/jsx-uses-react": "error",
+    "react/jsx-uses-vars": "error",
+    "react/jsx-wrap-multilines": "error",
+    "react/no-access-state-in-setstate": "error",
+    "react/no-adjacent-inline-elements": "error",
+    "react/no-arrow-function-lifecycle": "error",
+    "react/no-children-prop": "error",
+    "react/no-danger-with-children": "error",
+    "react/no-deprecated": "error",
+    "react/no-direct-mutation-state": "error",
+    "react/no-find-dom-node": "error",
+    "react/no-invalid-html-attribute": "error",
+    "react/no-is-mounted": "error",
+    "react/no-render-return-value": "error",
+    "react/no-string-refs": "error",
+    "react/no-typos": "error",
+    "react/no-unescaped-entities": "error",
+    "react/no-unused-class-component-methods": "error",
+    "react/no-unused-prop-types": "error",
+    "react/no-unused-state": "error",
+    "react/prefer-exact-props": "error",
+    "react/prefer-read-only-props": "error",
+    "react/prefer-stateless-function": "error",
+    "react/prop-types": "error",
+    // Mati: JSX runtime otomatis (Next/React 17+), React tidak perlu di-scope.
+    "react/react-in-jsx-scope": "off",
+    "react/require-default-props": "error",
+    "react/require-optimization": "error",
+    "react/require-render-return": "error",
+    "react/sort-comp": "error",
+    "react/sort-default-props": "error",
+    "react/sort-prop-types": "error",
+    "react/static-property-placement": "error",
+    "require-atomic-updates": "error",
+    "strict": "error",
+    // Mati: React (return null) dan kolom nullable database memakai null; no-undefined sudah melarang undefined.
+    "unicorn/no-null": "off",
+    // Mati: berkas tes sengaja tetap mengimpor dari vitest.
+    "vitest/no-importing-vitest-globals": "off"
+  },
+  "overrides": [
+    {
+      "files": [
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.mts",
+        "**/*.cts"
+      ],
+      "rules": {
+        "no-var": "error",
+        "prefer-const": [
+          "error",
+          {
+            "destructuring": "any",
+            "ignoreReadBeforeAssign": false
+          }
+        ],
+        "prefer-rest-params": "error",
+        "prefer-spread": "error",
+        "typescript/await-thenable": "error",
+        "typescript/ban-ts-comment": "error",
+        "typescript/no-array-constructor": "error",
+        "typescript/no-array-delete": "error",
+        "typescript/no-base-to-string": "error",
+        "typescript/no-duplicate-enum-values": "error",
+        "typescript/no-duplicate-type-constituents": "error",
+        "typescript/no-empty-object-type": "error",
+        "typescript/no-extra-non-null-assertion": "error",
+        "typescript/no-floating-promises": "error",
+        "typescript/no-for-in-array": "error",
+        "typescript/no-implied-eval": "error",
+        "typescript/no-misused-new": "error",
+        "typescript/no-misused-promises": [
+          "error",
+          {
+            "checksVoidReturn": {
+              "attributes": false
+            }
+          }
+        ],
+        "typescript/no-namespace": "error",
+        "typescript/no-non-null-asserted-optional-chain": "error",
+        "typescript/no-redundant-type-constituents": "error",
+        "typescript/no-require-imports": "error",
+        "typescript/no-this-alias": "error",
+        "typescript/no-unnecessary-type-assertion": "error",
+        "typescript/no-unnecessary-type-constraint": "error",
+        "typescript/no-unsafe-argument": "error",
+        "typescript/no-unsafe-call": "error",
+        "typescript/no-unsafe-declaration-merging": "error",
+        "typescript/no-unsafe-enum-comparison": "error",
+        "typescript/no-unsafe-function-type": "error",
+        "typescript/no-unsafe-member-access": "error",
+        "typescript/no-unsafe-unary-minus": "error",
+        "typescript/no-unused-expressions": [
+          "error",
+          {
+            "allowShortCircuit": false,
+            "allowTaggedTemplates": false,
+            "allowTernary": false
+          }
+        ],
+        "typescript/no-unused-vars": [
+          "error",
+          {
+            "argsIgnorePattern": "^_"
+          }
+        ],
+        "typescript/no-wrapper-object-types": "error",
+        "typescript/only-throw-error": "error",
+        "typescript/prefer-as-const": "error",
+        "typescript/prefer-namespace-keyword": "error",
+        "typescript/prefer-promise-reject-errors": "error",
+        "typescript/restrict-plus-operands": "error",
+        "typescript/restrict-template-expressions": "error",
+        "typescript/triple-slash-reference": "error",
+        "typescript/unbound-method": "error",
+        "typescript/adjacent-overload-signatures": "error",
+        "typescript/ban-tslint-comment": "error",
+        "typescript/class-literal-property-style": "error",
+        "typescript/consistent-generic-constructors": "error",
+        "typescript/consistent-indexed-object-style": "error",
+        "typescript/consistent-type-assertions": "error",
+        "typescript/dot-notation": [
+          "error",
+          {
+            "allowIndexSignaturePropertyAccess": false,
+            "allowKeywords": true,
+            "allowPattern": "",
+            "allowPrivateClassPropertyAccess": false,
+            "allowProtectedClassPropertyAccess": false
+          }
+        ],
+        "typescript/no-confusing-non-null-assertion": "error",
+        "typescript/no-empty-function": [
+          "error",
+          {
+            "allow": []
+          }
+        ],
+        "typescript/no-inferrable-types": "error",
+        "typescript/non-nullable-type-assertion-style": "error",
+        "typescript/prefer-find": "error",
+        "typescript/prefer-for-of": "error",
+        "typescript/prefer-function-type": "error",
+        "typescript/prefer-includes": "error",
+        "typescript/prefer-nullish-coalescing": "error",
+        "typescript/prefer-optional-chain": "error",
+        "typescript/prefer-regexp-exec": "error",
+        "typescript/prefer-string-starts-ends-with": "error",
+        "typescript/consistent-type-imports": [
+          "error",
+          {
+            "prefer": "type-imports",
+            "fixStyle": "inline-type-imports"
+          }
+        ],
+        "drizzle/enforce-delete-with-where": [
+          "error",
+          {
+            "drizzleObjectName": [
+              "db",
+              "ctx.db"
+            ]
+          }
+        ],
+        "drizzle/enforce-update-with-where": [
+          "error",
+          {
+            "drizzleObjectName": [
+              "db",
+              "ctx.db"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": [
+        "src/app/**/{page,layout,loading,error,not-found,global-error,template,default,route,opengraph-image,icon,sitemap,robots,manifest}.{ts,tsx,js}",
+        "src/middleware.ts",
+        "*.config.{js,cjs,mjs,ts}",
+        "drizzle.config.ts"
+      ],
+      "rules": {
+        "import/no-default-export": "off"
+      }
+    },
+    {
+      "files": [
+        "**/*.cjs"
+      ],
+      "rules": {
+        "unicorn/prefer-module": "off",
+        "typescript/no-require-imports": "off"
+      }
+    }
+  ],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "error",
+    "perf": "error",
+    "style": "error",
+    "restriction": "error",
+    "nursery": "error"
+  }
+}

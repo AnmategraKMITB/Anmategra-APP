@@ -83,7 +83,7 @@ Buka [http://localhost:3000](http://localhost:3000).
 Script lain:
 - `bun run build` — build production
 - `bun run start` — jalanin hasil build
-- `bun run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
+- `bun lint` — lint dengan `bun lint` (`.oxlintrc.json`: semua kategori aturan menyala, plus aturan bertipe). Pelanggaran lama dicatat di `oxlint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
 - `bun run check` — cek tipe dengan TypeScript 7 (`bun check`), setelah `next typegen` membuat tipe rute di `.next/types`. Paket `typescript` di `package.json` tetap versi 6 karena Next 15 dan `lifecycle-writes.test.ts` butuh API JavaScript-nya, yang tidak ada di TypeScript 7.
 - `bun run test` — jalankan tes otomatis (`bun test`, paralel per core); lihat [Menjalankan Tes](#menjalankan-tes). `bun run test:watch` mengulang tes setiap berkas berubah.
 - `bun run docs` — regenerate dokumentasi API & database di `docs/api/`

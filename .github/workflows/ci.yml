@@ -32,7 +32,7 @@ jobs:
         with:
           node-version-file: .nvmrc
       - uses: ./.github/actions/setup-bun
-      # Pelanggaran lama dicatat di eslint-suppressions.json; pelanggaran baru gagal.
+      # Pelanggaran lama dicatat di oxlint-suppressions.json; pelanggaran baru gagal.
       # Kalau kamu memperbaiki pelanggaran lama, jalankan `bun run lint:prune`.
       - run: bun run lint
 
