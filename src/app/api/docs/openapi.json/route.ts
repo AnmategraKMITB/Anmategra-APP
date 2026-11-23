@@ -23,7 +23,7 @@ export async function GET() {
     });
   } catch {
     return Response.json(
-      { error: 'openapi.json belum di-generate. Jalankan `npm run docs:api`.' },
+      { error: 'openapi.json belum di-generate. Jalankan `bun run docs:api`.' },
       { status: 503 },
     );
   }

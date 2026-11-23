@@ -4,8 +4,8 @@ on:
   pull_request:
     branches: ['develop']
   # Tiap PR lulus CI sendiri-sendiri, tetapi beberapa PR yang di-merge berurutan
-  # tanpa rebase bisa rusak saat digabung (mis. package-lock.json hasil merge
-  # otomatis membuat `npm ci` gagal). Jalankan lagi setelah merge ke develop.
+  # tanpa rebase bisa rusak saat digabung (mis. bun.lock hasil merge
+  # otomatis membuat `bun install --frozen-lockfile` gagal). Jalankan lagi setelah merge ke develop.
   push:
     branches: ['develop']
 
@@ -31,11 +31,10 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/setup-bun
       # Pelanggaran lama dicatat di eslint-suppressions.json; pelanggaran baru gagal.
-      # Kalau kamu memperbaiki pelanggaran lama, jalankan `npm run lint:prune`.
-      - run: npm run lint
+      # Kalau kamu memperbaiki pelanggaran lama, jalankan `bun run lint:prune`.
+      - run: bun run lint
 
   typecheck:
     name: Typecheck
@@ -46,9 +45,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run typecheck
+      - uses: ./.github/actions/setup-bun
+      - run: bun run typecheck
 
   build:
     # Nama ini dipakai sebagai required status check di branch protection.
@@ -60,23 +58,22 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/setup-bun
 
       # Docs di docs/api/ di-generate dari router tRPC dan schema Drizzle.
       # Kalau ada procedure/tabel baru tapi docs belum di-regenerate, step ini gagal.
-      # Perbaikannya: jalankan `npm run docs` lalu commit hasilnya.
+      # Perbaikannya: jalankan `bun run docs` lalu commit hasilnya.
       - name: Check generated docs are up to date
-        run: npm run docs:check
+        run: bun run docs:check
 
       - uses: actions/cache@v6
         with:
           path: .next/cache
-          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'content/**') }}
-          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('src/**', 'public/**', 'content/**') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
 
       - name: Build
-        run: npm run build
+        run: bun run build
         env:
           # PR dari fork tidak mendapat secrets; build tetap butuh URL (robots/sitemap).
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'https://anmategra.com' }}
@@ -108,9 +105,8 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm test
+      - uses: ./.github/actions/setup-bun
+      - run: bun run test
 
   migrations:
     name: Migrations
@@ -138,21 +134,20 @@ jobs:
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
+      - uses: ./.github/actions/setup-bun
 
       # Semua migrasi harus bisa dijalankan dari database kosong (developer baru,
       # environment baru), bukan hanya di atas database yang sudah ada.
       - name: Apply all migrations to an empty database
-        run: npm run db:migrate
+        run: bun run db:migrate
 
       # Snapshot terakhir di drizzle/meta harus sama dengan src/server/db/schema.ts.
-      # Kalau gagal: jalankan `npm run db:generate`, lalu commit migrasi barunya.
+      # Kalau gagal: jalankan `bun run db:generate`, lalu commit migrasi barunya.
       - name: Check schema.ts has no ungenerated changes
         run: |
-          npx drizzle-kit generate
+          bunx drizzle-kit generate
           if [ -n "$(git status --porcelain drizzle)" ]; then
-            echo "::error::schema.ts berubah tanpa migrasi. Jalankan 'npm run db:generate' lalu commit hasilnya."
+            echo "::error::schema.ts berubah tanpa migrasi. Jalankan 'bun run db:generate' lalu commit hasilnya."
             git status --porcelain drizzle
             exit 1
           fi

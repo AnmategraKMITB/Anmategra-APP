@@ -761,7 +761,7 @@ export async function seedFromCsv() {
     // @TODO: Ini short-term solution, tidak untuk digunakan di production.
     // Dev-only: rewrites a random user's email so a personal Google account
     // can impersonate lembaga/mahasiswa locally. Never runs in production —
-    // use `npm run db:seed-lembaga` for real institution accounts instead.
+    // use `bun run db:seed-lembaga` for real institution accounts instead.
     if (process.env.NODE_ENV === 'production') {
       console.log('Skipping TEST_EMAIL seeding (production).');
       return;
@@ -815,7 +815,7 @@ export async function seedFromCsv() {
     // console.log('Ini adalah solusi jangka pendek, berikut adalah caranya:');
     // console.log('1. Ubah TEST_EMAIL ke email pribadi');
     // console.log('2. lakukan login di localhost:3000');
-    // console.log("3. Buka drizzle (di terminal lain, 'npm run db:studio'");
+    // console.log("3. Buka drizzle (di terminal lain, 'bun run db:studio'");
     // console.log(
     //   '4. di tabel anmategra_user, cari salah satu user dengan role lembaga',
     // );

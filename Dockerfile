@@ -2,8 +2,14 @@
 FROM node:20-alpine AS base
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# Bun versi repo (lihat scripts/install-bun.sh) hanya dipakai untuk memasang
+# dependency dan menjalankan script; Next.js tetap berjalan di Node.
+COPY scripts/install-bun.sh scripts/install-bun.sh
+RUN sh scripts/install-bun.sh
+ENV PATH=/root/.bun/bin:$PATH
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 # ---------- Build ----------
 FROM base AS build
@@ -41,7 +47,7 @@ ENV NEXT_PUBLIC_FORM_FILE_PROVIDER=$NEXT_PUBLIC_FORM_FILE_PROVIDER
 ARG NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID
 ENV NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID=$NEXT_PUBLIC_GOOGLE_DRIVE_CLIENT_ID
 
-RUN npm run build
+RUN bun run build
 
 # ---------- Production ----------
 FROM node:20-alpine AS production

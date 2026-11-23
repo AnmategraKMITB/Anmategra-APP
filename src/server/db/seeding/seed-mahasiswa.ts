@@ -21,8 +21,8 @@
  * atau NIM; peringatan hanya menyebut nomor baris.
  *
  * Pemakaian:
- *   npm run db:seed-mahasiswa -- --file /path/ke/maba.csv --dry-run   # rencana saja
- *   npm run db:seed-mahasiswa -- --file /path/ke/maba.csv
+ *   bun run db:seed-mahasiswa --file /path/ke/maba.csv --dry-run   # rencana saja
+ *   bun run db:seed-mahasiswa --file /path/ke/maba.csv
  *
  * Format CSV: lihat data/README.md.
  */

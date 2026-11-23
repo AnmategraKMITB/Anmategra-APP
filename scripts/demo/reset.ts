@@ -1,7 +1,7 @@
 /**
  * Reset data demo: mengosongkan semua tabel aplikasi lalu menjalankan seed.
  *
- *   APP_ENV=demo NEXT_PUBLIC_APP_ENV=demo DATABASE_URL=... npm run demo:reset
+ *   APP_ENV=demo NEXT_PUBLIC_APP_ENV=demo DATABASE_URL=... bun run demo:reset
  *
  * Menolak berjalan kecuali APP_ENV=demo dan DATABASE_URL menunjuk database
  * lokal atau database yang namanya/hostnya memuat "demo". Lihat guard.ts.

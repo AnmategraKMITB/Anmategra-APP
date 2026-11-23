@@ -2,8 +2,8 @@
  * Generate docs/api/schema.dbml from the Drizzle schema.
  *
  * The DBML file is the source for dbdocs.io:
- *   npm run docs:db          # regenerate docs/api/schema.dbml
- *   npm run docs:db:publish  # push it to dbdocs (needs DBDOCS_TOKEN)
+ *   bun run docs:db          # regenerate docs/api/schema.dbml
+ *   bun run docs:db:publish  # push it to dbdocs (needs DBDOCS_TOKEN)
  *
  * Column/table notes come from `docs/api/schema-notes.json`, so prose written
  * by hand survives every regeneration.

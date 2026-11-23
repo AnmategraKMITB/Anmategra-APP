@@ -7,7 +7,7 @@ import { supportLifecycle } from './support';
 import { transferLifecycle } from './transfer';
 
 /**
- * Semua siklus hidup yang dideklarasikan. `npm run docs` menulis
+ * Semua siklus hidup yang dideklarasikan. `bun run docs` menulis
  * `docs/api/lifecycles.{json,md}` dari daftar ini; siklus baru wajib didaftarkan.
  */
 export const LIFECYCLES: LifecycleDescription[] = [

@@ -9,7 +9,7 @@ RETRY_DELAY="${MIGRATE_RETRY_DELAY:-5}"
 
 attempt=1
 echo "Applying database migrations..."
-until npm run db:migrate; do
+until node_modules/.bin/drizzle-kit migrate; do
   if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then
     echo "Migrations failed after $attempt attempts; giving up." >&2
     exit 1
