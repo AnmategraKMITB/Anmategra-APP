@@ -424,15 +424,15 @@ export async function applySectionBinding(
   });
 }
 
-
 type RecruitmentRow = typeof recruitment.$inferSelect;
 
 /**
  * Syarat yang masih kurang agar oprec boleh dibuka. Kosong = siap. Dipakai
- * `oprec.setStatus` dan `form.setStatus` supaya keduanya menolak hal yang sama.
+ * `oprec.setStatus` dan `form.setStatus` supaya keduanya menolak hal yang sama,
+ * dan halaman oprec untuk menonaktifkan tombol Buka lebih dulu.
  */
 export async function oprecOpenProblems(
-  tx: Tx,
+  tx: Queryable,
   rec: Pick<RecruitmentRow, 'id' | 'formId' | 'setupCompletedAt'>,
 ): Promise<string[]> {
   const problems: string[] = [];
@@ -459,7 +459,9 @@ export async function oprecOpenProblems(
     .from(recruitmentDivision)
     .where(eq(recruitmentDivision.recruitmentId, rec.id));
   if ((divs?.n ?? 0) === 0) {
-    problems.push('Pilih minimal satu tujuan penempatan sebelum membuka oprec.');
+    problems.push(
+      'Pilih minimal satu tujuan penempatan sebelum membuka oprec.',
+    );
   }
   return problems;
 }

@@ -20,18 +20,21 @@ import {
 /**
  * Aksi pengelola di halaman oprec: status oprec, tautan ke formulir terikat,
  * ekspor lengkap, dan tombol pindah status (Buka, Tutup, Buka lagi). Menutup dan membuka lagi
- * minta konfirmasi; alasan penolakan server ditampilkan apa adanya.
+ * minta konfirmasi. Tombol yang belum boleh (`statusMoves` dari server)
+ * nonaktif beserta alasannya; penolakan server lainnya ditampilkan apa adanya.
  */
 export function OprecManageBar({
   basePath,
   recruitmentId,
   formId,
   status,
+  statusMoves,
 }: {
   basePath: OprecBase;
   recruitmentId: string;
   formId: string;
   status: 'draft' | 'open' | 'closed';
+  statusMoves: { to: string; enabled: boolean; reason?: string }[];
 }) {
   const router = useRouter();
   const utils = api.useUtils();
@@ -45,6 +48,8 @@ export function OprecManageBar({
     },
   });
   const action = STATUS_ACTION[status];
+  const move = statusMoves.find((m) => m.to === action.to);
+  const blocked = move?.enabled === false ? (move.reason ?? null) : null;
   const run = () => setStatus.mutate({ recruitmentId, status: action.to });
 
   return (
@@ -75,13 +80,19 @@ export function OprecManageBar({
           <Button
             type="button"
             variant={status === 'open' ? 'dark_blue_outline' : 'light_blue'}
-            disabled={setStatus.isPending}
+            disabled={setStatus.isPending || blocked !== null}
+            aria-describedby={blocked ? 'oprec-status-blocked' : undefined}
             onClick={() => (action.confirm ? setConfirming(true) : run())}
           >
             {setStatus.isPending ? action.pending : action.label}
           </Button>
         ) : null}
       </div>
+      {blocked ? (
+        <p id="oprec-status-blocked" className="text-sm text-neutral-700">
+          {blocked}
+        </p>
+      ) : null}
       {confirming && action.confirm ? (
         <div
           role="alertdialog"

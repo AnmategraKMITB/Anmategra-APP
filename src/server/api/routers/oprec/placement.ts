@@ -14,6 +14,7 @@ import {
 } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
+import { nextMoves } from '~/lib/lifecycle/define';
 import { placementLifecycle } from '~/lib/lifecycle/placement';
 import { transferLifecycle } from '~/lib/lifecycle/transfer';
 import {
@@ -586,6 +587,10 @@ export const placementProcedures = {
         isAdmin: access.isAdmin,
         method: ctx.recruitment.placementMethod,
         state,
+        /** Perpindahan keadaan dari sini, dengan alasan bila belum boleh. */
+        moves: nextMoves(placementLifecycle, state, {
+          resultsReleased: ctx.recruitment.resultsReleasedAt !== null,
+        }),
         canFinalize:
           access.isAdmin && state === 'masa_banding' && blockers.length === 0,
         blockers: access.isAdmin
