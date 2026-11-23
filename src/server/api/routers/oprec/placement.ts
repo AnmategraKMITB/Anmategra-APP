@@ -1648,7 +1648,8 @@ export const placementProcedures = {
               eq(transferRequest.id, input.requestId),
               eq(transferRequest.recruitmentId, ctx.recruitment.id),
             ),
-          );
+          )
+          .for('update');
         if (!request) notFound('Permintaan pindah itu tidak ditemukan.');
         if (request.status !== 'diminta') {
           throw new TRPCError({
