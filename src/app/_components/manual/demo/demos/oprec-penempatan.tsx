@@ -9,45 +9,46 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { type ReactNode, useDeferredValue, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import {
   DEMO_DIVISIONS,
   DEMO_EVENT,
   DEMO_LEMBAGA,
-  divisionName,
   type DemoDivision,
+  divisionName,
 } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Modal,
   Pill,
+  inputClass,
   tdClass,
   thClass,
   useFlash,
 } from '../ui';
 import {
   APPLICANTS,
-  STATUS_LABEL,
-  STATUS_TONE,
   type Applicant,
   type ChoiceStatus,
+  STATUS_LABEL,
+  STATUS_TONE,
 } from './oprec-data';
 
 const STEPS: DemoStep[] = [
   {
     id: 'isi',
-    title: 'Klik **Isi dari penilaian**, periksa pratinjaunya, lalu **Terapkan**',
+    title:
+      'Klik **Isi dari penilaian**, periksa pratinjaunya, lalu **Terapkan**',
     hint: 'Hanya yang belum diputuskan yang diisi. Keputusan yang sudah ada tidak ditimpa.',
   },
   {
     id: 'putus',
-    title: 'Putuskan pendaftar yang masih **Menunggu** dengan **Terima** atau **Tolak**',
+    title:
+      'Putuskan pendaftar yang masih **Menunggu** dengan **Terima** atau **Tolak**',
     hint: 'Coba terima saat kuota sudah penuh: Anmategra meminta konfirmasi lebih dulu.',
   },
   {
@@ -56,7 +57,8 @@ const STEPS: DemoStep[] = [
   },
   {
     id: 'terima-banding',
-    title: 'Pada pendaftar yang ditolak, klik **Terima lewat banding** dan isi alasannya',
+    title:
+      'Pada pendaftar yang ditolak, klik **Terima lewat banding** dan isi alasannya',
   },
   {
     id: 'final',
@@ -231,7 +233,10 @@ function acceptedCount(
   for (const applicant of APPLICANTS) {
     for (const choice of applicant.choices) {
       if (choice.division !== divisionId) continue;
-      if (getDecision(decisions, keyOf(applicant.id, choice.division)) === 'terima') {
+      if (
+        getDecision(decisions, keyOf(applicant.id, choice.division)) ===
+        'terima'
+      ) {
         count += 1;
       }
     }
@@ -244,7 +249,9 @@ function acceptedChoiceOf(
   decisions: Record<string, Decision>,
 ): ApplicantChoice | null {
   for (const choice of applicant.choices) {
-    if (getDecision(decisions, keyOf(applicant.id, choice.division)) === 'terima') {
+    if (
+      getDecision(decisions, keyOf(applicant.id, choice.division)) === 'terima'
+    ) {
       return choice;
     }
   }
@@ -259,7 +266,10 @@ function acceptedApplicantsFor(
   for (const applicant of APPLICANTS) {
     for (const choice of applicant.choices) {
       if (choice.division !== divisionId) continue;
-      if (getDecision(decisions, keyOf(applicant.id, choice.division)) === 'terima') {
+      if (
+        getDecision(decisions, keyOf(applicant.id, choice.division)) ===
+        'terima'
+      ) {
         result.push({ applicant, choice });
       }
     }
@@ -382,7 +392,9 @@ function Body({ guide }: { guide: DemoGuide }) {
   if (!activeDivision) {
     return (
       <div className="relative h-[560px]">
-        <Empty>Belum ada divisi tujuan. Tambahkan divisi lewat pengaturan oprec.</Empty>
+        <Empty>
+          Belum ada divisi tujuan. Tambahkan divisi lewat pengaturan oprec.
+        </Empty>
         {node}
       </div>
     );
@@ -419,7 +431,9 @@ function Body({ guide }: { guide: DemoGuide }) {
   const autofillSkipKey =
     divisionRows.find((row) => {
       const stage = stageOf(row.applicant, row.choiceIndex, decisions);
-      return getDecision(decisions, row.key) === 'menunggu' && stage.kind === 'aktif';
+      return (
+        getDecision(decisions, row.key) === 'menunggu' && stage.kind === 'aktif'
+      );
     })?.key ?? '';
 
   const autofill = computeAutofill(decisions, autofillSkipKey);
@@ -621,7 +635,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                 <Btn
                   small
                   tone="outline"
-                  onClick={() => setDialog({ kind: 'state', to: 'masa_banding' })}
+                  onClick={() =>
+                    setDialog({ kind: 'state', to: 'masa_banding' })
+                  }
                 >
                   Buka masa banding lagi
                 </Btn>
@@ -679,21 +695,27 @@ function Body({ guide }: { guide: DemoGuide }) {
               Kuota
             </p>
             <p className="text-lg font-semibold text-neutral-1000">
-              {activeDivision.quota === 0 ? 'Tanpa batas' : activeDivision.quota}
+              {activeDivision.quota === 0
+                ? 'Tanpa batas'
+                : activeDivision.quota}
             </p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
               Diterima
             </p>
-            <p className="text-lg font-semibold text-neutral-1000">{accepted}</p>
+            <p className="text-lg font-semibold text-neutral-1000">
+              {accepted}
+            </p>
           </div>
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-neutral-700">
               Sisa
             </p>
             <p className="text-lg font-semibold text-neutral-1000">
-              {activeDivision.quota === 0 ? 'Tanpa batas' : Math.max(0, remaining)}
+              {activeDivision.quota === 0
+                ? 'Tanpa batas'
+                : Math.max(0, remaining)}
             </p>
           </div>
 
@@ -705,8 +727,8 @@ function Body({ guide }: { guide: DemoGuide }) {
           ) : null}
 
           <p className="text-sm text-neutral-700 sm:col-span-3">
-            {pending} pilihan aktif belum diputuskan · {waiting} menunggu pilihan
-            sebelumnya.
+            {pending} pilihan aktif belum diputuskan · {waiting} menunggu
+            pilihan sebelumnya.
           </p>
 
           <div className="flex items-center gap-2 sm:col-span-3">
@@ -728,8 +750,8 @@ function Body({ guide }: { guide: DemoGuide }) {
               />
             </div>
             <span className="text-xs text-neutral-700">
-              {accepted}/{activeDivision.quota === 0 ? '∞' : activeDivision.quota}{' '}
-              terisi
+              {accepted}/
+              {activeDivision.quota === 0 ? '∞' : activeDivision.quota} terisi
             </span>
           </div>
         </div>
@@ -807,7 +829,11 @@ function Body({ guide }: { guide: DemoGuide }) {
           </div>
         </div>
 
-        <div className="mt-4" role="region" aria-label="Daftar pendaftar divisi">
+        <div
+          className="mt-4"
+          role="region"
+          aria-label="Daftar pendaftar divisi"
+        >
           {searchedRows.length === 0 ? (
             <Notice>
               Tidak ada pendaftar yang cocok di divisi dan pilihan ini.
@@ -880,7 +906,8 @@ function Body({ guide }: { guide: DemoGuide }) {
                               ) : null}
                               {acceptedElsewhere && acceptedChoice ? (
                                 <Chip tone="warning">
-                                  diterima di {divisionName(acceptedChoice.division)}
+                                  diterima di{' '}
+                                  {divisionName(acceptedChoice.division)}
                                 </Chip>
                               ) : null}
                             </span>
@@ -1005,7 +1032,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                                   Terima lewat banding
                                 </Btn>
                               ) : (
-                                <span className="text-xs text-neutral-700">—</span>
+                                <span className="text-xs text-neutral-700">
+                                  —
+                                </span>
                               )}
                             </div>
                           </td>
@@ -1046,10 +1075,7 @@ function Body({ guide }: { guide: DemoGuide }) {
           {DEMO_DIVISIONS.filter(
             (division) => division.id !== activeDivision.id,
           ).map((division) => {
-            const acceptedRows = acceptedApplicantsFor(
-              division.id,
-              decisions,
-            );
+            const acceptedRows = acceptedApplicantsFor(division.id, decisions);
             return (
               <details
                 key={division.id}
@@ -1137,8 +1163,8 @@ function Body({ guide }: { guide: DemoGuide }) {
           </div>
           <p className="text-xs text-neutral-700">
             Pilihan yang menunggu pilihan sebelumnya ikut dilewati. Satu pilihan
-            pada divisi {activeDivision.name} dibiarkan agar keputusan manual tetap
-            bisa dicoba.
+            pada divisi {activeDivision.name} dibiarkan agar keputusan manual
+            tetap bisa dicoba.
           </p>
         </Modal>
       ) : null}

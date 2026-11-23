@@ -1,5 +1,6 @@
 import RaporIndividuPage from '~/app/_components/rapor/individu/rapor-individu-page';
 import { api } from '~/trpc/server';
+
 import { requireManagedLembaga } from '../../../_lib/require-lembaga';
 
 const ManageRaporIndividuPage = async ({

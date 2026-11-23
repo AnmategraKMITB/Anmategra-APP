@@ -3,20 +3,11 @@
 // Library Import
 import { ChevronLeft, ChevronRight, Copy, Download } from 'lucide-react';
 import { type ReactNode, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_STUDENTS } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import {
-  Btn,
-  Modal,
-  Pill,
-  Toggle,
-  tdClass,
-  thClass,
-  useFlash,
-} from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Modal, Pill, Toggle, tdClass, thClass, useFlash } from '../ui';
 
 const STEPS: DemoStep[] = [
   {
@@ -151,9 +142,7 @@ const SEEDS: AnswerSeed[] = [
 const ROWS: RespRow[] = DEMO_STUDENTS.flatMap((student, index) => {
   const seed = SEEDS[index];
   if (!seed) return [];
-  return [
-    { id: student.id, name: student.name, nim: student.nim, ...seed },
-  ];
+  return [{ id: student.id, name: student.name, nim: student.nim, ...seed }];
 });
 
 const MBTI_COUNTS = [
@@ -367,7 +356,12 @@ function Body({ guide }: { guide: DemoGuide }) {
                         <td className={cn(tdClass, 'tabular-nums')}>
                           {row.siap} dari 5
                         </td>
-                        <td className={cn(tdClass, 'max-w-64 align-top text-xs text-neutral-700')}>
+                        <td
+                          className={cn(
+                            tdClass,
+                            'max-w-64 align-top text-xs text-neutral-700',
+                          )}
+                        >
                           {row.motivasi}
                         </td>
                       </tr>

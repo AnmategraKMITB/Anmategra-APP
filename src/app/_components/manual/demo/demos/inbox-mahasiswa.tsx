@@ -3,18 +3,17 @@
 // Library Import
 import { Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Field,
-  inputClass,
   Modal,
   Pill,
   type PillTone,
   ScreenTitle,
+  inputClass,
   tdClass,
   thClass,
 } from '../ui';
@@ -25,7 +24,10 @@ const STEPS: DemoStep[] = [
     title: 'Pada pengajuan berstatus **REQUESTED**, klik **Edit**',
     hint: 'Hanya pengajuan yang masih menunggu keputusan yang bisa diubah.',
   },
-  { id: 'simpan', title: 'Ubah **Divisi** atau **Posisi**, lalu klik **Simpan**' },
+  {
+    id: 'simpan',
+    title: 'Ubah **Divisi** atau **Posisi**, lalu klik **Simpan**',
+  },
   { id: 'hapus', title: 'Klik **Delete** untuk menarik pengajuan itu' },
 ];
 
@@ -45,9 +47,27 @@ const TONE: Record<Status, PillTone> = {
 };
 
 const INITIAL: Request[] = [
-  { id: 1, target: 'Aku Masuk ITB 2027', division: 'Event Organizer', position: 'Staf', status: 'REQUESTED' },
-  { id: 2, target: 'Malam Keakraban 2026', division: 'Logistik', position: 'Staf', status: 'ACCEPTED' },
-  { id: 3, target: 'UKM Rupa', division: 'Pameran', position: 'Anggota', status: 'DECLINED' },
+  {
+    id: 1,
+    target: 'Aku Masuk ITB 2027',
+    division: 'Event Organizer',
+    position: 'Staf',
+    status: 'REQUESTED',
+  },
+  {
+    id: 2,
+    target: 'Malam Keakraban 2026',
+    division: 'Logistik',
+    position: 'Staf',
+    status: 'ACCEPTED',
+  },
+  {
+    id: 3,
+    target: 'UKM Rupa',
+    division: 'Pameran',
+    position: 'Anggota',
+    status: 'DECLINED',
+  },
 ];
 
 export default function InboxMahasiswaDemo() {
@@ -68,7 +88,10 @@ function Body({ guide }: { guide: DemoGuide }) {
 
   return (
     <div>
-      <ScreenTitle title="Inbox" subtitle="Pengajuan asosiasi yang Anda kirim." />
+      <ScreenTitle
+        title="Inbox"
+        subtitle="Pengajuan asosiasi yang Anda kirim."
+      />
       <div className="overflow-x-auto rounded-lg border border-neutral-400">
         <table className="w-full min-w-[500px] border-collapse">
           <thead>
@@ -83,7 +106,9 @@ function Body({ guide }: { guide: DemoGuide }) {
           <tbody>
             {requests.map((request) => (
               <tr key={request.id}>
-                <td className={cn(tdClass, 'font-semibold')}>{request.target}</td>
+                <td className={cn(tdClass, 'font-semibold')}>
+                  {request.target}
+                </td>
                 <td className={tdClass}>{request.division}</td>
                 <td className={tdClass}>{request.position}</td>
                 <td className={tdClass}>

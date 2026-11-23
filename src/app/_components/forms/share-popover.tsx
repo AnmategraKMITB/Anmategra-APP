@@ -129,7 +129,9 @@ export function SharePopover() {
               <div className="grid gap-2 rounded-xl border border-neutral-400 p-3">
                 <Label htmlFor="share-slug">Slug kustom (opsional)</Label>
                 <div className="flex items-center gap-1">
-                  <span className="shrink-0 text-sm text-neutral-700">/forms/</span>
+                  <span className="shrink-0 text-sm text-neutral-700">
+                    /forms/
+                  </span>
                   <Input
                     id="share-slug"
                     value={slug}

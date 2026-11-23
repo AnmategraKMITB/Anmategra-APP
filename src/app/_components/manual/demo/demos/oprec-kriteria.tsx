@@ -3,11 +3,10 @@
 // Library Import
 import { Link2, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, Empty, Field, inputClass, Modal, Pill } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Empty, Field, Modal, Pill, inputClass } from '../ui';
 
 const STEPS: DemoStep[] = [
   {
@@ -70,11 +69,29 @@ const QUESTIONS: Record<SlotId, string[]> = {
 
 const INITIAL: Record<SlotId, Criterion[]> = {
   umum: [
-    { id: 1, name: 'Motivasi', kind: 'skor', weight: 60, questions: [QUESTIONS.umum[0]!] },
-    { id: 2, name: 'Kelengkapan berkas', kind: 'skor', weight: 40, questions: [QUESTIONS.umum[2]!] },
+    {
+      id: 1,
+      name: 'Motivasi',
+      kind: 'skor',
+      weight: 60,
+      questions: [QUESTIONS.umum[0]!],
+    },
+    {
+      id: 2,
+      name: 'Kelengkapan berkas',
+      kind: 'skor',
+      weight: 40,
+      questions: [QUESTIONS.umum[2]!],
+    },
   ],
   acara: [
-    { id: 3, name: 'Pengalaman acara', kind: 'skor', weight: 60, questions: [QUESTIONS.acara[0]!] },
+    {
+      id: 3,
+      name: 'Pengalaman acara',
+      kind: 'skor',
+      weight: 60,
+      questions: [QUESTIONS.acara[0]!],
+    },
   ],
   publikasi: [],
 };
@@ -161,7 +178,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                       ? 'border-primary-400 bg-primary-100'
                       : 'border-neutral-400 hover:border-primary-400',
                     item.id === 'acara' && guide.spot('slot'),
-                    item.id === 'umum' && slot !== 'umum' && guide.spot('gugur'),
+                    item.id === 'umum' &&
+                      slot !== 'umum' &&
+                      guide.spot('gugur'),
                   )}
                 >
                   <span className="block font-semibold">{item.label}</span>
@@ -309,7 +328,10 @@ function Body({ guide }: { guide: DemoGuide }) {
               )}
             </Field>
             {draft.kind === 'skor' ? (
-              <Field label="Bobot" hint="Persen 0-100. Total bobot satu slot sebaiknya 100%.">
+              <Field
+                label="Bobot"
+                hint="Persen 0-100. Total bobot satu slot sebaiknya 100%."
+              >
                 {(id) => (
                   <input
                     id={id}
@@ -363,8 +385,7 @@ function Body({ guide }: { guide: DemoGuide }) {
           {draft.kind === 'gugur_otomatis' ? (
             <p className="rounded-lg bg-warning-light p-2 text-xs text-neutral-1000">
               Aturan gugur otomatis memakai pertanyaan terkait sebagai acuan,
-              misalnya: jawaban <strong>adalah</strong> “Tidak” berarti
-              gugur.
+              misalnya: jawaban <strong>adalah</strong> “Tidak” berarti gugur.
             </p>
           ) : null}
         </Modal>

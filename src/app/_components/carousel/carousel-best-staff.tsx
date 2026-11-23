@@ -24,7 +24,7 @@ export default function CarouselBestStaff({
   // Handle empty or undefined list
   if (!bestStaffList || bestStaffList.length === 0) {
     return (
-      <div className="w-full p-8 border border-dashed border-slate-300 rounded-lg text-center">
+      <div className="w-full rounded-lg border border-dashed border-slate-300 p-8 text-center">
         <p className="text-slate-500">Tidak ada data Best Staff</p>
       </div>
     );

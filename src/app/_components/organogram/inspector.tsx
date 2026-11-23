@@ -20,25 +20,25 @@ import {
   type EditorAction,
   MAX_DEPTH,
   MAX_LEVEL,
-  ROOT_DEPTH,
   MAX_TIER,
   NODE_WIDTH_DEFAULT,
   NODE_WIDTH_MAX,
   NODE_WIDTH_MIN,
   type PlacementsByPosition,
+  ROOT_DEPTH,
   type Unit,
   clampNodeWidth,
   descendantsOf,
   endIndexOfPositions,
   levelLabelFor,
   levelOf,
-  topLevelParent,
   pathOf,
   planPositionDrop,
   planUnitsDrop,
   planUnitsToRoot,
   selectionRoots,
   statsOf,
+  topLevelParent,
 } from './model';
 import { PositionRow, type PositionRowProps } from './position-row';
 
@@ -177,7 +177,11 @@ export function Inspector(props: InspectorProps): JSX.Element {
   // Tanpa pilihan, "tambah" membuat akar pada struktur kosong, selain itu tingkat 1 di bawah akar.
   const topParent = topLevelParent(draft.units);
   const targetDepth =
-    unit === null ? (topParent === null ? ROOT_DEPTH : ROOT_DEPTH + 1) : unitDepth + 1;
+    unit === null
+      ? topParent === null
+        ? ROOT_DEPTH
+        : ROOT_DEPTH + 1
+      : unitDepth + 1;
   const targetLevelLabel = levelLabelFor(targetDepth, draft.levelLabels);
   const canAdd = unit === null ? canEditRoot && !readOnly : unitEditable;
 
@@ -347,8 +351,7 @@ export function Inspector(props: InspectorProps): JSX.Element {
                         type: 'setUnitLayout',
                         id: unit.id,
                         patch: {
-                          tier:
-                            value === 'depth' ? undefined : Number(value),
+                          tier: value === 'depth' ? undefined : Number(value),
                         },
                       })
                     }
@@ -364,13 +367,14 @@ export function Inspector(props: InspectorProps): JSX.Element {
                       <SelectItem value="depth">
                         Ikut kedalaman ({unitDepth})
                       </SelectItem>
-                      {Array.from({ length: MAX_TIER }, (_, index) => index + 1).map(
-                        (tier) => (
-                          <SelectItem key={tier} value={String(tier)}>
-                            Tier {tier}
-                          </SelectItem>
-                        ),
-                      )}
+                      {Array.from(
+                        { length: MAX_TIER },
+                        (_, index) => index + 1,
+                      ).map((tier) => (
+                        <SelectItem key={tier} value={String(tier)}>
+                          Tier {tier}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -473,12 +477,8 @@ export function Inspector(props: InspectorProps): JSX.Element {
                         <SelectItem value="inherit">
                           Ikut sakelar bagan
                         </SelectItem>
-                        <SelectItem value="true">
-                          Selalu samakan
-                        </SelectItem>
-                        <SelectItem value="false">
-                          Ikuti isinya
-                        </SelectItem>
+                        <SelectItem value="true">Selalu samakan</SelectItem>
+                        <SelectItem value="false">Ikuti isinya</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

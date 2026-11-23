@@ -6,10 +6,10 @@ bisa basi — dan CI akan menolak PR yang lupa melakukannya.
 
 Ada tiga artefak:
 
-| Artefak | Isi | Dilihat lewat |
-|---|---|---|
-| `openapi.json` | Procedure tRPC + Endpoint REST | Scalar di `http://localhost:3000/api/docs` |
-| `schema.dbml` | Tabel Drizzle beserta relasinya | dbdocs.io (`npm run docs:db:publish`) |
+| Artefak                             | Isi                                                                                            | Dilihat lewat                                          |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `openapi.json`                      | Procedure tRPC + Endpoint REST                                                                 | Scalar di `http://localhost:3000/api/docs`             |
+| `schema.dbml`                       | Tabel Drizzle beserta relasinya                                                                | dbdocs.io (`npm run docs:db:publish`)                  |
 | `lifecycles.md` / `lifecycles.json` | Perpindahan status yang sah (form, oprec, penempatan, rilis hasil, permintaan pindah, laporan) | Diagram Mermaid di GitHub; JSON untuk agen dan tooling |
 
 ---
@@ -105,7 +105,9 @@ dan `access`-nya harus terdaftar di tipe `ApiMeta`:
 ```ts
 export const contohProcedure = protectedProcedure
   .meta({ access: 'authenticated' })
-  .use(({ ctx, next }) => { /* ... */ });
+  .use(({ ctx, next }) => {
+    /* ... */
+  });
 ```
 
 Kalau lupa, `npm run docs:api` sengaja gagal dan menyebut procedure mana saja yang bolong.
@@ -143,16 +145,16 @@ konsumen di luar aplikasi Next.js ini (mobile app, service lain, skrip internal)
 
 ## 4. Menambahkan prosa (penjelasan tulisan tangan)
 
-Generator hanya bisa menyimpulkan *bentuk* data, bukan *maksudnya*. Penjelasan manusia
+Generator hanya bisa menyimpulkan _bentuk_ data, bukan _maksudnya_. Penjelasan manusia
 disimpan di file terpisah supaya **tidak pernah tertimpa** saat regenerate:
 
-| Berkas | Sumber | Ditulis oleh |
-|---|---|---|
-| `openapi.json` | router tRPC + `rest-openapi.json` + `api-notes.json` | generator |
-| `schema.dbml` | skema Drizzle + `schema-notes.json` | generator |
-| `api-notes.json` | — | manusia |
-| `rest-openapi.json` | — | manusia |
-| `schema-notes.json` | — | manusia |
+| Berkas              | Sumber                                               | Ditulis oleh |
+| ------------------- | ---------------------------------------------------- | ------------ |
+| `openapi.json`      | router tRPC + `rest-openapi.json` + `api-notes.json` | generator    |
+| `schema.dbml`       | skema Drizzle + `schema-notes.json`                  | generator    |
+| `api-notes.json`    | —                                                    | manusia      |
+| `rest-openapi.json` | —                                                    | manusia      |
+| `schema-notes.json` | —                                                    | manusia      |
 
 - **Procedure tRPC** → `api-notes.json`, key `router.procedure`:
   ```json

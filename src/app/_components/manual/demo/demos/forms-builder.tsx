@@ -3,7 +3,6 @@
 // Simulasi pembuat form: kepala builder, tab Konten/Alur/Penilaian/Pratinjau,
 // panel Halaman, kartu bagian, dan kartu pertanyaan — semuanya dengan state
 // di memori saja.
-
 // Library Import
 import {
   AlignLeft,
@@ -44,12 +43,11 @@ import {
 } from 'lucide-react';
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_DIVISIONS, DEMO_EVENT, DEMO_LEMBAGA } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, inputClass, Modal, Pill, Toggle, useFlash } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Modal, Pill, Toggle, inputClass, useFlash } from '../ui';
 import {
   type AnswerValue,
   type Answers,
@@ -62,7 +60,8 @@ const STEPS: DemoStep[] = [
   { id: 'judul', title: 'Ubah **judul form** di bagian atas' },
   {
     id: 'tambah',
-    title: 'Klik **Tambah konten** di bawah bagian, lalu pilih **Pilihan tunggal**',
+    title:
+      'Klik **Tambah konten** di bawah bagian, lalu pilih **Pilihan tunggal**',
   },
   {
     id: 'isi',
@@ -115,9 +114,7 @@ const kindLabelOf = (kind: Kind) =>
   KIND_META.find(([id]) => id === kind)?.[1] ?? kind;
 
 const hasOptions = (kind: Kind) =>
-  kind === 'single_choice' ||
-  kind === 'dropdown' ||
-  kind === 'multiple_choice';
+  kind === 'single_choice' || kind === 'dropdown' || kind === 'multiple_choice';
 
 /** Question hanya mengenal jenis bawaan form-shared; 'file' dan
  *  'unit_choice' digambar sendiri oleh simulasi ini. */
@@ -707,10 +704,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                               ),
                             )
                           }
-                          className={cn(
-                            inputClass,
-                            'text-lg font-semibold',
-                          )}
+                          className={cn(inputClass, 'text-lg font-semibold')}
                         />
                         <input
                           aria-label="Deskripsi bagian"
@@ -842,10 +836,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                                       label: event.target.value,
                                     });
                                   }}
-                                  className={cn(
-                                    inputClass,
-                                    guide.spot('isi'),
-                                  )}
+                                  className={cn(inputClass, guide.spot('isi'))}
                                 />
                               </div>
 
@@ -892,7 +883,8 @@ function Body({ guide }: { guide: DemoGuide }) {
                                           disabled={index === 0}
                                           onClick={() => {
                                             const options = [...field.options];
-                                            const prevOption = options[index - 1];
+                                            const prevOption =
+                                              options[index - 1];
                                             const current = options[index];
                                             if (
                                               !prevOption ||
@@ -916,7 +908,8 @@ function Body({ guide }: { guide: DemoGuide }) {
                                           }
                                           onClick={() => {
                                             const options = [...field.options];
-                                            const nextOption = options[index + 1];
+                                            const nextOption =
+                                              options[index + 1];
                                             const current = options[index];
                                             if (
                                               !nextOption ||
@@ -1560,15 +1553,10 @@ function PreviewField({
     const id = `demo-fb-file-${field.id}`;
     return (
       <div className="space-y-1.5">
-        <label
-          htmlFor={id}
-          className="block font-semibold text-neutral-1000"
-        >
+        <label htmlFor={id} className="block font-semibold text-neutral-1000">
           {number ? `${number}. ` : ''}
           {field.label}
-          {field.required ? (
-            <span className="text-danger-dark"> *</span>
-          ) : null}
+          {field.required ? <span className="text-danger-dark"> *</span> : null}
         </label>
         <label
           htmlFor={id}

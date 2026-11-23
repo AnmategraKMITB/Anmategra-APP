@@ -125,7 +125,7 @@ function PeriodSelect({
   };
 
   return (
-    <div className="flex w-full gap-4 mb-4 items-center">
+    <div className="mb-4 flex w-full items-center gap-4">
       <Select
         onValueChange={(val) => handleChange('startMonth', val)}
         value={startMonth ?? undefined}
@@ -217,15 +217,15 @@ function DivisionTable({
   initialSelection,
 }: DivisionTableProps) {
   return (
-    <div className="w-full max-w-[600px] max-h-[300px] sm:max-h-[420px] mx-auto overflow-y-auto p-1 space-y-3">
-      <div className="flex gap-12 sticky top-0 bg-white z-10 py-2 font-semibold text-sm">
+    <div className="mx-auto max-h-[300px] w-full max-w-[600px] space-y-3 overflow-y-auto p-1 sm:max-h-[420px]">
+      <div className="sticky top-0 z-10 flex gap-12 bg-white py-2 text-sm font-semibold">
         <div className="w-[120px] sm:w-[140px]">Divisi</div>
         <div className="flex-1">Best Staff</div>
       </div>
 
       {divisions.map((divisi, i) => (
         <div key={i} className="flex items-center gap-2">
-          <div className="w-[120px] sm:w-[140px] text-sm text-[#636A6D]">
+          <div className="w-[120px] text-sm text-[#636A6D] sm:w-[140px]">
             {divisi.name}
           </div>
           <div className="flex-1">
@@ -233,7 +233,7 @@ function DivisionTable({
               onValueChange={(val) => onSelect(divisi.name, val)}
               value={initialSelection?.[divisi.name] ?? undefined}
             >
-              <SelectTrigger className="w-full h-[36px] rounded-xl text-sm text-[#636A6D] border border-[#C4CACE]">
+              <SelectTrigger className="h-[36px] w-full rounded-xl border border-[#C4CACE] text-sm text-[#636A6D]">
                 <SelectValue placeholder="Pilih anggota" />
               </SelectTrigger>
               <SelectContent className="rounded-xl border border-[#C4CACE]">
@@ -241,7 +241,7 @@ function DivisionTable({
                   <SelectItem
                     key={j}
                     value={staff}
-                    className="py-2 px-3 text-sm text-[#636A6D] hover:bg-gray-100"
+                    className="px-3 py-2 text-sm text-[#636A6D] hover:bg-gray-100"
                   >
                     {staff}
                   </SelectItem>
@@ -254,7 +254,7 @@ function DivisionTable({
               variant="ghost"
               size="icon"
               onClick={() => onClear(divisi.name)}
-              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+              className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-700"
               title="Hapus pilihan"
             >
               ✕
@@ -559,18 +559,22 @@ const BestStaffForm = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen} key={isOpen ? 'open' : 'closed'}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={setIsOpen}
+      key={isOpen ? 'open' : 'closed'}
+    >
       <DialogTrigger asChild>
         {trigger ?? (
-          <Button className="w-[191px] h-[50px] bg-[#00B7B7] rounded-2xl hover:bg-[#00A5A5] text-white text-[18px] font-semibold">
+          <Button className="h-[50px] w-[191px] rounded-2xl bg-[#00B7B7] text-[18px] font-semibold text-white hover:bg-[#00A5A5]">
             {mode === 'add' ? 'Tambah' : 'Edit'} Best Staff
           </Button>
         )}
       </DialogTrigger>
 
-      <DialogContent className="max-w-[724px] rounded-[20px] p-6 sm:p-10 [&>button[aria-label='Close']]:hidden max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-[724px] overflow-y-auto rounded-[20px] p-6 sm:p-10 [&>button[aria-label='Close']]:hidden">
         <DialogHeader>
-          <DialogTitle className="text-2xl sm:text-[32px] font-bold">
+          <DialogTitle className="text-2xl font-bold sm:text-[32px]">
             {mode === 'add' ? 'Tambah' : 'Edit'} Best Staff
           </DialogTitle>
           <DialogDescription className="text-sm font-medium text-[#636A6D]">
@@ -608,18 +612,18 @@ const BestStaffForm = ({
           initialSelection={selectedStaff}
         />
 
-        <div className="flex justify-center gap-4 mt-6">
+        <div className="mt-6 flex justify-center gap-4">
           <DialogClose asChild>
             <Button
               variant="outline"
-              className="border-[#636A6D] text-[#636A6D] w-[100px] sm:w-[120px] h-[40px] rounded-xl"
+              className="h-[40px] w-[100px] rounded-xl border-[#636A6D] text-[#636A6D] sm:w-[120px]"
             >
               Batal
             </Button>
           </DialogClose>
           <Button
             onClick={handleSubmit}
-            className="bg-[#00B7B7] text-white font-semibold w-[100px] sm:w-[120px] h-[40px] rounded-xl hover:bg-[#00A5A5]"
+            className="h-[40px] w-[100px] rounded-xl bg-[#00B7B7] font-semibold text-white hover:bg-[#00A5A5] sm:w-[120px]"
           >
             Simpan
           </Button>

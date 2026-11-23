@@ -4,7 +4,13 @@ import { type Kepanitiaan } from '~/types/kepanitiaan';
 import { KepanitiaanCard } from '../card/kepanitiaan-card';
 import { ListSectionWrapper } from './list-section-wrapper';
 
-export const KepanitiaanSection = ({ data, hideSeeAll }: { data: Kepanitiaan[]; hideSeeAll?: boolean }) => {
+export const KepanitiaanSection = ({
+  data,
+  hideSeeAll,
+}: {
+  data: Kepanitiaan[];
+  hideSeeAll?: boolean;
+}) => {
   return (
     <ListSectionWrapper
       className="container mx-auto"

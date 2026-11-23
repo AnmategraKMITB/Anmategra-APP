@@ -67,7 +67,11 @@ export const AdminUserCreateInputSchema = z
     kind: z.enum(['mahasiswa', 'lembaga']),
     email,
     name,
-    nim: z.string().trim().regex(/^\d{8}$/).optional(),
+    nim: z
+      .string()
+      .trim()
+      .regex(/^\d{8}$/)
+      .optional(),
     jurusan: z.string().trim().min(1).max(255).optional(),
     angkatan: z.number().int().min(2000).max(2100).optional(),
     lembagaName: z.string().trim().min(1).max(255).optional(),
@@ -78,18 +82,52 @@ export const AdminUserCreateInputSchema = z
   })
   .superRefine((value, ctx) => {
     if (value.kind === 'mahasiswa') {
-      if (!value.nim) ctx.addIssue({ code: 'custom', message: 'NIM wajib 8 digit.', path: ['nim'] });
-      if (!value.jurusan) ctx.addIssue({ code: 'custom', message: 'Program studi wajib.', path: ['jurusan'] });
-      if (!value.angkatan) ctx.addIssue({ code: 'custom', message: 'Angkatan wajib.', path: ['angkatan'] });
+      if (!value.nim)
+        ctx.addIssue({
+          code: 'custom',
+          message: 'NIM wajib 8 digit.',
+          path: ['nim'],
+        });
+      if (!value.jurusan)
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Program studi wajib.',
+          path: ['jurusan'],
+        });
+      if (!value.angkatan)
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Angkatan wajib.',
+          path: ['angkatan'],
+        });
     } else {
-      if (!value.lembagaName) ctx.addIssue({ code: 'custom', message: 'Nama lembaga wajib.', path: ['lembagaName'] });
-      if (!value.lembagaType) ctx.addIssue({ code: 'custom', message: 'Jenis lembaga wajib.', path: ['lembagaType'] });
+      if (!value.lembagaName)
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Nama lembaga wajib.',
+          path: ['lembagaName'],
+        });
+      if (!value.lembagaType)
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Jenis lembaga wajib.',
+          path: ['lembagaType'],
+        });
     }
   });
 
 export const AdminMahasiswaUpdateSchema = z.object({
-  nim: z.string().trim().regex(/^\d{8}$/).optional(),
-  nimTpb: z.string().trim().regex(/^\d{8}$/).nullable().optional(),
+  nim: z
+    .string()
+    .trim()
+    .regex(/^\d{8}$/)
+    .optional(),
+  nimTpb: z
+    .string()
+    .trim()
+    .regex(/^\d{8}$/)
+    .nullable()
+    .optional(),
   nama: name.optional(),
   jurusan: z.string().trim().min(1).max(255).optional(),
   angkatan: z.number().int().min(2000).max(2100).optional(),
@@ -119,7 +157,11 @@ export const AdminUserUpdateInputSchema = z
       Object.values(fields).some((field) => field !== undefined) ||
       Object.keys(fields.mahasiswa ?? {}).length > 0;
     if (!hasField) {
-      ctx.addIssue({ code: 'custom', message: 'Tidak ada perubahan.', path: ['userId'] });
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Tidak ada perubahan.',
+        path: ['userId'],
+      });
     }
   });
 

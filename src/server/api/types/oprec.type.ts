@@ -269,7 +269,10 @@ const TANPA_NUL = /^[^\u0000]*$/;
 export const NotificationScopeSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('all') }),
   z.object({ kind: z.literal('division'), divisionId: id }),
-  z.object({ kind: z.literal('group'), groupLabel: z.string().trim().min(1).max(255) }),
+  z.object({
+    kind: z.literal('group'),
+    groupLabel: z.string().trim().min(1).max(255),
+  }),
 ]);
 export type NotificationScope = z.infer<typeof NotificationScopeSchema>;
 
@@ -316,7 +319,6 @@ export const SendApplicantNotificationInputSchema = z.object({
 export const SendApplicantNotificationOutputSchema = z.object({
   sent: z.number().int(),
 });
-
 
 // ---------------------------------------------------------------------------
 // Setup oprec (wizard)

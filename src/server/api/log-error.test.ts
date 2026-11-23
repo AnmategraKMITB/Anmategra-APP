@@ -31,7 +31,13 @@ describe('buildTrpcErrorLog', () => {
       cause: new Error('token=abc.def.ghi'),
     });
     const text = JSON.stringify(
-      buildTrpcErrorLog({ path: 'a.b', type: 'query', error, startedAt: 0, now: 1 }),
+      buildTrpcErrorLog({
+        path: 'a.b',
+        type: 'query',
+        error,
+        startedAt: 0,
+        now: 1,
+      }),
     );
     expect(text).not.toContain('budi@example.com');
     expect(text).not.toContain('abc.def.ghi');

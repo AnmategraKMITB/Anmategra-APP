@@ -13,7 +13,11 @@ import {
   DialogTrigger,
 } from '~/components/ui/dialog';
 
-export type Profile = { profil_id: string; nilai: number | null, profil_name: string };
+export type Profile = {
+  profil_id: string;
+  nilai: number | null;
+  profil_name: string;
+};
 
 // Komponen FormProfil
 interface FormProfilProps {
@@ -25,11 +29,11 @@ const FormProfil: React.FC<FormProfilProps> = ({ profiles, onChange }) => {
   return (
     <div className="flex flex-col gap-4">
       {profiles.map((p, idx) => (
-        <div key={p.profil_id} className="flex justify-between items-center">
-          <label className="font-[400] text-[20px] leading-[32px] text-[#141718]">
+        <div key={p.profil_id} className="flex items-center justify-between">
+          <label className="text-[20px] font-[400] leading-[32px] text-[#141718]">
             {p.profil_name}
           </label>
-          <div className="rounded-[12px] flex items-center border border-[#C4CACE] bg-white px-4 py-1 w-[92px] h-[50px]">
+          <div className="flex h-[50px] w-[92px] items-center rounded-[12px] border border-[#C4CACE] bg-white px-4 py-1">
             <input
               type="number"
               value={p.nilai ?? ''}
@@ -39,8 +43,7 @@ const FormProfil: React.FC<FormProfilProps> = ({ profiles, onChange }) => {
                 const numeric = val === '' ? null : Number(val);
                 onChange(p.profil_id, numeric);
               }}
-              className="[appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none
-                         font-[400] text-[18px] leading-[32px] text-[#636A6D] w-full outline-none text-center"
+              className="w-full text-center text-[18px] font-[400] leading-[32px] text-[#636A6D] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               min={0}
               max={100}
             />
@@ -66,7 +69,9 @@ const FormNilaiProfil: React.FC<FormNilaiProfilProps> = ({
   const handleProfileChange = (id: string, value: number | null) => {
     const sanitized = value === null ? null : Math.min(Math.max(value, 0), 100);
     setProfiles(
-      profiles.map((p) => (p.profil_id === id ? { ...p, value: sanitized } : p)),
+      profiles.map((p) =>
+        p.profil_id === id ? { ...p, value: sanitized } : p,
+      ),
     );
   };
 
@@ -96,29 +101,29 @@ const FormNilaiProfil: React.FC<FormNilaiProfilProps> = ({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="w[133px] px-4 sm:px-6 h-10 sm:h-12 md:h-[50px] flex items-center justify-center gap-2 bg-[#00B7B7] rounded-xl sm:rounded-[16px] hover:bg-[#51c8c4]">
-          <Pencil size={40} className="!w-4 !h-4 sm:!w-5 sm:!h-5" />
-          <div className="text-white text-sm sm:text-base md:text-[18px] leading-tight sm:leading-[26px] font-semibold">
+        <Button className="w[133px] flex h-10 items-center justify-center gap-2 rounded-xl bg-[#00B7B7] px-4 hover:bg-[#51c8c4] sm:h-12 sm:rounded-[16px] sm:px-6 md:h-[50px]">
+          <Pencil size={40} className="!h-4 !w-4 sm:!h-5 sm:!w-5" />
+          <div className="text-sm font-semibold leading-tight text-white sm:text-base sm:leading-[26px] md:text-[18px]">
             Edit Nilai
           </div>
         </Button>
       </DialogTrigger>
 
       <DialogContent
-        className="[&>button]:hidden bg-transparent border-0 shadow-none p-0 flex items-center justify-center"
+        className="flex items-center justify-center border-0 bg-transparent p-0 shadow-none [&>button]:hidden"
         aria-describedby={undefined}
       >
-        <Card className="relative w-[309px] max-h-[90vh] rounded-[26.1px] border border-[#C4CACE] pt-[35px] pr-[37px] pb-[27px] pl-[37px] bg-white flex flex-col gap-[10px] overflow-y-auto">
+        <Card className="relative flex max-h-[90vh] w-[309px] flex-col gap-[10px] overflow-y-auto rounded-[26.1px] border border-[#C4CACE] bg-white pb-[27px] pl-[37px] pr-[37px] pt-[35px]">
           <DialogHeader>
-            <DialogTitle className="font-semibold text-[24px] leading-[40px] text-center text-[#141718]">
+            <DialogTitle className="text-center text-[24px] font-semibold leading-[40px] text-[#141718]">
               Edit Nilai Profil
             </DialogTitle>
             <DialogClose asChild>
               <Button
                 variant="ghost"
-                className="hover:bg-transparent absolute top-4 right-4 p-0 w-6 h-6 flex items-center justify-center"
+                className="absolute right-4 top-4 flex h-6 w-6 items-center justify-center p-0 hover:bg-transparent"
               >
-                <X strokeWidth={1.7} className="!w-6 !h-6" />
+                <X strokeWidth={1.7} className="!h-6 !w-6" />
               </Button>
             </DialogClose>
           </DialogHeader>
@@ -126,16 +131,14 @@ const FormNilaiProfil: React.FC<FormNilaiProfilProps> = ({
           <FormProfil profiles={profiles} onChange={handleProfileChange} />
 
           {errorMessage && (
-            <div className="text-red-600 text-[14px] mt-2 text-center">
+            <div className="mt-2 text-center text-[14px] text-red-600">
               {errorMessage}
             </div>
           )}
 
           <Button
             onClick={handleSaveProfile}
-            className="font-[700] text-[14px] leading-[16px] bg-[#2B6282] text-white 
-                         rounded-[12px] border-[2px] border-[#2B6282] hover:bg-[#1c4f6c] 
-                         h-[40px] w-[196px] flex items-center justify-center mx-auto mt-3"
+            className="mx-auto mt-3 flex h-[40px] w-[196px] items-center justify-center rounded-[12px] border-[2px] border-[#2B6282] bg-[#2B6282] text-[14px] font-[700] leading-[16px] text-white hover:bg-[#1c4f6c]"
           >
             SIMPAN PERUBAHAN
           </Button>

@@ -119,8 +119,8 @@ const ProfileKegiatan = async ({
         <JsonLd data={jsonLd} />
         <JsonLd data={breadcrumbJson} />
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="w-full flex min-h-screen flex-col items-center">
-            <div className="w-full max-w-6xl bg-slate-50 py-6 rounded-none sm:rounded-xl">
+          <div className="flex min-h-screen w-full flex-col items-center">
+            <div className="w-full max-w-6xl rounded-none bg-slate-50 py-6 sm:rounded-xl">
               <div className="mb-4 px-1 sm:px-2">
                 <h1 className="text-2xl font-semibold text-slate-600">
                   {kegiatan?.name}
@@ -150,11 +150,11 @@ const ProfileKegiatan = async ({
                 ajuanAsosiasi={false}
                 linkDaftar={daftarLink}
               />
-              <article className="mt-6 sm:mt-8 mb-8">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+              <article className="mb-8 mt-6 sm:mt-8">
+                <h2 className="mb-3 text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                   Deskripsi Kegiatan
                 </h2>
-                <div className="rounded-xl bg-white border border-neutral-200 px-4 py-3 sm:px-6 sm:py-4 text-sm sm:text-base text-neutral-800 leading-relaxed">
+                <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-800 sm:px-6 sm:py-4 sm:text-base">
                   {kegiatan?.description?.trim()
                     ? kegiatan.description
                     : 'Belum ada deskripsi untuk kegiatan ini.'}
@@ -163,8 +163,8 @@ const ProfileKegiatan = async ({
 
               {/* Organogram Section */}
               {kegiatan?.is_organogram && kegiatan?.organogram_image && (
-                <div className="mt-6 sm:mt-8 mb-8">
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+                <div className="mb-8 mt-6 sm:mt-8">
+                  <h2 className="mb-3 text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                     Organogram
                   </h2>
                   <OrganogramDialog
@@ -175,7 +175,7 @@ const ProfileKegiatan = async ({
               )}
 
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+                <h2 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                   Penyelenggara
                 </h2>
               </div>

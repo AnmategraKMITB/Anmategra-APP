@@ -97,12 +97,8 @@
           "name": "anmategra_account_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_account",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -110,10 +106,7 @@
       "compositePrimaryKeys": {
         "anmategra_account_provider_provider_account_id_pk": {
           "name": "anmategra_account_provider_provider_account_id_pk",
-          "columns": [
-            "provider",
-            "provider_account_id"
-          ]
+          "columns": ["provider", "provider_account_id"]
         }
       },
       "uniqueConstraints": {}
@@ -193,12 +186,8 @@
           "name": "anmategra_association_request_event_id_anmategra_event_id_fk",
           "tableFrom": "anmategra_association_request",
           "tableTo": "anmategra_event",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -206,12 +195,8 @@
           "name": "anmategra_association_request_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_association_request",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -294,12 +279,8 @@
           "name": "anmategra_association_request_lembaga_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_association_request_lembaga",
           "tableTo": "anmategra_lembaga",
-          "columnsFrom": [
-            "lembaga_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lembaga_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -307,12 +288,8 @@
           "name": "anmategra_association_request_lembaga_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_association_request_lembaga",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -367,12 +344,8 @@
           "name": "anmategra_best_staff_kegiatan_event_id_anmategra_event_id_fk",
           "tableFrom": "anmategra_best_staff_kegiatan",
           "tableTo": "anmategra_event",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -380,12 +353,8 @@
           "name": "anmategra_best_staff_kegiatan_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_best_staff_kegiatan",
           "tableTo": "anmategra_mahasiswa",
-          "columnsFrom": [
-            "mahasiswa_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["mahasiswa_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -440,12 +409,8 @@
           "name": "anmategra_best_staff_lembaga_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_best_staff_lembaga",
           "tableTo": "anmategra_lembaga",
-          "columnsFrom": [
-            "lembaga_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lembaga_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -453,12 +418,8 @@
           "name": "anmategra_best_staff_lembaga_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_best_staff_lembaga",
           "tableTo": "anmategra_mahasiswa",
-          "columnsFrom": [
-            "mahasiswa_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["mahasiswa_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -616,12 +577,8 @@
           "name": "anmategra_event_org_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_event",
           "tableTo": "anmategra_lembaga",
-          "columnsFrom": [
-            "org_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["org_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -717,12 +674,8 @@
           "name": "anmategra_keanggotaan_event_id_anmategra_event_id_fk",
           "tableFrom": "anmategra_keanggotaan",
           "tableTo": "anmategra_event",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -730,12 +683,8 @@
           "name": "anmategra_keanggotaan_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_keanggotaan",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -825,12 +774,8 @@
           "name": "anmategra_kehimpunan_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_kehimpunan",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -838,12 +783,8 @@
           "name": "anmategra_kehimpunan_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_kehimpunan",
           "tableTo": "anmategra_lembaga",
-          "columnsFrom": [
-            "lembaga_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lembaga_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -944,12 +885,8 @@
           "name": "anmategra_lembaga_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_lembaga",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1037,12 +974,8 @@
           "name": "anmategra_mahasiswa_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_mahasiswa",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1107,12 +1040,8 @@
           "name": "anmategra_nilai_profil_kegiatan_profil_id_anmategra_profil_kegiatan_id_fk",
           "tableFrom": "anmategra_nilai_profil_kegiatan",
           "tableTo": "anmategra_profil_kegiatan",
-          "columnsFrom": [
-            "profil_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profil_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1120,12 +1049,8 @@
           "name": "anmategra_nilai_profil_kegiatan_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_nilai_profil_kegiatan",
           "tableTo": "anmategra_mahasiswa",
-          "columnsFrom": [
-            "mahasiswa_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["mahasiswa_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1190,12 +1115,8 @@
           "name": "anmategra_nilai_profil_lembaga_profil_id_anmategra_profil_lembaga_id_fk",
           "tableFrom": "anmategra_nilai_profil_lembaga",
           "tableTo": "anmategra_profil_lembaga",
-          "columnsFrom": [
-            "profil_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profil_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1203,12 +1124,8 @@
           "name": "anmategra_nilai_profil_lembaga_mahasiswa_id_anmategra_mahasiswa_user_id_fk",
           "tableFrom": "anmategra_nilai_profil_lembaga",
           "tableTo": "anmategra_mahasiswa",
-          "columnsFrom": [
-            "mahasiswa_id"
-          ],
-          "columnsTo": [
-            "user_id"
-          ],
+          "columnsFrom": ["mahasiswa_id"],
+          "columnsTo": ["user_id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1279,12 +1196,8 @@
           "name": "anmategra_notification_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_notification",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1348,12 +1261,8 @@
           "name": "anmategra_organization_role_structure_id_anmategra_organization_structure_id_fk",
           "tableFrom": "anmategra_organization_role",
           "tableTo": "anmategra_organization_structure",
-          "columnsFrom": [
-            "structure_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["structure_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1417,12 +1326,8 @@
           "name": "anmategra_organization_structure_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_organization_structure",
           "tableTo": "anmategra_lembaga",
-          "columnsFrom": [
-            "lembaga_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lembaga_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1430,12 +1335,8 @@
           "name": "anmategra_organization_structure_event_id_anmategra_event_id_fk",
           "tableFrom": "anmategra_organization_structure",
           "tableTo": "anmategra_event",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1511,12 +1412,8 @@
           "name": "anmategra_organization_unit_structure_id_anmategra_organization_structure_id_fk",
           "tableFrom": "anmategra_organization_unit",
           "tableTo": "anmategra_organization_structure",
-          "columnsFrom": [
-            "structure_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["structure_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1524,12 +1421,8 @@
           "name": "anmategra_organization_unit_parent_id_anmategra_organization_unit_id_fk",
           "tableFrom": "anmategra_organization_unit",
           "tableTo": "anmategra_organization_unit",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1588,12 +1481,8 @@
           "name": "anmategra_pemetaan_profil_kegiatan_profil_kegiatan_id_anmategra_profil_kegiatan_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_kegiatan",
           "tableTo": "anmategra_profil_kegiatan",
-          "columnsFrom": [
-            "profil_kegiatan_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profil_kegiatan_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1601,12 +1490,8 @@
           "name": "anmategra_pemetaan_profil_kegiatan_profil_km_id_anmategra_profil_km_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_kegiatan",
           "tableTo": "anmategra_profil_km",
-          "columnsFrom": [
-            "profil_km_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profil_km_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1665,12 +1550,8 @@
           "name": "anmategra_pemetaan_profil_lembaga_profil_lembaga_id_anmategra_profil_lembaga_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_lembaga",
           "tableTo": "anmategra_profil_lembaga",
-          "columnsFrom": [
-            "profil_lembaga_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profil_lembaga_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1678,12 +1559,8 @@
           "name": "anmategra_pemetaan_profil_lembaga_profil_km_id_anmategra_profil_km_id_fk",
           "tableFrom": "anmategra_pemetaan_profil_lembaga",
           "tableTo": "anmategra_profil_km",
-          "columnsFrom": [
-            "profil_km_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["profil_km_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1748,12 +1625,8 @@
           "name": "anmategra_profil_kegiatan_event_id_anmategra_event_id_fk",
           "tableFrom": "anmategra_profil_kegiatan",
           "tableTo": "anmategra_event",
-          "columnsFrom": [
-            "event_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["event_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1796,12 +1669,8 @@
           "name": "anmategra_profil_lembaga_lembaga_id_anmategra_lembaga_id_fk",
           "tableFrom": "anmategra_profil_lembaga",
           "tableTo": "anmategra_lembaga",
-          "columnsFrom": [
-            "lembaga_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lembaga_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1854,12 +1723,8 @@
           "name": "anmategra_session_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_session",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1938,12 +1803,8 @@
           "name": "anmategra_support_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_support",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2000,12 +1861,8 @@
           "name": "anmategra_support_reply_user_id_anmategra_user_id_fk",
           "tableFrom": "anmategra_support_reply",
           "tableTo": "anmategra_user",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2013,12 +1870,8 @@
           "name": "anmategra_support_reply_support_id_anmategra_support_id_fk",
           "tableFrom": "anmategra_support_reply",
           "tableTo": "anmategra_support",
-          "columnsFrom": [
-            "support_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["support_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2091,9 +1944,7 @@
         "anmategra_user_email_unique": {
           "name": "anmategra_user_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       }
     },
@@ -2125,10 +1976,7 @@
       "compositePrimaryKeys": {
         "anmategra_verification_token_identifier_token_pk": {
           "name": "anmategra_verification_token_identifier_token_pk",
-          "columns": [
-            "identifier",
-            "token"
-          ]
+          "columns": ["identifier", "token"]
         }
       },
       "uniqueConstraints": {}
@@ -2160,47 +2008,27 @@
     "public.association_request_status": {
       "name": "association_request_status",
       "schema": "public",
-      "values": [
-        "Pending",
-        "Accepted",
-        "Declined"
-      ]
+      "values": ["Pending", "Accepted", "Declined"]
     },
     "public.event_status": {
       "name": "event_status",
       "schema": "public",
-      "values": [
-        "Coming Soon",
-        "On going",
-        "Ended"
-      ]
+      "values": ["Coming Soon", "On going", "Ended"]
     },
     "public.lembaga_type": {
       "name": "lembaga_type",
       "schema": "public",
-      "values": [
-        "Himpunan",
-        "UKM",
-        "Kepanitiaan",
-        "BSO"
-      ]
+      "values": ["Himpunan", "UKM", "Kepanitiaan", "BSO"]
     },
     "public.notification_type": {
       "name": "notification_type",
       "schema": "public",
-      "values": [
-        "Association Request",
-        "System"
-      ]
+      "values": ["Association Request", "System"]
     },
     "public.role": {
       "name": "role",
       "schema": "public",
-      "values": [
-        "admin",
-        "lembaga",
-        "mahasiswa"
-      ]
+      "values": ["admin", "lembaga", "mahasiswa"]
     },
     "public.support_status": {
       "name": "support_status",
@@ -2218,11 +2046,7 @@
     "public.support_urgent": {
       "name": "support_urgent",
       "schema": "public",
-      "values": [
-        "Low",
-        "Medium",
-        "High"
-      ]
+      "values": ["Low", "Medium", "High"]
     }
   },
   "schemas": {},

@@ -1,5 +1,5 @@
-import { getHTTPStatusCodeFromError } from '@trpc/server/http';
 import { type TRPCError } from '@trpc/server';
+import { getHTTPStatusCodeFromError } from '@trpc/server/http';
 
 /**
  * Entri log galat tRPC yang aman untuk produksi: hanya path, kode, status,

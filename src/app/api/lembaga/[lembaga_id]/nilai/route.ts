@@ -1,9 +1,9 @@
 import { eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
+import { lembagaMembersSq } from '~/server/api/routers/organization/membership';
 import { canManageLembaga } from '~/server/api/trpc';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { lembagaMembersSq } from '~/server/api/routers/organization/membership';
 import {
   mahasiswa,
   nilaiProfilLembaga,
@@ -12,7 +12,10 @@ import {
 } from '~/server/db/schema';
 import { apiError } from '~/utils/api-error';
 
-export async function GET(request: Request, props: { params: Promise<{ lembaga_id: string }> }) {
+export async function GET(
+  request: Request,
+  props: { params: Promise<{ lembaga_id: string }> },
+) {
   const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
@@ -50,7 +53,11 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   });
 
   if (profilLembagaList.length === 0) {
-    return apiError(404, 'No profile criteria found for this organization', 'NOT_FOUND');
+    return apiError(
+      404,
+      'No profile criteria found for this organization',
+      'NOT_FOUND',
+    );
   }
 
   // --- Fetch anggota lembaga data ---
@@ -125,10 +132,7 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   uniqueMembers.forEach((member) => {
     if (!member.user || !member.mahasiswa) return;
 
-    const rowData = [
-      member.user.name ?? '',
-      member.mahasiswa.nim ?? '',
-    ];
+    const rowData = [member.user.name ?? '', member.mahasiswa.nim ?? ''];
 
     // --- Add nilai for each profil ---
     profilLembagaList.forEach((profil) => {
@@ -183,7 +187,10 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   });
 }
 
-export async function POST(request: Request, props: { params: Promise<{ lembaga_id: string }> }) {
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ lembaga_id: string }> },
+) {
   const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
@@ -250,7 +257,11 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
     });
 
     if (profilLembagaList.length === 0) {
-      return apiError(404, 'No profile criteria found for this organization', 'NOT_FOUND');
+      return apiError(
+        404,
+        'No profile criteria found for this organization',
+        'NOT_FOUND',
+      );
     }
 
     // --- Get header row to map profil columns ---
@@ -375,7 +386,7 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
                 id: crypto.randomUUID(),
                 profilId: profil.id,
                 mahasiswaId: mahasiswaId,
-                nilai:  nilaiValue < 0 ? 0 : nilaiValue > 100 ? 100 : nilaiValue,
+                nilai: nilaiValue < 0 ? 0 : nilaiValue > 100 ? 100 : nilaiValue,
               });
               processedCount++;
             }

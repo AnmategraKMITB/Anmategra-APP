@@ -27,14 +27,14 @@ export const OrganogramDialog = ({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="w-full sm:w-auto flex items-center gap-2"
+          className="flex w-full items-center gap-2 sm:w-auto"
         >
           <LayoutGrid size={20} />
           Lihat Organogram
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] max-h-[95vh] w-full h-full sm:max-w-[90vw] sm:max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
+      <DialogContent className="h-full max-h-[95vh] w-full max-w-[95vw] p-0 sm:max-h-[90vh] sm:max-w-[90vw]">
+        <DialogHeader className="px-6 pb-4 pt-6">
           <DialogTitle className="text-xl font-semibold">
             Organogram {eventName}
           </DialogTitle>
@@ -43,7 +43,7 @@ export const OrganogramDialog = ({
           <img
             src={organogramImage}
             alt={`Organogram ${eventName}`}
-            className="w-full h-auto object-contain"
+            className="h-auto w-full object-contain"
           />
         </div>
       </DialogContent>

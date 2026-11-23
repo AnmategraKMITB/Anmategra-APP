@@ -115,8 +115,8 @@ export function NotificationDialog({
         <DialogHeader>
           <DialogTitle>Kirim pemberitahuan</DialogTitle>
           <DialogDescription>
-            Pesan muncul di Inbox Anmategra para pendaftar. Tidak ada email
-            atau push, dan pesan yang sudah terkirim tidak bisa ditarik.
+            Pesan muncul di Inbox Anmategra para pendaftar. Tidak ada email atau
+            push, dan pesan yang sudah terkirim tidak bisa ditarik.
           </DialogDescription>
         </DialogHeader>
 
@@ -165,7 +165,7 @@ export function NotificationDialog({
                   />
                   {option.label}
                 </span>
-                <span className="text-xs text-neutral-700 tabular-nums">
+                <span className="text-xs tabular-nums text-neutral-700">
                   {counts ? (counts[option.value] ?? 0) : '…'}
                 </span>
               </label>

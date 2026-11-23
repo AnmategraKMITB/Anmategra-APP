@@ -28,7 +28,9 @@ async function acceptedApplicant() {
     choiceId: first!.id,
     decision: 'terima',
   });
-  const setRecruitment = (values: Partial<typeof schema.recruitment.$inferInsert>) =>
+  const setRecruitment = (
+    values: Partial<typeof schema.recruitment.$inferInsert>,
+  ) =>
     db
       .update(schema.recruitment)
       .set(values)

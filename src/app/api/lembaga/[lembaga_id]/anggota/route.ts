@@ -1,13 +1,13 @@
 import { and, eq } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
-import { canManageLembaga } from '~/server/api/trpc';
-import { getServerAuthSession } from '~/server/auth';
-import { db } from '~/server/db';
 import {
   addLembagaMember,
   lembagaMembersSq,
   removeLembagaMember,
 } from '~/server/api/routers/organization/membership';
+import { canManageLembaga } from '~/server/api/trpc';
+import { getServerAuthSession } from '~/server/auth';
+import { db } from '~/server/db';
 import {
   lembaga,
   lembagaMembership,
@@ -17,7 +17,10 @@ import {
 } from '~/server/db/schema';
 import { apiError } from '~/utils/api-error';
 
-export async function GET(request: Request, props: { params: Promise<{ lembaga_id: string }> }) {
+export async function GET(
+  request: Request,
+  props: { params: Promise<{ lembaga_id: string }> },
+) {
   const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
@@ -143,7 +146,10 @@ export async function GET(request: Request, props: { params: Promise<{ lembaga_i
   });
 }
 
-export async function POST(request: Request, props: { params: Promise<{ lembaga_id: string }> }) {
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ lembaga_id: string }> },
+) {
   const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
@@ -265,11 +271,20 @@ export async function POST(request: Request, props: { params: Promise<{ lembaga_
         );
       }
 
-      anggotaData.push({ userId: mahasiswaRecord.userId, divisi, posisi, index: rowNumber - 2 });
+      anggotaData.push({
+        userId: mahasiswaRecord.userId,
+        divisi,
+        posisi,
+        index: rowNumber - 2,
+      });
     }
 
     if (anggotaData.length === 0) {
-      return apiError(400, 'No member data found in Excel file', 'VALIDATION_ERROR');
+      return apiError(
+        400,
+        'No member data found in Excel file',
+        'VALIDATION_ERROR',
+      );
     }
     // --- Find users and insert kehimpunan ---
     let insertedCount = 0;

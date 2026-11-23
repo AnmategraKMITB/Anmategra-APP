@@ -49,9 +49,7 @@ describe('candidacy', () => {
   });
 
   it('pilihan tidak lolos tampil tetapi tidak bisa diprioritaskan', () => {
-    const a = app('a', [
-      choice('c1', 'it', 1, { status: 'tidak_lolos' }),
-    ]);
+    const a = app('a', [choice('c1', 'it', 1, { status: 'tidak_lolos' })]);
     expect(candidacy(a, 'it', false)?.blocked).toBe('tidak_lolos');
   });
 

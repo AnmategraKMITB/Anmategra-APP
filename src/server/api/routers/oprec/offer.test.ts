@@ -144,7 +144,10 @@ async function placedWorld(options: { allowRedirect?: boolean } = {}) {
   const z = await apply(s.recruitmentId, [s.it.id]);
   await save(s, s.logistik.id, [x.id]);
   await save(s, s.it.id, [z.id]);
-  await s.admin.oprec.setStatus({ recruitmentId: s.recruitmentId, status: 'open' });
+  await s.admin.oprec.setStatus({
+    recruitmentId: s.recruitmentId,
+    status: 'open',
+  });
   await s.admin.oprec.setStatus({
     recruitmentId: s.recruitmentId,
     status: 'closed',
@@ -204,9 +207,12 @@ describe('tawaran tempat', () => {
     });
     expect(overview.problem).toBeNull();
     expect(overview.unplaced).toBe(1);
-    expect(overview.divisions.find((d) => d.id === s.acara.id)).toMatchObject(
-      { offerOpen: true, offerAccepted: 0, filled: 0, quota: 2 },
-    );
+    expect(overview.divisions.find((d) => d.id === s.acara.id)).toMatchObject({
+      offerOpen: true,
+      offerAccepted: 0,
+      filled: 0,
+      quota: 2,
+    });
 
     const mine = await asStudent(y.userId).oprec.myOffer({
       recruitmentId: s.recruitmentId,
@@ -238,13 +244,13 @@ describe('tawaran tempat', () => {
       .where(eq(recruitmentDivision.id, s.acara.id));
 
     const accept = { recruitmentId: s.recruitmentId, divisionId: s.acara.id };
-    await expect(asStudent(y.userId).oprec.offerAccept(accept)).resolves.toEqual(
-      { success: true },
-    );
+    await expect(
+      asStudent(y.userId).oprec.offerAccept(accept),
+    ).resolves.toEqual({ success: true });
     // Klik kedua tidak mengubah apa pun.
-    await expect(asStudent(y.userId).oprec.offerAccept(accept)).resolves.toEqual(
-      { success: true },
-    );
+    await expect(
+      asStudent(y.userId).oprec.offerAccept(accept),
+    ).resolves.toEqual({ success: true });
 
     const [app] = await db
       .select()

@@ -1,13 +1,13 @@
 'use client';
 
 import { type SortingState } from '@tanstack/react-table';
+import type { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
 import { AdminDataTable } from './admin-data-table';
 import { AdminPageHeader } from './admin-page-header';
-import type { ColumnDef } from '@tanstack/react-table';
 
 type Row = {
   id: string;
@@ -24,7 +24,9 @@ const PAGE_SIZE = 50;
 export function AuditPage() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'createdAt', desc: true }]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'createdAt', desc: true },
+  ]);
   const list = api.adminConsole.auditList.useQuery({
     search: search.trim() || undefined,
     page,
@@ -49,8 +51,12 @@ export function AuditPage() {
       enableSorting: false,
       cell: ({ row }) => (
         <span>
-          <span className="font-semibold">{row.original.actorName ?? row.original.actorEmail}</span>
-          <span className="block text-xs text-neutral-700">{row.original.actorEmail}</span>
+          <span className="font-semibold">
+            {row.original.actorName ?? row.original.actorEmail}
+          </span>
+          <span className="block text-xs text-neutral-700">
+            {row.original.actorEmail}
+          </span>
         </span>
       ),
     },
@@ -61,7 +67,9 @@ export function AuditPage() {
       cell: ({ row }) => (
         <span>
           {row.original.action}
-          <span className="block text-xs text-neutral-700">{row.original.entityType}</span>
+          <span className="block text-xs text-neutral-700">
+            {row.original.entityType}
+          </span>
         </span>
       ),
     },

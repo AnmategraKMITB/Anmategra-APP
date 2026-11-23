@@ -18,21 +18,39 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const CSV_PATH = path.join(ROOT, 'src/server/db/seeding/data/lembaga-official.csv');
-const REPORT = path.join(ROOT, 'src/server/db/seeding/data/raw/merge-report.csv');
+const CSV_PATH = path.join(
+  ROOT,
+  'src/server/db/seeding/data/lembaga-official.csv',
+);
+const REPORT = path.join(
+  ROOT,
+  'src/server/db/seeding/data/raw/merge-report.csv',
+);
 
 const cell = (v) => {
   if (v === null || v === undefined) return null;
   if (v instanceof Date) return v.toISOString().slice(0, 10);
   if (typeof v === 'object')
-    return v.richText ? v.richText.map((r) => r.text).join('') : (v.text ?? String(v));
+    return v.richText
+      ? v.richText.map((r) => r.text).join('')
+      : (v.text ?? String(v));
   const s = String(v).trim();
   return s === '' || s === '-' ? null : s;
 };
 
 const MONTHS_ID = {
-  januari: '01', februari: '02', maret: '03', april: '04', mei: '05', juni: '06',
-  juli: '07', agustus: '08', september: '09', oktober: '10', november: '11', desember: '12',
+  januari: '01',
+  februari: '02',
+  maret: '03',
+  april: '04',
+  mei: '05',
+  juni: '06',
+  juli: '07',
+  agustus: '08',
+  september: '09',
+  oktober: '10',
+  november: '11',
+  desember: '12',
 };
 const normalizeDate = (value) => {
   const raw = cell(value);
@@ -41,13 +59,31 @@ const normalizeDate = (value) => {
   if (!match) return null;
   const [, day, monthName, year] = match;
   const month = monthName ? MONTHS_ID[monthName.toLowerCase()] : null;
-  return day && month && year ? `${year}-${month}-${day.padStart(2, '0')}` : null;
+  return day && month && year
+    ? `${year}-${month}-${day.padStart(2, '0')}`
+    : null;
 };
 
 const STOP = new Set([
-  'himpunan', 'mahasiswa', 'keluarga', 'ikatan', 'unit', 'perkumpulan',
-  'persatuan', 'komisariat', 'region', 'eksekutif', 'dan', 'di', 'itb',
-  'institut', 'teknologi', 'bandung', 'ganesha', 'kampus', 'cirebon',
+  'himpunan',
+  'mahasiswa',
+  'keluarga',
+  'ikatan',
+  'unit',
+  'perkumpulan',
+  'persatuan',
+  'komisariat',
+  'region',
+  'eksekutif',
+  'dan',
+  'di',
+  'itb',
+  'institut',
+  'teknologi',
+  'bandung',
+  'ganesha',
+  'kampus',
+  'cirebon',
 ]);
 
 const norm = (s) =>
@@ -64,15 +100,31 @@ const norm = (s) =>
 // extra words that are NOT distinctive abbreviations — kept out of abbr sets
 // only (name matching still uses STOP), so 'teknik' can't tie-match unrelated rows
 const ABBR_STOP = new Set([
-  ...STOP, 'teknik', 'studi', 'kelompok', 'klub', 'club', 'society',
-  'community', 'forum', 'corps', 'korps',
+  ...STOP,
+  'teknik',
+  'studi',
+  'kelompok',
+  'klub',
+  'club',
+  'society',
+  'community',
+  'forum',
+  'corps',
+  'korps',
 ]);
-const tokens = (s) => norm(s).split(' ').filter((t) => t.length > 1 && !STOP.has(t));
+const tokens = (s) =>
+  norm(s)
+    .split(' ')
+    .filter((t) => t.length > 1 && !STOP.has(t));
 const abbrTokens = (s) =>
-  norm(s).split(' ').filter((t) => t.length > 2 && !ABBR_STOP.has(t));
-const parens = (s) => ((s ?? '').match(/\(([^)]+)\)/g) ?? []).map((x) => x.slice(1, -1));
+  norm(s)
+    .split(' ')
+    .filter((t) => t.length > 2 && !ABBR_STOP.has(t));
+const parens = (s) =>
+  ((s ?? '').match(/\(([^)]+)\)/g) ?? []).map((x) => x.slice(1, -1));
 const jaccard = (a, b) => {
-  const A = new Set(a), B = new Set(b);
+  const A = new Set(a),
+    B = new Set(b);
   const inter = [...A].filter((x) => B.has(x)).length;
   return inter / new Set([...A, ...B]).size;
 };
@@ -100,7 +152,8 @@ function readSheet(ws, headerRow, nameKey) {
     if (!name && !email) continue;
     const anggota = get(cols.anggota);
     rows.push({
-      sheet: ws.name, row: i,
+      sheet: ws.name,
+      row: i,
       name: name ?? '',
       singkatan: get(cols.singkatan),
       prodi: (get(cols.prodi) ?? '').replace(/^\d+\.\s*/, '') || null,
@@ -121,21 +174,34 @@ function loadCsv() {
   const cols = head.split(',');
   const parseLine = (line) => {
     const out = [];
-    let cur = '', q = false;
+    let cur = '',
+      q = false;
     for (const ch of line) {
-      if (ch === '"') { q = !q; continue; }
-      if (ch === ',' && !q) { out.push(cur); cur = ''; continue; }
+      if (ch === '"') {
+        q = !q;
+        continue;
+      }
+      if (ch === ',' && !q) {
+        out.push(cur);
+        cur = '';
+        continue;
+      }
       cur += ch;
     }
     out.push(cur);
     return out;
   };
-  return lines.map((l) => Object.fromEntries(cols.map((c, i) => [c, parseLine(l)[i] ?? ''])));
+  return lines.map((l) =>
+    Object.fromEntries(cols.map((c, i) => [c, parseLine(l)[i] ?? ''])),
+  );
 }
 
 (async () => {
   const xlsx = process.argv[2];
-  if (!xlsx) { console.error('usage: node merge-lembaga-xlsx.cjs <xlsx>'); process.exit(1); }
+  if (!xlsx) {
+    console.error('usage: node merge-lembaga-xlsx.cjs <xlsx>');
+    process.exit(1);
+  }
   const wb = new ExcelJS.Workbook();
   await wb.xlsx.readFile(xlsx);
 
@@ -161,7 +227,9 @@ function loadCsv() {
       ...parens(t.name).flatMap(abbrTokens),
       // genuinely short official names ("TEC ITB", "RAKATA ITB") ARE the
       // abbreviation — but strip generic words so they can't tie-match
-      ...(nameT.length <= 3 ? nameT.filter((x) => !ABBR_STOP.has(x) && x.length > 2) : []),
+      ...(nameT.length <= 3
+        ? nameT.filter((x) => !ABBR_STOP.has(x) && x.length > 2)
+        : []),
     ]);
     return { t, abbr, nameT, prodi: norm(t.prodi) };
   });
@@ -170,7 +238,10 @@ function loadCsv() {
     const penalty = tk.t.kampus && norm(tk.t.kampus) !== 'ganesha' ? -90 : 0;
     const shared = [...mk.abbr].filter((a) => tk.abbr.has(a));
     if (shared.length > 0 && mk.abbr.size > 0 && tk.abbr.size > 0)
-      return { score: 100 + shared.length + penalty, m: `abbr:${shared.join('/')}` };
+      return {
+        score: 100 + shared.length + penalty,
+        m: `abbr:${shared.join('/')}`,
+      };
     if (mk.major && tk.prodi && mk.major === tk.prodi)
       return { score: 50 + penalty, m: `prodi:${tk.prodi}` };
     const j = jaccard(mk.nameT, tk.nameT);
@@ -191,9 +262,13 @@ function loadCsv() {
     for (const tk of theirKeys) {
       if (matched.has(tk)) continue;
       const s = scorePair(mk, tk);
-      if (s && s.score >= 100 && (!best || s.score > best.score)) best = { tk, ...s };
+      if (s && s.score >= 100 && (!best || s.score > best.score))
+        best = { tk, ...s };
     }
-    if (best) { matched.add(best.tk); result.set(mk, best); }
+    if (best) {
+      matched.add(best.tk);
+      result.set(mk, best);
+    }
   }
   // pass 2: everything else
   for (const mk of myKeys) {
@@ -203,9 +278,13 @@ function loadCsv() {
     for (const tk of theirKeys) {
       if (matched.has(tk)) continue;
       const s = scorePair(mk, tk);
-      if (s && s.score > 0 && (!best || s.score > best.score)) best = { tk, ...s };
+      if (s && s.score > 0 && (!best || s.score > best.score))
+        best = { tk, ...s };
     }
-    if (best) { matched.add(best.tk); result.set(mk, best); }
+    if (best) {
+      matched.add(best.tk);
+      result.set(mk, best);
+    }
   }
 
   const report = [];
@@ -213,44 +292,74 @@ function loadCsv() {
     const hit = result.get(mk);
     const t = hit?.tk.t;
     report.push({
-      my_name: mk.r.name, my_type: mk.r.type,
+      my_name: mk.r.name,
+      my_type: mk.r.type,
       method: hit ? hit.m : 'NO MATCH',
-      sheet: t?.sheet ?? '', xlsx_row: t?.row ?? '',
-      their_name: t?.name ?? '', email: t?.email ?? '',
-      founding_date: t?.lahir ?? '', member_count: t?.anggota ?? '',
-      prodi: t?.prodi ?? '', rumpun: t?.rumpun ?? '',
-      kampus: t?.kampus ?? '', has_medsos: t?.medsos ? 'yes' : '',
+      sheet: t?.sheet ?? '',
+      xlsx_row: t?.row ?? '',
+      their_name: t?.name ?? '',
+      email: t?.email ?? '',
+      founding_date: t?.lahir ?? '',
+      member_count: t?.anggota ?? '',
+      prodi: t?.prodi ?? '',
+      rumpun: t?.rumpun ?? '',
+      kampus: t?.kampus ?? '',
+      has_medsos: t?.medsos ? 'yes' : '',
     });
   }
-  const unmatchedTheirs = theirKeys.filter((tk) => !matched.has(tk)).map((tk) => tk.t);
+  const unmatchedTheirs = theirKeys
+    .filter((tk) => !matched.has(tk))
+    .map((tk) => tk.t);
 
   const firstReport = report[0];
   if (!firstReport) {
     throw new Error(`No baseline rows found in ${CSV_PATH}`);
   }
   const header = Object.keys(firstReport);
-  const esc = (v) => /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
-  fs.writeFileSync(REPORT,
-    [header.join(','), ...report.map((r) => header.map((h) => esc(r[h])).join(','))].join('\n') + '\n',
-    'utf-8');
+  const esc = (v) =>
+    /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : v;
+  fs.writeFileSync(
+    REPORT,
+    [
+      header.join(','),
+      ...report.map((r) => header.map((h) => esc(r[h])).join(',')),
+    ].join('\n') + '\n',
+    'utf-8',
+  );
 
   const ok = report.filter((r) => r.method !== 'NO MATCH');
   const byMethod = {};
-  for (const r of ok) { const k = r.method.split(':')[0]; byMethod[k] = (byMethod[k] ?? 0) + 1; }
+  for (const r of ok) {
+    const k = r.method.split(':')[0];
+    byMethod[k] = (byMethod[k] ?? 0) + 1;
+  }
   const emails = ok.filter((r) => r.email);
   const kmEmails = emails.filter((r) => r.email.endsWith('@km.itb.ac.id'));
   const dates = ok.filter((r) => r.founding_date);
   const rumpun = {};
-  for (const t of theirs) if (t.sheet === 'UKM' && t.rumpun) rumpun[t.rumpun] = (rumpun[t.rumpun] ?? 0) + 1;
+  for (const t of theirs)
+    if (t.sheet === 'UKM' && t.rumpun)
+      rumpun[t.rumpun] = (rumpun[t.rumpun] ?? 0) + 1;
 
   console.log(`mine: ${mine.length}  theirs: ${theirs.length}`);
-  console.log(`matched: ${ok.length}  unmatched mine: ${mine.length - ok.length}  unmatched theirs: ${unmatchedTheirs.length}`);
+  console.log(
+    `matched: ${ok.length}  unmatched mine: ${mine.length - ok.length}  unmatched theirs: ${unmatchedTheirs.length}`,
+  );
   console.log(`by method: ${JSON.stringify(byMethod)}`);
-  console.log(`emails: ${emails.length} (${kmEmails.length} @km.itb.ac.id, ${emails.length - kmEmails.length} other)  founding dates: ${dates.length}`);
+  console.log(
+    `emails: ${emails.length} (${kmEmails.length} @km.itb.ac.id, ${emails.length - kmEmails.length} other)  founding dates: ${dates.length}`,
+  );
   console.log(`\nFokus Rumpun: ${JSON.stringify(rumpun)}`);
   console.log(`\n--- UNMATCHED MINE ---`);
-  for (const r of report.filter((r) => r.method === 'NO MATCH')) console.log(`  [${r.my_type}] ${r.my_name}`);
+  for (const r of report.filter((r) => r.method === 'NO MATCH'))
+    console.log(`  [${r.my_type}] ${r.my_name}`);
   console.log(`\n--- UNMATCHED THEIRS (${unmatchedTheirs.length}) ---`);
-  for (const t of unmatchedTheirs) console.log(`  [${t.sheet}${t.kampus ? '/' + t.kampus : ''}] ${t.name} <${t.email ?? '-'}>`);
+  for (const t of unmatchedTheirs)
+    console.log(
+      `  [${t.sheet}${t.kampus ? '/' + t.kampus : ''}] ${t.name} <${t.email ?? '-'}>`,
+    );
   console.log(`\nreport: ${REPORT}`);
-})().catch((e) => { console.error(e); process.exit(1); });
+})().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

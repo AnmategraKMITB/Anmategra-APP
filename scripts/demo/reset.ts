@@ -23,5 +23,7 @@ const { resetDemo } = await import('./lib/reset-demo');
 const result = await resetDemo(db);
 console.log(`✓ ${result.cleared} tabel dikosongkan.`);
 for (const email of result.accounts) console.log(`✓ ${email}`);
-console.log('\nSelesai. Gunakan password dari DEMO_PASSWORD_HASH deployment demo.');
+console.log(
+  '\nSelesai. Gunakan password dari DEMO_PASSWORD_HASH deployment demo.',
+);
 process.exit(0);

@@ -15,11 +15,7 @@ const STATIC = [
   // dialihkan ke halaman peran.
   '/msal-redirect',
 ];
-const PUBLIC_ROUTES = [
-  '/profile-lembaga',
-  '/profile-kegiatan',
-  '/404',
-];
+const PUBLIC_ROUTES = ['/profile-lembaga', '/profile-kegiatan', '/404'];
 // Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
 // semua role, jadi tidak dialihkan ke `/<role>/...`.
 // `/slides` berisi presentasi publik yang tayang tanpa login.
@@ -75,7 +71,8 @@ export default async function middleware(req: NextRequest) {
   // dan, bila klaim aktif, halaman isi form. Semua rute lain dialihkan; server
   // tetap menolak lewat tRPC dan getServerAuthSession (default-deny).
   if (token?.alt) {
-    const isPreview = pathname === '/forms/preview' || pathname.startsWith('/forms/preview/');
+    const isPreview =
+      pathname === '/forms/preview' || pathname.startsWith('/forms/preview/');
     const isFillPage = isFillFormPath(pathname) && !isPreview;
     if (
       isPreview ||
@@ -131,7 +128,13 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Redirect to authentication if not logged in (except for root and auth page)
-  if (pathname !== '/' && pathname !== '/authentication' && pathname !== '/authentication/alternatif' && pathname !== '/auth-error' && !token) {
+  if (
+    pathname !== '/' &&
+    pathname !== '/authentication' &&
+    pathname !== '/authentication/alternatif' &&
+    pathname !== '/auth-error' &&
+    !token
+  ) {
     return NextResponse.redirect(new URL('/authentication', req.url));
   }
 
@@ -156,20 +159,26 @@ export default async function middleware(req: NextRequest) {
   const role = token?.role;
   if (role) {
     const rolePrefix = `/${role}`;
-    
+
     // If the path doesn't start with the role prefix
     if (!pathname.startsWith(rolePrefix)) {
       // Check if it's trying to access another role's route
-      const otherRoles = ['admin', 'lembaga', 'mahasiswa'].filter(r => r !== role);
-      const isAccessingOtherRole = otherRoles.some(r => pathname.startsWith(`/${r}`));
-      
+      const otherRoles = ['admin', 'lembaga', 'mahasiswa'].filter(
+        (r) => r !== role,
+      );
+      const isAccessingOtherRole = otherRoles.some((r) =>
+        pathname.startsWith(`/${r}`),
+      );
+
       if (isAccessingOtherRole) {
         // Redirect to their own role's home
         return NextResponse.redirect(new URL(`/${role}`, req.url));
       }
-      
+
       // Otherwise, prepend their role to the path
-      return NextResponse.redirect(new URL(`${rolePrefix}${pathname}`, req.url));
+      return NextResponse.redirect(
+        new URL(`${rolePrefix}${pathname}`, req.url),
+      );
     }
   }
 

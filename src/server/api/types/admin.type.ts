@@ -68,7 +68,10 @@ export const SetReportStatusOutputSchema = z.object({
 // terdaftar disimpan sebagai pending, otomatis di-apply saat sign-in pertama.
 export const UploadAlumniCsvInputSchema = z.object({
   // NIM ITB 8 digit; batas jumlah menjaga satu permintaan tetap wajar.
-  nims: z.array(z.number().int().min(10_000_000).max(99_999_999)).min(1).max(20_000),
+  nims: z
+    .array(z.number().int().min(10_000_000).max(99_999_999))
+    .min(1)
+    .max(20_000),
   wisudaBatch: z.string().trim().max(100).optional(),
 });
 

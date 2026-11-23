@@ -1,13 +1,15 @@
+import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
+import { toColumnType } from '~/app/_components/laporan/board/column-type';
 import {
   type Attachment,
   LaporanCard,
-} from "~/app/_components/laporan/detail/laporan-card";
-import { toColumnType } from "~/app/_components/laporan/board/column-type";
-import { api } from "~/trpc/server";
-import { RaporBreadcrumb } from "~/app/_components/breadcrumb";
-import { formatTanggal } from "~/utils/utils";
+} from '~/app/_components/laporan/detail/laporan-card';
+import { api } from '~/trpc/server';
+import { formatTanggal } from '~/utils/utils';
 
-export default async function ReportDetail(props: {params: Promise<{ laporanId: string }>}) {
+export default async function ReportDetail(props: {
+  params: Promise<{ laporanId: string }>;
+}) {
   const params = await props.params;
   const data = await api.users.getAllReportsUser({});
   const report = data.reports.find((r) => r.id === params.laporanId);
@@ -21,16 +23,16 @@ export default async function ReportDetail(props: {params: Promise<{ laporanId: 
     );
   }
   const attachment: Attachment[] = [];
-  if (report.attachment && typeof report.attachment === "string") {
+  if (report.attachment && typeof report.attachment === 'string') {
     attachment.push({ name: report.attachment });
   }
 
   return (
-    <div className="flex flex-col gap-3 p-4 sm:p-8 pt-24 sm:pt-8">
+    <div className="flex flex-col gap-3 p-4 pt-24 sm:p-8 sm:pt-8">
       <RaporBreadcrumb
         items={[
-          { label: "Laporan", href: "/laporan" },
-          { label: "Detail Laporan", href: `/laporan/${report.id}` },
+          { label: 'Laporan', href: '/laporan' },
+          { label: 'Detail Laporan', href: `/laporan/${report.id}` },
         ]}
       />
       <LaporanCard

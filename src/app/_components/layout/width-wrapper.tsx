@@ -67,7 +67,7 @@ export function WidthWrapper({
         <Navbar session={session} />
       </div>
       <div
-        className={`w-full ${isLandingPage ? '' : 'max-w-7xl pt-16 sm:pt-0 px-6 lg:px-12'} mb-10`}
+        className={`w-full ${isLandingPage ? '' : 'max-w-7xl px-6 pt-16 sm:pt-0 lg:px-12'} mb-10`}
       >
         {children}
       </div>

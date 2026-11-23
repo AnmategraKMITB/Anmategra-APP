@@ -1,12 +1,7 @@
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-await vi.mock('~/env', () => ({
-  env: { SUPERADMIN_EMAILS: [], APP_ENV: 'development' },
-}));
-
-import { createCallerFactory } from '~/server/api/trpc';
 import { altLoginRouter } from '~/server/api/routers/alt-login';
+import { createCallerFactory } from '~/server/api/trpc';
 import { altLoginClaim, mahasiswa, users } from '~/server/db/schema';
 import { createTestDb, createUser, resetDb } from '~/test/test-db';
 
@@ -18,6 +13,10 @@ import {
   revokeAltClaimsForUser,
   verifyClaimSecret,
 } from './alt-login';
+
+await vi.mock('~/env', () => ({
+  env: { SUPERADMIN_EMAILS: [], APP_ENV: 'development' },
+}));
 
 const { db, close } = createTestDb();
 
@@ -40,16 +39,25 @@ async function errorCode(promise: Promise<unknown>) {
   }
 }
 
-const claimFor = (nim: string, contactEmail = 'a@gmail.com', ownClaimId?: string) =>
-  createAltClaim({ ...base, contactEmail, nim, ownClaimId }, db);
+const claimFor = (
+  nim: string,
+  contactEmail = 'a@gmail.com',
+  ownClaimId?: string,
+) => createAltClaim({ ...base, contactEmail, nim, ownClaimId }, db);
 
 describe('klaim akses alternatif', () => {
   it('NIM baru dibuatkan akun dengan email kanonik, tanpa emailVerified', async () => {
     const { claim } = await claimFor('13522001', 'Budi@gmail.com');
-    const [user] = await db.select().from(users).where(eq(users.id, claim.userId));
+    const [user] = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, claim.userId));
     expect(user?.email).toBe('13522001@mahasiswa.itb.ac.id');
     expect(user?.emailVerified).toBeNull();
-    const [m] = await db.select().from(mahasiswa).where(eq(mahasiswa.userId, claim.userId));
+    const [m] = await db
+      .select()
+      .from(mahasiswa)
+      .where(eq(mahasiswa.userId, claim.userId));
     expect(m?.nim).toBe(13522001);
     expect(claim.contactEmail).toBe('budi@gmail.com');
     expect((await resolveAltAccess(claim.id, db)).kind).toBe('claim');
@@ -82,7 +90,10 @@ describe('klaim akses alternatif', () => {
     expect(await errorCode(claimFor('123'))).toBe('nim_invalid');
     expect(
       await errorCode(
-        createAltClaim({ ...base, ktm: null, contactEmail: 'a@gmail.com', nim: '13522004' }, db),
+        createAltClaim(
+          { ...base, ktm: null, contactEmail: 'a@gmail.com', nim: '13522004' },
+          db,
+        ),
       ),
     ).toBe('ktm_missing');
   });
@@ -166,7 +177,9 @@ describe('batas dan masa berlaku', () => {
     for (const nim of ['13522010', '13522011', '13522012']) {
       await claimFor(nim, 'a@gmail.com');
     }
-    expect(await errorCode(claimFor('13522013', 'a@gmail.com'))).toBe('rate_email');
+    expect(await errorCode(claimFor('13522013', 'a@gmail.com'))).toBe(
+      'rate_email',
+    );
   });
 
   it('klaim kedaluwarsa tidak berlaku', async () => {
@@ -224,8 +237,13 @@ describe('tRPC', () => {
         scope: 'anyone',
       },
     });
-    expect(await verifyClaimSecret(result.claimId, result.secret, db)).not.toBeNull();
-    const [row] = await db.select().from(altLoginClaim).where(eq(altLoginClaim.id, result.claimId));
+    expect(
+      await verifyClaimSecret(result.claimId, result.secret, db),
+    ).not.toBeNull();
+    const [row] = await db
+      .select()
+      .from(altLoginClaim)
+      .where(eq(altLoginClaim.id, result.claimId));
     expect(row?.contactEmail).toBe('orang@gmail.com');
     expect(row?.ip).toBe('9.9.9.9');
   });

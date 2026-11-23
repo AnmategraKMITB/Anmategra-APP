@@ -1,4 +1,5 @@
 import ProfilLembagaView from '~/app/lembaga/profil/_components/profil-lembaga-view';
+
 import { requireManagedLembaga } from '../../_lib/require-lembaga';
 
 const ManageProfilPage = async ({

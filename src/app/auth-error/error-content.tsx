@@ -18,13 +18,13 @@ export default function AuthErrorContent({
   const error = getSearchParams.get('error');
 
   return (
-    <main className="flex justify-center items-center p-4 h-screen">
+    <main className="flex h-screen items-center justify-center p-4">
       {/* <div className="mb-12 fixed w-full shadow-sm z-20">
         <Navbar session={session} />
       </div> */}
 
       {/* Error Content */}
-      <div className="flex flex-col items-center max-w-lg text-center">
+      <div className="flex max-w-lg flex-col items-center text-center">
         <Image
           src={Logo}
           alt="Error Illustration"

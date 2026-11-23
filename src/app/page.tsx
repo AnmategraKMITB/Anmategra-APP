@@ -48,7 +48,7 @@ const LandingPage = async () => {
   return (
     <main className="flex flex-col overflow-hidden pb-16 sm:space-y-4 md:space-y-8">
       <JsonLd data={websiteJsonLd} />
-      <div className="mb-12 fixed w-full shadow-sm z-20">
+      <div className="fixed z-20 mb-12 w-full shadow-sm">
         <Navbar session={session} />
       </div>
       <HeroSection />

@@ -1,1 +1,23 @@
-{"schema":"minisign-trust/v1","keys":[{"keyid":"6ff16bb96606b0d9724e2c9be3b592fd6715bb3fabde49b8b0cc81c2b946ef5f","algorithm":"rsa-pss-sha256","public_key_pem":"-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAkia2lHsPy6Gqc/mOuX3H\n+EeCm6sNW6Nk/uxahjZeItSB91vUt9xKYDyPgyfabnfdlcimi6+r5kK7UnOy/fg5\nmrue2VYXmZ8lqc7MTSRu8EUmSs/K//gDZ4lEeVDQSOMv4yphdmrVUOhsDCYObAvl\nwWkMdLTdw7UtjjFCYmiPDrjUHuXFaKTkrNwjV3N6kwezKlUGJo2+FbiYKdzMZUP5\nmT+nB+tz6VAZrXOvUlJpJO07nrD3V+R4DzLr26kJNJibpvrfd21uMPtU8gLB+PrT\noiZcpT43LfXMRc4MsivyixLS+ElHXwYeJoOuIkwjTi1WdA3L0Fkl9mmSvds/m4AP\n21FO2+VhDX+d3S2NFA3meo42771gm7vn9fc+ZedONnIT5uZdjXCTgTwD5pvox4d2\nQ0PzLsgWUhhst64IyUG4ESUaCVGQMnbC/K6ZSHKBxtUDCPeHqUykyHw8nEq7umZ1\n+O040A35JQFvGZQXxhoysRlE5ebhM1D5uhLNR6VD73BJAgMBAAE=\n-----END PUBLIC KEY-----\n\n","packages":["anmategra"]},{"keyid":"80c341a7a66145069025de3a42afc6c677c8dccecac24b05d9e70d9415fc5474","algorithm":"ecdsa-p256-sha256","public_key_pem":"-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEOQV+SpQwpJM2//YGoruwPDVmAS+l\nsmlbzZ39mX7LlANhKdtrQ6UgS/zpHPcq4oIKlcTuDRF5Fr51NAZWZyrpgA==\n-----END PUBLIC KEY-----\n\n","packages":["anmategra"]},{"keyid":"f54708671434b463e3e46afa7cd1517ba34045705e1a3244dd3976b1952ddbfa","algorithm":"ed25519","public_key_pem":"-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA9bvEJz4T/zzbpz2yTglXktbEKE9b3Ie8f2EsH7y9wOo=\n-----END PUBLIC KEY-----\n\n","packages":["anmategra"]}]}
+{
+  "schema": "minisign-trust/v1",
+  "keys": [
+    {
+      "keyid": "6ff16bb96606b0d9724e2c9be3b592fd6715bb3fabde49b8b0cc81c2b946ef5f",
+      "algorithm": "rsa-pss-sha256",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMIIBojANBgkqhkiG9w0BAQEFAAOCAY8AMIIBigKCAYEAkia2lHsPy6Gqc/mOuX3H\n+EeCm6sNW6Nk/uxahjZeItSB91vUt9xKYDyPgyfabnfdlcimi6+r5kK7UnOy/fg5\nmrue2VYXmZ8lqc7MTSRu8EUmSs/K//gDZ4lEeVDQSOMv4yphdmrVUOhsDCYObAvl\nwWkMdLTdw7UtjjFCYmiPDrjUHuXFaKTkrNwjV3N6kwezKlUGJo2+FbiYKdzMZUP5\nmT+nB+tz6VAZrXOvUlJpJO07nrD3V+R4DzLr26kJNJibpvrfd21uMPtU8gLB+PrT\noiZcpT43LfXMRc4MsivyixLS+ElHXwYeJoOuIkwjTi1WdA3L0Fkl9mmSvds/m4AP\n21FO2+VhDX+d3S2NFA3meo42771gm7vn9fc+ZedONnIT5uZdjXCTgTwD5pvox4d2\nQ0PzLsgWUhhst64IyUG4ESUaCVGQMnbC/K6ZSHKBxtUDCPeHqUykyHw8nEq7umZ1\n+O040A35JQFvGZQXxhoysRlE5ebhM1D5uhLNR6VD73BJAgMBAAE=\n-----END PUBLIC KEY-----\n\n",
+      "packages": ["anmategra"]
+    },
+    {
+      "keyid": "80c341a7a66145069025de3a42afc6c677c8dccecac24b05d9e70d9415fc5474",
+      "algorithm": "ecdsa-p256-sha256",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEOQV+SpQwpJM2//YGoruwPDVmAS+l\nsmlbzZ39mX7LlANhKdtrQ6UgS/zpHPcq4oIKlcTuDRF5Fr51NAZWZyrpgA==\n-----END PUBLIC KEY-----\n\n",
+      "packages": ["anmategra"]
+    },
+    {
+      "keyid": "f54708671434b463e3e46afa7cd1517ba34045705e1a3244dd3976b1952ddbfa",
+      "algorithm": "ed25519",
+      "public_key_pem": "-----BEGIN PUBLIC KEY-----\nMCowBQYDK2VwAyEA9bvEJz4T/zzbpz2yTglXktbEKE9b3Ie8f2EsH7y9wOo=\n-----END PUBLIC KEY-----\n\n",
+      "packages": ["anmategra"]
+    }
+  ]
+}

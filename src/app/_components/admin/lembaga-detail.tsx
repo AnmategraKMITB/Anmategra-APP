@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import type { Event } from '~/app/lembaga/kegiatan/_components/kegiatan-container';
 import TambahEditKegiatanForm from '~/app/lembaga/kegiatan/_components/form/tambah-edit-kegiatan-form';
+import type { Event } from '~/app/lembaga/kegiatan/_components/kegiatan-container';
 import { Button } from '~/components/ui/button';
 import {
   Dialog,
@@ -67,8 +67,15 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
   const [tab, setTab] = useState<Tab>('kegiatan');
   const [form, setForm] = useState<FormState | null>(null);
   const [parentLabel, setParentLabel] = useState('');
-  const [editingPeriod, setEditingPeriod] = useState<{ kind: 'kegiatan' | 'kepengurusan'; event: Event | null } | null>(null);
-  const [profileForm, setProfileForm] = useState<{ id?: string; name: string; description: string } | null>(null);
+  const [editingPeriod, setEditingPeriod] = useState<{
+    kind: 'kegiatan' | 'kepengurusan';
+    event: Event | null;
+  } | null>(null);
+  const [profileForm, setProfileForm] = useState<{
+    id?: string;
+    name: string;
+    description: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!detail.data) return;
@@ -92,10 +99,12 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
   }, [detail.data]);
 
   const update = api.adminConsole.lembagaUpdate.useMutation({
-    onSuccess: () => void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
+    onSuccess: () =>
+      void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
   });
   const removeEvent = api.adminConsole.eventDelete.useMutation({
-    onSuccess: () => void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
+    onSuccess: () =>
+      void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
   });
   const upsertProfile = api.adminConsole.lembagaProfileUpsert.useMutation({
     onSuccess: () => {
@@ -104,11 +113,14 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
     },
   });
   const deleteProfile = api.adminConsole.lembagaProfileDelete.useMutation({
-    onSuccess: () => void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
+    onSuccess: () =>
+      void utils.adminConsole.lembagaDetail.invalidate({ lembagaId }),
   });
 
-  if (detail.isLoading) return <p className="text-sm text-neutral-700">Memuat lembaga…</p>;
-  if (detail.isError) return <p className="text-sm text-danger-dark">{detail.error.message}</p>;
+  if (detail.isLoading)
+    return <p className="text-sm text-neutral-700">Memuat lembaga…</p>;
+  if (detail.isError)
+    return <p className="text-sm text-danger-dark">{detail.error.message}</p>;
   if (!detail.data || !form) return null;
 
   const data = detail.data;
@@ -153,13 +165,19 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
         actions={
           <span className="flex flex-wrap items-center gap-4">
             {canForms ? (
-              <Link href={`/manage/${lembagaId}/forms`} className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline">
+              <Link
+                href={`/manage/${lembagaId}/forms`}
+                className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline"
+              >
                 Forms lembaga
               </Link>
             ) : null}
-          <Link href="/admin/lembaga" className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline">
-            Kembali ke daftar
-          </Link>
+            <Link
+              href="/admin/lembaga"
+              className="text-sm font-semibold text-primary-400 underline-offset-2 hover:underline"
+            >
+              Kembali ke daftar
+            </Link>
           </span>
         }
       />
@@ -170,7 +188,12 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
         error={update.error?.message ?? null}
         footer={
           canWrite ? (
-            <Button type="button" variant="dark_blue" disabled={update.isPending} onClick={save}>
+            <Button
+              type="button"
+              variant="dark_blue"
+              disabled={update.isPending}
+              onClick={save}
+            >
               {update.isPending ? 'Menyimpan…' : 'Simpan profil'}
             </Button>
           ) : (
@@ -183,9 +206,15 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
             <div className="relative h-32 w-32 overflow-hidden rounded-2xl bg-neutral-200">
               {form.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={form.image} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={form.image}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <span className="grid h-full place-items-center text-xs text-neutral-700">Tanpa foto</span>
+                <span className="grid h-full place-items-center text-xs text-neutral-700">
+                  Tanpa foto
+                </span>
               )}
             </div>
             {canWrite ? (
@@ -200,19 +229,36 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
           </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="Nama">
-              <Input value={form.name} disabled={!canWrite} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input
+                value={form.name}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+              />
             </Field>
             <Field label="Singkatan">
-              <Input value={form.acronym} disabled={!canWrite} onChange={(e) => setForm({ ...form, acronym: e.target.value })} />
+              <Input
+                value={form.acronym}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, acronym: e.target.value })}
+              />
             </Field>
             <Field label="Jenis">
               <select
                 className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
                 value={form.type}
                 disabled={!canWrite}
-                onChange={(e) => setForm({ ...form, type: e.target.value as FormState['type'] })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    type: e.target.value as FormState['type'],
+                  })
+                }
               >
-                {TYPES.map((type) => <option key={type} value={type}>{type}</option>)}
+                {TYPES.map((type) => (
+                  <option key={type} value={type}>
+                    {type}
+                  </option>
+                ))}
               </select>
             </Field>
             <div className="grid gap-1 text-sm font-semibold text-neutral-700">
@@ -229,19 +275,47 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
               />
             </div>
             <Field label="Berdiri">
-              <Input type="date" value={form.foundingDate} disabled={!canWrite} onChange={(e) => setForm({ ...form, foundingDate: e.target.value })} />
+              <Input
+                type="date"
+                value={form.foundingDate}
+                disabled={!canWrite}
+                onChange={(e) =>
+                  setForm({ ...form, foundingDate: e.target.value })
+                }
+              />
             </Field>
             <Field label="Berakhir">
-              <Input type="date" value={form.endingDate} disabled={!canWrite} onChange={(e) => setForm({ ...form, endingDate: e.target.value })} />
+              <Input
+                type="date"
+                value={form.endingDate}
+                disabled={!canWrite}
+                onChange={(e) =>
+                  setForm({ ...form, endingDate: e.target.value })
+                }
+              />
             </Field>
             <Field label="Major">
-              <Input value={form.major} disabled={!canWrite} onChange={(e) => setForm({ ...form, major: e.target.value })} />
+              <Input
+                value={form.major}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, major: e.target.value })}
+              />
             </Field>
             <Field label="Field">
-              <Input value={form.field} disabled={!canWrite} onChange={(e) => setForm({ ...form, field: e.target.value })} />
+              <Input
+                value={form.field}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, field: e.target.value })}
+              />
             </Field>
             <Field label="Jumlah anggota">
-              <Input value={form.memberCount} disabled={!canWrite} onChange={(e) => setForm({ ...form, memberCount: e.target.value })} />
+              <Input
+                value={form.memberCount}
+                disabled={!canWrite}
+                onChange={(e) =>
+                  setForm({ ...form, memberCount: e.target.value })
+                }
+              />
             </Field>
           </div>
         </div>
@@ -251,7 +325,9 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
               className="min-h-28 rounded-md border border-neutral-400 bg-neutral-50 px-3 py-2 text-sm"
               value={form.description}
               disabled={!canWrite}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
             />
           </Field>
           <label className="flex items-center gap-2 text-sm">
@@ -259,7 +335,9 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
               type="checkbox"
               checked={form.raporVisible}
               disabled={!canWrite}
-              onChange={(e) => setForm({ ...form, raporVisible: e.target.checked })}
+              onChange={(e) =>
+                setForm({ ...form, raporVisible: e.target.checked })
+              }
             />
             Rapor terlihat publik
           </label>
@@ -269,8 +347,12 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
       <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-lg font-semibold text-neutral-1000">Blok profil lembaga</h2>
-            <p className="text-sm text-neutral-700">Visi, misi, dan blok profil lain yang tampil di halaman lembaga.</p>
+            <h2 className="text-lg font-semibold text-neutral-1000">
+              Blok profil lembaga
+            </h2>
+            <p className="text-sm text-neutral-700">
+              Visi, misi, dan blok profil lain yang tampil di halaman lembaga.
+            </p>
           </div>
           {canWrite ? (
             <Button
@@ -287,21 +369,32 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
             <Field label="Nama blok">
               <Input
                 value={profileForm.name}
-                onChange={(event) => setProfileForm({ ...profileForm, name: event.target.value })}
+                onChange={(event) =>
+                  setProfileForm({ ...profileForm, name: event.target.value })
+                }
               />
             </Field>
             <Field label="Isi">
               <textarea
                 className="min-h-28 rounded-md border border-neutral-400 bg-neutral-50 px-3 py-2 text-sm"
                 value={profileForm.description}
-                onChange={(event) => setProfileForm({ ...profileForm, description: event.target.value })}
+                onChange={(event) =>
+                  setProfileForm({
+                    ...profileForm,
+                    description: event.target.value,
+                  })
+                }
               />
             </Field>
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant="dark_blue"
-                disabled={upsertProfile.isPending || !profileForm.name.trim() || !profileForm.description.trim()}
+                disabled={
+                  upsertProfile.isPending ||
+                  !profileForm.name.trim() ||
+                  !profileForm.description.trim()
+                }
                 onClick={() =>
                   upsertProfile.mutate({
                     lembagaId,
@@ -313,23 +406,40 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
               >
                 {upsertProfile.isPending ? 'Menyimpan…' : 'Simpan blok'}
               </Button>
-              <Button type="button" variant="ghost" onClick={() => setProfileForm(null)}>Batal</Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setProfileForm(null)}
+              >
+                Batal
+              </Button>
             </div>
           </div>
         ) : null}
         <ul className="grid gap-2">
           {data.profiles.map((profile) => (
-            <li key={profile.id} className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+            <li
+              key={profile.id}
+              className="flex flex-wrap items-start justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+            >
               <span className="min-w-0">
                 <strong>{profile.name}</strong>
-                <span className="mt-1 block whitespace-pre-wrap text-neutral-700">{profile.description}</span>
+                <span className="mt-1 block whitespace-pre-wrap text-neutral-700">
+                  {profile.description}
+                </span>
               </span>
               {canWrite ? (
                 <span className="flex gap-1">
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => setProfileForm({ id: profile.id, name: profile.name, description: profile.description })}
+                    onClick={() =>
+                      setProfileForm({
+                        id: profile.id,
+                        name: profile.name,
+                        description: profile.description,
+                      })
+                    }
                   >
                     Ubah
                   </Button>
@@ -337,7 +447,9 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
                     size="sm"
                     variant="ghost"
                     disabled={deleteProfile.isPending}
-                    onClick={() => deleteProfile.mutate({ profilId: profile.id })}
+                    onClick={() =>
+                      deleteProfile.mutate({ profilId: profile.id })
+                    }
                   >
                     Hapus
                   </Button>
@@ -345,17 +457,21 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
               ) : null}
             </li>
           ))}
-          {data.profiles.length === 0 ? <li className="text-sm text-neutral-700">Belum ada blok profil.</li> : null}
+          {data.profiles.length === 0 ? (
+            <li className="text-sm text-neutral-700">Belum ada blok profil.</li>
+          ) : null}
         </ul>
       </section>
 
       <div className="flex flex-wrap gap-2">
-        {([
-          ['kegiatan', 'Kegiatan'],
-          ['kepengurusan', 'Kepengurusan'],
-          ['organogram', 'Organogram/Badan'],
-          ['anggota', 'Anggota'],
-        ] as const).map(([value, label]) => (
+        {(
+          [
+            ['kegiatan', 'Kegiatan'],
+            ['kepengurusan', 'Kepengurusan'],
+            ['organogram', 'Organogram/Badan'],
+            ['anggota', 'Anggota'],
+          ] as const
+        ).map(([value, label]) => (
           <button
             key={value}
             type="button"
@@ -379,22 +495,37 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
               {tab === 'kegiatan' ? 'Kegiatan' : 'Kepengurusan'}
             </h2>
             {canEvents ? (
-              <Button type="button" variant="dark_blue" onClick={() => openCreate(tab)}>
+              <Button
+                type="button"
+                variant="dark_blue"
+                onClick={() => openCreate(tab)}
+              >
                 Tambah {tab === 'kegiatan' ? 'kegiatan' : 'kepengurusan'}
               </Button>
             ) : null}
           </div>
           <ul className="grid gap-2">
             {currentPeriods.map((period) => (
-              <li key={period.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+              <li
+                key={period.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+              >
                 <span>
                   <strong>{period.name}</strong>
                   {period.label ? ` · ${period.label}` : ''} · {period.status}
-                  {period.startDate ? ` · ${new Date(period.startDate).toLocaleDateString('id-ID')}` : ''}
+                  {period.startDate
+                    ? ` · ${new Date(period.startDate).toLocaleDateString('id-ID')}`
+                    : ''}
                 </span>
                 <span className="flex gap-1">
                   {canEvents ? (
-                    <Button size="sm" variant="ghost" onClick={() => openEdit(period)}>Ubah</Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => openEdit(period)}
+                    >
+                      Ubah
+                    </Button>
                   ) : null}
                   {canEvents ? (
                     <Button
@@ -435,17 +566,24 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
                 </span>
               </li>
             ))}
-            {currentPeriods.length === 0 ? <li className="text-sm text-neutral-700">Belum ada data.</li> : null}
+            {currentPeriods.length === 0 ? (
+              <li className="text-sm text-neutral-700">Belum ada data.</li>
+            ) : null}
           </ul>
         </section>
       ) : null}
 
       {tab === 'organogram' ? (
         <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
-          <h2 className="text-lg font-semibold text-neutral-1000">Struktur organogram</h2>
+          <h2 className="text-lg font-semibold text-neutral-1000">
+            Struktur organogram
+          </h2>
           <ul className="grid gap-2">
             {data.structures.map((structure) => (
-              <li key={structure.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+              <li
+                key={structure.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+              >
                 <span>
                   <strong>{structure.name}</strong>
                   {structure.editLocked ? ' · terkunci' : ''}
@@ -461,7 +599,9 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
                 ) : null}
               </li>
             ))}
-            {data.structures.length === 0 ? <li className="text-sm text-neutral-700">Belum ada struktur.</li> : null}
+            {data.structures.length === 0 ? (
+              <li className="text-sm text-neutral-700">Belum ada struktur.</li>
+            ) : null}
           </ul>
         </section>
       ) : null}
@@ -470,21 +610,32 @@ export function LembagaDetail({ lembagaId }: { lembagaId: string }) {
         <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
           <h2 className="text-lg font-semibold text-neutral-1000">Anggota</h2>
           <p className="text-sm text-neutral-700">
-            {data.memberCount} anggota aktif. Kelola keanggotaan dari halaman akun mahasiswa.
+            {data.memberCount} anggota aktif. Kelola keanggotaan dari halaman
+            akun mahasiswa.
           </p>
         </section>
       ) : null}
 
-      <Dialog open={editingPeriod !== null} onOpenChange={(open) => { if (!open) setEditingPeriod(null); }}>
+      <Dialog
+        open={editingPeriod !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditingPeriod(null);
+        }}
+      >
         <DialogContent className="min-w-[800px]" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>
-              {editingPeriod?.event ? 'Ubah' : 'Tambah'} {editingPeriod?.kind === 'kepengurusan' ? 'kepengurusan' : 'kegiatan'}
+              {editingPeriod?.event ? 'Ubah' : 'Tambah'}{' '}
+              {editingPeriod?.kind === 'kepengurusan'
+                ? 'kepengurusan'
+                : 'kegiatan'}
             </DialogTitle>
           </DialogHeader>
           {editingPeriod ? (
             <TambahEditKegiatanForm
-              setIsOpen={(open) => { if (!open) setEditingPeriod(null); }}
+              setIsOpen={(open) => {
+                if (!open) setEditingPeriod(null);
+              }}
               kegiatan={editingPeriod.event}
               admin={{ lembagaId, kind: editingPeriod.kind }}
               onDone={() => {
@@ -524,7 +675,9 @@ function periodToEvent(period: {
     name: period.name,
     description: period.description,
     start_date: new Date(period.startDate).toISOString(),
-    end_date: period.endDate ? new Date(period.endDate).toISOString() : undefined,
+    end_date: period.endDate
+      ? new Date(period.endDate).toISOString()
+      : undefined,
     participant_count: period.participantCount,
     status: period.status,
     thumbnail: period.image,
@@ -539,7 +692,13 @@ function periodToEvent(period: {
   };
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="grid gap-1 text-sm font-semibold text-neutral-700">
       {label}

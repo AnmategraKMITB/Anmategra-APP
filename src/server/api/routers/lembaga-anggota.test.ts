@@ -1,6 +1,5 @@
 import { and, eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-
 import { createCallerFactory } from '~/server/api/trpc';
 import { lembagaMembership, mahasiswa } from '~/server/db/schema';
 import {
@@ -62,9 +61,12 @@ let nim = 13523000;
 async function makeStudent() {
   const user = await createUser(db);
   nim += 1;
-  await db
-    .insert(mahasiswa)
-    .values({ userId: user.id, nim, jurusan: 'Teknik Informatika', angkatan: 2023 });
+  await db.insert(mahasiswa).values({
+    userId: user.id,
+    nim,
+    jurusan: 'Teknik Informatika',
+    angkatan: 2023,
+  });
   return user;
 }
 
@@ -182,9 +184,7 @@ describe('addAnggota: siapa boleh menambah anggota lembaga', () => {
       'UNAUTHORIZED',
     );
     expect(
-      await codeOf(
-        callerFor(a.owner).addAnggota({ ...input, lembagaId: '' }),
-      ),
+      await codeOf(callerFor(a.owner).addAnggota({ ...input, lembagaId: '' })),
     ).toBe('BAD_REQUEST');
   });
 });

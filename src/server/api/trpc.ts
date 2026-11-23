@@ -10,22 +10,16 @@ import { TRPCError, initTRPC } from '@trpc/server';
 import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
+import { env } from '~/env';
 import {
   type AdminPermission,
   hasAdminPermission,
 } from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
+import { isEmergencySuperadmin } from '~/server/api/superadmin';
 import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
-
-import { env } from '~/env';
-import { isEmergencySuperadmin } from '~/server/api/superadmin';
-import {
-  adminPermission,
-  form,
-  recruitment,
-  users,
-} from '~/server/db/schema';
+import { adminPermission, form, recruitment, users } from '~/server/db/schema';
 
 // Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
 // tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
@@ -399,34 +393,34 @@ function rawId(value: unknown): string | undefined {
  */
 function lembagaScopedFor(features: readonly GrantFeature[]) {
   return protectedProcedure
-  .meta({ access: 'lembaga-scoped' })
-  .use(timingMiddleware)
-  .use(async ({ ctx, next, getRawInput }) => {
-    const raw = (await getRawInput()) as { lembagaId?: unknown };
-    const lembagaId = rawId(raw?.lembagaId);
-    if (!lembagaId) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'lembagaId is required',
-      });
-    }
+    .meta({ access: 'lembaga-scoped' })
+    .use(timingMiddleware)
+    .use(async ({ ctx, next, getRawInput }) => {
+      const raw = (await getRawInput()) as { lembagaId?: unknown };
+      const lembagaId = rawId(raw?.lembagaId);
+      if (!lembagaId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'lembagaId is required',
+        });
+      }
       let access: Awaited<ReturnType<typeof canManageLembaga>> = null;
       for (const feature of features) {
         access = await canManageLembaga(
-      ctx.db,
-      ctx.session.user.id,
-      ctx.session.user.role,
-      ctx.session.user.lembagaId,
-      lembagaId,
+          ctx.db,
+          ctx.session.user.id,
+          ctx.session.user.role,
+          ctx.session.user.lembagaId,
+          lembagaId,
           feature,
-    );
+        );
         if (access) break;
       }
-    if (!access) {
-      throw new TRPCError({ code: 'FORBIDDEN' });
-    }
-    return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
-  });
+      if (!access) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+      return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
+    });
 }
 
 export const lembagaScopedProcedure = lembagaScopedFor(['admin']);
@@ -454,34 +448,34 @@ export const lembagaOwnerProcedure = lembagaScopedProcedure
  */
 function eventScopedFor(features: readonly GrantFeature[]) {
   return protectedProcedure
-  .meta({ access: 'event-scoped' })
-  .use(timingMiddleware)
-  .use(async ({ ctx, next, getRawInput }) => {
-    const raw = (await getRawInput()) as { eventId?: unknown };
-    const eventId = rawId(raw?.eventId);
-    if (!eventId) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'eventId is required',
-      });
-    }
+    .meta({ access: 'event-scoped' })
+    .use(timingMiddleware)
+    .use(async ({ ctx, next, getRawInput }) => {
+      const raw = (await getRawInput()) as { eventId?: unknown };
+      const eventId = rawId(raw?.eventId);
+      if (!eventId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'eventId is required',
+        });
+      }
       let access: Awaited<ReturnType<typeof canManageEvent>> = null;
       for (const feature of features) {
         access = await canManageEvent(
-      ctx.db,
-      ctx.session.user.id,
-      ctx.session.user.role,
-      ctx.session.user.lembagaId,
-      eventId,
+          ctx.db,
+          ctx.session.user.id,
+          ctx.session.user.role,
+          ctx.session.user.lembagaId,
+          eventId,
           feature,
-    );
+        );
         if (access) break;
       }
-    if (!access) {
-      throw new TRPCError({ code: 'FORBIDDEN' });
-    }
-    return next({ ctx: { ...ctx, eventAccess: access, eventId } });
-  });
+      if (!access) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+      return next({ ctx: { ...ctx, eventAccess: access, eventId } });
+    });
 }
 
 export const eventScopedProcedure = eventScopedFor(['events']);

@@ -28,7 +28,6 @@ import {
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
 import { Input } from '~/components/ui/input';
-import { type AppBase } from '~/lib/app-base';
 import { Label } from '~/components/ui/label';
 import {
   Select,
@@ -38,6 +37,7 @@ import {
   SelectValue,
 } from '~/components/ui/select';
 import { Textarea } from '~/components/ui/textarea';
+import { type AppBase } from '~/lib/app-base';
 import { cn } from '~/lib/utils';
 import { isAllowedImageHost } from '~/server/api/types/form.constants';
 import { type RouterOutputs, api } from '~/trpc/react';
@@ -45,8 +45,7 @@ import { type RouterOutputs, api } from '~/trpc/react';
 import { type FormStatus, previewUrl, statusLabel } from './model';
 
 export type FormsScope =
-  | { type: 'lembaga'; lembagaId: string }
-  | { type: 'event'; eventId: string };
+  { type: 'lembaga'; lembagaId: string } | { type: 'event'; eventId: string };
 
 type FormListItem = RouterOutputs['form']['listByLembaga'][number];
 

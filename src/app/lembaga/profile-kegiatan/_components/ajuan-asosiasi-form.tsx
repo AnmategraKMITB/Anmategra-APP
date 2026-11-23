@@ -1,12 +1,20 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Check, ChevronsUpDown } from 'lucide-react';
 import Image from 'next/image';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { api } from '~/trpc/react';
 import { Button } from '~/components/ui/button';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '~/components/ui/command';
 import {
   Dialog,
   DialogContent,
@@ -26,17 +34,9 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '~/components/ui/popover';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '~/components/ui/command';
-import { ChevronsUpDown, Check } from 'lucide-react';
-import { cn } from '~/lib/utils';
 import { useToast } from '~/hooks/use-toast';
+import { cn } from '~/lib/utils';
+import { api } from '~/trpc/react';
 
 const AjuanAsosiasiSchema = z.object({
   posisi: z.string().min(1, 'Posisi harus dipilih'),
@@ -73,13 +73,18 @@ const AjuanAsosiasiForm = ({
   const toast = useToast();
   const [posisiOpen, setPosisiOpen] = useState(false);
   const [divisiOpen, setDivisiOpen] = useState(false);
-  const [posisiOptions, setPosisiOptions] = useState<{ value: string; label: string }[]>([]);
-  const [divisiOptions, setDivisiOptions] = useState<{ value: string; label: string }[]>([]);
+  const [posisiOptions, setPosisiOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
+  const [divisiOptions, setDivisiOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
 
-  const { data: kegiatanOptions } = api.users.getTambahAnggotaKegiatanOptions.useQuery(
-    { lembagaId, kegiatanId: eventId },
-    { enabled: Boolean(eventId) },
-  );
+  const { data: kegiatanOptions } =
+    api.users.getTambahAnggotaKegiatanOptions.useQuery(
+      { lembagaId, kegiatanId: eventId },
+      { enabled: Boolean(eventId) },
+    );
 
   const form = useForm<AjuanAsosiasiSchemaType>({
     resolver: zodResolver(AjuanAsosiasiSchema),
@@ -160,7 +165,7 @@ const AjuanAsosiasiForm = ({
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent
-        className="w-4/5 lg:w-[880px] h-fit max-w-none mx-auto p-0 bg-white rounded-xl overflow-hidden [&>button]:right-6 [&>button]:top-7"
+        className="mx-auto h-fit w-4/5 max-w-none overflow-hidden rounded-xl bg-white p-0 lg:w-[880px] [&>button]:right-6 [&>button]:top-7"
         aria-describedby={undefined}
       >
         {/* Header */}
@@ -175,7 +180,7 @@ const AjuanAsosiasiForm = ({
         {/* Event Info */}
         <div className="px-6 pb-4">
           <div className="flex items-center justify-center gap-4">
-            <div className="relative w-20 h-20 md:w-32 md:h-32 rounded-full overflow-hidden aspect-square flex-shrink-0 self-center md:self-auto">
+            <div className="relative aspect-square h-20 w-20 flex-shrink-0 self-center overflow-hidden rounded-full md:h-32 md:w-32 md:self-auto">
               <Image
                 src={eventLogo}
                 alt={eventName}
@@ -185,10 +190,12 @@ const AjuanAsosiasiForm = ({
               />
             </div>
             <div>
-              <h3 className="text-xl md:text-2xl font-semibold text-gray-700">
+              <h3 className="text-xl font-semibold text-gray-700 md:text-2xl">
                 {eventName}
               </h3>
-              <p className="text-gray-400 text-lg md:text-xl">{organizationName}</p>
+              <p className="text-lg text-gray-400 md:text-xl">
+                {organizationName}
+              </p>
             </div>
           </div>
         </div>
@@ -203,16 +210,26 @@ const AjuanAsosiasiForm = ({
                 name="posisi"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-900 text-lg font-medium">
+                    <FormLabel className="text-lg font-medium text-gray-900">
                       Posisi
                     </FormLabel>
                     <Popover open={posisiOpen} onOpenChange={setPosisiOpen}>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between">
-                          <span className={cn(!field.value && 'text-[#98A2B3]')}>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
+                          <span
+                            className={cn(!field.value && 'text-[#98A2B3]')}
+                          >
                             {field.value || 'Masukkan posisi...'}
                           </span>
-                          <ChevronsUpDown className={cn('h-4 w-4', !field.value && 'text-[#636A6D]')} />
+                          <ChevronsUpDown
+                            className={cn(
+                              'h-4 w-4',
+                              !field.value && 'text-[#636A6D]',
+                            )}
+                          />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
@@ -230,15 +247,21 @@ const AjuanAsosiasiForm = ({
                           />
                           <CommandList>
                             <CommandEmpty>
-                              <div className="py-2 px-3 text-sm">
+                              <div className="px-3 py-2 text-sm">
                                 Tekan Enter untuk menggunakan:{' '}
-                                <span className="font-semibold">{field.value}</span>
+                                <span className="font-semibold">
+                                  {field.value}
+                                </span>
                               </div>
                             </CommandEmpty>
                             <CommandGroup>
                               {(posisiOptions ?? [])
                                 .filter((p) =>
-                                  p.label.toLowerCase().includes((field.value || '').toLowerCase()),
+                                  p.label
+                                    .toLowerCase()
+                                    .includes(
+                                      (field.value || '').toLowerCase(),
+                                    ),
                                 )
                                 .map((p) => (
                                   <CommandItem
@@ -253,7 +276,9 @@ const AjuanAsosiasiForm = ({
                                     <Check
                                       className={cn(
                                         'ml-auto',
-                                        field.value === p.value ? 'opacity-100' : 'opacity-0',
+                                        field.value === p.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0',
                                       )}
                                     />
                                   </CommandItem>
@@ -273,16 +298,26 @@ const AjuanAsosiasiForm = ({
                 name="divisi"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-gray-900 text-lg font-medium">
+                    <FormLabel className="text-lg font-medium text-gray-900">
                       Divisi
                     </FormLabel>
                     <Popover open={divisiOpen} onOpenChange={setDivisiOpen}>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" className="w-full justify-between">
-                          <span className={cn(!field.value && 'text-[#98A2B3]')}>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
+                          <span
+                            className={cn(!field.value && 'text-[#98A2B3]')}
+                          >
                             {field.value || 'Masukkan divisi...'}
                           </span>
-                          <ChevronsUpDown className={cn('h-4 w-4', !field.value && 'text-[#636A6D]')} />
+                          <ChevronsUpDown
+                            className={cn(
+                              'h-4 w-4',
+                              !field.value && 'text-[#636A6D]',
+                            )}
+                          />
                         </Button>
                       </PopoverTrigger>
                       <PopoverContent className="p-0">
@@ -300,15 +335,21 @@ const AjuanAsosiasiForm = ({
                           />
                           <CommandList>
                             <CommandEmpty>
-                              <div className="py-2 px-3 text-sm">
+                              <div className="px-3 py-2 text-sm">
                                 Tekan Enter untuk menggunakan:{' '}
-                                <span className="font-semibold">{field.value}</span>
+                                <span className="font-semibold">
+                                  {field.value}
+                                </span>
                               </div>
                             </CommandEmpty>
                             <CommandGroup>
                               {(divisiOptions ?? [])
                                 .filter((d) =>
-                                  d.label.toLowerCase().includes((field.value || '').toLowerCase()),
+                                  d.label
+                                    .toLowerCase()
+                                    .includes(
+                                      (field.value || '').toLowerCase(),
+                                    ),
                                 )
                                 .map((d) => (
                                   <CommandItem
@@ -323,7 +364,9 @@ const AjuanAsosiasiForm = ({
                                     <Check
                                       className={cn(
                                         'ml-auto',
-                                        field.value === d.value ? 'opacity-100' : 'opacity-0',
+                                        field.value === d.value
+                                          ? 'opacity-100'
+                                          : 'opacity-0',
                                       )}
                                     />
                                   </CommandItem>
@@ -339,11 +382,11 @@ const AjuanAsosiasiForm = ({
               />
 
               {/* Submit Button */}
-              <div className="pt-4 flex justify-center">
+              <div className="flex justify-center pt-4">
                 <Button
                   type="submit"
                   disabled={!isValid || isSubmitting}
-                  className="w-32 h-10 font-medium rounded-xl transition-colors duration-200 bg-[#2B6282] hover:bg-[#2B6282] text-white"
+                  className="h-10 w-32 rounded-xl bg-[#2B6282] font-medium text-white transition-colors duration-200 hover:bg-[#2B6282]"
                 >
                   KIRIM
                 </Button>

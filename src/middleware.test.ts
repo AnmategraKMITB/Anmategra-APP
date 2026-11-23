@@ -1,16 +1,19 @@
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import middleware, { config } from './middleware';
+
 const getToken = vi.fn();
 await vi.mock('next-auth/jwt', () => ({
   getToken: (...args: unknown[]) => getToken(...args) as unknown,
 }));
 
-import middleware, { config } from './middleware';
-
 type Result = { kind: 'next' } | { kind: 'redirect'; to: string };
 
-async function run(path: string, token: { role: string } | null): Promise<Result> {
+async function run(
+  path: string,
+  token: { role: string } | null,
+): Promise<Result> {
   getToken.mockResolvedValue(token);
   const res = await middleware(new NextRequest(`https://app.test${path}`));
   const location = res.headers.get('location');

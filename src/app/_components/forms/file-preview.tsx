@@ -1,7 +1,6 @@
 'use client';
 
 import { ExternalLink, FileText } from 'lucide-react';
-
 import type { FileAnswerItem } from '~/lib/forms/file-answer';
 
 /**

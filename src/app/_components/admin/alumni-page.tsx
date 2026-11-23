@@ -48,14 +48,20 @@ export function AlumniPage() {
         </label>
         <label className="grid gap-1 text-sm font-semibold text-neutral-700">
           Angkatan wisuda (opsional)
-          <Input value={batch} placeholder="mis. Wisuda Oktober 2026" onChange={(event) => setBatch(event.target.value)} />
+          <Input
+            value={batch}
+            placeholder="mis. Wisuda Oktober 2026"
+            onChange={(event) => setBatch(event.target.value)}
+          />
         </label>
         {fileName ? (
           <p className="text-sm text-neutral-700">
             {fileName}: {nims.length} NIM 8 digit terdeteksi.
           </p>
         ) : null}
-        {upload.error ? <p className="text-sm text-danger-dark">{upload.error.message}</p> : null}
+        {upload.error ? (
+          <p className="text-sm text-danger-dark">{upload.error.message}</p>
+        ) : null}
         {upload.data ? (
           <p className="text-sm text-neutral-1000">
             Selesai: {upload.data.updatedCount} akun diperbarui menjadi alumni,{' '}
@@ -63,7 +69,10 @@ export function AlumniPage() {
           </p>
         ) : null}
         <div>
-          <Button type="submit" disabled={upload.isPending || nims.length === 0}>
+          <Button
+            type="submit"
+            disabled={upload.isPending || nims.length === 0}
+          >
             Impor
           </Button>
         </div>

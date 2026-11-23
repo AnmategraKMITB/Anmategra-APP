@@ -8,12 +8,10 @@ import remarkGfm from 'remark-gfm';
 
 // Components Import
 import { ManualDemo } from './demo/registry';
-import {
-  markdownComponents,
-  rehypeGithubAlerts,
-} from './markdown-components';
+import { markdownComponents, rehypeGithubAlerts } from './markdown-components';
 
-type Segment = { kind: 'markdown'; text: string } | { kind: 'demo'; id: string };
+type Segment =
+  { kind: 'markdown'; text: string } | { kind: 'demo'; id: string };
 
 // Baris `::demo[nama]` yang berdiri sendiri menanam satu simulasi interaktif.
 const DEMO_LINE = /^::demo\[([a-z0-9-]+)\][ \t]*$/gm;

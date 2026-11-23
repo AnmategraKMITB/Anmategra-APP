@@ -42,7 +42,9 @@ export const adminOpsRouter = createTRPCRouter({
       /** Akun darurat dari `SUPERADMIN_EMAILS`; tidak dapat diubah dari panel. */
       emergency: emergency.map((address) => ({
         email: address,
-        name: rows.find((row) => normalizeEmail(row.email) === address)?.name ?? null,
+        name:
+          rows.find((row) => normalizeEmail(row.email) === address)?.name ??
+          null,
       })),
       managed: rows
         .filter((row) => !emergency.includes(normalizeEmail(row.email)))
@@ -67,7 +69,10 @@ export const adminOpsRouter = createTRPCRouter({
         )
         .limit(1);
       if (!target) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Akun tidak ditemukan.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Akun tidak ditemukan.',
+        });
       }
       assertConfirmEmail(input.confirmEmail, target.email);
       if (target.role === 'admin') {
@@ -77,7 +82,10 @@ export const adminOpsRouter = createTRPCRouter({
         });
       }
       await ctx.db.transaction(async (tx) => {
-        await tx.update(users).set({ role: 'admin' }).where(eq(users.id, target.id));
+        await tx
+          .update(users)
+          .set({ role: 'admin' })
+          .where(eq(users.id, target.id));
         await tx.insert(adminAudit).values({
           actorId: ctx.session.user.id,
           action: 'superadmin_add',
@@ -105,12 +113,16 @@ export const adminOpsRouter = createTRPCRouter({
         .where(eq(users.id, input.userId))
         .limit(1);
       if (!target) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Akun tidak ditemukan.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Akun tidak ditemukan.',
+        });
       }
       if (isEmergencySuperadmin(target.email, env.SUPERADMIN_EMAILS)) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Akun darurat dari SUPERADMIN_EMAILS tidak dapat diubah dari panel.',
+          message:
+            'Akun darurat dari SUPERADMIN_EMAILS tidak dapat diubah dari panel.',
         });
       }
       if (target.role !== 'admin') {
@@ -145,7 +157,10 @@ export const adminOpsRouter = createTRPCRouter({
           .where(eq(lembaga.userId, target.id))
           .limit(1);
         const nextRole = owned ? 'lembaga' : 'mahasiswa';
-        await tx.update(users).set({ role: nextRole }).where(eq(users.id, target.id));
+        await tx
+          .update(users)
+          .set({ role: nextRole })
+          .where(eq(users.id, target.id));
         await tx.insert(adminAudit).values({
           actorId: ctx.session.user.id,
           action: 'superadmin_remove',
@@ -181,7 +196,10 @@ export const adminOpsRouter = createTRPCRouter({
           .where(eq(lembaga.id, input.parentId))
           .limit(1);
         if (!parent) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Lembaga induk tidak ditemukan.' });
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Lembaga induk tidak ditemukan.',
+          });
         }
       }
       return ctx.db.transaction(async (tx) => {
@@ -224,14 +242,15 @@ export const adminOpsRouter = createTRPCRouter({
 
   // ---- Email terverifikasi ---------------------------------------------
 
-  verifiedEmailList: adminPermissionProcedure('accounts.write')
-    .query(async ({ ctx }) => {
+  verifiedEmailList: adminPermissionProcedure('accounts.write').query(
+    async ({ ctx }) => {
       return ctx.db
         .select({ id: verifiedUsers.id, email: verifiedUsers.email })
         .from(verifiedUsers)
         .orderBy(asc(verifiedUsers.email))
         .limit(1000);
-    }),
+    },
+  ),
 
   verifiedEmailAdd: adminPermissionProcedure('accounts.write')
     .input(VerifiedEmailAddInputSchema)
@@ -242,7 +261,10 @@ export const adminOpsRouter = createTRPCRouter({
         .where(sql`lower(${verifiedUsers.email}) = ${input.email}`)
         .limit(1);
       if (exists) {
-        throw new TRPCError({ code: 'CONFLICT', message: 'Email sudah terdaftar.' });
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Email sudah terdaftar.',
+        });
       }
       await ctx.db.transaction(async (tx) => {
         await tx.insert(verifiedUsers).values({ email: input.email });
@@ -277,7 +299,10 @@ export const adminOpsRouter = createTRPCRouter({
         return rows.length;
       });
       if (removed === 0) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Email tidak ditemukan.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Email tidak ditemukan.',
+        });
       }
       return { success: true };
     }),

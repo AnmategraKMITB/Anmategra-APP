@@ -1153,7 +1153,7 @@ export function SneakPeekDeck() {
       </div>
 
       {/* Overlay bawah, di luar kanvas */}
-      <div className="group relative flex h-14 shrink-0 items-center justify-center gap-3 opacity-30 transition-opacity duration-200 hover:opacity-100 focus-within:opacity-100 motion-reduce:transition-none">
+      <div className="group relative flex h-14 shrink-0 items-center justify-center gap-3 opacity-30 transition-opacity duration-200 focus-within:opacity-100 hover:opacity-100 motion-reduce:transition-none">
         <div className="absolute inset-x-0 top-0 h-[3px] bg-white/10">
           <div
             className="h-full bg-secondary-400 transition-[width] duration-300 motion-reduce:transition-none"

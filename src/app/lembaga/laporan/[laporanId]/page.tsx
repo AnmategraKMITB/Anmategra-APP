@@ -1,13 +1,15 @@
+import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
+import { toColumnType } from '~/app/_components/laporan/board/column-type';
 import {
-  LaporanCard,
   type Attachment,
-} from "~/app/_components/laporan/detail/laporan-card";
-import { toColumnType } from "~/app/_components/laporan/board/column-type";
-import { api } from "~/trpc/server";
-import { RaporBreadcrumb } from "~/app/_components/breadcrumb";
-import { formatTanggal } from "~/utils/utils";
+  LaporanCard,
+} from '~/app/_components/laporan/detail/laporan-card';
+import { api } from '~/trpc/server';
+import { formatTanggal } from '~/utils/utils';
 
-export default async function ReportDetail(props: { params: Promise<{ laporanId: string }> }) {
+export default async function ReportDetail(props: {
+  params: Promise<{ laporanId: string }>;
+}) {
   const params = await props.params;
   const data = await api.users.getAllReportsUser({});
   const report = data.reports.find((r) => r.id === params.laporanId);
@@ -29,11 +31,13 @@ export default async function ReportDetail(props: { params: Promise<{ laporanId:
 
   return (
     <div className="flex flex-col gap-3 p-8">
-      <h1 className='text-[28px] font-semibold lg:text-[32px]'>Detail Laporan</h1>
+      <h1 className="text-[28px] font-semibold lg:text-[32px]">
+        Detail Laporan
+      </h1>
       <RaporBreadcrumb
         items={[
-          {label:'Laporan', href:'/lembaga/laporan'},
-          {label:'Detail', href:`/lembaga/laporan/${params.laporanId}`}
+          { label: 'Laporan', href: '/lembaga/laporan' },
+          { label: 'Detail', href: `/lembaga/laporan/${params.laporanId}` },
         ]}
       />
 

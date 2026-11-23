@@ -48,11 +48,11 @@ export default function FilterDropdown({
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button className="bg-neutral-50 hover:bg-neutral-300 border border-neutral-400 text-black rounded-[24px] px-4 py-3 shadow-none flex items-center gap-2">
+        <Button className="flex items-center gap-2 rounded-[24px] border border-neutral-400 bg-neutral-50 px-4 py-3 text-black shadow-none hover:bg-neutral-300">
           <Image src={Filter} alt="Filter icon" width={24} height={24} />
           Filter
           {selectedFilters.length > 0 && (
-            <span className="ml-1 text-sm bg-[#00B7B7] text-white rounded-full px-2 py-0.5">
+            <span className="ml-1 rounded-full bg-[#00B7B7] px-2 py-0.5 text-sm text-white">
               {selectedFilters.length}
             </span>
           )}
@@ -84,7 +84,7 @@ export default function FilterDropdown({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onSelect={handleClearAll}
-                  className="w-full cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
+                  className="w-full cursor-pointer text-red-600 focus:bg-red-50 focus:text-red-600"
                 >
                   Hapus semua filter
                 </DropdownMenuItem>

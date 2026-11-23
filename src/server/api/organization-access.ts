@@ -87,8 +87,12 @@ export async function resolveOrganogramAccess(
     rows.map((r) => r.unitId),
   );
 
-  const rootIds = new Set(units.filter((u) => u.parentId === null).map((u) => u.id));
-  const isRootHead = rows.some((r) => r.rank === 'head' && rootIds.has(r.unitId));
+  const rootIds = new Set(
+    units.filter((u) => u.parentId === null).map((u) => u.id),
+  );
+  const isRootHead = rows.some(
+    (r) => r.rank === 'head' && rootIds.has(r.unitId),
+  );
 
   return {
     isManager: manager,

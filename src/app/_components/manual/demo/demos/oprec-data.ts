@@ -1,13 +1,8 @@
 // Data contoh bersama untuk simulasi oprec: pendaftar, pilihan, dan skornya.
-
 import { type PillTone } from '../ui';
 
 export type ChoiceStatus =
-  | 'lolos'
-  | 'tidak_lolos'
-  | 'perlu_ditinjau'
-  | 'belum_lengkap'
-  | 'gugur';
+  'lolos' | 'tidak_lolos' | 'perlu_ditinjau' | 'belum_lengkap' | 'gugur';
 
 export const STATUS_LABEL: Record<ChoiceStatus, string> = {
   lolos: 'Lolos',
@@ -55,8 +50,14 @@ export const APPLICANTS: Applicant[] = [
       { division: 'publikasi', score: 71, status: 'tidak_lolos' },
     ],
     answers: [
-      ['Kenapa kamu pengen jadi panitia AMI?', 'pengen ngerasain nyambut ribuan maba dari belakang panggung.'],
-      ['Ceritain pengalaman kamu ngurus acara dong!', 'Menyusun rundown malam keakraban angkatan untuk 180 peserta.'],
+      [
+        'Kenapa kamu pengen jadi panitia AMI?',
+        'pengen ngerasain nyambut ribuan maba dari belakang panggung.',
+      ],
+      [
+        'Ceritain pengalaman kamu ngurus acara dong!',
+        'Menyusun rundown malam keakraban angkatan untuk 180 peserta.',
+      ],
       ['Link CV kamu', 'drive.google.com/…/cv-raka'],
     ],
   },
@@ -75,7 +76,10 @@ export const APPLICANTS: Applicant[] = [
     ],
     flag: 'Prioritas',
     answers: [
-      ['Kenapa kamu pengen jadi panitia AMI?', 'Biar karya desainku dilihat seluruh maba ITB.'],
+      [
+        'Kenapa kamu pengen jadi panitia AMI?',
+        'Biar karya desainku dilihat seluruh maba ITB.',
+      ],
       ['Link portofolio desainmu', 'behance.net/nadiakw'],
       ['Link CV kamu', 'drive.google.com/…/cv-nadia'],
     ],
@@ -94,8 +98,14 @@ export const APPLICANTS: Applicant[] = [
       { division: 'logistik', score: 84, status: 'lolos' },
     ],
     answers: [
-      ['Kenapa kamu pengen jadi panitia AMI?', 'Suka pekerjaan lapangan dan ingin kenal banyak orang.'],
-      ['Ceritain pengalaman kamu ngurus acara dong!', 'Belum pernah, tetapi pernah jadi stage crew.'],
+      [
+        'Kenapa kamu pengen jadi panitia AMI?',
+        'Suka pekerjaan lapangan dan ingin kenal banyak orang.',
+      ],
+      [
+        'Ceritain pengalaman kamu ngurus acara dong!',
+        'Belum pernah, tetapi pernah jadi stage crew.',
+      ],
       ['Link CV kamu', 'drive.google.com/…/cv-bima'],
     ],
   },
@@ -113,8 +123,14 @@ export const APPLICANTS: Applicant[] = [
       { division: 'danus', score: null, status: 'belum_lengkap' },
     ],
     answers: [
-      ['Kenapa kamu pengen jadi panitia AMI?', 'Tahun lalu jadi peserta AMI, sekarang gantian yang nyambut.'],
-      ['Ceritain pengalaman kamu ngurus acara dong!', 'Koordinator acara lomba tingkat fakultas.'],
+      [
+        'Kenapa kamu pengen jadi panitia AMI?',
+        'Tahun lalu jadi peserta AMI, sekarang gantian yang nyambut.',
+      ],
+      [
+        'Ceritain pengalaman kamu ngurus acara dong!',
+        'Koordinator acara lomba tingkat fakultas.',
+      ],
       ['Link CV kamu', 'drive.google.com/…/cv-laras'],
     ],
   },
@@ -132,7 +148,10 @@ export const APPLICANTS: Applicant[] = [
       { division: 'acara', score: 58, status: 'tidak_lolos' },
     ],
     answers: [
-      ['Kenapa kamu pengen jadi panitia AMI?', 'Diajak teman dan ingin mencoba.'],
+      [
+        'Kenapa kamu pengen jadi panitia AMI?',
+        'Diajak teman dan ingin mencoba.',
+      ],
       ['Link CV kamu', 'drive.google.com/…/cv-fajar'],
     ],
   },
@@ -150,7 +169,10 @@ export const APPLICANTS: Applicant[] = [
       { division: 'publikasi', score: 74, status: 'tidak_lolos' },
     ],
     answers: [
-      ['Kenapa kamu pengen jadi panitia AMI?', 'pengen nyobain nego sponsor beneran, bukan cuma tugas kelas.'],
+      [
+        'Kenapa kamu pengen jadi panitia AMI?',
+        'pengen nyobain nego sponsor beneran, bukan cuma tugas kelas.',
+      ],
       ['Link CV kamu', 'drive.google.com/…/cv-citra'],
     ],
   },

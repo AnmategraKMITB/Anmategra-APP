@@ -260,7 +260,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
           ) : null}
         </div>
         <p
-          className="mt-2 text-xs text-neutral-700 tabular-nums"
+          className="mt-2 text-xs tabular-nums text-neutral-700"
           aria-live="polite"
         >
           {searching
@@ -315,7 +315,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
                         <span className="min-w-0 flex-1 truncate">
                           {s.label}
                         </span>
-                        <span className="ml-3 text-xs font-normal text-neutral-700 tabular-nums">
+                        <span className="ml-3 text-xs font-normal tabular-nums text-neutral-700">
                           {count}
                         </span>
                       </DropdownMenuRadioItem>
@@ -369,7 +369,7 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
                 <h2 className="min-w-0 break-words text-xl font-semibold text-neutral-1000">
                   {d.label}
                 </h2>
-                <span className="shrink-0 text-sm text-neutral-700 tabular-nums">
+                <span className="shrink-0 text-sm tabular-nums text-neutral-700">
                   {d.rows.length} orang
                 </span>
               </div>
@@ -437,13 +437,13 @@ function Published({ sections }: { sections: AnnouncementSection[] }) {
                           <TableCell className="sticky left-0 z-10 bg-neutral-50 px-4 py-3 font-semibold text-neutral-1000 shadow-[1px_0_0_0_theme(colors.neutral.400)] group-hover:bg-primary-100">
                             {r.name}
                           </TableCell>
-                          <TableCell className="whitespace-nowrap px-4 py-3 text-neutral-800 tabular-nums">
+                          <TableCell className="whitespace-nowrap px-4 py-3 tabular-nums text-neutral-800">
                             {r.nim}
                           </TableCell>
                           <TableCell className="whitespace-nowrap px-4 py-3 text-neutral-800">
                             {r.prodi}
                           </TableCell>
-                          <TableCell className="px-4 py-3 text-neutral-800 tabular-nums">
+                          <TableCell className="px-4 py-3 tabular-nums text-neutral-800">
                             {r.angkatan}
                           </TableCell>
                         </TableRow>

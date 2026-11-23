@@ -718,7 +718,14 @@ export function ChartView(props: ChartViewProps): JSX.Element {
         showLabels,
         alignHeights,
       }),
-    [layoutDraft, placements, collapsed, expandedGroups, showLabels, alignHeights],
+    [
+      layoutDraft,
+      placements,
+      collapsed,
+      expandedGroups,
+      showLabels,
+      alignHeights,
+    ],
   );
 
   const fit = useCallback(() => {
@@ -1323,203 +1330,203 @@ export function ChartView(props: ChartViewProps): JSX.Element {
         </Button>
       </div>
       <div className="relative min-h-0 flex-1">
-      <div
-        ref={viewportRef}
-        role="group"
-        aria-label="Bagan organogram. Geser dengan tombol panah, perbesar dengan plus dan minus, nol untuk pas ke layar."
-        tabIndex={0}
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endPan}
-        onPointerCancel={endPan}
-        onKeyDown={onKeyDown}
-        className={`absolute inset-0 touch-none select-none overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${
-          panning || nodeDrag !== null ? 'cursor-grabbing' : 'cursor-grab'
-        }`}
-      >
         <div
-          className="absolute left-0 top-0 origin-top-left"
-          style={{
-            width: layout.width,
-            height: layout.height,
-            transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
-          }}
+          ref={viewportRef}
+          role="group"
+          aria-label="Bagan organogram. Geser dengan tombol panah, perbesar dengan plus dan minus, nol untuk pas ke layar."
+          tabIndex={0}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={endPan}
+          onPointerCancel={endPan}
+          onKeyDown={onKeyDown}
+          className={`absolute inset-0 touch-none select-none overflow-hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-400 ${
+            panning || nodeDrag !== null ? 'cursor-grabbing' : 'cursor-grab'
+          }`}
         >
-          <svg
-            aria-hidden
-            className="absolute left-0 top-0"
-            width={layout.width}
-            height={layout.height}
+          <div
+            className="absolute left-0 top-0 origin-top-left"
+            style={{
+              width: layout.width,
+              height: layout.height,
+              transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
+            }}
           >
-            <defs>
-              <marker
-                id={markerId}
-                viewBox="0 0 6 6"
-                refX="5"
-                refY="3"
-                markerWidth="6"
-                markerHeight="6"
-                orient="auto"
-              >
-                <path d="M0 0 L6 3 L0 6 z" className="fill-neutral-500" />
-              </marker>
-            </defs>
-            {layout.edges.map((edge) => (
-              <path
-                key={edge.id}
-                d={edge.d}
-                fill="none"
-                strokeWidth={1.5}
-                className="stroke-neutral-500"
-                markerEnd={`url(#${markerId})`}
+            <svg
+              aria-hidden
+              className="absolute left-0 top-0"
+              width={layout.width}
+              height={layout.height}
+            >
+              <defs>
+                <marker
+                  id={markerId}
+                  viewBox="0 0 6 6"
+                  refX="5"
+                  refY="3"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto"
+                >
+                  <path d="M0 0 L6 3 L0 6 z" className="fill-neutral-500" />
+                </marker>
+              </defs>
+              {layout.edges.map((edge) => (
+                <path
+                  key={edge.id}
+                  d={edge.d}
+                  fill="none"
+                  strokeWidth={1.5}
+                  className="stroke-neutral-500"
+                  markerEnd={`url(#${markerId})`}
+                />
+              ))}
+            </svg>
+            {layout.nodes.map((node) => (
+              <NodeCard
+                key={node.id}
+                node={node}
+                draft={draft}
+                selected={
+                  selectedIds.includes(node.id) ||
+                  (marquee?.ids.includes(node.id) ?? false)
+                }
+                onSelect={handleNodeSelect}
+                onToggle={toggle}
+                onToggleGroup={toggleGroup}
+                quickActions={
+                  onAddChild !== undefined &&
+                  selectedIds.length === 1 &&
+                  selectedIds[0] === node.id &&
+                  (canEditUnit?.(node.id) ?? true)
+                }
+                childLabel={levelLabelFor(node.depth + 1, draft.levelLabels)}
+                canAddChild={node.depth + 1 <= MAX_LEVEL}
+                onAddChild={onAddChild}
+                onRequestDelete={onRequestDelete}
+                resizable={
+                  onResizeUnit !== undefined &&
+                  selectedIds.length === 1 &&
+                  selectedIds[0] === node.id &&
+                  (canEditUnit?.(node.id) ?? true)
+                }
+                showLabel={effectiveShowLabel(node.unit, showLabels)}
+                scale={view.scale}
+                onResizePreview={(width) =>
+                  setResizing(width === null ? null : { id: node.id, width })
+                }
+                onResizeCommit={(width) => {
+                  setResizing(null);
+                  onResizeUnit?.(node.id, width);
+                }}
+                dropPosition={
+                  nodeDrag?.overId === node.id ? nodeDrag.position : null
+                }
+                dropValid={nodeDrag?.overId === node.id && nodeDrag.valid}
+                dragging={
+                  nodeDrag !== null &&
+                  (nodeDrag.id === node.id ||
+                    (selectedIds.length > 1 &&
+                      selectedIds.includes(nodeDrag.id) &&
+                      selectedIds.includes(node.id)))
+                }
+                onDropPosition={onDropPositionOnUnit}
+                canDropPosition={
+                  onDropPositionOnUnit !== undefined &&
+                  (canEditUnit?.(node.id) ?? true)
+                }
               />
             ))}
-          </svg>
-          {layout.nodes.map((node) => (
-            <NodeCard
-              key={node.id}
-              node={node}
-              draft={draft}
-              selected={
-                selectedIds.includes(node.id) ||
-                (marquee?.ids.includes(node.id) ?? false)
-              }
-              onSelect={handleNodeSelect}
-              onToggle={toggle}
-              onToggleGroup={toggleGroup}
-              quickActions={
-                onAddChild !== undefined &&
-                selectedIds.length === 1 &&
-                selectedIds[0] === node.id &&
-                (canEditUnit?.(node.id) ?? true)
-              }
-              childLabel={levelLabelFor(node.depth + 1, draft.levelLabels)}
-              canAddChild={node.depth + 1 <= MAX_LEVEL}
-              onAddChild={onAddChild}
-              onRequestDelete={onRequestDelete}
-              resizable={
-                onResizeUnit !== undefined &&
-                selectedIds.length === 1 &&
-                selectedIds[0] === node.id &&
-                (canEditUnit?.(node.id) ?? true)
-              }
-              showLabel={effectiveShowLabel(node.unit, showLabels)}
-              scale={view.scale}
-              onResizePreview={(width) =>
-                setResizing(width === null ? null : { id: node.id, width })
-              }
-              onResizeCommit={(width) => {
-                setResizing(null);
-                onResizeUnit?.(node.id, width);
-              }}
-              dropPosition={
-                nodeDrag?.overId === node.id ? nodeDrag.position : null
-              }
-              dropValid={nodeDrag?.overId === node.id && nodeDrag.valid}
-              dragging={
-                nodeDrag !== null &&
-                (nodeDrag.id === node.id ||
-                  (selectedIds.length > 1 &&
-                    selectedIds.includes(nodeDrag.id) &&
-                    selectedIds.includes(node.id)))
-              }
-              onDropPosition={onDropPositionOnUnit}
-              canDropPosition={
-                onDropPositionOnUnit !== undefined &&
-                (canEditUnit?.(node.id) ?? true)
-              }
-            />
-          ))}
+          </div>
         </div>
-      </div>
 
-      <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-neutral-400 bg-white p-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Perkecil"
-          onClick={() => zoomAt(1 / ZOOM_STEP)}
-        >
-          <Minus className="size-4" />
-        </Button>
-        <input
-          type="text"
-          inputMode="numeric"
-          aria-label="Tingkat zoom dalam persen"
-          title="Ketik angka lalu Enter. Panah atas/bawah menambah atau mengurangi 10."
-          value={zoomDraft ?? `${Math.round(view.scale * 100)}%`}
-          onFocus={(event) => {
-            setZoomDraft(String(Math.round(view.scale * 100)));
-            event.currentTarget.select();
-          }}
-          onChange={(event) =>
-            setZoomDraft(event.target.value.replace(/[^\d]/g, '').slice(0, 3))
-          }
-          onBlur={() => {
-            if (zoomCancelRef.current) {
-              zoomCancelRef.current = false;
-              setZoomDraft(null);
-              return;
+        <div className="absolute bottom-3 right-3 flex items-center gap-1 rounded-full border border-neutral-400 bg-white p-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Perkecil"
+            onClick={() => zoomAt(1 / ZOOM_STEP)}
+          >
+            <Minus className="size-4" />
+          </Button>
+          <input
+            type="text"
+            inputMode="numeric"
+            aria-label="Tingkat zoom dalam persen"
+            title="Ketik angka lalu Enter. Panah atas/bawah menambah atau mengurangi 10."
+            value={zoomDraft ?? `${Math.round(view.scale * 100)}%`}
+            onFocus={(event) => {
+              setZoomDraft(String(Math.round(view.scale * 100)));
+              event.currentTarget.select();
+            }}
+            onChange={(event) =>
+              setZoomDraft(event.target.value.replace(/[^\d]/g, '').slice(0, 3))
             }
-            commitZoom(zoomDraft);
-          }}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter') {
-              event.preventDefault();
-              event.currentTarget.blur();
-            } else if (event.key === 'Escape') {
-              event.preventDefault();
-              zoomCancelRef.current = true;
-              event.currentTarget.blur();
-            } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-              event.preventDefault();
-              const base = Number(zoomDraft ?? Math.round(view.scale * 100));
-              const step = event.key === 'ArrowUp' ? 10 : -10;
-              const next = Math.min(
-                MAX_SCALE * 100,
-                Math.max(
-                  MIN_SCALE * 100,
-                  (Number.isNaN(base) ? 100 : base) + step,
-                ),
-              );
-              setZoomDraft(String(next));
-              applyZoomPercent(next);
-            }
-          }}
-          className="h-8 w-14 rounded-[8px] border border-transparent bg-transparent text-center text-xs font-semibold tabular-nums text-neutral-1000 hover:border-neutral-400 focus-visible:border-primary-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-400"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Perbesar"
-          onClick={() => zoomAt(ZOOM_STEP)}
-        >
-          <Plus className="size-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label="Pas ke layar"
-          onClick={() => {
-            touchedRef.current = false;
-            fit();
-          }}
-        >
-          <ScanSearch className="size-4" />
-        </Button>
-      </div>
-      {marquee ? (
-        <div
-          aria-hidden
-          className="pointer-events-none absolute z-10 rounded-[4px] border border-primary-400 bg-primary-100/40"
-          style={{
-            left: Math.min(marquee.x0, marquee.x1),
-            top: Math.min(marquee.y0, marquee.y1),
-            width: Math.abs(marquee.x1 - marquee.x0),
-            height: Math.abs(marquee.y1 - marquee.y0),
-          }}
-        />
-      ) : null}
+            onBlur={() => {
+              if (zoomCancelRef.current) {
+                zoomCancelRef.current = false;
+                setZoomDraft(null);
+                return;
+              }
+              commitZoom(zoomDraft);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                event.currentTarget.blur();
+              } else if (event.key === 'Escape') {
+                event.preventDefault();
+                zoomCancelRef.current = true;
+                event.currentTarget.blur();
+              } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                const base = Number(zoomDraft ?? Math.round(view.scale * 100));
+                const step = event.key === 'ArrowUp' ? 10 : -10;
+                const next = Math.min(
+                  MAX_SCALE * 100,
+                  Math.max(
+                    MIN_SCALE * 100,
+                    (Number.isNaN(base) ? 100 : base) + step,
+                  ),
+                );
+                setZoomDraft(String(next));
+                applyZoomPercent(next);
+              }
+            }}
+            className="h-8 w-14 rounded-[8px] border border-transparent bg-transparent text-center text-xs font-semibold tabular-nums text-neutral-1000 hover:border-neutral-400 focus-visible:border-primary-400 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary-400"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Perbesar"
+            onClick={() => zoomAt(ZOOM_STEP)}
+          >
+            <Plus className="size-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Pas ke layar"
+            onClick={() => {
+              touchedRef.current = false;
+              fit();
+            }}
+          >
+            <ScanSearch className="size-4" />
+          </Button>
+        </div>
+        {marquee ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute z-10 rounded-[4px] border border-primary-400 bg-primary-100/40"
+            style={{
+              left: Math.min(marquee.x0, marquee.x1),
+              top: Math.min(marquee.y0, marquee.y1),
+              width: Math.abs(marquee.x1 - marquee.x0),
+              height: Math.abs(marquee.y1 - marquee.y0),
+            }}
+          />
+        ) : null}
       </div>
       {nodeDrag ? (
         <div

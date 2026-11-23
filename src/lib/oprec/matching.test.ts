@@ -390,7 +390,12 @@ function tinyInstance(seed: number): MatchingInput {
       (a) => a.choices.includes(id) || (allowRedirect && a.willingToMove),
     );
     const ranked = shuffle(candidates).filter(() => rnd() < 0.75);
-    return div(id, rnd() < 0.2 ? 0 : int(1, 2), ranked.map((a) => a.id), i);
+    return div(
+      id,
+      rnd() < 0.2 ? 0 : int(1, 2),
+      ranked.map((a) => a.id),
+      i,
+    );
   });
   return { applicants, divisions, allowRedirect };
 }

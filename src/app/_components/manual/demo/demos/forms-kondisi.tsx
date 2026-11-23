@@ -21,12 +21,11 @@ import {
   X,
 } from 'lucide-react';
 import { type ReactNode, useMemo, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, inputClass, Modal, Pill, TabBar, Toggle } from '../ui';
-import { type DemoField, kindLabel, Question } from './form-shared';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Modal, Pill, TabBar, Toggle, inputClass } from '../ui';
+import { type DemoField, Question, kindLabel } from './form-shared';
 
 const STEPS: DemoStep[] = [
   {
@@ -145,7 +144,13 @@ const INITIAL: Field[] = [
     kind: 'single_choice',
     label: 'Divisi pilihan pertama kamu?',
     required: true,
-    options: ['Event Organizer', 'Grafis', 'Publikasi', 'Logistik', 'Sponsorship'],
+    options: [
+      'Event Organizer',
+      'Grafis',
+      'Publikasi',
+      'Logistik',
+      'Sponsorship',
+    ],
     condition: null,
   },
   {
@@ -156,7 +161,13 @@ const INITIAL: Field[] = [
     options: [],
     condition: {
       join: 'semua',
-      rules: [{ fieldId: 'q-divisi', op: 'salah satu dari', value: 'Grafis,Publikasi' }],
+      rules: [
+        {
+          fieldId: 'q-divisi',
+          op: 'salah satu dari',
+          value: 'Grafis,Publikasi',
+        },
+      ],
     },
   },
   {
@@ -194,7 +205,9 @@ function describeRule(rule: Rule, fields: Field[]): string {
     return `${source.label} ${rule.value}–${rule.value2 ?? ''}`;
   }
   const value =
-    rule.op === 'salah satu dari' ? listValue(rule.value).join(', ') : rule.value;
+    rule.op === 'salah satu dari'
+      ? listValue(rule.value).join(', ')
+      : rule.value;
   return `${source.label} ${rule.op} ${value}`;
 }
 
@@ -224,7 +237,11 @@ function ruleComplete(rule: Rule, source: Field | undefined): boolean {
   return rule.value.trim() !== '';
 }
 
-function matchRule(rule: Rule, source: Field, answer: string | undefined): boolean {
+function matchRule(
+  rule: Rule,
+  source: Field,
+  answer: string | undefined,
+): boolean {
   const raw = (answer ?? '').trim();
   if (source.kind === 'number') {
     const num = raw === '' ? null : Number(raw);
@@ -280,7 +297,11 @@ function matchRule(rule: Rule, source: Field, answer: string | undefined): boole
 }
 
 /** Aturan yang acuannya sudah tidak di atas target dianggap tidak sah. */
-function ruleIsValid(rule: Rule, fields: Field[], targetIndex: number): boolean {
+function ruleIsValid(
+  rule: Rule,
+  fields: Field[],
+  targetIndex: number,
+): boolean {
   const at = fields.findIndex((field) => field.id === rule.fieldId);
   return at >= 0 && at < targetIndex;
 }
@@ -294,7 +315,9 @@ function conditionHolds(
 ): boolean {
   const condition = field.condition;
   if (!condition || condition.rules.length === 0) return true;
-  const valid = condition.rules.filter((rule) => ruleIsValid(rule, fields, index));
+  const valid = condition.rules.filter((rule) =>
+    ruleIsValid(rule, fields, index),
+  );
   // Semua acuan tidak sah: kondisi diabaikan, pertanyaan tetap tampil.
   if (valid.length === 0) return true;
   const test = (rule: Rule) => {
@@ -306,7 +329,10 @@ function conditionHolds(
   return condition.join === 'semua' ? valid.every(test) : valid.some(test);
 }
 
-function visibleMap(fields: Field[], answers: Answers): Record<string, boolean> {
+function visibleMap(
+  fields: Field[],
+  answers: Answers,
+): Record<string, boolean> {
   const map: Record<string, boolean> = {};
   fields.forEach((field, index) => {
     map[field.id] = conditionHolds(field, fields, index, answers, map);
@@ -385,7 +411,9 @@ function Body({ guide }: { guide: DemoGuide }) {
     const id = editing.id;
     const next: Condition | null = draft.rules.length > 0 ? draft : null;
     setFields((prev) =>
-      prev.map((field) => (field.id === id ? { ...field, condition: next } : field)),
+      prev.map((field) =>
+        field.id === id ? { ...field, condition: next } : field,
+      ),
     );
     setEditingId(null);
     if (id !== 'q-cerita' || next?.rules.length !== 1) return;
@@ -403,7 +431,9 @@ function Body({ guide }: { guide: DemoGuide }) {
     if (!editing) return;
     const id = editing.id;
     setFields((prev) =>
-      prev.map((field) => (field.id === id ? { ...field, condition: null } : field)),
+      prev.map((field) =>
+        field.id === id ? { ...field, condition: null } : field,
+      ),
     );
     setEditingId(null);
   };
@@ -484,7 +514,9 @@ function Body({ guide }: { guide: DemoGuide }) {
         />
       </div>
 
-      <div className={cn('mt-3 grid gap-4', tab === 'konten' && 'md:grid-cols-2')}>
+      <div
+        className={cn('mt-3 grid gap-4', tab === 'konten' && 'md:grid-cols-2')}
+      >
         <div className="min-w-0">
           {tab === 'konten' ? (
             <div className="grid gap-3">
@@ -504,7 +536,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                   fields={fields}
                   index={index}
                   spotOpen={field.id === 'q-cerita' ? guide.spot('buka') : ''}
-                  spotDown={field.id === 'q-angkatan' ? guide.spot('tidaksah') : ''}
+                  spotDown={
+                    field.id === 'q-angkatan' ? guide.spot('tidaksah') : ''
+                  }
                   onOpen={() => openEditor(field)}
                   onMove={(to) => moveField(index, to)}
                   onRequired={(required) => setRequired(field.id, required)}
@@ -573,7 +607,9 @@ function Card({
   onRequired: (next: boolean) => void;
 }) {
   const condition =
-    field.condition && field.condition.rules.length > 0 ? field.condition : null;
+    field.condition && field.condition.rules.length > 0
+      ? field.condition
+      : null;
   const summary = condition ? describeCondition(condition, fields) : null;
   const invalid = condition
     ? condition.rules.filter((rule) => !ruleIsValid(rule, fields, index)).length
@@ -629,7 +665,11 @@ function Card({
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-neutral-400 pt-3">
-        <Toggle checked={field.required} onChange={onRequired} label="Wajib diisi" />
+        <Toggle
+          checked={field.required}
+          onChange={onRequired}
+          label="Wajib diisi"
+        />
         <div className="ml-auto flex flex-wrap items-center gap-1">
           <IconBtn
             label="Naikkan"
@@ -737,7 +777,9 @@ function ConditionDialog({
   const setRule = (index: number, patch: Partial<Rule>) =>
     onChange({
       ...draft,
-      rules: draft.rules.map((rule, at) => (at === index ? { ...rule, ...patch } : rule)),
+      rules: draft.rules.map((rule, at) =>
+        at === index ? { ...rule, ...patch } : rule,
+      ),
     });
 
   const pickSource = (index: number, id: string) => {
@@ -767,7 +809,11 @@ function ConditionDialog({
           <Btn tone="outline" onClick={onCancel}>
             Batal
           </Btn>
-          <Btn tone="primary" disabled={sources.length === 0 || !valid} onClick={onSave}>
+          <Btn
+            tone="primary"
+            disabled={sources.length === 0 || !valid}
+            onClick={onSave}
+          >
             Simpan
           </Btn>
         </>
@@ -781,12 +827,17 @@ function ConditionDialog({
       ) : (
         <div className="grid gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-neutral-800">Tampil bila</span>
+            <span className="text-sm font-medium text-neutral-800">
+              Tampil bila
+            </span>
             <select
               aria-label="Cara menggabungkan aturan"
               value={draft.join}
               onChange={(event) =>
-                onChange({ ...draft, join: event.target.value as Condition['join'] })
+                onChange({
+                  ...draft,
+                  join: event.target.value as Condition['join'],
+                })
               }
               className={cn(inputClass, 'w-56')}
             >
@@ -812,7 +863,9 @@ function ConditionDialog({
                     onChange={(event) => pickSource(index, event.target.value)}
                     className={inputClass}
                   >
-                    {!source ? <option value="">(acuan tidak sah)</option> : null}
+                    {!source ? (
+                      <option value="">(acuan tidak sah)</option>
+                    ) : null}
                     {sources.map((item) => (
                       <option key={item.id} value={item.id}>
                         {item.label}
@@ -874,7 +927,11 @@ function ConditionDialog({
                   ...draft,
                   rules: [
                     ...draft.rules,
-                    { fieldId: last.id, op: OPERATORS[last.kind][0] ?? '', value: '' },
+                    {
+                      fieldId: last.id,
+                      op: OPERATORS[last.kind][0] ?? '',
+                      value: '',
+                    },
                   ],
                 });
               }}
@@ -882,7 +939,9 @@ function ConditionDialog({
               <Plus /> Tambah aturan
             </Btn>
             {draft.rules.length >= MAX_RULES ? (
-              <span className="text-sm text-neutral-700">Maksimal {MAX_RULES} aturan.</span>
+              <span className="text-sm text-neutral-700">
+                Maksimal {MAX_RULES} aturan.
+              </span>
             ) : null}
           </div>
           {!valid ? (
@@ -1030,7 +1089,8 @@ function Preview({
         <div className="mt-4 space-y-4">
           {fields.map((field, index) => {
             if (visible[field.id] !== true) return null;
-            const conditional = !!field.condition && field.condition.rules.length > 0;
+            const conditional =
+              !!field.condition && field.condition.rules.length > 0;
             return (
               <div key={field.id}>
                 {conditional ? (
@@ -1044,7 +1104,10 @@ function Preview({
                   number={index + 1}
                   value={answers[field.id]}
                   onChange={(next) =>
-                    onAnswer(field.id, typeof next === 'string' ? next : String(next ?? ''))
+                    onAnswer(
+                      field.id,
+                      typeof next === 'string' ? next : String(next ?? ''),
+                    )
                   }
                 />
               </div>
@@ -1063,7 +1126,9 @@ function Preview({
           <p className="text-[11px] font-semibold uppercase tracking-wide text-secondary-800">
             Layar penutup yang akan tampil
           </p>
-          <p className="mt-1 text-sm font-semibold text-neutral-1000">{ending.title}</p>
+          <p className="mt-1 text-sm font-semibold text-neutral-1000">
+            {ending.title}
+          </p>
         </div>
       </div>
     </div>
@@ -1152,7 +1217,12 @@ function layoutFlow(fields: Field[], nodes: FlowNode[]) {
     pos[node.id] = { x: maxCol * COLX, y: 0 };
     occupied.add(`${maxCol}:0`);
     if (prevMain) {
-      edges.push({ id: `s-${node.id}`, from: prevMain, to: node.id, kind: 'seq' });
+      edges.push({
+        id: `s-${node.id}`,
+        from: prevMain,
+        to: node.id,
+        kind: 'seq',
+      });
     }
     prevMain = node.id;
   }
@@ -1244,7 +1314,10 @@ function Flow({
 }) {
   const [zoom, setZoom] = useState(0.55);
   const nodes = useMemo(() => buildNodes(fields), [fields]);
-  const { pos, edges, cols } = useMemo(() => layoutFlow(fields, nodes), [fields, nodes]);
+  const { pos, edges, cols } = useMemo(
+    () => layoutFlow(fields, nodes),
+    [fields, nodes],
+  );
 
   const ys = Object.values(pos).map((point) => point.y);
   const minY = ys.length ? Math.min(...ys) : 0;
@@ -1256,7 +1329,7 @@ function Flow({
   const selectedNode = nodes.find((node) => node.id === selected) ?? null;
   const selectedField =
     selectedNode?.kind === 'field'
-      ? fields.find((field) => field.id === selectedNode.id) ?? null
+      ? (fields.find((field) => field.id === selectedNode.id) ?? null)
       : null;
   const condCount = nodes.filter(
     (node) => node.kind === 'field' && node.rules.length > 0,
@@ -1338,7 +1411,10 @@ function Flow({
                       markerHeight="7"
                       orient="auto-start-reverse"
                     >
-                      <path d="M0 0 10 5 0 10z" className="fill-secondary-500" />
+                      <path
+                        d="M0 0 10 5 0 10z"
+                        className="fill-secondary-500"
+                      />
                     </marker>
                     <marker
                       id="kondisi-ahr"
@@ -1362,7 +1438,8 @@ function Flow({
                     const y2 = to.y - top;
                     const mx = (x1 + x2) / 2;
                     const active =
-                      !!selected && (edge.from === selected || edge.to === selected);
+                      !!selected &&
+                      (edge.from === selected || edge.to === selected);
                     const colour =
                       edge.kind === 'cond'
                         ? 'stroke-secondary-500'
@@ -1382,9 +1459,7 @@ function Flow({
                               : 'url(#kondisi-ah)'
                         }
                         className={colour}
-                        strokeWidth={
-                          active ? 3 : edge.kind === 'seq' ? 1.6 : 2
-                        }
+                        strokeWidth={active ? 3 : edge.kind === 'seq' ? 1.6 : 2}
                         strokeDasharray={
                           edge.kind === 'rejoin' || edge.kind === 'invalid'
                             ? '6 5'
@@ -1424,7 +1499,9 @@ function Flow({
                         top: point.y - top - NH / 2 - 14 - nth * 22,
                       }}
                     >
-                      {invalid ? 'acuan tidak sah' : ruleShort(edge.rule, source)}
+                      {invalid
+                        ? 'acuan tidak sah'
+                        : ruleShort(edge.rule, source)}
                     </div>
                   );
                 })}
@@ -1454,7 +1531,10 @@ function Flow({
                     >
                       <span className="flex min-w-0 items-center gap-1.5 rounded-lg bg-neutral-50/60 px-2 py-1 text-[11.5px] font-bold text-neutral-800">
                         {isEnding ? (
-                          <CheckCircle2 aria-hidden className="size-3.5 shrink-0" />
+                          <CheckCircle2
+                            aria-hidden
+                            className="size-3.5 shrink-0"
+                          />
                         ) : node.rules.length > 0 ? (
                           <GitBranch
                             aria-hidden
@@ -1513,10 +1593,14 @@ function Flow({
           >
             <div className="flex items-start gap-2.5">
               <span className="grid size-7 shrink-0 place-items-center rounded-full bg-primary-400 text-xs font-bold text-neutral-50">
-                {selectedNode.number ?? <Flag className="size-3.5" aria-hidden />}
+                {selectedNode.number ?? (
+                  <Flag className="size-3.5" aria-hidden />
+                )}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-xs text-neutral-700">{selectedNode.typeLabel}</p>
+                <p className="text-xs text-neutral-700">
+                  {selectedNode.typeLabel}
+                </p>
                 <p className="break-words font-semibold text-neutral-1000">
                   {selectedNode.title}
                 </p>
@@ -1578,7 +1662,11 @@ function Flow({
             </section>
 
             {selectedField ? (
-              <Btn small tone="outline" onClick={() => onOpenCondition(selectedField)}>
+              <Btn
+                small
+                tone="outline"
+                onClick={() => onOpenCondition(selectedField)}
+              >
                 <GitBranch /> Atur kondisi
               </Btn>
             ) : null}
@@ -1589,7 +1677,13 @@ function Flow({
   );
 }
 
-function Legend({ className, children }: { className: string; children: ReactNode }) {
+function Legend({
+  className,
+  children,
+}: {
+  className: string;
+  children: ReactNode;
+}) {
   return (
     <span className="inline-flex items-center gap-2">
       <i aria-hidden className={cn('h-0 w-7 border-t-2', className)} />
@@ -1603,8 +1697,10 @@ function Legend({ className, children }: { className: string; children: ReactNod
    ------------------------------------------------------------------------- */
 
 function KindIcon({ kind, className }: { kind: Kind; className?: string }) {
-  if (kind === 'long_text') return <AlignLeft className={className} aria-hidden />;
-  if (kind === 'single_choice') return <CircleDot className={className} aria-hidden />;
+  if (kind === 'long_text')
+    return <AlignLeft className={className} aria-hidden />;
+  if (kind === 'single_choice')
+    return <CircleDot className={className} aria-hidden />;
   if (kind === 'number') return <Hash className={className} aria-hidden />;
   return <Type className={className} aria-hidden />;
 }

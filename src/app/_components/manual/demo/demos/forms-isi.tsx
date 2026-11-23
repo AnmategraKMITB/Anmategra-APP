@@ -3,19 +3,17 @@
 // Simulasi halaman isi form seperti yang dilihat mahasiswa. Tampilan, warna,
 // dan teks mengikuti halaman aslinya: kartu sudut 24px, bilah kemajuan
 // antarbagian, penanda pertanyaan lanjutan, catatan draf, dan layar penutup.
-
 // Library Import
 import { CornerDownRight, Save } from 'lucide-react';
 import { type CSSProperties, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_DIVISIONS, DEMO_EVENT, DEMO_STUDENTS } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, inputClass, Pill } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Pill, inputClass } from '../ui';
 import {
-  type Answers,
   type AnswerValue,
+  type Answers,
   type DemoField,
   isAnswered,
   isVisible,
@@ -36,11 +34,13 @@ const STEPS: DemoStep[] = [
   },
   {
     id: 'kirim',
-    title: 'Isi bagian kedua, periksa **Tinjau jawabanmu**, lalu klik **Kirim**',
+    title:
+      'Isi bagian kedua, periksa **Tinjau jawabanmu**, lalu klik **Kirim**',
   },
   {
     id: 'ubah',
-    title: 'Klik **Ubah jawaban**, ganti satu jawaban, lalu **Simpan perubahan**',
+    title:
+      'Klik **Ubah jawaban**, ganti satu jawaban, lalu **Simpan perubahan**',
     hint: 'Hanya tersedia bila pembuat form mengizinkan dan form belum ditutup.',
   },
 ];
@@ -126,7 +126,15 @@ const PAGES: DemoPage[] = [
         kind: 'multiple_choice',
         label: 'Hari apa aja kamu biasanya luang buat rapat?',
         required: false,
-        options: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'],
+        options: [
+          'Senin',
+          'Selasa',
+          'Rabu',
+          'Kamis',
+          'Jumat',
+          'Sabtu',
+          'Minggu',
+        ],
       },
     ],
   },
@@ -244,7 +252,9 @@ function Body({ guide }: { guide: DemoGuide }) {
   } as CSSProperties;
 
   const page = PAGES[pageIndex]!;
-  const visibleOnPage = page.fields.filter((field) => isVisible(field, answers));
+  const visibleOnPage = page.fields.filter((field) =>
+    isVisible(field, answers),
+  );
   const visibleAll = ALL_FIELDS.filter((field) => isVisible(field, answers));
   const numberOf = (field: DemoField) =>
     ALL_FIELDS.filter((item) => isVisible(item, answers)).indexOf(field) + 1;
@@ -393,7 +403,10 @@ function Body({ guide }: { guide: DemoGuide }) {
                 </h2>
                 <dl className="mt-4 grid gap-3">
                   {visibleAll.map((field) => (
-                    <div key={field.id} className="rounded-xl bg-neutral-100 p-3">
+                    <div
+                      key={field.id}
+                      className="rounded-xl bg-neutral-100 p-3"
+                    >
                       <dt className="text-sm text-neutral-700">
                         {field.label}
                       </dt>

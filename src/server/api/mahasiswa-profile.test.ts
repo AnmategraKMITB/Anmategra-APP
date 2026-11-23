@@ -1,5 +1,4 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-
 import { MahasiswaProfileSchema } from '~/server/api/types/mahasiswa-profile.type';
 import {
   addMembership,
@@ -12,11 +11,7 @@ import {
 } from '~/test/test-db';
 
 import { type ContactViewer } from './contact';
-import {
-  byNim,
-  byUserId,
-  loadMahasiswaProfile,
-} from './mahasiswa-profile';
+import { byNim, byUserId, loadMahasiswaProfile } from './mahasiswa-profile';
 
 const { db, close } = createTestDb();
 const database = db as unknown as Parameters<typeof loadMahasiswaProfile>[0];
@@ -48,10 +43,7 @@ async function stranger(): Promise<ContactViewer> {
 
 describe('loadMahasiswaProfile: isi respons', () => {
   it('tidak membawa kolom internal akun dan memenuhi skema keluaran', async () => {
-    const { user } = await makeStudent(
-      {},
-      { role: 'mahasiswa', isDemo: true },
-    );
+    const { user } = await makeStudent({}, { role: 'mahasiswa', isDemo: true });
     const profile = await loadMahasiswaProfile(
       database,
       await stranger(),

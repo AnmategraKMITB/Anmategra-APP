@@ -57,7 +57,9 @@ export function LembagaPage() {
   const [search, setSearch] = useState('');
   const [type, setType] = useState('');
   const [page, setPage] = useState(1);
-  const [sorting, setSorting] = useState<SortingState>([{ id: 'name', desc: false }]);
+  const [sorting, setSorting] = useState<SortingState>([
+    { id: 'name', desc: false },
+  ]);
   const sort = SORT_MAP[sorting[0]?.id ?? 'name'] ?? 'name';
   const dir = sorting[0]?.desc ? 'desc' : 'asc';
 
@@ -72,7 +74,9 @@ export function LembagaPage() {
     },
     { enabled: canRead },
   );
-  const groups = api.adminConsole.lembagaGroups.useQuery(undefined, { enabled: canRead });
+  const groups = api.adminConsole.lembagaGroups.useQuery(undefined, {
+    enabled: canRead,
+  });
 
   const columns = useMemo<ColumnDef<Row>[]>(
     () => [
@@ -136,7 +140,12 @@ export function LembagaPage() {
     [],
   );
 
-  if (!canRead) return <p className="text-sm text-danger-dark">Tidak punya izin melihat lembaga.</p>;
+  if (!canRead)
+    return (
+      <p className="text-sm text-danger-dark">
+        Tidak punya izin melihat lembaga.
+      </p>
+    );
 
   return (
     <div className="grid gap-4">
@@ -145,7 +154,10 @@ export function LembagaPage() {
         description="Cari, urutkan, dan kelola profil lembaga, kegiatan, kepengurusan, dan organogram."
         actions={
           canCreate ? (
-            <Button type="button" onClick={() => setOpenCreate((value) => !value)}>
+            <Button
+              type="button"
+              onClick={() => setOpenCreate((value) => !value)}
+            >
               {openCreate ? 'Tutup form' : 'Tambah lembaga'}
             </Button>
           ) : undefined
@@ -156,7 +168,9 @@ export function LembagaPage() {
       <div className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_220px]">
           <div className="grid gap-2">
-            <span className="text-sm font-semibold text-neutral-700">Cari cepat lembaga</span>
+            <span className="text-sm font-semibold text-neutral-700">
+              Cari cepat lembaga
+            </span>
             <AdminEntitySearch
               kind="lembaga"
               value=""
@@ -176,7 +190,9 @@ export function LembagaPage() {
             >
               <option value="">Semua jenis</option>
               {TYPES.map((value) => (
-                <option key={value} value={value}>{value}</option>
+                <option key={value} value={value}>
+                  {value}
+                </option>
               ))}
             </select>
           </label>

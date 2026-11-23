@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '~/lib/utils';
 import { type RouterOutputs } from '~/trpc/react';
+
 import { waveTitle } from './status';
 
 type Summary = RouterOutputs['oprec']['applicantSummary'];

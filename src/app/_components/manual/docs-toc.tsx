@@ -68,7 +68,9 @@ export function DocsToc({
 
   return (
     <nav aria-label="Di halaman ini" className="text-sm">
-      <p className="mb-3 font-semibold text-neutral-900 dark:text-slate-100">Di halaman ini</p>
+      <p className="mb-3 font-semibold text-neutral-900 dark:text-slate-100">
+        Di halaman ini
+      </p>
       <ul className="space-y-2 border-l border-[#C4CACE] dark:border-slate-700">
         {items.map((item) => (
           <li key={item.id}>

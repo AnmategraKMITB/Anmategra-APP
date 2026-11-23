@@ -67,7 +67,9 @@ describe('defaultPositionId', () => {
         { id: 'b', unitId: 'u', rank: 'staff' },
       ]),
     ).toBe('b');
-    expect(defaultPositionId([{ id: 'a', unitId: 'u', rank: 'head' }])).toBe('a');
+    expect(defaultPositionId([{ id: 'a', unitId: 'u', rank: 'head' }])).toBe(
+      'a',
+    );
   });
 });
 

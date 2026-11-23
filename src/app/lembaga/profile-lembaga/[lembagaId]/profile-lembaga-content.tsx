@@ -6,9 +6,9 @@ import Link from 'next/link';
 // Asset Import
 import DummyFotoLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import { useState } from 'react';
-import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import { KepanitiaanCard } from '~/app/_components/card/kepanitiaan-card';
+import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
 import EditProfileLembaga from '~/app/lembaga/profile-lembaga/_components/edit-profil-lembaga';
 import { Button } from '~/components/ui/button';
@@ -39,10 +39,10 @@ export default function ProfileLembagaContent({
   const is_user_owner = lembagaData?.users.id === session?.user?.id;
 
   return (
-    <div className="w-full flex min-h-screen flex-col items-center px-6">
+    <div className="flex min-h-screen w-full flex-col items-center px-6">
       {isEditMode && (
         <div className="w-full overflow-y-auto">
-          <div className="max-w-7xl mx-auto py-6">
+          <div className="mx-auto max-w-7xl py-6">
             <EditProfileLembaga
               lembagaData={lembagaData}
               isEdit={isEditMode}
@@ -52,11 +52,11 @@ export default function ProfileLembagaContent({
         </div>
       )}
 
-      <div className="flex max-w-7xl w-full flex-col gap-4">
+      <div className="flex w-full max-w-7xl flex-col gap-4">
         {!isEditMode && (
-          <div className="flex max-w-7xl w-full flex-col gap-4 py-6">
+          <div className="flex w-full max-w-7xl flex-col gap-4 py-6">
             <div className="flex flex-col">
-              <h1 className="text-xl md:text-2xl font-semibold text-slate-600">
+              <h1 className="text-xl font-semibold text-slate-600 md:text-2xl">
                 {lembagaData?.name}
               </h1>
               <RaporBreadcrumb
@@ -69,11 +69,11 @@ export default function ProfileLembagaContent({
                 ]}
               />
             </div>
-            <div className="w-full flex flex-col items-center justify-center gap-6 md:gap-x-10 py-12 transition-all duration-500 ease-in-out">
-              <div className="w-full md:w-3/4 flex flex-col gap-8 items-center justify-center">
-                <div className="w-full flex flex-col sm:flex-row gap-8 items-center justify-center">
+            <div className="flex w-full flex-col items-center justify-center gap-6 py-12 transition-all duration-500 ease-in-out md:gap-x-10">
+              <div className="flex w-full flex-col items-center justify-center gap-8 md:w-3/4">
+                <div className="flex w-full flex-col items-center justify-center gap-8 sm:flex-row">
                   <div className="flex-shrink-0">
-                    <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-full overflow-hidden bg-gray-200">
+                    <div className="relative h-32 w-32 overflow-hidden rounded-full bg-gray-200 sm:h-40 sm:w-40 md:h-48 md:w-48 lg:h-56 lg:w-56">
                       <Image
                         src={lembagaData?.users.image ?? DummyFotoLembaga}
                         alt="Foto Lembaga"
@@ -84,17 +84,17 @@ export default function ProfileLembagaContent({
                       />
                     </div>
                   </div>
-                  <div className="space-y-4 text-center md:text-left flex-1">
+                  <div className="flex-1 space-y-4 text-center md:text-left">
                     <div className="space-y-2">
-                      <p className="text-xl md:text-3xl text-slate-600 font-semibold">
+                      <p className="text-xl font-semibold text-slate-600 md:text-3xl">
                         {lembagaData?.name}
                       </p>
                       {lembagaData?.acronym && (
-                        <p className="text-base md:text-lg text-slate-400 font-medium">
+                        <p className="text-base font-medium text-slate-400 md:text-lg">
                           {lembagaData.acronym}
                         </p>
                       )}
-                      <p className="text-sm md:text-xl text-slate-400">
+                      <p className="text-sm text-slate-400 md:text-xl">
                         {lembagaData?.description}
                       </p>
                     </div>
@@ -114,8 +114,8 @@ export default function ProfileLembagaContent({
 
         {/* Highlighted Event */}
         {highlightedEvent && (
-          <div className="flex flex-col w-full gap-4 mb-8">
-            <h5 className="text-lg sm:text-xl md:text-2xl leading-[32px] font-semibold text-slate-600">
+          <div className="mb-8 flex w-full flex-col gap-4">
+            <h5 className="text-lg font-semibold leading-[32px] text-slate-600 sm:text-xl md:text-2xl">
               Highlighted Event
             </h5>
 
@@ -128,10 +128,10 @@ export default function ProfileLembagaContent({
 
         {/* Best Staff Section */}
         {latestBestStaff && (
-          <div className="flex flex-col gap-12 w-full mb-8">
-            <div className="flex flex-col gap-3 w-full">
-              <div className="flex flex-row justify-between items-center">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+          <div className="mb-8 flex w-full flex-col gap-12">
+            <div className="flex w-full flex-col gap-3">
+              <div className="flex flex-row items-center justify-between">
+                <h2 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                   Best Staff Periode{' '}
                   {new Date(latestBestStaff.start_date).toLocaleDateString(
                     'id-ID',
@@ -156,7 +156,7 @@ export default function ProfileLembagaContent({
                   >
                     <span>Lihat Histori </span>
                     <ChevronRight
-                      className="!w-4 !h-4 text-slate-1000"
+                      className="text-slate-1000 !h-4 !w-4"
                       aria-hidden
                     />
                   </Link>
@@ -172,10 +172,10 @@ export default function ProfileLembagaContent({
 
         {/* Kepanitiaan Terbaru */}
         <div className="space-y-4">
-          <h5 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+          <h5 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
             Kepanitiaan Terbaru
           </h5>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {newestEvent && newestEvent.length !== 0 ? (
               newestEvent.map((item) => (
                 <Link href={`/profile-kegiatan/${item.id}`} key={item.id}>

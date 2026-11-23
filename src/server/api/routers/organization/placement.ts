@@ -2,7 +2,6 @@ import { TRPCError } from '@trpc/server';
 import { and, eq, ne, sql } from 'drizzle-orm';
 import { resolveOrganogramAccess } from '~/server/api/organization-access';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
-import { type db as Db } from '~/server/db';
 import {
   AddPlacementInputSchema,
   AddPlacementOutputSchema,
@@ -11,6 +10,7 @@ import {
   RemovePlacementInputSchema,
   RemovePlacementOutputSchema,
 } from '~/server/api/types/organization.type';
+import { type db as Db } from '~/server/db';
 import {
   organizationPosition,
   organizationStructure,
@@ -38,20 +38,37 @@ async function loadPositionContext(database: Database, positionId: string) {
       isActive: organizationStructure.is_active,
     })
     .from(organizationPosition)
-    .innerJoin(organizationUnit, eq(organizationPosition.unitId, organizationUnit.id))
-    .innerJoin(organizationStructure, eq(organizationUnit.structure_id, organizationStructure.id))
+    .innerJoin(
+      organizationUnit,
+      eq(organizationPosition.unitId, organizationUnit.id),
+    )
+    .innerJoin(
+      organizationStructure,
+      eq(organizationUnit.structure_id, organizationStructure.id),
+    )
     .where(eq(organizationPosition.id, positionId))
     .limit(1);
-  if (!row) throw new TRPCError({ code: 'NOT_FOUND', message: 'Posisi tidak ditemukan.' });
+  if (!row)
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Posisi tidak ditemukan.',
+    });
   if (!row.periodId || !row.isActive) {
-    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Organogram posisi ini sudah tidak aktif.' });
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'Organogram posisi ini sudah tidak aktif.',
+    });
   }
   return { ...row, periodId: row.periodId };
 }
 type PositionContext = Awaited<ReturnType<typeof loadPositionContext>>;
 
 /** Pengelola boleh semuanya; anggota hanya di unit tempatnya (dan turunannya), dan tidak saat terkunci. */
-async function assertCanEditPosition(database: Database, actor: Actor, ctx: PositionContext) {
+async function assertCanEditPosition(
+  database: Database,
+  actor: Actor,
+  ctx: PositionContext,
+) {
   const unitRows = await database
     .select({ id: organizationUnit.id, parentId: organizationUnit.parent_id })
     .from(organizationUnit)
@@ -64,15 +81,25 @@ async function assertCanEditPosition(database: Database, actor: Actor, ctx: Posi
   );
   if (access.isManager) return;
   if (ctx.editLocked) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Organogram sedang dikunci.' });
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Organogram sedang dikunci.',
+    });
   }
   if (!access.memberUnitIds.has(ctx.unitId)) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Anda tidak berhak mengubah penempatan di unit ini.' });
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Anda tidak berhak mengubah penempatan di unit ini.',
+    });
   }
 }
 
 /** Jumlah penghuni yang dihitung terhadap kuota: placement closerec tidak dihitung. */
-async function countOccupants(database: Database, positionId: string, excludePlacementId?: string) {
+async function countOccupants(
+  database: Database,
+  positionId: string,
+  excludePlacementId?: string,
+) {
   const [row] = await database
     .select({ n: sql<number>`count(*)::int` })
     .from(placement)
@@ -96,14 +123,25 @@ export const organizationPlacementRouter = createTRPCRouter({
     .input(AddPlacementInputSchema)
     .output(AddPlacementOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const actor: Actor = { id: ctx.session.user.id, role: ctx.session.user.role, lembagaId: ctx.session.user.lembagaId };
+      const actor: Actor = {
+        id: ctx.session.user.id,
+        role: ctx.session.user.role,
+        lembagaId: ctx.session.user.lembagaId,
+      };
       return ctx.db.transaction(async (tx) => {
         const db = tx as unknown as typeof ctx.db;
         const position = await loadPositionContext(db, input.positionId);
         await assertCanEditPosition(db, actor, position);
 
-        const target = await tx.query.users.findFirst({ where: eq(users.id, input.userId), columns: { id: true } });
-        if (!target) throw new TRPCError({ code: 'NOT_FOUND', message: 'Pengguna tidak ditemukan.' });
+        const target = await tx.query.users.findFirst({
+          where: eq(users.id, input.userId),
+          columns: { id: true },
+        });
+        if (!target)
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Pengguna tidak ditemukan.',
+          });
 
         // Kunci baris posisi: dua penambahan bersamaan ke posisi yang sama dijalankan bergantian.
         await tx
@@ -112,10 +150,19 @@ export const organizationPlacementRouter = createTRPCRouter({
           .where(eq(organizationPosition.id, input.positionId))
           .for('update');
 
-        if (input.source !== 'closerec' && position.quota > 0 && !input.allowOverQuota) {
+        if (
+          input.source !== 'closerec' &&
+          position.quota > 0 &&
+          !input.allowOverQuota
+        ) {
           const count = await countOccupants(db, input.positionId);
           if (count >= position.quota) {
-            return { ok: false as const, reason: 'quota_full' as const, count, quota: position.quota };
+            return {
+              ok: false as const,
+              reason: 'quota_full' as const,
+              count,
+              quota: position.quota,
+            };
           }
         }
         try {
@@ -132,7 +179,10 @@ export const organizationPlacementRouter = createTRPCRouter({
           return { ok: true as const, id: row!.id };
         } catch (error) {
           if (isUniqueViolation(error)) {
-            throw new TRPCError({ code: 'CONFLICT', message: 'Pengguna sudah menempati posisi ini.' });
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Pengguna sudah menempati posisi ini.',
+            });
           }
           throw error;
         }
@@ -143,13 +193,21 @@ export const organizationPlacementRouter = createTRPCRouter({
     .input(RemovePlacementInputSchema)
     .output(RemovePlacementOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const actor: Actor = { id: ctx.session.user.id, role: ctx.session.user.role, lembagaId: ctx.session.user.lembagaId };
+      const actor: Actor = {
+        id: ctx.session.user.id,
+        role: ctx.session.user.role,
+        lembagaId: ctx.session.user.lembagaId,
+      };
       const [row] = await ctx.db
         .select({ positionId: placement.positionId })
         .from(placement)
         .where(eq(placement.id, input.placementId))
         .limit(1);
-      if (!row) throw new TRPCError({ code: 'NOT_FOUND', message: 'Penempatan tidak ditemukan.' });
+      if (!row)
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Penempatan tidak ditemukan.',
+        });
       const position = await loadPositionContext(ctx.db, row.positionId);
       await assertCanEditPosition(ctx.db, actor, position);
       await ctx.db.delete(placement).where(eq(placement.id, input.placementId));
@@ -161,22 +219,40 @@ export const organizationPlacementRouter = createTRPCRouter({
     .input(MovePlacementInputSchema)
     .output(MovePlacementOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      const actor: Actor = { id: ctx.session.user.id, role: ctx.session.user.role, lembagaId: ctx.session.user.lembagaId };
+      const actor: Actor = {
+        id: ctx.session.user.id,
+        role: ctx.session.user.role,
+        lembagaId: ctx.session.user.lembagaId,
+      };
       return ctx.db.transaction(async (tx) => {
         const db = tx as unknown as typeof ctx.db;
         const [current] = await tx
-          .select({ id: placement.id, positionId: placement.positionId, source: placement.source })
+          .select({
+            id: placement.id,
+            positionId: placement.positionId,
+            source: placement.source,
+          })
           .from(placement)
           .where(eq(placement.id, input.placementId))
           .limit(1);
-        if (!current) throw new TRPCError({ code: 'NOT_FOUND', message: 'Penempatan tidak ditemukan.' });
+        if (!current)
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Penempatan tidak ditemukan.',
+          });
         if (current.positionId === input.toPositionId) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Penempatan sudah berada di posisi tersebut.' });
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Penempatan sudah berada di posisi tersebut.',
+          });
         }
         const from = await loadPositionContext(db, current.positionId);
         const to = await loadPositionContext(db, input.toPositionId);
         if (from.structureId !== to.structureId) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Posisi tujuan harus berada di organogram yang sama.' });
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Posisi tujuan harus berada di organogram yang sama.',
+          });
         }
         await assertCanEditPosition(db, actor, from);
         await assertCanEditPosition(db, actor, to);
@@ -187,10 +263,23 @@ export const organizationPlacementRouter = createTRPCRouter({
           .where(eq(organizationPosition.id, input.toPositionId))
           .for('update');
 
-        if (current.source !== 'closerec' && to.quota > 0 && !input.allowOverQuota) {
-          const count = await countOccupants(db, input.toPositionId, input.placementId);
+        if (
+          current.source !== 'closerec' &&
+          to.quota > 0 &&
+          !input.allowOverQuota
+        ) {
+          const count = await countOccupants(
+            db,
+            input.toPositionId,
+            input.placementId,
+          );
           if (count >= to.quota) {
-            return { ok: false as const, reason: 'quota_full' as const, count, quota: to.quota };
+            return {
+              ok: false as const,
+              reason: 'quota_full' as const,
+              count,
+              quota: to.quota,
+            };
           }
         }
         try {
@@ -201,7 +290,10 @@ export const organizationPlacementRouter = createTRPCRouter({
           return { ok: true as const, id: input.placementId };
         } catch (error) {
           if (isUniqueViolation(error)) {
-            throw new TRPCError({ code: 'CONFLICT', message: 'Pengguna sudah menempati posisi tujuan.' });
+            throw new TRPCError({
+              code: 'CONFLICT',
+              message: 'Pengguna sudah menempati posisi tujuan.',
+            });
           }
           throw error;
         }

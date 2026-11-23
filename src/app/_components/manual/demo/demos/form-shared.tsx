@@ -2,10 +2,8 @@
 
 // Model form mini yang dipakai bersama oleh simulasi Forms: jenis pertanyaan,
 // aturan "Tampil jika", dan kontrol isian untuk pratinjau.
-
 // Library Import
 import { Star } from 'lucide-react';
-
 import { cn } from '~/lib/utils';
 
 import { inputClass } from '../ui';
@@ -99,7 +97,11 @@ export function FieldInput({
       );
     case 'single_choice':
       return (
-        <div role="radiogroup" aria-labelledby={`${inputId}-label`} className={cn('space-y-1', className)}>
+        <div
+          role="radiogroup"
+          aria-labelledby={`${inputId}-label`}
+          className={cn('space-y-1', className)}
+        >
           {field.options.map((option) => (
             <label key={option} className="flex items-center gap-2">
               <input
@@ -117,7 +119,11 @@ export function FieldInput({
     case 'multiple_choice': {
       const picked = Array.isArray(value) ? value : [];
       return (
-        <div role="group" aria-labelledby={`${inputId}-label`} className={cn('space-y-1', className)}>
+        <div
+          role="group"
+          aria-labelledby={`${inputId}-label`}
+          className={cn('space-y-1', className)}
+        >
           {field.options.map((option) => (
             <label key={option} className="flex items-center gap-2">
               <input
@@ -161,7 +167,9 @@ export function FieldInput({
             id={inputId}
             type="checkbox"
             checked={value === true}
-            onChange={(event) => onChange(event.target.checked ? true : undefined)}
+            onChange={(event) =>
+              onChange(event.target.checked ? true : undefined)
+            }
             className="size-4 accent-[#2B6282]"
           />
           Ya
@@ -169,7 +177,11 @@ export function FieldInput({
       );
     case 'scale':
       return (
-        <div role="radiogroup" aria-labelledby={`${inputId}-label`} className={cn('flex gap-1', className)}>
+        <div
+          role="radiogroup"
+          aria-labelledby={`${inputId}-label`}
+          className={cn('flex gap-1', className)}
+        >
           {[1, 2, 3, 4, 5].map((score) => (
             <button
               key={score}

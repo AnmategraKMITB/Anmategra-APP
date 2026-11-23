@@ -85,5 +85,8 @@ export function hasAdminPermission(
   permissions: readonly string[] | null | undefined,
   required: AdminPermission,
 ): boolean {
-  return permissions?.includes('*') === true || permissions?.includes(required) === true;
+  return (
+    permissions?.includes('*') === true ||
+    permissions?.includes(required) === true
+  );
 }

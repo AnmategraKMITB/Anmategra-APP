@@ -5,6 +5,7 @@ Build With [T3 Stack](https://create.t3.gg/)
 ## Tentang Anmategra
 
 Anmategra platform manajemen data kemahasiswaan/lembaga di ITB. Fungsi utama:
+
 - **Lembaga & Keanggotaan** — data lembaga, anggota, posisi/divisi, request asosiasi anggota ke lembaga
 - **Kegiatan/Event** — pengelolaan event, panitia, pendaftaran
 - **Profil** — profil mahasiswa & lembaga, pemetaan profil ke kegiatan/lembaga
@@ -16,11 +17,13 @@ Tech stack: [T3 Stack](https://create.t3.gg/) (Next.js, tRPC, Drizzle ORM, NextA
 ## Setup untuk Developer Baru
 
 ### Prasyarat
+
 1. Node.js v20+
 2. Bun canary yang dipatok repo: `sh scripts/install-bun.sh` (memasang ke `~/.bun/bin`; tambahkan ke `PATH`)
 3. PostgreSQL aktif di lokal
 
 ### Instalasi
+
 ```
 git clone <repo-url>
 cd anmategra-app
@@ -29,6 +32,7 @@ bun install
 ```
 
 Isi `.env`, minimal `DATABASE_URL` bener, contoh:
+
 ```
 DATABASE_URL="postgresql://postgres:password@localhost:5432/anmategra"
 ```
@@ -38,6 +42,7 @@ DATABASE_URL="postgresql://postgres:password@localhost:5432/anmategra"
 ### Setup Database
 
 Opsi A — manual:
+
 ```
 psql -U postgres
 CREATE DATABASE anmategra;
@@ -47,15 +52,18 @@ bun run db:push
 ```
 
 Opsi B — pakai Docker (lihat `scripts/start-database.sh`):
+
 ```
 ./scripts/start-database.sh
 bun run db:push
 ```
 
 Opsi C — app + database sekaligus di Docker (`compose.local.yml`):
+
 ```
 docker compose -f compose.local.yml up --build
 ```
+
 - Postgres 15 jalan di port host `5433`, app (`next dev`, hot reload) di `3000`. Ubah lewat `APP_PORT` / `DB_PORT`.
 - Kalau ada `anmategra.dump` di folder induk repo, dump itu dipulihkan saat pertama kali jalan, lalu `db:migrate` menyusulkan migrasi yang belum ada. Lokasi lain: set `DB_DUMP_DIR` / `DB_DUMP_FILE`.
 - Kredensial OAuth boleh dibiarkan kosong (diisi placeholder), tetapi login baru berfungsi dengan kredensial sungguhan di `.env`.
@@ -63,6 +71,7 @@ docker compose -f compose.local.yml up --build
 - Ulang dari dump: `docker compose -f compose.local.yml down -v`.
 
 Perintah db lain yang tersedia:
+
 - `bun run db:generate` — generate migration dari schema (drizzle-kit generate)
 - `bun run db:migrate` — jalanin migration (drizzle-kit migrate)
 - `bun run db:studio` — buka Drizzle Studio buat liat data
@@ -75,12 +84,15 @@ Perintah db lain yang tersedia:
 - `bun run db:clear` — kosongin database
 
 ### Menjalankan Project
+
 ```
 bun run dev
 ```
+
 Buka [http://localhost:3000](http://localhost:3000).
 
 Script lain:
+
 - `bun run build` — build production
 - `bun run start` — jalanin hasil build
 - `bun lint` — lint dengan `bun lint` (`.oxlintrc.json`: semua kategori aturan menyala, plus aturan bertipe). Pelanggaran lama dicatat di `oxlint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
@@ -110,10 +122,10 @@ bun run test
 Mahasiswa login dengan akun `@mahasiswa.itb.ac.id` lewat Microsoft Entra ID milik ITB. Anmategra
 punya app registration sendiri di directory ITB:
 
-- **Supported account types:** *Accounts in any organizational directory* (multitenant).
+- **Supported account types:** _Accounts in any organizational directory_ (multitenant).
 - **Redirect URI** (platform **Web**): `https://anmategra.com/api/auth/callback/azure-ad`, ditambah
   `http://localhost:<APP_PORT>/api/auth/callback/azure-ad` untuk lokal.
-- **Client secret** dibuat di *Certificates & secrets* lalu diisi ke `AZURE_AD_CLIENT_SECRET`.
+- **Client secret** dibuat di _Certificates & secrets_ lalu diisi ke `AZURE_AD_CLIENT_SECRET`.
   Secret punya tanggal kedaluwarsa: catat tanggalnya dan perbarui sebelum lewat. Secret yang
   kedaluwarsa membuat login Microsoft gagal dengan `?error=OAuthCallback`.
 - `AZURE_AD_TENANT_ID` = `db6e1183-4c65-405c-82ce-7cd53fa6e9dc` (directory ITB). Token dari tenant
@@ -169,6 +181,7 @@ Anmategra (di `public/images/logo/`) milik masing-masing pemiliknya dan tidak ik
 di bawah AGPL.
 
 ## Branch Name Convention
+
 ```
 <tipe>/<BE/FE> /<deskripsi>
 ```
@@ -178,11 +191,13 @@ Contoh : `feat/BE/LandingPage`
 ## Aturan Semantic Commit
 
 1. Format Umum :
+
 ```
 <tipe>(<scope>): <deskripsi>
 ```
 
 2. Tipe Commit :
+
 - `feat`: Menambahkan fitur baru.
 - `fix`: Memperbaiki bug.
 - `docs`: Mengubah dokumentasi.
@@ -196,14 +211,17 @@ Contoh : `fix(api): resolve CORS issue`
 ## Penamaan Component atau Actions
 
 1. Komponen (Components) :
+
 - Format : `PascalCase`
 - Contoh : `UserProfile`, `NavBar`, `Button`
 
-2. Actions : 
+2. Actions :
+
 - Format : `camelCase`
 - Contoh : `fetchUserData`, `updateProfile`, `handleSubmit`
 
 3. Folder dan File :
+
 - Format : `kebab-case`
 - Contoh : `user-profile.tsx`, `nav-bar.tsx`, `api-enpoint.ts`
 
@@ -232,4 +250,3 @@ endpoint dari luar): **[`docs/api/README.md`](docs/api/README.md)**.
 tRPC Panel (`/api/panel`) sudah dihapus: paketnya tidak dirawat lagi dan mengunci Zod 3.
 Kontrak API dibaca di `/api/docs`, dan cara memanggil endpoint (termasuk dengan sesi login)
 ada di [`docs/api/README.md`](docs/api/README.md) bagian 2.
-

@@ -1,5 +1,4 @@
 import { TRPCError } from '@trpc/server';
-import { LembagaScopeInput } from '~/server/api/types/scope';
 import { z } from 'zod';
 import { type comboboxDataType } from '~/app/_components/form/tambah-anggota-kegiatan-form';
 import {
@@ -7,10 +6,10 @@ import {
   lembagaScopedProcedure,
   publicProcedure,
 } from '~/server/api/trpc';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 
 import { listedAsKegiatan } from '../period-listing';
 import { EventIdSchema } from '../types/event.type';
-import { periodTextOptions } from './organization/membership';
 import {
   GetAllKegiatanByLembagaOutputSchema,
   GetAllKegiatanPublicOutputSchema,
@@ -18,6 +17,7 @@ import {
   GetKegiatanByIdPublicOutputSchema,
 } from '../types/kegiatan.type';
 import { GetPosisiBidangOptionsOutputSchema } from '../types/lembaga.type';
+import { periodTextOptions } from './organization/membership';
 
 export const kegiatanRouter = createTRPCRouter({
   // Public Procedures

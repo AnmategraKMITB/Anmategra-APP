@@ -3,19 +3,18 @@
 // Library Import
 import { Download, Search } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_DIVISIONS, divisionName } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
-  inputClass,
   Modal,
   Pill,
   ScreenTitle,
   TabBar,
+  inputClass,
   tdClass,
   thClass,
   useFlash,
@@ -115,7 +114,9 @@ function Body({ guide }: { guide: DemoGuide }) {
         label="Bagian oprec"
         tabs={TABS}
         value="pendaftar"
-        onChange={() => flash('Tab lain dijelaskan di halaman manual berikutnya.')}
+        onChange={() =>
+          flash('Tab lain dijelaskan di halaman manual berikutnya.')
+        }
       />
 
       <div className="mt-3 grid gap-3 sm:grid-cols-[150px_1fr]">
@@ -319,7 +320,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                     {divisionName(choice.division)}
                   </span>
                   <span className="text-xs text-neutral-700">
-                    {choice.score === null ? 'Belum dinilai' : `Skor ${choice.score}`}
+                    {choice.score === null
+                      ? 'Belum dinilai'
+                      : `Skor ${choice.score}`}
                   </span>
                   <Pill tone={STATUS_TONE[choice.status]}>
                     {STATUS_LABEL[choice.status]}

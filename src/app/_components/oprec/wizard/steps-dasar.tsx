@@ -1,14 +1,14 @@
 'use client';
 
-import { DATETIME_MAX, DATETIME_MIN } from '~/lib/date-input';
 import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
 import { Button } from '~/components/ui/button';
+import { DATETIME_MAX, DATETIME_MIN } from '~/lib/date-input';
 import { cn } from '~/lib/utils';
 
-import { TimelineArt, TreeArt } from './illustrations';
 import { allTargetUnits, defaultPositionId } from './helpers';
+import { TimelineArt, TreeArt } from './illustrations';
 import { type SetupTree } from './model';
 import { type StepProps } from './steps-types';
 import { Labeled, Note, OptionCards, StepFrame, fieldClass } from './ui';

@@ -65,13 +65,13 @@ Tombol ini hanya tersedia jika lembaga mengizinkan dan form belum ditutup.
 
 ## Jika form tidak bisa diisi
 
-| Pesan                                              | Artinya                                                    |
-| -------------------------------------------------- | ---------------------------------------------------------- |
-| Form ini hanya bisa diisi oleh mahasiswa aktif     | Anda masuk dengan akun selain akun mahasiswa.              |
-| Form ini sudah ditutup                             | Lembaga sudah berhenti menerima jawaban.                   |
-| Form ini sudah menerima jumlah jawaban maksimum    | Batas jumlah respons sudah tercapai.                       |
-| Form ini berubah saat kamu mengisi                 | Lembaga mengubah form. Muat ulang, lalu periksa jawaban Anda. |
-| Jawabanmu belum terkirim                           | Periksa koneksi, lalu coba kirim lagi.                     |
+| Pesan                                           | Artinya                                                       |
+| ----------------------------------------------- | ------------------------------------------------------------- |
+| Form ini hanya bisa diisi oleh mahasiswa aktif  | Anda masuk dengan akun selain akun mahasiswa.                 |
+| Form ini sudah ditutup                          | Lembaga sudah berhenti menerima jawaban.                      |
+| Form ini sudah menerima jumlah jawaban maksimum | Batas jumlah respons sudah tercapai.                          |
+| Form ini berubah saat kamu mengisi              | Lembaga mengubah form. Muat ulang, lalu periksa jawaban Anda. |
+| Jawabanmu belum terkirim                        | Periksa koneksi, lalu coba kirim lagi.                        |
 
 > [!TIP]
 > Jawaban yang belum dikirim dapat tersimpan sebagai draf di browser Anda.

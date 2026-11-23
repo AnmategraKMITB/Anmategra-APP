@@ -2,16 +2,16 @@ import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, gt, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import {
+  AltClaimError,
+  approveAltClaim,
+  createAltClaim,
+} from '~/server/alt-login';
+import {
   adminPermissionProcedure,
   createTRPCRouter,
   publicProcedure,
 } from '~/server/api/trpc';
 import { isAllowedFileHost } from '~/server/api/types/form.constants';
-import {
-  AltClaimError,
-  approveAltClaim,
-  createAltClaim,
-} from '~/server/alt-login';
 import {
   adminAudit,
   altLoginClaim,
@@ -27,11 +27,10 @@ const KtmSchema = z.object({
   driveId: z.string().max(255),
   name: z.string().min(1).max(255),
   size: z.number().int().positive().max(KTM_MAX_BYTES),
-  mime: z.string().refine((m) => KTM_MIMES.includes(m), 'Format KTM tidak didukung.'),
-  url: z
+  mime: z
     .string()
-    .url()
-    .refine(isAllowedFileHost, 'Tautan berkas tidak valid.'),
+    .refine((m) => KTM_MIMES.includes(m), 'Format KTM tidak didukung.'),
+  url: z.string().url().refine(isAllowedFileHost, 'Tautan berkas tidak valid.'),
   scope: z.enum(['anyone', 'organization']),
   provider: z.enum(['uploadthing', 'google-drive', 'onedrive']).optional(),
 });
@@ -148,8 +147,7 @@ export const altLoginRouter = createTRPCRouter({
 
       return rows.map((row) => ({
         ...row,
-        ktmUrl:
-          row.ktm && typeof row.ktm.url === 'string' ? row.ktm.url : null,
+        ktmUrl: row.ktm && typeof row.ktm.url === 'string' ? row.ktm.url : null,
         ktm: undefined,
         status: row.revokedAt
           ? ('dicabut' as const)
@@ -195,7 +193,10 @@ export const altLoginRouter = createTRPCRouter({
         .where(eq(altLoginClaim.id, input.claimId))
         .limit(1);
       if (!claim) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Klaim tidak ditemukan.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Klaim tidak ditemukan.',
+        });
       }
       if (claim.revokedAt) return { success: true };
       await ctx.db.transaction(async (tx) => {

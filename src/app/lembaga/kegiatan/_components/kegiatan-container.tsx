@@ -252,7 +252,7 @@ export default function EventList({
   };
 
   return (
-    <div className="flex w-full flex-col gap-4 pt-[24px] pl-[42px] pr-[36px]">
+    <div className="flex w-full flex-col gap-4 pl-[42px] pr-[36px] pt-[24px]">
       {/* Title and Search */}
       <div className="flex flex-col gap-4">
         <h1 className="text-[32px] font-semibold text-[#141718]">Kegiatan</h1>
@@ -267,7 +267,7 @@ export default function EventList({
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between mt-2">
+      <div className="mt-2 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button variant="light_blue">
@@ -295,13 +295,13 @@ export default function EventList({
         />
       </div>
 
-      <div className="bg-white rounded-lg overflow-hidden">
+      <div className="overflow-hidden rounded-lg bg-white">
         <div className="overflow-x-auto">
           <div className="min-w-[900px]">
-            <div className="flex items-center gap-3 p-3 bg-gray-50 text-lg font-medium text-gray-500">
+            <div className="flex items-center gap-3 bg-gray-50 p-3 text-lg font-medium text-gray-500">
               <div className="w-[25px] flex-shrink-0"></div>
               <div className="w-[130px] flex-shrink-0">Thumbnail</div>
-              <div className="flex-1 min-w-[200px]">Judul</div>
+              <div className="min-w-[200px] flex-1">Judul</div>
               <div className="w-[131px] flex-shrink-0">Tanggal</div>
               <div className="w-[110px] flex-shrink-0">Panitia</div>
               <div className="w-[141px] flex-shrink-0">Status</div>
@@ -313,13 +313,13 @@ export default function EventList({
               {activities.map((activity) => (
                 <div
                   key={activity.id}
-                  className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 p-3 transition-colors hover:bg-gray-50"
                 >
-                  <div className="w-[25px] rounded flex items-center justify-center flex-shrink-0">
+                  <div className="flex w-[25px] flex-shrink-0 items-center justify-center rounded">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="p-1 h-auto w-auto hover:bg-transparent"
+                      className="h-auto w-auto p-1 hover:bg-transparent"
                       onClick={() =>
                         toggleHighlight(activity.id, activity.is_highlighted)
                       }
@@ -332,21 +332,27 @@ export default function EventList({
                       />
                     </Button>
                   </div>
-                  <Link href={`/profile-kegiatan/${activity.id}`} className="w-[130px] h-[90px] bg-gray-200 rounded overflow-hidden relative flex-shrink-0">
+                  <Link
+                    href={`/profile-kegiatan/${activity.id}`}
+                    className="relative h-[90px] w-[130px] flex-shrink-0 overflow-hidden rounded bg-gray-200"
+                  >
                     {activity.thumbnail && (
                       <Image
                         src={activity.thumbnail || '/placeholder.svg'}
                         alt=""
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-cover"
                         height={90}
                         width={130}
                       />
                     )}
                   </Link>
-                  <Link href={`/profile-kegiatan/${activity.id}`} className="flex-1 min-w-[200px]">
+                  <Link
+                    href={`/profile-kegiatan/${activity.id}`}
+                    className="min-w-[200px] flex-1"
+                  >
                     <p className="text-lg text-gray-500">{activity.name}</p>
                     {activity.description && (
-                      <p className="text-base text-gray-500 truncate">
+                      <p className="truncate text-base text-gray-500">
                         {activity.description.length > 39
                           ? activity.description.slice(0, 36) + '...'
                           : activity.description}
@@ -358,8 +364,10 @@ export default function EventList({
                       ? format(new Date(activity.start_date), 'dd/MM/yyyy')
                       : '-'}
                   </div>
-                  <div className="w-[110px] flex-shrink-0 flex items-center justify-center text-gray-500">
-                    <Link href={`${kegiatanBasePath}/kegiatan/${activity.id}/panitia`}>
+                  <div className="flex w-[110px] flex-shrink-0 items-center justify-center text-gray-500">
+                    <Link
+                      href={`${kegiatanBasePath}/kegiatan/${activity.id}/panitia`}
+                    >
                       <Button
                         variant={'outline'}
                         className="rounded-lg text-base"
@@ -369,18 +377,20 @@ export default function EventList({
                       </Button>
                     </Link>
                   </div>
-                  <div className="w-[141px] flex-shrink-0 flex items-center justify-start">
+                  <div className="flex w-[141px] flex-shrink-0 items-center justify-start">
                     <span className="inline-flex items-center text-base font-medium text-gray-700">
                       <Circle
-                        className="h-3 w-3 mr-2"
+                        className="mr-2 h-3 w-3"
                         fill={getStatusColors(activity.status).fill}
                         stroke={getStatusColors(activity.status).stroke}
                       />
                       {activity.status}
                     </span>
                   </div>
-                  <div className="w-[94px] flex-shrink-0 flex items-center justify-center text-gray-500">
-                    <Link href={`${kegiatanBasePath}/kegiatan/${activity.id}/rapor`}>
+                  <div className="flex w-[94px] flex-shrink-0 items-center justify-center text-gray-500">
+                    <Link
+                      href={`${kegiatanBasePath}/kegiatan/${activity.id}/rapor`}
+                    >
                       <Button
                         variant={'outline'}
                         className="rounded-lg text-base"
@@ -390,7 +400,7 @@ export default function EventList({
                       </Button>
                     </Link>
                   </div>
-                  <div className="w-[24px] flex-shrink-0 flex justify-center">
+                  <div className="flex w-[24px] flex-shrink-0 justify-center">
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="lg" className="p-1">
@@ -399,21 +409,21 @@ export default function EventList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="rounded-xl min-w-[120px] p-0 overflow-hidden"
+                        className="min-w-[120px] overflow-hidden rounded-xl p-0"
                       >
                         <DropdownMenuItem
                           onSelect={() => setEditingEvent(activity)}
-                          className="w-full rounded-none cursor-pointer flex items-center gap-3 px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                          className="flex w-full cursor-pointer items-center gap-3 rounded-none px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
                         >
-                          <Pencil className="text-[#00B7B7] h-4 w-4" />
+                          <Pencil className="h-4 w-4 text-[#00B7B7]" />
                           <span className="text-sm">Edit</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="mx-0 my-0 h-px bg-gray-200" />
                         <DropdownMenuItem
                           onSelect={() => handleDeleteClick(activity)}
-                          className="w-full rounded-none cursor-pointer flex items-center gap-3 px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                          className="flex w-full cursor-pointer items-center gap-3 rounded-none px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
                         >
-                          <Trash className="text-[#F16350] h-4 w-4" />
+                          <Trash className="h-4 w-4 text-[#F16350]" />
                           <span className="text-sm">Delete</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>

@@ -38,32 +38,16 @@ export const LaporanHeader = ({
   isAdminView,
 }: LaporanHeaderProps) => {
   return (
-    <header
-      className="
-      flex flex-col gap-4 
-      lg:flex-row lg:justify-between lg:items-center
-    "
-    >
+    <header className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
       <h1 className="text-[28px] font-semibold lg:text-[32px]">Laporan</h1>
 
-      <div
-        className="
-          flex flex-col gap-3 
-          w-full
-          lg:flex-row lg:gap-[19px] lg:w-auto
-        "
-      >
+      <div className="flex w-full flex-col gap-3 lg:w-auto lg:flex-row lg:gap-[19px]">
         {/* Dropdown Display */}
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="
-                flex h-[50px] items-center rounded-xl border 
-                px-7 py-3 font-semibold gap-2
-                w-full
-                lg:w-[169px]
-              "
+              className="flex h-[50px] w-full items-center gap-2 rounded-xl border px-7 py-3 font-semibold lg:w-[169px]"
             >
               <Image
                 src={Display}
@@ -75,11 +59,7 @@ export const LaporanHeader = ({
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="
-                w-[var(--radix-dropdown-menu-trigger-width)]
-                flex flex-col items-center gap-4 
-                rounded-md border py-4 px-3
-            "
+            className="flex w-[var(--radix-dropdown-menu-trigger-width)] flex-col items-center gap-4 rounded-md border px-3 py-4"
           >
             <DropdownMenuItem
               className="flex w-full min-w-[150px] flex-row items-center gap-4 text-lg font-semibold hover:bg-gray-200"
@@ -108,12 +88,7 @@ export const LaporanHeader = ({
           <DropdownMenuTrigger asChild>
             <Button
               variant="outline"
-              className="
-                flex h-[50px] items-center rounded-xl border 
-                px-7 py-3 font-semibold gap-2
-                w-full
-                lg:w-[169px]
-              "
+              className="flex h-[50px] w-full items-center gap-2 rounded-xl border px-7 py-3 font-semibold lg:w-[169px]"
             >
               <Image src={Status} alt="Status" className="h-[26px] w-[26px]" />
               <p className="text-[16px] lg:text-[18px]">Status</p>
@@ -122,11 +97,7 @@ export const LaporanHeader = ({
 
           <DropdownMenuContent
             align="end"
-            className="
-                w-[var(--radix-dropdown-menu-trigger-width)]
-                flex flex-col items-center gap-4 
-                rounded-md border py-4 px-3
-            "
+            className="flex w-[var(--radix-dropdown-menu-trigger-width)] flex-col items-center gap-4 rounded-md border px-3 py-4"
           >
             <DropdownMenuCheckboxItem
               className="flex w-full min-w-[150px] flex-row items-center gap-5 text-lg font-semibold"

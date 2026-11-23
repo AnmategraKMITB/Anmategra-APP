@@ -14,6 +14,7 @@
 import { TRPCError } from '@trpc/server';
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
+import { fakultasOfNim } from '~/lib/itb/fakultas';
 import { type MatchingStep, runPriorityMatching } from '~/lib/oprec/matching';
 import {
   type IgnoredPriority,
@@ -24,7 +25,6 @@ import {
   ownChoices,
   planWrites,
 } from '~/lib/oprec/priority';
-import { fakultasOfNim } from '~/lib/itb/fakultas';
 import { registrationEnded } from '~/lib/oprec/registration';
 import { blindCode, effectiveStatus } from '~/lib/oprec/scoring';
 import { oprecAssessProcedure } from '~/server/api/trpc';
@@ -43,9 +43,9 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { type Tx } from '../form/services';
 import { loadApplicantAnswers } from './applicant-answers';
 import { type AssessAccess, canRankDivision } from './assess-access';
-import { type Tx } from '../form/services';
 import { logAction } from './log';
 import { type PlacementDivision, loadPlacementDivisions } from './placement';
 import { recomputeDivisions } from './recompute';
@@ -137,7 +137,10 @@ type Pool = {
 };
 
 /** Semua pendaftar, pilihan, status efektif, dan daftar prioritas satu oprec. */
-export async function loadPool(db: Queryable, recruitmentId: string): Promise<Pool> {
+export async function loadPool(
+  db: Queryable,
+  recruitmentId: string,
+): Promise<Pool> {
   const [divisions, lockRows, appRows, choiceRows, priorityRows] =
     await Promise.all([
       loadPlacementDivisions(db, recruitmentId),
@@ -335,7 +338,9 @@ async function computeMatching(db: Queryable, rec: Recruitment) {
       userId: string;
       applicationChoiceId: string | null;
     }[] = [];
-    for (const part of chunks([...new Set(assigned.map((p) => p.app.userId))])) {
+    for (const part of chunks([
+      ...new Set(assigned.map((p) => p.app.userId)),
+    ])) {
       existing.push(
         ...(await db
           .select({
@@ -437,8 +442,11 @@ async function writeMatching(
     decision: 'terima' | 'tolak';
     tag: 'di_luar_pilihan' | null;
   }[] = [];
-  const accepted: { app: PoolApp; choiceId: string | null; divisionId: string }[] =
-    [];
+  const accepted: {
+    app: PoolApp;
+    choiceId: string | null;
+    divisionId: string;
+  }[] = [];
   let redirected = 0;
 
   for (const app of apps) {
@@ -570,7 +578,11 @@ async function writeMatching(
 const DivisionInput = z.object({ recruitmentId: id, divisionId: id });
 
 /** Kunci baris oprec (bersama) lalu baris divisi; ditolak bila bukan milik oprec. */
-export async function lockDivision(tx: Tx, recruitmentId: string, divisionId: string) {
+export async function lockDivision(
+  tx: Tx,
+  recruitmentId: string,
+  divisionId: string,
+) {
   const [rec] = await tx
     .select()
     .from(recruitment)
@@ -788,9 +800,7 @@ export const priorityProcedures = {
         const appById = new Map(pool.apps.map((a) => [a.id, a]));
         const invalid = input.order.filter((applicationId) => {
           const app = appById.get(applicationId);
-          const c = app
-            ? candidacy(app, division.id, rec.allowRedirect)
-            : null;
+          const c = app ? candidacy(app, division.id, rec.allowRedirect) : null;
           // Bukan kandidat (undefined) atau diblokir: keduanya tidak sah.
           return c?.blocked !== null;
         });
@@ -1040,9 +1050,8 @@ export const priorityProcedures = {
         })
         .sort(
           (x, y) =>
-            (x.after?.label ?? '￿').localeCompare(
-              y.after?.label ?? '￿',
-            ) || (x.name ?? '').localeCompare(y.name ?? ''),
+            (x.after?.label ?? '￿').localeCompare(y.after?.label ?? '￿') ||
+            (x.name ?? '').localeCompare(y.name ?? ''),
         );
 
       const replacedDecisions = pool.apps

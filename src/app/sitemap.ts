@@ -23,7 +23,9 @@ async function fetchAllIds(
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const [events, organizations] = await Promise.all([
     fetchAllIds((cursor) => api.landing.getAllEventIds({ limit: 100, cursor })),
-    fetchAllIds((cursor) => api.landing.getAllLembagaIds({ limit: 100, cursor })),
+    fetchAllIds((cursor) =>
+      api.landing.getAllLembagaIds({ limit: 100, cursor }),
+    ),
   ]);
 
   const eventEntries: MetadataRoute.Sitemap = (events ?? []).map((event) => ({

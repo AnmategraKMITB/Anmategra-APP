@@ -92,18 +92,12 @@ export function effectiveTier(unit: Unit, depth: number): number {
 }
 
 /** Apakah jenis bagian ditulis di kartu bagan. */
-export function effectiveShowLabel(
-  unit: Unit,
-  defaultValue: boolean,
-): boolean {
+export function effectiveShowLabel(unit: Unit, defaultValue: boolean): boolean {
   return unit.layout.showLabel ?? defaultValue;
 }
 
 /** Apakah tinggi kartu diseragamkan per pita. */
-export function effectiveEvenRows(
-  unit: Unit,
-  defaultValue: boolean,
-): boolean {
+export function effectiveEvenRows(unit: Unit, defaultValue: boolean): boolean {
   return unit.layout.evenRows ?? defaultValue;
 }
 
@@ -244,7 +238,8 @@ function layoutToRecord(layout: UnitLayout): Record<string, unknown> | null {
   if (layout.showLabel !== undefined) {
     entries.push(['showLabel', layout.showLabel]);
   }
-  if (layout.evenRows !== undefined) entries.push(['evenRows', layout.evenRows]);
+  if (layout.evenRows !== undefined)
+    entries.push(['evenRows', layout.evenRows]);
   if (layout.side !== undefined) entries.push(['side', layout.side]);
   if (entries.length === 0) return null;
   return Object.fromEntries(entries);

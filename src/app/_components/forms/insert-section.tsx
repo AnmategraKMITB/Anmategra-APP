@@ -27,7 +27,7 @@ const GapButton = forwardRef<
       className={cn(
         'flex w-full items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-primary-400 bg-primary-100/90 font-semibold text-primary-400 opacity-0 shadow-sm backdrop-blur-sm transition-[opacity,transform] duration-150 ease-out hover:bg-primary-200 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 group-hover/gap:opacity-100 data-[state=open]:opacity-100 [@media(hover:none)]:opacity-100',
         compact ? 'h-full scale-y-90 text-xs' : 'h-full scale-y-90 text-sm',
-        'group-hover/gap:scale-y-100 focus-visible:scale-y-100 data-[state=open]:scale-y-100',
+        'focus-visible:scale-y-100 group-hover/gap:scale-y-100 data-[state=open]:scale-y-100',
         className,
       )}
     >

@@ -4,13 +4,19 @@ import { type Kepanitiaan } from '~/types/kepanitiaan';
 import { KepanitiaanCard } from '../card/kepanitiaan-card';
 import { ListSectionWrapper } from './list-section-wrapper';
 
-export const KegiatanSection = ({ data, hideSeeAll }: { data: Kepanitiaan[]; hideSeeAll?: boolean }) => {
+export const KegiatanSection = ({
+  data,
+  hideSeeAll,
+}: {
+  data: Kepanitiaan[];
+  hideSeeAll?: boolean;
+}) => {
   return (
     <ListSectionWrapper
       className="container mx-auto mt-8"
       title="Kegiatan Terbaru"
       seeAllLink="/mahasiswa/kegiatan"
-      hideSeeAll={hideSeeAll}    
+      hideSeeAll={hideSeeAll}
     >
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {data?.map((kepanitiaan) => (

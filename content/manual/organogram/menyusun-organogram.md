@@ -61,15 +61,15 @@ Divisi, dan Subdivisi, dapat diubah di tab **Pengaturan**.
 
 ### Pintasan papan ketik
 
-| Tombol                | Fungsi                         |
-| --------------------- | ------------------------------ |
-| `Enter`               | Tambah sejajar di bawah        |
-| `Shift` + `Enter`     | Tambah di dalam                |
-| `F2` atau klik dua kali | Ganti nama                   |
-| `Alt` + `↑` `↓`       | Naik atau turun urutan         |
-| `Alt` + `←` `→`       | Naik atau turun tingkat        |
-| `Delete`              | Hapus                          |
-| `Ctrl/Cmd` + `Z`      | Urungkan (dengan `Shift`: ulangi) |
+| Tombol                  | Fungsi                            |
+| ----------------------- | --------------------------------- |
+| `Enter`                 | Tambah sejajar di bawah           |
+| `Shift` + `Enter`       | Tambah di dalam                   |
+| `F2` atau klik dua kali | Ganti nama                        |
+| `Alt` + `↑` `↓`         | Naik atau turun urutan            |
+| `Alt` + `←` `→`         | Naik atau turun tingkat           |
+| `Delete`                | Hapus                             |
+| `Ctrl/Cmd` + `Z`        | Urungkan (dengan `Shift`: ulangi) |
 
 ## Menambah jabatan
 

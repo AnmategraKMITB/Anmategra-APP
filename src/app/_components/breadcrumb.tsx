@@ -29,13 +29,15 @@ export function RaporBreadcrumb({ items }: RaporBreadcrumbProps) {
                 <BreadcrumbLink asChild>
                   <Link
                     href={item.href}
-                    className="underline text-black text-sm sm:text-base md:text-[16px]"
+                    className="text-sm text-black underline sm:text-base md:text-[16px]"
                   >
                     {item.label}
                   </Link>
                 </BreadcrumbLink>
               ) : (
-                <BreadcrumbPage className="text-sm sm:text-base md:text-[16px]">{item.label}</BreadcrumbPage>
+                <BreadcrumbPage className="text-sm sm:text-base md:text-[16px]">
+                  {item.label}
+                </BreadcrumbPage>
               )}
             </BreadcrumbItem>
             {idx < items.length - 1 && (

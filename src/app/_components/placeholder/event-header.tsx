@@ -1,15 +1,15 @@
 'use client';
 
 import { X } from 'lucide-react';
+import type { Session } from 'next-auth';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import AjuanAsosiasiForm from '~/app/lembaga/profile-kegiatan/_components/ajuan-asosiasi-form';
 import { Button } from '~/components/ui/button';
 import { Dialog, DialogContent } from '~/components/ui/dialog';
-import type { Session } from 'next-auth';
-import { api } from '~/trpc/react';
 import { useToast } from '~/hooks/use-toast';
+import { api } from '~/trpc/react';
 
 interface EventHeaderProps {
   title: string;
@@ -113,16 +113,16 @@ export function EventHeader({
           }}
         />
         <div
-          className={`absolute bottom-0 left-0 flex w-full px-4 sm:px-8 md:px-10 pb-5 sm:pb-8 md:pb-10 ${
+          className={`absolute bottom-0 left-0 flex w-full px-4 pb-5 sm:px-8 sm:pb-8 md:px-10 md:pb-10 ${
             isLembaga
               ? 'flex-row items-center justify-start gap-4 sm:gap-6'
               : 'flex-col gap-3 sm:flex-row sm:items-end sm:justify-between'
           }`}
         >
           <div
-            className={`flex gap-4 sm:gap-6 ${isLembaga ? 'items-center' : 'items-start sm:items-end flex-1'}`}
+            className={`flex gap-4 sm:gap-6 ${isLembaga ? 'items-center' : 'flex-1 items-start sm:items-end'}`}
           >
-            <div className="relative h-16 w-16 sm:h-20 sm:w-20 md:h-28 md:w-28 overflow-hidden rounded-full border-[1px] aspect-square flex-shrink-0 self-start md:self-auto">
+            <div className="relative aspect-square h-16 w-16 flex-shrink-0 self-start overflow-hidden rounded-full border-[1px] sm:h-20 sm:w-20 md:h-28 md:w-28 md:self-auto">
               <Image
                 src={logoImage}
                 alt="Event logo"
@@ -134,7 +134,7 @@ export function EventHeader({
 
             <div className={`flex flex-col gap-1 ${isLembaga ? 'pb-1' : ''}`}>
               <h1
-                className={`font-bold text-white leading-tight ${
+                className={`font-bold leading-tight text-white ${
                   isLembaga
                     ? 'text-lg sm:text-2xl md:text-3xl'
                     : 'text-lg sm:text-2xl md:text-3xl'
@@ -143,19 +143,21 @@ export function EventHeader({
                 {title}
               </h1>
               <p
-                className={`font-light text-white leading-tight ${
-                  isLembaga ? 'text-sm sm:text-lg md:text-xl' : 'text-sm sm:text-lg md:text-xl'
+                className={`font-light leading-tight text-white ${
+                  isLembaga
+                    ? 'text-sm sm:text-lg md:text-xl'
+                    : 'text-sm sm:text-lg md:text-xl'
                 }`}
               >
                 {organizer}
               </p>
               {!isLembaga && (
-                <div className="mt-3 sm:mt-2 flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-2 sm:gap-3">
+                <div className="mt-3 flex flex-col gap-2 sm:mt-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
                   {linkDaftar && (
                     <Link href={linkDaftar} className="w-full sm:w-auto">
                       <Button
                         size="lg"
-                        className="w-full sm:w-auto sm:max-w-[240px] rounded-xl bg-[#00B7B7] text-sm sm:text-lg text-white hover:bg-[#82CBDE] active:bg-[#D9F4F4]"
+                        className="w-full rounded-xl bg-[#00B7B7] text-sm text-white hover:bg-[#82CBDE] active:bg-[#D9F4F4] sm:w-auto sm:max-w-[240px] sm:text-lg"
                       >
                         Daftar menjadi Panitia
                       </Button>
@@ -165,13 +167,16 @@ export function EventHeader({
                     <Button
                       size="lg"
                       onClick={() => {
-                        if (isSubmitted && matchingRequest?.status === 'Pending') {
+                        if (
+                          isSubmitted &&
+                          matchingRequest?.status === 'Pending'
+                        ) {
                           setShowConfirmation(true);
                         } else if (!isSubmitted) {
                           setIsOpen(true);
                         }
                       }}
-                      className={`w-full sm:w-auto sm:max-w-[240px] rounded-xl text-sm sm:text-lg text-white flex items-center justify-center gap-2 ${
+                      className={`flex w-full items-center justify-center gap-2 rounded-xl text-sm text-white sm:w-auto sm:max-w-[240px] sm:text-lg ${
                         isSubmitted && matchingRequest?.status === 'Pending'
                           ? 'bg-[#F16350] hover:bg-[#C04F40] active:bg-[#F16350]'
                           : 'bg-[#00B7B7] hover:bg-[#00A3A3] active:bg-[#008F8F]'
@@ -179,7 +184,7 @@ export function EventHeader({
                     >
                       {isSubmitted && matchingRequest?.status === 'Pending' ? (
                         <>
-                          <X className="w-5 h-5" />
+                          <X className="h-5 w-5" />
                           Batalkan Pengajuan
                         </>
                       ) : isSubmitted ? (
@@ -214,24 +219,24 @@ export function EventHeader({
       {/* Confirmation Dialog */}
       <Dialog open={showConfirmation} onOpenChange={setShowConfirmation}>
         <DialogContent
-          className="w-4/5 md:w-712px mx-auto p-6 bg-white rounded-3xl"
+          className="md:w-712px mx-auto w-4/5 rounded-3xl bg-white p-6"
           aria-describedby={undefined}
         >
           <div className="text-center">
-            <p className="text-lg md:text-xl font-regular text-gray-900 mt-2 mb-2">
+            <p className="font-regular mb-2 mt-2 text-lg text-gray-900 md:text-xl">
               Apakah Anda yakin ingin membatalkan pengajuan asosiasi?
             </p>
           </div>
-          <div className="flex gap-5 justify-center">
+          <div className="flex justify-center gap-5">
             <Button
               onClick={() => setShowConfirmation(false)}
-              className="px-10 bg-[#F16350] hover:bg-[#E55541] text-white font-medium rounded-xl"
+              className="rounded-xl bg-[#F16350] px-10 font-medium text-white hover:bg-[#E55541]"
             >
               BATAL
             </Button>
             <Button
               onClick={handleConfirmCancel}
-              className="px-10 bg-[#4A6FA5] hover:bg-[#3A5F95] text-white font-medium rounded-xl"
+              className="rounded-xl bg-[#4A6FA5] px-10 font-medium text-white hover:bg-[#3A5F95]"
             >
               YAKIN
             </Button>

@@ -22,13 +22,13 @@ services:
       POSTGRES_DB: anmategra
       DB_DUMP_FILE: ${DB_DUMP_FILE:-anmategra.dump}
     ports:
-      - "${DB_PORT:-5433}:5432"
+      - '${DB_PORT:-5433}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./docker/local/initdb:/docker-entrypoint-initdb.d:ro
       - ${DB_DUMP_DIR:-..}:/seed:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d anmategra"]
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d anmategra']
       interval: 2s
       timeout: 3s
       retries: 60
@@ -41,7 +41,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - '${APP_PORT:-3000}:3000'
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/anmategra
       NEXTAUTH_URL: http://localhost:${APP_PORT:-3000}

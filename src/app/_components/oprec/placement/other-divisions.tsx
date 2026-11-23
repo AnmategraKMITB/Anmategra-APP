@@ -15,12 +15,16 @@ export function OtherDivisions({
 }) {
   if (divisions.length === 0) return null;
   return (
-    <section aria-label="Divisi lain yang boleh dilihat" className="mt-6 grid gap-2">
+    <section
+      aria-label="Divisi lain yang boleh dilihat"
+      className="mt-6 grid gap-2"
+    >
       <h2 className="text-lg font-semibold text-neutral-1000">
         Lihat divisi lain
       </h2>
       <p className="text-sm text-neutral-700">
-        Kamu hanya bisa melihat nama yang sudah diterima, tanpa mengubah apa pun.
+        Kamu hanya bisa melihat nama yang sudah diterima, tanpa mengubah apa
+        pun.
       </p>
       {divisions.map((division) => (
         <AcceptedForDivision

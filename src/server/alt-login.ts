@@ -1,4 +1,3 @@
-import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import {
   and,
   count,
@@ -11,6 +10,7 @@ import {
   ne,
   or,
 } from 'drizzle-orm';
+import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { db } from '~/server/db';
 import { altLoginClaim, mahasiswa, users } from '~/server/db/schema';
 import { insertMahasiswa, profileFromNim } from '~/server/mahasiswa-record';
@@ -34,11 +34,7 @@ const MAX_CLAIMS_PER_EMAIL = 3;
 const MAX_CLAIMS_PER_IP_PER_HOUR = 10;
 
 export type AltClaimErrorCode =
-  | 'nim_invalid'
-  | 'ktm_missing'
-  | 'rate_email'
-  | 'rate_ip'
-  | 'akun_khusus';
+  'nim_invalid' | 'ktm_missing' | 'rate_email' | 'rate_ip' | 'akun_khusus';
 
 export class AltClaimError extends Error {
   constructor(
@@ -385,7 +381,11 @@ export async function approveAltClaim(
     .where(eq(altLoginClaim.id, claim.id));
   await database
     .update(altLoginClaim)
-    .set({ revokedAt: now, revokedReason: 'sengketa-kalah', revokedBy: adminId })
+    .set({
+      revokedAt: now,
+      revokedReason: 'sengketa-kalah',
+      revokedBy: adminId,
+    })
     .where(
       and(
         eq(altLoginClaim.nim, claim.nim),

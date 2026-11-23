@@ -2,7 +2,6 @@
 
 // Simulasi layar Hasil oprec: keadaan hasil, rilis ke pendaftar, rekap per
 // divisi, dan tabel seluruh pendaftar. Semua data hanya ada di memori.
-
 // Library Import
 import {
   ArrowRight,
@@ -13,7 +12,6 @@ import {
   X,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import {
@@ -22,15 +20,15 @@ import {
   DEMO_LEMBAGA,
   type DemoDivision,
 } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Modal,
   Pill,
   TabBar,
+  inputClass,
   tdClass,
   thClass,
   useFlash,
@@ -56,8 +54,7 @@ const STEPS: DemoStep[] = [
     id: 'lihat',
     title:
       'Klik satu baris di tabel untuk melihat apa yang tampil bagi pendaftar itu',
-    hint:
-      'Kembalikan saringan ke **Semua status** bila perlu. Pendaftar hanya melihat diterima di divisi mana atau belum diterima, tanpa nilai maupun alasan.',
+    hint: 'Kembalikan saringan ke **Semua status** bila perlu. Pendaftar hanya melihat diterima di divisi mana atau belum diterima, tanpa nilai maupun alasan.',
   },
   {
     id: 'tarik',
@@ -481,9 +478,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                           Status akhir
                         </th>
                         <th className={cn(thClass, 'min-w-52')}>Pilihan</th>
-                        <th className={cn(thClass, 'min-w-36')}>
-                          Diterima di
-                        </th>
+                        <th className={cn(thClass, 'min-w-36')}>Diterima di</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -495,10 +490,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                             tabIndex={0}
                             onClick={() => openViewer(row.id)}
                             onKeyDown={(event) => {
-                              if (
-                                event.key !== 'Enter' &&
-                                event.key !== ' '
-                              ) {
+                              if (event.key !== 'Enter' && event.key !== ' ') {
                                 return;
                               }
                               event.preventDefault();
@@ -742,7 +734,8 @@ function Body({ guide }: { guide: DemoGuide }) {
                   Belum diterima
                 </p>
                 <p className="mt-1 text-sm text-neutral-700">
-                  Terima kasih sudah mendaftar. Kamu belum diterima di oprec ini.
+                  Terima kasih sudah mendaftar. Kamu belum diterima di oprec
+                  ini.
                 </p>
               </>
             )}

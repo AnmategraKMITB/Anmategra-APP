@@ -21,8 +21,8 @@ import {
   FormMessage,
 } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
-import { api } from '~/trpc/react';
 import { toast } from '~/hooks/use-toast';
+import { api } from '~/trpc/react';
 
 const EditAnggotaSchema = z.object({
   nama: z.string().min(1, 'Nama wajib diisi'),
@@ -84,7 +84,7 @@ const EditAnggotaKegiatanForm: React.FC<EditAnggotaKegiatanFormProps> = ({
       console.error('eventId is required');
       return;
     }
-    
+
     mutation.mutate(
       {
         lembagaId,
@@ -101,14 +101,14 @@ const EditAnggotaKegiatanForm: React.FC<EditAnggotaKegiatanFormProps> = ({
           toast({
             title: 'Berhasil mengedit panitia',
             description: 'Data panitia telah diperbarui.',
-          })
+          });
         },
         onError: (error) => {
           toast({
             title: 'Gagal mengedit panitia',
             description: error.message,
             variant: 'destructive',
-          })
+          });
         },
       },
     );
@@ -118,7 +118,7 @@ const EditAnggotaKegiatanForm: React.FC<EditAnggotaKegiatanFormProps> = ({
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-center text-[#00B7B7]">
+          <DialogTitle className="text-center text-2xl font-semibold text-[#00B7B7]">
             Edit Panitia
           </DialogTitle>
           <DialogDescription className="text-center text-[#98A2B3]">
@@ -199,7 +199,7 @@ const EditAnggotaKegiatanForm: React.FC<EditAnggotaKegiatanFormProps> = ({
             />
             <Button
               type="submit"
-              className="w-full bg-[#00B7B7] hover:bg-[#00B7B7]/85 text-white"
+              className="w-full bg-[#00B7B7] text-white hover:bg-[#00B7B7]/85"
               disabled={mutation.isPending}
             >
               {mutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}

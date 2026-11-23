@@ -34,8 +34,7 @@ export async function HasilPage({
 
   const event = await api.event.getByID({ id: kegiatanId });
   const isAdmin = found.access.isAdmin;
-  const canPlacement =
-    isAdmin || found.access.deciderDivisionIds.size > 0;
+  const canPlacement = isAdmin || found.access.deciderDivisionIds.size > 0;
 
   // Nama yang sudah diterima per divisi, lengkap (melewati paginasi tabel).
   const accepted = await db
@@ -51,10 +50,7 @@ export async function HasilPage({
       applicationChoice,
       eq(applicationChoice.id, placementDecision.choiceId),
     )
-    .innerJoin(
-      application,
-      eq(application.id, applicationChoice.applicationId),
-    )
+    .innerJoin(application, eq(application.id, applicationChoice.applicationId))
     .innerJoin(users, eq(users.id, application.userId))
     .leftJoin(mahasiswa, eq(mahasiswa.userId, users.id))
     .where(
@@ -86,9 +82,11 @@ export async function HasilPage({
       backHref={
         isAdmin ? `${basePath}/kegiatan/${kegiatanId}/oprec` : undefined
       }
-      penempatanHref={canPlacement
-        ? `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/penempatan`
-        : undefined}
+      penempatanHref={
+        canPlacement
+          ? `${basePath}/kegiatan/${kegiatanId}/oprec/${recruitmentId}/penempatan`
+          : undefined
+      }
       acceptedByDivision={acceptedByDivision}
       tabs={
         <OprecTabs

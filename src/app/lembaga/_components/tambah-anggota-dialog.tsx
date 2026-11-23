@@ -73,7 +73,7 @@ export function TambahAnggotaDialog({
         <DropdownMenuTrigger asChild>
           <Button
             variant="light_blue"
-            className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+            className="flex items-center gap-2 rounded-[16px] px-3 shadow-none"
           >
             <Image src={Plus} alt="Tambah Anggota" width={24} height={24} />
             Tambah Anggota Baru
@@ -82,7 +82,7 @@ export function TambahAnggotaDialog({
         <DropdownMenuContent className="w-56">
           <DropdownMenuItem
             onClick={() => handleModeSelection('manual')}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex cursor-pointer items-center gap-2"
           >
             <Image
               src="/images/miscellaneous/new.svg"
@@ -95,7 +95,7 @@ export function TambahAnggotaDialog({
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => handleModeSelection('csv')}
-            className="flex items-center gap-2 cursor-pointer"
+            className="flex cursor-pointer items-center gap-2"
           >
             <Image
               src="/images/miscellaneous/add-csv-hover.svg"
@@ -114,7 +114,7 @@ export function TambahAnggotaDialog({
           className={`w-full ${dialogMode === 'csv' ? 'max-w-4xl' : 'max-w-xl'}`}
         >
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold text-center text-[#00B7B7]">
+            <DialogTitle className="text-center text-2xl font-semibold text-[#00B7B7]">
               {dialogMode === 'manual' && 'Tambah Anggota Manual'}
               {dialogMode === 'csv' && 'Upload Excel Anggota'}
             </DialogTitle>
@@ -140,9 +140,7 @@ export function TambahAnggotaDialog({
             <div>
               <CsvFormContent
                 importType={isAnggota ? 'lembaga-anggota' : 'kegiatan-anggota'}
-                entityId={
-                  isAnggota ? (activeLembagaId ?? '') : (eventId ?? '')
-                }
+                entityId={isAnggota ? (activeLembagaId ?? '') : (eventId ?? '')}
                 onImportSuccess={() => {
                   toast({
                     title: 'Import Berhasil',

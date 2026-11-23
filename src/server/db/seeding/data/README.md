@@ -2,27 +2,27 @@
 
 ## Files
 
-| file | status | purpose |
-|---|---|---|
-| `lembaga-official.csv` | committed | real institution accounts — consumed by `bun run db:seed-lembaga` |
-| `raw/lembaga-<date>.json` | committed | raw capture of the kemahasiswaan.itb.ac.id registry |
-| `raw/merge-report.csv` | committed | xlsx ↔ CSV match report (provenance for every patched field) |
-| `raw/*.xlsx` | **gitignored** | official KM ITB database — contains officers' personal data (NIM, personal email, WhatsApp); never commit |
-| other `*.csv` (via `generate_csv.py`) | committed | dev-only Faker fixtures for `bun run db:seed` |
+| file                                  | status         | purpose                                                                                                   |
+| ------------------------------------- | -------------- | --------------------------------------------------------------------------------------------------------- |
+| `lembaga-official.csv`                | committed      | real institution accounts — consumed by `bun run db:seed-lembaga`                                         |
+| `raw/lembaga-<date>.json`             | committed      | raw capture of the kemahasiswaan.itb.ac.id registry                                                       |
+| `raw/merge-report.csv`                | committed      | xlsx ↔ CSV match report (provenance for every patched field)                                              |
+| `raw/*.xlsx`                          | **gitignored** | official KM ITB database — contains officers' personal data (NIM, personal email, WhatsApp); never commit |
+| other `*.csv` (via `generate_csv.py`) | committed      | dev-only Faker fixtures for `bun run db:seed`                                                             |
 
 ## `lembaga-official.csv` format
 
-| column | required | notes |
-|---|---|---|
-| `email` | yes | rows without email are skipped by the seed with a named warning |
-| `name` | yes | |
-| `acronym` | no | short name / nama singkatan, e.g. `HMTG` (max 50 chars); blank leaves any existing value alone |
-| `description` | no | neutral factual Indonesian, 1–2 sentences |
-| `founding_date` | no | ISO date; unknown stays null (column nullable since migration `0017`) |
-| `type` | yes | `Himpunan` / `UKM` / `Kepanitiaan` / `BSO` (`BSO` added in migration `0018`) |
-| `major` | Himpunan only | official program-studi name from the KM ITB database |
-| `field` | UKM only | official Fokus Rumpun: `Agama`, `Pendidikan`, `Kajian`, `Media`, `Olahraga dan Kesehatan`, `Seni`, `Budaya`, `Budaya - Paguyuban` |
-| `member_count` | no | integer |
+| column          | required      | notes                                                                                                                             |
+| --------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `email`         | yes           | rows without email are skipped by the seed with a named warning                                                                   |
+| `name`          | yes           |                                                                                                                                   |
+| `acronym`       | no            | short name / nama singkatan, e.g. `HMTG` (max 50 chars); blank leaves any existing value alone                                    |
+| `description`   | no            | neutral factual Indonesian, 1–2 sentences                                                                                         |
+| `founding_date` | no            | ISO date; unknown stays null (column nullable since migration `0017`)                                                             |
+| `type`          | yes           | `Himpunan` / `UKM` / `Kepanitiaan` / `BSO` (`BSO` added in migration `0018`)                                                      |
+| `major`         | Himpunan only | official program-studi name from the KM ITB database                                                                              |
+| `field`         | UKM only      | official Fokus Rumpun: `Agama`, `Pendidikan`, `Kajian`, `Media`, `Olahraga dan Kesehatan`, `Seni`, `Budaya`, `Budaya - Paguyuban` |
+| `member_count`  | no            | integer                                                                                                                           |
 
 ## Common maintenance tasks
 
@@ -96,7 +96,7 @@ have yet show up as `unmatched theirs` in the merge summary — add a one-line e
 `ADDITIONS` in `scripts/apply-merge.cjs` (with a hand-written description) and re-run.
 
 **Limitation — email is the join key:** rows are matched to existing accounts by
-email, so a *changed* email is not an update, it is a new account — seeding adds a
+email, so a _changed_ email is not an update, it is a new account — seeding adds a
 second one and orphans the old (along with anything the org filled in through the
 app). Fix the email in the database first, then seed. Deletions are never
 automatic: a disbanded org stays until removed by hand.
@@ -114,13 +114,13 @@ bun run db:seed-mahasiswa --file ~/maba26.csv --dry-run   # plan only
 bun run db:seed-mahasiswa --file ~/maba26.csv
 ```
 
-| column | required | notes |
-|---|---|---|
-| `nim` | yes | 8 digits; the NIM the student currently logs in with (TPB NIM, or the jurusan NIM for programs that start in a jurusan, e.g. IUP) |
-| `name` | yes | `nama` is accepted too |
-| `email` | no | checked only: the account email is always `<nim>@mahasiswa.itb.ac.id`, which is what the Microsoft login matches on |
-| `prodi` | no | used only when the NIM's 3-digit code is not in `kode-program-studi.json`; otherwise differences are reported and the table's name is kept, so naming stays consistent with existing data |
-| `faculty` | no | ignored |
+| column    | required | notes                                                                                                                                                                                     |
+| --------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `nim`     | yes      | 8 digits; the NIM the student currently logs in with (TPB NIM, or the jurusan NIM for programs that start in a jurusan, e.g. IUP)                                                         |
+| `name`    | yes      | `nama` is accepted too                                                                                                                                                                    |
+| `email`   | no       | checked only: the account email is always `<nim>@mahasiswa.itb.ac.id`, which is what the Microsoft login matches on                                                                       |
+| `prodi`   | no       | used only when the NIM's 3-digit code is not in `kode-program-studi.json`; otherwise differences are reported and the table's name is kept, so naming stays consistent with existing data |
+| `faculty` | no       | ignored                                                                                                                                                                                   |
 
 `angkatan` comes from NIM digits 4–5. The seed only adds: an existing email or NIM is
 skipped and never changed, and everything is written in one transaction. Its output never

@@ -16,9 +16,7 @@
     "react-perf",
     "vitest"
   ],
-  "jsPlugins": [
-    "./lint/drizzle.js"
-  ],
+  "jsPlugins": ["./lint/drizzle.js"],
   "ignorePatterns": [
     ".next/**",
     "node_modules/**",
@@ -160,10 +158,7 @@
     // Mati: urutan import diatur formatter (bun fmt).
     "eslint/sort-imports": "off",
     // selaras dengan typescript/consistent-type-imports (inline-type-imports).
-    "import/consistent-type-specifier-style": [
-      "error",
-      "prefer-inline"
-    ],
+    "import/consistent-type-specifier-style": ["error", "prefer-inline"],
     "import/dynamic-import-chunkname": "error",
     "import/enforce-node-protocol-usage": "error",
     "import/no-anonymous-default-export": "error",
@@ -181,9 +176,7 @@
     "import/no-unassigned-import": [
       "error",
       {
-        "allow": [
-          "**/*.css"
-        ]
+        "allow": ["**/*.css"]
       }
     ],
     // Mati: bug bun canary: paths tsconfig hanya ter-resolve bila satu berkas di-lint (2718 positif palsu); impor yang tidak ada tetap gagal di bun check (TS2307).
@@ -196,12 +189,8 @@
     "jsx-a11y/alt-text": [
       "error",
       {
-        "elements": [
-          "img"
-        ],
-        "img": [
-          "Image"
-        ]
+        "elements": ["img"],
+        "img": ["Image"]
       }
     ],
     "jsx-a11y/aria-props": "error",
@@ -281,10 +270,7 @@
     "react/jsx-filename-extension": [
       "error",
       {
-        "extensions": [
-          ".jsx",
-          ".tsx"
-        ]
+        "extensions": [".jsx", ".tsx"]
       }
     ],
     "react/jsx-first-prop-new-line": "error",
@@ -344,12 +330,7 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
-      ],
+      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       "rules": {
         "no-var": "error",
         "prefer-const": [
@@ -462,19 +443,13 @@
         "drizzle/enforce-delete-with-where": [
           "error",
           {
-            "drizzleObjectName": [
-              "db",
-              "ctx.db"
-            ]
+            "drizzleObjectName": ["db", "ctx.db"]
           }
         ],
         "drizzle/enforce-update-with-where": [
           "error",
           {
-            "drizzleObjectName": [
-              "db",
-              "ctx.db"
-            ]
+            "drizzleObjectName": ["db", "ctx.db"]
           }
         ]
       }
@@ -491,9 +466,7 @@
       }
     },
     {
-      "files": [
-        "**/*.cjs"
-      ],
+      "files": ["**/*.cjs"],
       "rules": {
         "unicorn/prefer-module": "off",
         "typescript/no-require-imports": "off"

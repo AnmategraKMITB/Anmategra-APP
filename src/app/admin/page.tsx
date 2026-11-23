@@ -1,8 +1,8 @@
 // Props Import
+import { redirect } from 'next/navigation';
 import { type ColumnProps } from '~/app/_components/laporan/board/report-column';
 // Components Import
 import { LaporanMainContainer } from '~/app/_components/laporan/laporan-main-container';
-import { redirect } from 'next/navigation';
 import { hasAdminPermission } from '~/server/api/admin-permissions';
 import { loadAdminAccess } from '~/server/api/trpc';
 import { getServerAuthSession } from '~/server/auth';
@@ -31,7 +31,9 @@ export default async function LaporanPage() {
   const session = await getServerAuthSession();
   if (!session) redirect('/authentication?callbackUrl=/admin');
   const access = await loadAdminAccess(db, session.user.id);
-  const permissions = access?.isSuperadmin ? ['*'] : (access?.permissions ?? []);
+  const permissions = access?.isSuperadmin
+    ? ['*']
+    : (access?.permissions ?? []);
   if (!hasAdminPermission(permissions, 'reports.read')) {
     const next = FALLBACKS.find(([, p]) => hasAdminPermission(permissions, p));
     redirect(next ? next[0] : `/${session.user.role}`);
