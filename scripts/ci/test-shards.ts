@@ -137,6 +137,9 @@ export function filesInJunit(xml: string): string[] {
   return [...files].sort();
 }
 
+const lines = (f: string) =>
+  existsSync(f) ? readFileSync(f, 'utf8').split('\n').filter(Boolean) : [];
+
 function main() {
   const { positionals, values } = parseArgs({
     allowPositionals: true,
@@ -194,8 +197,6 @@ function main() {
   }
 
   if (positionals[0] === 'verify') {
-    const lines = (f: string) =>
-      existsSync(f) ? readFileSync(f, 'utf8').split('\n').filter(Boolean) : [];
     const mine = lines(`${out}/files.txt`);
     const forced = lines(`${out}/forced.txt`);
     const mode = readFileSync(`${out}/mode`, 'utf8');
