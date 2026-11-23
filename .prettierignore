@@ -12,3 +12,5 @@ docs/api/schema.dbml
 public/fonts/
 # Ditulis `bun lint --suppress-all` / `lint:prune` dalam formatnya sendiri.
 oxlint-suppressions.json
+# Keluaran drizzle-kit (migrasi + snapshot); biarkan dalam format generatornya.
+drizzle/
