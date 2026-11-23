@@ -3,13 +3,13 @@ name: CI
 on:
   pull_request:
     branches: ['develop']
-  # Push hanya di main (jaring pengaman produksi). Untuk develop, kode yang
-  # masuk sudah lulus CI di PR-nya (branch protection mewajibkan check hijau),
-  # jadi menjalankan CI lagi setelah merge hanya membuang waktu runner.
-  # push:
-    # branches: ['main']
+  # Tiap PR lulus CI sendiri-sendiri, tetapi beberapa PR yang di-merge berurutan
+  # tanpa rebase bisa rusak saat digabung (mis. package-lock.json hasil merge
+  # otomatis membuat `npm ci` gagal). Jalankan lagi setelah merge ke develop.
+  push:
+    branches: ['develop']
 
-# Push baru ke PR yang sama membatalkan run sebelumnya. Run di main tidak
+# Push baru ke PR yang sama membatalkan run sebelumnya. Run di develop tidak
 # dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
