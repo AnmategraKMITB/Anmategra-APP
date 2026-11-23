@@ -31,7 +31,7 @@ const TEST_FILE = /(\.test|_test|\.spec|_spec)\.(c|m)?[jt]sx?$/;
  * Masukan yang tidak terlihat lewat graf import. Bila salah satunya berubah,
  * seleksi dimatikan dan semua tes dijalankan.
  */
-export const RERUN_ALL = [
+const RERUN_ALL = [
   'package.json',
   'bun.lock',
   'bunfig.toml', // preload tes
@@ -45,7 +45,7 @@ export const RERUN_ALL = [
 ];
 
 /** Tes yang membaca berkas lewat fs, bukan import: tes itu ikut bila berkasnya berubah. */
-export const FS_INPUTS: Record<string, string[]> = {
+const FS_INPUTS: Record<string, string[]> = {
   // Memindai sumber router untuk penulisan status langsung.
   'src/server/api/lifecycle-writes.test.ts': ['src/server/api/'],
   // Menjalankan skrip entrypoint Docker.
@@ -55,7 +55,7 @@ export const FS_INPUTS: Record<string, string[]> = {
 const matches = (file: string, inputs: string[]) =>
   inputs.some((i) => (i.endsWith('/') ? file.startsWith(i) : file === i));
 
-export function changedFiles(base: string): string[] {
+function changedFiles(base: string): string[] {
   return execFileSync('git', ['diff', '--name-only', base, 'HEAD'], {
     encoding: 'utf8',
   })
@@ -63,7 +63,14 @@ export function changedFiles(base: string): string[] {
     .filter(Boolean);
 }
 
-export function listTestFiles(): string[] {
+/** Salinan terurut; `toSorted` belum ada di lib ES2022 tsconfig. */
+function sorted<T>(items: Iterable<T>, compare?: (a: T, b: T) => number): T[] {
+  const copy = [...items];
+  copy.sort(compare);
+  return copy;
+}
+
+function listTestFiles(): string[] {
   const out = execFileSync(
     'git',
     ['ls-files', '--cached', '--others', '--exclude-standard'],
@@ -71,37 +78,46 @@ export function listTestFiles(): string[] {
       encoding: 'utf8',
     },
   );
-  return out
-    .split('\n')
-    .filter((f) => TEST_FILE.test(f) && !f.split('/').includes('node_modules'))
-    .sort();
+  return sorted(
+    out
+      .split('\n')
+      .filter(
+        (f) => TEST_FILE.test(f) && !f.split('/').includes('node_modules'),
+      ),
+  );
 }
 
-export function readTimings(paths: string[]): Map<string, number> {
+function readTimings(paths: string[]): Map<string, number> {
   const times = new Map<string, number>();
   for (const path of paths) {
     if (!existsSync(path)) continue;
-    const data = JSON.parse(readFileSync(path, 'utf8')) as {
-      files?: Record<string, number>;
-    };
-    for (const [file, ms] of Object.entries(data.files ?? {})) {
-      times.set(file, Math.max(times.get(file) ?? 0, ms));
+    const data: unknown = JSON.parse(readFileSync(path, 'utf8'));
+    const files =
+      typeof data === 'object' && data !== null && 'files' in data
+        ? data.files
+        : null;
+    if (typeof files !== 'object' || files === null) continue;
+    for (const [file, ms] of Object.entries(files)) {
+      if (typeof ms === 'number') {
+        times.set(file, Math.max(times.get(file) ?? 0, ms));
+      }
     }
   }
   return times;
 }
 
 /** LPT: berkas terlama lebih dulu, selalu ke shard yang paling ringan. */
-export function partition(
+function partition(
   files: string[],
   times: Map<string, number>,
   shards: number,
 ): string[][] {
-  const known = [...times.values()].sort((a, b) => a - b);
+  const known = sorted(times.values(), (a, b) => a - b);
   // Berkas baru (belum punya durasi) dianggap sepanjang median.
   const fallback = known.length ? known[Math.floor(known.length / 2)]! : 1000;
   const cost = (f: string) => times.get(f) ?? fallback;
-  const order = [...files].sort(
+  const order = sorted(
+    files,
     (a, b) => cost(b) - cost(a) || a.localeCompare(b),
   );
   const bins = Array.from({ length: shards }, () => ({
@@ -113,10 +129,10 @@ export function partition(
     bin.files.push(file);
     bin.load += cost(file);
   }
-  return bins.map((b) => b.files.sort());
+  return bins.map((b) => sorted(b.files));
 }
 
-export function assertCoversAll(all: string[], parts: string[][]) {
+function assertCoversAll(all: string[], parts: string[][]) {
   const seen = parts.flat();
   const dupes = seen.filter((f, i) => seen.indexOf(f) !== i);
   const missing = all.filter((f) => !seen.includes(f));
@@ -129,12 +145,12 @@ export function assertCoversAll(all: string[], parts: string[][]) {
 }
 
 /** Berkas tes dari laporan JUnit `bun test`: testsuite tingkat atas, name == file. */
-export function filesInJunit(xml: string): string[] {
+function filesInJunit(xml: string): string[] {
   const files = new Set<string>();
   for (const m of xml.matchAll(/<testsuite name="([^"]+)" file="([^"]+)"/g)) {
     if (m[1] === m[2]) files.add(m[2]!);
   }
-  return [...files].sort();
+  return sorted(files);
 }
 
 const lines = (f: string) =>
@@ -227,4 +243,4 @@ function main() {
   process.exit(2);
 }
 
-if (import.meta.main) main();
+main();
