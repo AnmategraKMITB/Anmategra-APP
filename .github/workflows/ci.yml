@@ -35,6 +35,7 @@ jobs:
       # Pelanggaran lama dicatat di oxlint-suppressions.json; pelanggaran baru gagal.
       # Kalau kamu memperbaiki pelanggaran lama, jalankan `bun run lint:prune`.
       - run: bun run lint
+      - run: bun fmt --check
 
   typecheck:
     name: Typecheck
