@@ -39,6 +39,7 @@ import { applicantProcedures } from './applicants';
 import { assessProcedures } from './assess';
 import { assessorProcedures } from './assessors';
 import { criteriaProcedures } from './criteria';
+import { divisionSettingsProcedures } from './division-settings';
 import { exportProcedures } from './export';
 import { exportAnswerProcedures } from './export-answers';
 import { flagProcedures } from './flags';
@@ -86,6 +87,7 @@ export const oprecRouter = createTRPCRouter({
   ...criteriaProcedures,
   ...flagProcedures,
   ...assessorProcedures,
+  ...divisionSettingsProcedures,
   ...placementProcedures,
   ...priorityProcedures,
   ...priorityImportProcedures,

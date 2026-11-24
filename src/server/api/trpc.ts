@@ -10,22 +10,18 @@ import { TRPCError, initTRPC } from '@trpc/server';
 import { and, eq, gt, isNull, or } from 'drizzle-orm';
 import superjson from 'superjson';
 import { type ZodError, type ZodIssue, z } from 'zod';
+import { env } from '~/env';
 import {
   type AdminPermission,
   hasAdminPermission,
 } from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
+import { resolveDivisionScope } from '~/server/api/routers/oprec/division-scope';
+import { loadDivisionPengurus } from '~/server/api/routers/oprec/pengurus';
+import { isEmergencySuperadmin } from '~/server/api/superadmin';
 import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
-
-import { env } from '~/env';
-import { isEmergencySuperadmin } from '~/server/api/superadmin';
-import {
-  adminPermission,
-  form,
-  recruitment,
-  users,
-} from '~/server/db/schema';
+import { adminPermission, form, recruitment, users } from '~/server/db/schema';
 
 // Logika "siapa boleh mengelola lembaga/periode" ada di access.ts supaya bisa diuji
 // tanpa memuat NextAuth; diekspor ulang di sini agar impor lama tetap berlaku.
@@ -82,7 +78,8 @@ export type ApiMeta = {
     | 'event-scoped'
     | 'form-scoped'
     | 'oprec-scoped'
-    | 'oprec-assess';
+    | 'oprec-assess'
+    | 'oprec-division';
   /**
    * Sesi akses alternatif (Google pribadi) ditolak di semua prosedur kecuali
    * yang diberi penanda ini. `claim` = hanya klaim aktif; `any` = termasuk
@@ -399,34 +396,34 @@ function rawId(value: unknown): string | undefined {
  */
 function lembagaScopedFor(features: readonly GrantFeature[]) {
   return protectedProcedure
-  .meta({ access: 'lembaga-scoped' })
-  .use(timingMiddleware)
-  .use(async ({ ctx, next, getRawInput }) => {
-    const raw = (await getRawInput()) as { lembagaId?: unknown };
-    const lembagaId = rawId(raw?.lembagaId);
-    if (!lembagaId) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'lembagaId is required',
-      });
-    }
+    .meta({ access: 'lembaga-scoped' })
+    .use(timingMiddleware)
+    .use(async ({ ctx, next, getRawInput }) => {
+      const raw = (await getRawInput()) as { lembagaId?: unknown };
+      const lembagaId = rawId(raw?.lembagaId);
+      if (!lembagaId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'lembagaId is required',
+        });
+      }
       let access: Awaited<ReturnType<typeof canManageLembaga>> = null;
       for (const feature of features) {
         access = await canManageLembaga(
-      ctx.db,
-      ctx.session.user.id,
-      ctx.session.user.role,
-      ctx.session.user.lembagaId,
-      lembagaId,
+          ctx.db,
+          ctx.session.user.id,
+          ctx.session.user.role,
+          ctx.session.user.lembagaId,
+          lembagaId,
           feature,
-    );
+        );
         if (access) break;
       }
-    if (!access) {
-      throw new TRPCError({ code: 'FORBIDDEN' });
-    }
-    return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
-  });
+      if (!access) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+      return next({ ctx: { ...ctx, lembagaAccess: access, lembagaId } });
+    });
 }
 
 export const lembagaScopedProcedure = lembagaScopedFor(['admin']);
@@ -454,34 +451,34 @@ export const lembagaOwnerProcedure = lembagaScopedProcedure
  */
 function eventScopedFor(features: readonly GrantFeature[]) {
   return protectedProcedure
-  .meta({ access: 'event-scoped' })
-  .use(timingMiddleware)
-  .use(async ({ ctx, next, getRawInput }) => {
-    const raw = (await getRawInput()) as { eventId?: unknown };
-    const eventId = rawId(raw?.eventId);
-    if (!eventId) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'eventId is required',
-      });
-    }
+    .meta({ access: 'event-scoped' })
+    .use(timingMiddleware)
+    .use(async ({ ctx, next, getRawInput }) => {
+      const raw = (await getRawInput()) as { eventId?: unknown };
+      const eventId = rawId(raw?.eventId);
+      if (!eventId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'eventId is required',
+        });
+      }
       let access: Awaited<ReturnType<typeof canManageEvent>> = null;
       for (const feature of features) {
         access = await canManageEvent(
-      ctx.db,
-      ctx.session.user.id,
-      ctx.session.user.role,
-      ctx.session.user.lembagaId,
-      eventId,
+          ctx.db,
+          ctx.session.user.id,
+          ctx.session.user.role,
+          ctx.session.user.lembagaId,
+          eventId,
           feature,
-    );
+        );
         if (access) break;
       }
-    if (!access) {
-      throw new TRPCError({ code: 'FORBIDDEN' });
-    }
-    return next({ ctx: { ...ctx, eventAccess: access, eventId } });
-  });
+      if (!access) {
+        throw new TRPCError({ code: 'FORBIDDEN' });
+      }
+      return next({ ctx: { ...ctx, eventAccess: access, eventId } });
+    });
 }
 
 export const eventScopedProcedure = eventScopedFor(['events']);
@@ -658,4 +655,55 @@ export const oprecAssessProcedure = protectedProcedure
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, recruitment: found, assess } });
+  });
+
+/**
+ * Di-scope oleh `recruitmentId` untuk pengaturan per divisi (kriteria dan
+ * penilai tambahan): pengelola oprec untuk semua divisi, atau pengurus untuk
+ * divisi yang ia pegang (lihat `division-scope.ts`). Cakupannya dibawa di
+ * `ctx.divisionScope`; tiap prosedur menegakkannya per divisi.
+ */
+export const oprecDivisionProcedure = protectedProcedure
+  .meta({ access: 'oprec-division' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = (await getRawInput()) as { recruitmentId?: unknown };
+    const recruitmentId = rawId(raw?.recruitmentId);
+    if (!recruitmentId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'recruitmentId is required',
+      });
+    }
+    const found = await ctx.db.query.recruitment.findFirst({
+      where: eq(recruitment.id, recruitmentId),
+    });
+    if (!found) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Oprec tidak ditemukan.',
+      });
+    }
+    const isAdmin =
+      (await canManageEvent(
+        ctx.db,
+        ctx.session.user.id,
+        ctx.session.user.role,
+        ctx.session.user.lembagaId,
+        found.periodId,
+        'oprec',
+      )) !== null;
+    const pengurus = isAdmin
+      ? []
+      : await loadDivisionPengurus(ctx.db, found.id, ctx.session.user.id);
+    const divisionScope = resolveDivisionScope({
+      isAdmin,
+      assessorMode: found.assessorMode,
+      placementState: found.placementState,
+      pengurusDivisionIds: pengurus.map((p) => p.divisionId),
+    });
+    if (!divisionScope) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, recruitment: found, divisionScope } });
   });

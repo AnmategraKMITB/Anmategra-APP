@@ -98,6 +98,11 @@ const ACCESS: Record<
     description:
       'Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.',
   },
+  'oprec-division': {
+    label: 'Pengurus Divisi Oprec',
+    description:
+      'Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.',
+  },
   'oprec-scoped': {
     label: 'Pengelola Oprec',
     description:
@@ -110,7 +115,8 @@ const TAG_DESCRIPTIONS: Record<string, string> = {
   adminGrant: 'Grant dan revoke Owner/Admin Lembaga & Kepanitiaan (RO-03).',
   event: 'CRUD kepanitiaan/kegiatan beserta anggotanya.',
   form: 'Dynamic Form Builder: kelola formulir lembaga/kegiatan, pertanyaannya, dan pengisian oleh mahasiswa (#210).',
-  oprec: 'Open recruitment: pengaturan, gelombang, syarat, divisi, dan pendaftar.',
+  oprec:
+    'Open recruitment: pengaturan, gelombang, syarat, divisi, dan pendaftar.',
   kegiatan: 'Query kegiatan dari sisi konsumen (listing, detail, pencarian).',
   landing: 'Data agregat untuk halaman publik/landing.',
   lembaga: 'CRUD lembaga (himpunan, UKM, BSO) beserta anggota dan strukturnya.',

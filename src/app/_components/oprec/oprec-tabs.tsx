@@ -4,6 +4,7 @@ import { cn } from '~/lib/utils';
 import { db } from '~/server/db';
 import { application, recruitment } from '~/server/db/schema';
 
+import { loadDivisionSettingsOprec } from './access';
 import { OprecManageBar } from './manage-bar';
 import {
   type OprecBase,
@@ -24,7 +25,8 @@ export type OprecTabId = (typeof TABS)[number][0];
 
 /**
  * Sub-navigasi satu oprec, urut alur kerja: nilai dulu, baru penempatan.
- * "Pendaftar" dan "Pengaturan" hanya untuk pengelola oprec (`manage`).
+ * "Pendaftar" hanya untuk pengelola oprec (`manage`). "Pengaturan" penuh untuk
+ * pengelola; pengurus divisi melihatnya sebagai "Pengaturan divisi".
  */
 export async function OprecTabs({
   basePath,
@@ -57,6 +59,8 @@ export async function OprecTabs({
   // Metode prioritas menggantikan Nilai dengan Prioritas; metodenya diganti
   // di Pengaturan.
   const prioritas = row?.placementMethod === 'prioritas';
+  const divisionSettings =
+    !manage && (await loadDivisionSettingsOprec(recruitmentId)) !== null;
   const tabs = TABS.filter(
     ([id]) =>
       (id !== 'pendaftar' || showPendaftar) &&
@@ -64,7 +68,7 @@ export async function OprecTabs({
       (id !== 'penempatan' || showPenempatan) &&
       (id !== 'prioritas' || prioritas) &&
       (id !== 'hasil' || showHasil) &&
-      (id !== 'pengaturan' || !!manage),
+      (id !== 'pengaturan' || !!manage || divisionSettings),
   );
   const [applicants] = await db
     .select({ n: count() })
@@ -107,7 +111,7 @@ export async function OprecTabs({
                   : 'border-transparent text-neutral-700 hover:text-neutral-1000',
               )}
             >
-              {label}
+              {id === 'pengaturan' && !manage ? 'Pengaturan divisi' : label}
             </Link>
           ),
         )}

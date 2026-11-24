@@ -94,3 +94,22 @@ Untuk menambah penilai lain:
 
 Penilai masuk dengan akunnya sendiri, sehingga setiap skor tercatat atas
 namanya. Nilai yang sudah diisi tetap tersimpan meski penilainya dihapus.
+
+## Pengaturan divisi untuk Kadiv dan Kabid
+
+Pengurus divisi (Kadiv, Kabid, atau jabatan lain di atas Staf yang membawahi
+divisi itu di organogram) tidak bisa membuka Pengaturan penuh. Mereka melihat
+tab **Pengaturan divisi** yang hanya memuat divisi yang mereka pegang:
+
+- **Kriteria divisi** — tambah, ubah, urutkan, dan hapus. Kriteria boleh diubah
+  kapan saja, termasuk saat penilaian sudah berjalan. Bila sudah ada pendaftar
+  yang dinilai, muncul peringatan: skor dan status mereka dihitung ulang, dan
+  kriteria baru perlu dinilai dulu sebelum nilainya lengkap.
+- **Penilai tambahan divisi** — tambah dan hapus.
+- **Kuota, status otomatis, dan metode penempatan** — hanya terlihat, diubah
+  oleh pengelola oprec.
+
+Kriteria umum dan penilai umum tetap hanya bisa diubah pengelola oprec. Tab ini
+tidak muncul bila oprec hanya memakai penilai umum, dan tertutup setelah
+penempatan ditetapkan **Final**. Setiap perubahan oleh pengurus tercatat atas
+namanya.

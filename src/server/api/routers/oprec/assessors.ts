@@ -1,7 +1,10 @@
 import { TRPCError } from '@trpc/server';
 import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
-import { oprecScopedProcedure } from '~/server/api/trpc';
+import {
+  oprecDivisionProcedure,
+  oprecScopedProcedure,
+} from '~/server/api/trpc';
 import {
   mahasiswa,
   organizationUnit,
@@ -10,6 +13,7 @@ import {
   users,
 } from '~/server/db/schema';
 
+import { assertCanEditDivision, canEditDivision } from './division-scope';
 import { logAction } from './log';
 import { loadDivisionPengurus } from './pengurus';
 import { conflict, notFound, pgCode } from './services';
@@ -26,7 +30,7 @@ const AssessorRemoveInput = z.object({
 });
 
 export const assessorProcedures = {
-  assessorList: oprecScopedProcedure
+  assessorList: oprecDivisionProcedure
     .input(z.object({ recruitmentId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       const rows = await ctx.db
@@ -53,21 +57,25 @@ export const assessorProcedures = {
         .where(eq(recruitmentAssessor.recruitmentId, input.recruitmentId))
         .orderBy(asc(users.name));
 
-      return rows.map((row) => ({
-        id: row.id,
-        userId: row.userId,
-        name: row.name,
-        email: row.email,
-        nim: row.nim,
-        divisionId: row.divisionId,
-        divisionLabel:
-          row.divisionId === null ? 'Umum' : (row.divisionName ?? 'Umum'),
-      }));
+      // Pengurus hanya melihat penilai divisinya (memuat email/NIM orang).
+      return rows
+        .filter((row) => canEditDivision(ctx.divisionScope, row.divisionId))
+        .map((row) => ({
+          id: row.id,
+          userId: row.userId,
+          name: row.name,
+          email: row.email,
+          nim: row.nim,
+          divisionId: row.divisionId,
+          divisionLabel:
+            row.divisionId === null ? 'Umum' : (row.divisionName ?? 'Umum'),
+        }));
     }),
 
-  assessorAdd: oprecScopedProcedure
+  assessorAdd: oprecDivisionProcedure
     .input(AssessorAddInput)
     .mutation(async ({ ctx, input }) => {
+      assertCanEditDivision(ctx.divisionScope, input.divisionId ?? null);
       const identifier = input.identifier.trim();
       let user: { id: string; name: string | null; email: string } | undefined;
       if (/^\d+$/.test(identifier)) {
@@ -157,7 +165,7 @@ export const assessorProcedures = {
       }
     }),
 
-  assessorRemove: oprecScopedProcedure
+  assessorRemove: oprecDivisionProcedure
     .input(AssessorRemoveInput)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.transaction(async (tx) => {
@@ -165,6 +173,7 @@ export const assessorProcedures = {
           .select({
             id: recruitmentAssessor.id,
             userId: recruitmentAssessor.userId,
+            divisionId: recruitmentAssessor.divisionId,
           })
           .from(recruitmentAssessor)
           .where(
@@ -175,6 +184,7 @@ export const assessorProcedures = {
           )
           .for('update');
         if (!row) notFound('Penilai tidak ditemukan.');
+        assertCanEditDivision(ctx.divisionScope, row.divisionId);
         await tx
           .delete(recruitmentAssessor)
           .where(eq(recruitmentAssessor.id, input.assessorId));
