@@ -15,7 +15,7 @@
     "db:clear": "tsx src/server/db/seeding/clear-db.ts",
     "db:generate:csv": "cd ./src/server/db/seeding && python3 generate_csv.py && cd ../../../",
     "db:seed-csv": "tsx src/server/db/seeding/seed.ts",
-    "db:seed": "npm run db:generate:csv && npm run db:seed-csv",
+    "db:seed": "bun run db:generate:csv && bun run db:seed-csv",
     "db:seed-lembaga": "tsx src/server/db/seeding/seed-lembaga.ts",
     "db:seed-mahasiswa": "tsx src/server/db/seeding/seed-mahasiswa.ts",
     "db:backfill-lembaga-descriptions": "tsx src/server/db/seeding/backfill-lembaga-descriptions.ts",
@@ -24,9 +24,9 @@
     "docs:api": "SKIP_ENV_VALIDATION=1 tsx scripts/gen-openapi.cts",
     "docs:db": "tsx scripts/gen-dbml.ts",
     "docs:lifecycle": "tsx scripts/gen-lifecycles.ts",
-    "docs": "npm run docs:api && npm run docs:db && npm run docs:lifecycle",
+    "docs": "bun run docs:api && bun run docs:db && bun run docs:lifecycle",
     "docs:check": "bash scripts/docs-check.sh",
-    "docs:db:publish": "npx -y dbdocs build docs/api/schema.dbml --project anmategra",
+    "docs:db:publish": "bunx dbdocs build docs/api/schema.dbml --project anmategra",
     "dev": "next dev",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -136,7 +136,7 @@
       "eslint --fix"
     ]
   },
-  "packageManager": "npm@10.9.0",
+  "packageManager": "bun@1.4.5-canary.20261123.1",
   "overrides": {
     "@auth/core": "^0.41.3",
     "effect": "^3.22.5",

@@ -1,11 +1,11 @@
 /**
  * Generate docs/api/lifecycles.{json,md} from `src/lib/lifecycle`.
  *
- *   npm run docs:lifecycle
+ *   bun run docs:lifecycle
  *
  * The JSON is for agents and tooling (states, legal moves, which moves are
  * guarded and on what); the Markdown renders each lifecycle as a Mermaid state
- * diagram on GitHub. Both are checked by `npm run docs:check` in CI, so they
+ * diagram on GitHub. Both are checked by `bun run docs:check` in CI, so they
  * cannot drift from the declarations.
  */
 import fs from 'node:fs';
@@ -38,7 +38,7 @@ fs.writeFileSync(
   [
     '# Siklus hidup status',
     '',
-    '<!-- Di-generate oleh `npm run docs:lifecycle` dari `src/lib/lifecycle`. Jangan disunting manual. -->',
+    '<!-- Di-generate oleh `bun run docs:lifecycle` dari `src/lib/lifecycle`. Jangan disunting manual. -->',
     '',
     'Perpindahan status yang sah. Yang tidak tergambar ditolak server. Label',
     'pada panah adalah syarat yang diperiksa sebelum pindah; ditulis lewat',

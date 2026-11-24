@@ -5,8 +5,14 @@ WORKDIR /app
 
 RUN apk add --no-cache libc6-compat
 
-COPY package.json package-lock.json ./
-RUN npm ci
+# Bun versi repo (lihat scripts/install-bun.sh) hanya dipakai untuk memasang
+# dependency dan menjalankan script; Next.js tetap berjalan di Node.
+COPY scripts/install-bun.sh scripts/install-bun.sh
+RUN sh scripts/install-bun.sh
+ENV PATH=/root/.bun/bin:$PATH
+
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
 # Kode sumber di-bind-mount oleh compose; COPY ini hanya supaya image tetap bisa
 # jalan sendiri tanpa mount.

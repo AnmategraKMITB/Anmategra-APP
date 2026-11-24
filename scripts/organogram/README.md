@@ -5,7 +5,7 @@ Untuk menaikkan `develop` yang memuat pembacaan anggota lewat organogram (migras
 **Yang perlu diketahui dulu**
 - Sejak versi ini, daftar anggota lembaga dan panitia dibaca **dari organogram**, tanpa fallback ke tabel lama. Kalau periode atau lembaga belum diimpor ke organogram, daftar anggotanya kosong. Karena itu backfill (langkah 5) harus jalan **segera** setelah aplikasi naik.
 - Anggota baru yang ditambah sesudah deploy hanya ditulis ke organogram. Tabel `keanggotaan` dan `kehimpunan` tidak lagi diperbarui (masih ada, belum dibuang). Jadi **mengembalikan ke versi lama setelah pengguna mulai bekerja akan kehilangan perubahan itu**; satu-satunya jalan mundur adalah restore cadangan.
-- Container aplikasi menjalankan `npm run db:migrate` saat start (`docker-entrypoint.sh`), jadi migrasi terpasang otomatis begitu deploy selesai.
+- Container aplikasi menjalankan `bun run db:migrate` saat start (`docker-entrypoint.sh`), jadi migrasi terpasang otomatis begitu deploy selesai.
 
 ## Ringkasan urutan
 1. Cadangkan basis data.
@@ -58,14 +58,14 @@ docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' <db
 ssh -N -L 5440:<ip-kontainer>:5432 <user>@<server>
 ```
 ```bash
-# di laptop, dari akar repo yang sudah `git pull` ke develop terbaru dan `npm ci`
+# di laptop, dari akar repo yang sudah `git pull` ke develop terbaru dan `bun install --frozen-lockfile`
 export SKIP_ENV_VALIDATION=1
 export DATABASE_URL='postgresql://<user>:<password>@localhost:5440/<db>'
-npx tsx --tsconfig scripts/organogram/tsconfig.json scripts/organogram/backfill.ts --dry
+bunx tsx --tsconfig scripts/organogram/tsconfig.json scripts/organogram/backfill.ts --dry
 ```
 `--dry` menjalankan semuanya lalu me-rollback dan hanya melaporkan jumlah. Periksa ringkasannya (jumlah periode dibuat, periode diimpor, unit/jabatan/penempatan) dan pastikan `pasangan (periode, orang) di keanggotaan` masuk akal. Bila sudah sesuai, jalankan tanpa `--dry`:
 ```bash
-npx tsx --tsconfig scripts/organogram/tsconfig.json scripts/organogram/backfill.ts
+bunx tsx --tsconfig scripts/organogram/tsconfig.json scripts/organogram/backfill.ts
 ```
 Yang dilakukan: lembaga yang punya `kehimpunan` tetapi belum punya periode kepengurusan mendapat periode "2025/2026" (On going); setiap periode yang organogramnya masih kosong diimpor dengan usulan bawaan (ejaan Staff/Staf dan sejenisnya dilipat; baris "-"/"-" tetap hanya anggota lembaga); lalu `participant_count` dan `member_count` dihitung ulang. Periode yang sudah berisi dilewati, jadi aman diulang. Hasilnya bisa dirapikan kemudian di editor.
 

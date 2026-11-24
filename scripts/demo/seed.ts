@@ -1,7 +1,7 @@
 /**
  * Seed data demo. Idempoten; jalankan hanya dengan APP_ENV=demo.
  *
- *   APP_ENV=demo DATABASE_URL=... npx tsx scripts/demo/seed.ts
+ *   APP_ENV=demo DATABASE_URL=... bunx tsx scripts/demo/seed.ts
  *
  * Password semua akun demo berasal dari DEMO_PASSWORD_HASH di env deployment.
  */

@@ -3,7 +3,7 @@
 # (pertama kali `up`, atau setelah `down -v`).
 #
 # Kalau dump ada, isinya dipulihkan. Skema yang belum lengkap disusulkan oleh
-# `npm run db:migrate` saat container app start. Kalau dump tidak ada, database
+# `bun run db:migrate` saat container app start. Kalau dump tidak ada, database
 # dibiarkan kosong dan seluruh skema dibuat oleh migrasi.
 set -e
 

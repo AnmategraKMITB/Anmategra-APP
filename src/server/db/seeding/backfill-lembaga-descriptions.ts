@@ -7,8 +7,8 @@
  * currently empty — hand-written descriptions are never overwritten.
  *
  * Usage:
- *   npm run db:backfill-lembaga-descriptions -- --dry-run
- *   npm run db:backfill-lembaga-descriptions
+ *   bun run db:backfill-lembaga-descriptions --dry-run
+ *   bun run db:backfill-lembaga-descriptions
  */
 import { parse } from 'csv-parse/sync';
 import 'dotenv/config';

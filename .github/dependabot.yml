@@ -2,7 +2,7 @@ version: 2
 updates:
   # Update minor/patch dikelompokkan jadi satu PR per minggu supaya tidak banjir PR.
   # Update major tetap PR terpisah karena biasanya butuh perubahan kode.
-  - package-ecosystem: npm
+  - package-ecosystem: bun
     directory: /
     target-branch: develop
     schedule:
@@ -11,7 +11,7 @@ updates:
       timezone: Asia/Jakarta
     open-pull-requests-limit: 5
     groups:
-      npm-minor-patch:
+      bun-minor-patch:
         update-types: ['minor', 'patch']
 
   - package-ecosystem: github-actions

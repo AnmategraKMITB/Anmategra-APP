@@ -1,6 +1,6 @@
 # Siklus hidup status
 
-<!-- Di-generate oleh `npm run docs:lifecycle` dari `src/lib/lifecycle`. Jangan disunting manual. -->
+<!-- Di-generate oleh `bun run docs:lifecycle` dari `src/lib/lifecycle`. Jangan disunting manual. -->
 
 Perpindahan status yang sah. Yang tidak tergambar ditolak server. Label
 pada panah adalah syarat yang diperiksa sebelum pindah; ditulis lewat

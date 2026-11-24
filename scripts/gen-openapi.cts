@@ -1,7 +1,7 @@
 /**
  * Generate docs/api/openapi.json from the tRPC router.
  *
- *   npm run docs:api
+ *   bun run docs:api
  *
  * tRPC is not REST, but its HTTP wire format is deterministic, so the whole
  * router can be described as OpenAPI without touching a single procedure:
@@ -27,7 +27,7 @@ const REST = path.join(process.cwd(), 'docs/api/rest-openapi.json');
 const BASE_PATH = '/api/trpc';
 
 // Dibaca langsung dari package.json, bukan dari npm_package_version, supaya
-// hasilnya sama baik lewat `npm run docs:api` maupun `npx tsx` langsung.
+// hasilnya sama baik lewat `bun run docs:api` maupun `bunx tsx` langsung.
 const pkg = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
 ) as { version?: string };
@@ -435,7 +435,7 @@ const spec = {
     license: { name: 'UNLICENSED' },
   },
   // Server sengaja dibuat variabel, bukan dibaca dari env: outputnya harus
-  // deterministik supaya `npm run docs:check` tidak gagal cuma karena beda env.
+  // deterministik supaya `bun run docs:check` tidak gagal cuma karena beda env.
   servers: [
     {
       url: '{baseUrl}',

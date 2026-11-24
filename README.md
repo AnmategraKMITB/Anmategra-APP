@@ -17,7 +17,7 @@ Tech stack: [T3 Stack](https://create.t3.gg/) (Next.js, tRPC, Drizzle ORM, NextA
 
 ### Prasyarat
 1. Node.js v20+
-2. npm 10+ (`packageManager` di `package.json` pin ke `npm@10.9.0`)
+2. Bun canary yang dipatok repo: `sh scripts/install-bun.sh` (memasang ke `~/.bun/bin`; tambahkan ke `PATH`)
 3. PostgreSQL aktif di lokal
 
 ### Instalasi
@@ -25,7 +25,7 @@ Tech stack: [T3 Stack](https://create.t3.gg/) (Next.js, tRPC, Drizzle ORM, NextA
 git clone <repo-url>
 cd anmategra-app
 cp .env.example .env
-npm install
+bun install
 ```
 
 Isi `.env`, minimal `DATABASE_URL` bener, contoh:
@@ -33,7 +33,7 @@ Isi `.env`, minimal `DATABASE_URL` bener, contoh:
 DATABASE_URL="postgresql://postgres:password@localhost:5432/anmategra"
 ```
 
-`husky` prepare hook otomatis jalan pas `npm install` (setup lint-staged pre-commit).
+`husky` prepare hook otomatis jalan pas `bun install` (setup lint-staged pre-commit).
 
 ### Setup Database
 
@@ -43,13 +43,13 @@ psql -U postgres
 CREATE DATABASE anmategra;
 \q
 
-npm run db:push
+bun run db:push
 ```
 
 Opsi B — pakai Docker (lihat `scripts/start-database.sh`):
 ```
 ./scripts/start-database.sh
-npm run db:push
+bun run db:push
 ```
 
 Opsi C — app + database sekaligus di Docker (`compose.local.yml`):
@@ -63,44 +63,44 @@ docker compose -f compose.local.yml up --build
 - Ulang dari dump: `docker compose -f compose.local.yml down -v`.
 
 Perintah db lain yang tersedia:
-- `npm run db:generate` — generate migration dari schema (drizzle-kit generate)
-- `npm run db:migrate` — jalanin migration (drizzle-kit migrate)
-- `npm run db:studio` — buka Drizzle Studio buat liat data
-- `npm run db:seed` — generate csv + seed database (dev only)
-- `npm run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
-- `npm run db:seed-mahasiswa -- --file <csv>` — impor mahasiswa (misalnya satu angkatan baru); hanya menambah, format di `src/server/db/seeding/data/README.md`
-- `npm run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
-- `npm run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
-- `npm run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
-- `npm run db:clear` — kosongin database
+- `bun run db:generate` — generate migration dari schema (drizzle-kit generate)
+- `bun run db:migrate` — jalanin migration (drizzle-kit migrate)
+- `bun run db:studio` — buka Drizzle Studio buat liat data
+- `bun run db:seed` — generate csv + seed database (dev only)
+- `bun run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
+- `bun run db:seed-mahasiswa --file <csv>` — impor mahasiswa (misalnya satu angkatan baru); hanya menambah, format di `src/server/db/seeding/data/README.md`
+- `bun run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
+- `bun run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
+- `bun run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
+- `bun run db:clear` — kosongin database
 
 ### Menjalankan Project
 ```
-npm run dev
+bun run dev
 ```
 Buka [http://localhost:3000](http://localhost:3000).
 
 Script lain:
-- `npm run build` — build production
-- `npm run start` — jalanin hasil build
-- `npm run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `npm run lint:prune` dan commit perubahan file itu.
-- `npm run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
-- `npm test` — jalankan tes otomatis (Vitest); lihat [Menjalankan Tes](#menjalankan-tes). `npm run test:watch` mengulang tes setiap berkas berubah.
-- `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
+- `bun run build` — build production
+- `bun run start` — jalanin hasil build
+- `bun run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
+- `bun run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
+- `bun run test` — jalankan tes otomatis (Vitest); lihat [Menjalankan Tes](#menjalankan-tes). `bun run test:watch` mengulang tes setiap berkas berubah.
+- `bun run docs` — regenerate dokumentasi API & database di `docs/api/`
 
 ### Menjalankan Tes
 
 Tes memakai Vitest dan **PostgreSQL asli**, bukan mock, supaya aturan akses diuji terhadap skema yang sama dengan produksi.
 
 ```
-npm test
+bun run test
 ```
 
 - Database uji terpisah dari database pengembangan. Alamatnya dari `TEST_DATABASE_URL`; bawaannya `postgresql://postgres:password@localhost:5432/anmategra_test`. Nama database **wajib memuat kata `test`**; kalau tidak, tes menolak jalan karena tiap kasus mengosongkan tabel.
 - Sebelum tes pertama, `src/test/global-setup.ts` membuat database itu bila belum ada (dari `template0`) dan menerapkan semua migrasi di `drizzle/`. Run berikutnya melewati migrasi yang sudah diterapkan.
 - Berkas tes diberi akhiran `.test.ts` dan diletakkan di samping kodenya. Helper database dan pabrik data ada di `src/test/test-db.ts`.
 - Tes tidak butuh `.env` lengkap: kode yang diuji tidak boleh memuat `~/env`. Prosedur yang butuh sesi atau NextAuth sebaiknya diuji lewat logika yang dipisah, seperti `src/server/api/access.ts`.
-- CI menjalankan `npm test` pada job `Test` dengan layanan PostgreSQL 15.
+- CI menjalankan `bun run test` pada job `Test` dengan layanan PostgreSQL 15.
 
 ### Login Microsoft (SSO ITB)
 
@@ -145,7 +145,7 @@ kedaluwarsa), `AADSTS7000215` (secret salah), atau `AADSTS50011` (redirect URI b
 ├── docs/api/             # Dokumentasi API & DB hasil generate (OpenAPI + DBML)
 ├── public/                # Static assets
 ├── Dockerfile              # Build image production
-├── docker-entrypoint.sh    # Entry container: jalanin db:migrate lalu npm run start
+├── docker-entrypoint.sh    # Entry container: jalanin db:migrate lalu bun run start
 └── drizzle.config.ts       # Config drizzle-kit
 ```
 
@@ -209,16 +209,16 @@ Contoh : `fix(api): resolve CORS issue`
 Dokumentasinya di-generate dari kode, jadi tidak bisa basi selama di-regenerate.
 
 ```bash
-npm run dev
+bun run dev
 # buka http://localhost:3000/api/docs
 ```
 
 - **API** — Scalar di [`/api/docs`](http://localhost:3000/api/docs): seluruh procedure tRPC
   dan endpoint REST, lengkap dengan level akses, bentuk input/output, dan daftar error.
 - **Database** — `docs/api/schema.dbml`, bisa di-publish ke dbdocs.io lewat
-  `npm run docs:db:publish` atau di-paste ke [dbdiagram.io](https://dbdiagram.io).
+  `bun run docs:db:publish` atau di-paste ke [dbdiagram.io](https://dbdiagram.io).
 
-Setelah mengubah router tRPC atau `src/server/db/schema.ts`, jalankan `npm run docs` dan
+Setelah mengubah router tRPC atau `src/server/db/schema.ts`, jalankan `bun run docs` dan
 commit hasilnya — CI menolak PR yang dokumentasinya sudah tidak sinkron.
 
 Panduan lengkap (cara menulis penjelasan, aturan `.meta({ access })`, cara memanggil

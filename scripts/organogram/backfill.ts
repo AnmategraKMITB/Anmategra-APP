@@ -8,7 +8,7 @@
  *
  * Pemakaian (dari akar repo, DATABASE_URL menunjuk ke basis data sasaran):
  *   SKIP_ENV_VALIDATION=1 DATABASE_URL=... \
- *     npx tsx --tsconfig scripts/organogram/tsconfig.json scripts/organogram/backfill.ts --dry
+ *     bunx tsx --tsconfig scripts/organogram/tsconfig.json scripts/organogram/backfill.ts --dry
  *
  * `--dry` menjalankan semuanya lalu me-rollback; hanya melaporkan jumlah.
  */
