@@ -805,6 +805,7 @@ export const userRouter = createTRPCRouter({
         const [updatedDraft] = await ctx.db
           .update(support)
           .set({
+            status: 'Reported',
             subject: input.subject,
             urgent: input.urgent,
             description: input.description,
