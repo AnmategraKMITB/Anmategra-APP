@@ -1,6 +1,6 @@
 'use client';
 
-import { type ColumnDef, type SortingState } from '@tanstack/react-table';
+import { type SortingState } from '@tanstack/react-table';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -8,7 +8,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
-import { AdminDataTable } from './admin-data-table';
+import { type AdminColumnDef, AdminDataTable } from './admin-data-table';
 import { AdminEntitySearch } from './admin-entity-search';
 import { AdminPageHeader } from './admin-page-header';
 import { LembagaCreateForm } from './lembaga-create-form';
@@ -78,7 +78,7 @@ export function LembagaPage() {
     enabled: canRead,
   });
 
-  const columns = useMemo<ColumnDef<Row>[]>(
+  const columns = useMemo<AdminColumnDef<Row>[]>(
     () => [
       {
         id: 'name',
@@ -227,7 +227,7 @@ export function LembagaPage() {
 
       <AdminDataTable
         columns={columns}
-        data={(list.data?.rows ?? []) as Row[]}
+        data={list.data?.rows ?? []}
         sorting={sorting}
         onSortingChange={(next) => {
           setSorting(next);

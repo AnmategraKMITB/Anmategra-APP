@@ -20,12 +20,17 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import {
   type ColumnDef,
+  type Row,
   type SortingState,
+  createPaginatedRowModel,
+  createSortedRowModel,
   flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  rowPaginationFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_text,
+  tableFeatures,
+  useTable,
 } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { type Session } from 'next-auth';
@@ -47,6 +52,14 @@ import {
   TableRow,
 } from '~/components/ui/table';
 
+const memberTableFeatures = tableFeatures({
+  rowSortingFeature,
+  rowPaginationFeature,
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+});
+
 type TableMeta = {
   lembagaId?: string;
   raporBasePath?: string;
@@ -66,7 +79,7 @@ function SortableRow({
   totalData,
   itemsPerPage,
 }: {
-  row: any;
+  row: Row<typeof memberTableFeatures, Member>;
   isEditMode: boolean;
   index: number;
   onMoveUp: (index: number) => void;
@@ -103,7 +116,7 @@ function SortableRow({
           </button>
         </TableCell>
       )}
-      {row.getVisibleCells().map((cell: any) => (
+      {row.getAllCells().map((cell) => (
         <TableCell key={cell.id} className="text-neutral-700">
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
@@ -169,9 +182,21 @@ export function MahasiswaCardTable({
   const [localData, setLocalData] = React.useState<Member[]>(data);
   const itemsPerPage = 10;
 
-  React.useEffect(() => {
+  // Saat props berubah, state lokal disesuaikan langsung ketika render
+  // (bukan lewat effect) supaya tidak ada render tambahan dengan data lama.
+  const [prevData, setPrevData] = React.useState(data);
+  if (data !== prevData) {
+    setPrevData(data);
     setLocalData(data);
-  }, [data]);
+  }
+
+  // Dibandingkan per isi: selectedFilters default `[]` baru tiap render.
+  const filterKey = JSON.stringify([searchQuery, selectedFilters]);
+  const [prevFilterKey, setPrevFilterKey] = React.useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
 
   const filteredData = React.useMemo(() => {
     let filtered = [...localData];
@@ -193,10 +218,6 @@ export function MahasiswaCardTable({
 
     return filtered;
   }, [localData, searchQuery, selectedFilters]);
-
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedFilters]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -292,7 +313,7 @@ export function MahasiswaCardTable({
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const columns: ColumnDef<Member>[] = [
+  const columns: ColumnDef<typeof memberTableFeatures, Member>[] = [
     {
       accessorKey: 'nama',
       header: 'Nama',
@@ -360,14 +381,12 @@ export function MahasiswaCardTable({
     },
   ];
 
-  const table = useReactTable({
+  const table = useTable({
+    features: memberTableFeatures,
     data: paginatedData,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     meta: tableMeta,
   });
 
