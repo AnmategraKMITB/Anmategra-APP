@@ -186,6 +186,7 @@ function loadCsv() {
   const matched = new Set();
   const result = new Map(); // myKey -> {tk, m}
   for (const mk of myKeys) {
+    /** @type {{ tk: (typeof theirKeys)[number], score: number, m: string } | null} */
     let best = null;
     for (const tk of theirKeys) {
       if (matched.has(tk)) continue;
@@ -197,6 +198,7 @@ function loadCsv() {
   // pass 2: everything else
   for (const mk of myKeys) {
     if (result.has(mk)) continue;
+    /** @type {{ tk: (typeof theirKeys)[number], score: number, m: string } | null} */
     let best = null;
     for (const tk of theirKeys) {
       if (matched.has(tk)) continue;
