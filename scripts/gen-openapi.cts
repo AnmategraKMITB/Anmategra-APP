@@ -98,6 +98,11 @@ const ACCESS: Record<
     description:
       'Butuh `recruitmentId` di input. Boleh diakses admin oprec, Kadiv divisi yang dibuka (diturunkan dari organogram), penilai umum, atau penilai tambahan; tiap prosedur membatasi lingkupnya.',
   },
+  'oprec-division': {
+    label: 'Pengurus Divisi Oprec',
+    description:
+      'Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.',
+  },
   'oprec-scoped': {
     label: 'Pengelola Oprec',
     description:

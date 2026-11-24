@@ -2,6 +2,8 @@ import { eq } from 'drizzle-orm';
 import { resultsMode } from '~/lib/oprec/results';
 import { canManageEvent } from '~/server/api/access';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
+import { resolveDivisionScope } from '~/server/api/routers/oprec/division-scope';
+import { loadDivisionPengurus } from '~/server/api/routers/oprec/pengurus';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
 import { recruitment } from '~/server/db/schema';
@@ -85,4 +87,27 @@ export async function canOpenResults(recruitmentId: string) {
   if (mode === 'admin') return false;
   if (mode === 'admin_ketua') return access.deciderDivisionIds.size > 0;
   return access.divisionIds.size > 0;
+}
+
+/**
+ * Oprec yang Pengaturan divisinya boleh dibuka pengurus (bukan pengelola),
+ * atau `null`. Aturannya sama dengan `oprecDivisionProcedure`; pengelola
+ * memakai Pengaturan penuh lewat `loadManagedOprec`.
+ */
+export async function loadDivisionSettingsOprec(recruitmentId: string) {
+  const session = await getServerAuthSession();
+  if (!session) return null;
+  const [row] = await db
+    .select()
+    .from(recruitment)
+    .where(eq(recruitment.id, recruitmentId));
+  if (!row) return null;
+  const pengurus = await loadDivisionPengurus(db, row.id, session.user.id);
+  const scope = resolveDivisionScope({
+    isAdmin: false,
+    assessorMode: row.assessorMode,
+    placementState: row.placementState,
+    pengurusDivisionIds: pengurus.map((p) => p.divisionId),
+  });
+  return scope ? row : null;
 }

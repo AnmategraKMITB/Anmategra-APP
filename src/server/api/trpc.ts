@@ -16,6 +16,8 @@ import {
   hasAdminPermission,
 } from '~/server/api/admin-permissions';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
+import { resolveDivisionScope } from '~/server/api/routers/oprec/division-scope';
+import { loadDivisionPengurus } from '~/server/api/routers/oprec/pengurus';
 import { isEmergencySuperadmin } from '~/server/api/superadmin';
 import { getServerAuthSessionWithAlt } from '~/server/auth';
 import { db } from '~/server/db';
@@ -76,7 +78,8 @@ export type ApiMeta = {
     | 'event-scoped'
     | 'form-scoped'
     | 'oprec-scoped'
-    | 'oprec-assess';
+    | 'oprec-assess'
+    | 'oprec-division';
   /**
    * Sesi akses alternatif (Google pribadi) ditolak di semua prosedur kecuali
    * yang diberi penanda ini. `claim` = hanya klaim aktif; `any` = termasuk
@@ -652,4 +655,59 @@ export const oprecAssessProcedure = protectedProcedure
       throw new TRPCError({ code: 'FORBIDDEN' });
     }
     return next({ ctx: { ...ctx, recruitment: found, assess } });
+  });
+
+/**
+ * Di-scope oleh `recruitmentId` untuk pengaturan per divisi (kriteria dan
+ * penilai tambahan): pengelola oprec untuk semua divisi, atau pengurus untuk
+ * divisi yang ia pegang (lihat `division-scope.ts`). Cakupannya dibawa di
+ * `ctx.divisionScope`; tiap prosedur menegakkannya per divisi.
+ */
+export const oprecDivisionProcedure = protectedProcedure
+  .meta({ access: 'oprec-division' })
+  .use(timingMiddleware)
+  .use(async ({ ctx, next, getRawInput }) => {
+    const raw = await getRawInput();
+    const recruitmentId = rawId(
+      typeof raw === 'object' && raw !== null && 'recruitmentId' in raw
+        ? raw.recruitmentId
+        : undefined,
+    );
+    if (!recruitmentId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'recruitmentId is required',
+      });
+    }
+    const found = await ctx.db.query.recruitment.findFirst({
+      where: eq(recruitment.id, recruitmentId),
+    });
+    if (!found) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Oprec tidak ditemukan.',
+      });
+    }
+    const isAdmin =
+      (await canManageEvent(
+        ctx.db,
+        ctx.session.user.id,
+        ctx.session.user.role,
+        ctx.session.user.lembagaId,
+        found.periodId,
+        'oprec',
+      )) !== null;
+    const pengurus = isAdmin
+      ? []
+      : await loadDivisionPengurus(ctx.db, found.id, ctx.session.user.id);
+    const divisionScope = resolveDivisionScope({
+      isAdmin,
+      assessorMode: found.assessorMode,
+      placementState: found.placementState,
+      pengurusDivisionIds: pengurus.map((p) => p.divisionId),
+    });
+    if (!divisionScope) {
+      throw new TRPCError({ code: 'FORBIDDEN' });
+    }
+    return next({ ctx: { ...ctx, recruitment: found, divisionScope } });
   });

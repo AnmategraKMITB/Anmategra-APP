@@ -2,7 +2,10 @@ import { TRPCError } from '@trpc/server';
 import { and, asc, eq, inArray, isNull, max, ne, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { OPERATORS_BY_TYPE } from '~/lib/forms/conditions';
-import { oprecScopedProcedure } from '~/server/api/trpc';
+import {
+  oprecDivisionProcedure,
+  oprecScopedProcedure,
+} from '~/server/api/trpc';
 import {
   criterion,
   criterionField,
@@ -15,6 +18,7 @@ import {
 } from '~/server/db/schema';
 
 import { type Tx } from '../form/services';
+import { assertCanEditDivision, canEditDivision } from './division-scope';
 import { logAction } from './log';
 import { recomputeDivisions } from './recompute';
 import { type Database, conflict, notFound, pgCode } from './services';
@@ -443,7 +447,7 @@ function parseImportRows(args: {
 }
 
 export const criteriaProcedures = {
-  criteriaList: oprecScopedProcedure
+  criteriaList: oprecDivisionProcedure
     .input(z.object({ recruitmentId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       const recruitmentId = input.recruitmentId;
@@ -599,6 +603,11 @@ export const criteriaProcedures = {
         return {
           scope: def.scope,
           label: def.label,
+          /** Pengurus hanya bisa mengubah slot divisinya; Umum hanya admin. */
+          editable: canEditDivision(
+            ctx.divisionScope,
+            def.scope === 'umum' ? null : def.scope,
+          ),
           criteria: list.map((c) => ({
             id: c.id,
             name: c.name,
@@ -626,13 +635,14 @@ export const criteriaProcedures = {
       };
     }),
 
-  criterionSave: oprecScopedProcedure
+  criterionSave: oprecDivisionProcedure
     .input(CriterionSaveInput)
     .mutation(async ({ ctx, input }) => {
       const recruitmentId = input.recruitmentId;
       const formId = ctx.recruitment.formId;
       const name = input.name.trim();
       const divisionId = input.scope === 'umum' ? null : input.scope;
+      assertCanEditDivision(ctx.divisionScope, divisionId);
       if (input.kind !== 'skor' && !ctx.recruitment.hasGugur) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -742,7 +752,7 @@ export const criteriaProcedures = {
           let criterionId = input.criterionId ?? null;
           if (criterionId) {
             const [existing] = await tx
-              .select({ id: criterion.id })
+              .select({ id: criterion.id, divisionId: criterion.divisionId })
               .from(criterion)
               .where(
                 and(
@@ -752,6 +762,9 @@ export const criteriaProcedures = {
               )
               .for('update');
             if (!existing) notFound('Kriteria tidak ditemukan.');
+            // Slot asal juga harus dalam cakupan: pengurus tidak boleh
+            // menarik kriteria divisi lain atau Umum ke divisinya.
+            assertCanEditDivision(ctx.divisionScope, existing.divisionId);
             await tx
               .update(criterion)
               .set({
@@ -824,12 +837,12 @@ export const criteriaProcedures = {
       }
     }),
 
-  criterionDelete: oprecScopedProcedure
+  criterionDelete: oprecDivisionProcedure
     .input(CriterionDeleteInput)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.transaction(async (tx) => {
         const [row] = await tx
-          .select({ id: criterion.id })
+          .select({ id: criterion.id, divisionId: criterion.divisionId })
           .from(criterion)
           .where(
             and(
@@ -839,6 +852,7 @@ export const criteriaProcedures = {
           )
           .for('update');
         if (!row) notFound('Kriteria tidak ditemukan.');
+        assertCanEditDivision(ctx.divisionScope, row.divisionId);
         await tx.delete(criterion).where(eq(criterion.id, input.criterionId));
         await recomputeDivisions(tx, input.recruitmentId, 'all');
         await logAction(tx, {
@@ -852,10 +866,11 @@ export const criteriaProcedures = {
       });
     }),
 
-  criteriaReorder: oprecScopedProcedure
+  criteriaReorder: oprecDivisionProcedure
     .input(CriteriaReorderInput)
     .mutation(async ({ ctx, input }) => {
       const divisionId = input.scope === 'umum' ? null : input.scope;
+      assertCanEditDivision(ctx.divisionScope, divisionId);
       if (new Set(input.criterionIds).size !== input.criterionIds.length) {
         throw new TRPCError({
           code: 'BAD_REQUEST',

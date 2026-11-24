@@ -18786,7 +18786,7 @@
           "oprec"
         ],
         "summary": "oprec.assessorAdd",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -18846,7 +18846,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -19033,7 +19033,7 @@
           "oprec"
         ],
         "summary": "oprec.assessorList",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -19093,7 +19093,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -19159,7 +19159,7 @@
           "oprec"
         ],
         "summary": "oprec.assessorRemove",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -19219,7 +19219,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -21004,7 +21004,7 @@
           "oprec"
         ],
         "summary": "oprec.criteriaList",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21064,7 +21064,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -21130,7 +21130,7 @@
           "oprec"
         ],
         "summary": "oprec.criteriaReorder",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21190,7 +21190,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -21251,7 +21251,7 @@
           "oprec"
         ],
         "summary": "oprec.criterionDelete",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21311,7 +21311,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -21372,7 +21372,7 @@
           "oprec"
         ],
         "summary": "oprec.criterionSave",
-        "description": "**Akses:** Pengelola Oprec — Butuh `recruitmentId` di input. Boleh diakses Owner/Admin periode oprec tersebut, atau orang yang diberi hibah fitur `oprec` untuk periode atau lembaga itu.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21432,7 +21432,7 @@
             }
           },
           "403": {
-            "description": "Sudah login tapi tidak memenuhi akses Pengelola Oprec (`FORBIDDEN`).",
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
             "content": {
               "application/json": {
                 "schema": {
@@ -21847,6 +21847,132 @@
             }
           }
         }
+      }
+    },
+    "/api/trpc/oprec.divisionSettings": {
+      "get": {
+        "operationId": "oprec_divisionSettings",
+        "tags": [
+          "oprec"
+        ],
+        "summary": "oprec.divisionSettings",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "json"
+                          ],
+                          "properties": {
+                            "json": {
+                              "description": "Procedure ini tidak mendeklarasikan `.output()`, jadi bentuk responsnya belum terdokumentasi."
+                            },
+                            "meta": {
+                              "type": "object",
+                              "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Input gagal divalidasi Zod (`BAD_REQUEST`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Belum login atau sesi kedaluwarsa (`UNAUTHORIZED`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Sudah login tapi tidak memenuhi akses Pengurus Divisi Oprec (`FORBIDDEN`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource yang dirujuk tidak ditemukan (`NOT_FOUND`).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error tRPC lain, termasuk `INTERNAL_SERVER_ERROR`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TRPCError"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "input",
+            "in": "query",
+            "required": true,
+            "description": "Input procedure, di-JSON-encode dengan envelope superjson.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "json"
+                  ],
+                  "properties": {
+                    "json": {
+                      "$ref": "#/components/schemas/oprec_divisionSettings_input"
+                    },
+                    "meta": {
+                      "type": "object",
+                      "description": "Metadata superjson untuk tipe non-JSON (Date, Map, dst). Opsional."
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "/api/trpc/oprec.exportAnswers": {
@@ -57673,6 +57799,18 @@
           "applicationId",
           "toDivisionId",
           "reason"
+        ]
+      },
+      "oprec_divisionSettings_input": {
+        "type": "object",
+        "properties": {
+          "recruitmentId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "recruitmentId"
         ]
       },
       "oprec_exportAnswers_input": {
