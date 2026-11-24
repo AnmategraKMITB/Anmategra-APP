@@ -1,6 +1,15 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import ts from 'typescript';
+import {
+  type Node,
+  type SourceFile,
+  isCallExpression,
+  isIdentifier,
+  isObjectLiteralExpression,
+  isPropertyAccessExpression,
+  isSpreadAssignment,
+} from 'typescript/unstable/ast';
+import { API } from 'typescript/unstable/async';
 import { describe, expect, it } from 'vitest';
 
 /**
@@ -56,54 +65,88 @@ function sourceFiles(dir: string): string[] {
 
 type Write = { key: string; line: number };
 
-function directWrites(file: string): Write[] {
-  const source = ts.createSourceFile(
-    file,
-    fs.readFileSync(file, 'utf8'),
-    ts.ScriptTarget.Latest,
-    true,
-  );
-  const rel = path.relative(process.cwd(), file);
+/**
+ * TypeScript 7 tidak punya parser di paket JS-nya; AST diambil dari proses
+ * tsgo lewat API async (API sync memakai internal stream Node dan tidak jalan
+ * di Bun). Program-nya dari tsconfig virtual yang hanya berisi `files`, tanpa
+ * resolusi impor dan lib, jadi tsgo cukup mem-parse berkas itu saja.
+ */
+async function parse(files: string[]): Promise<SourceFile[]> {
+  const config = path.join(ROOT, 'lifecycle-writes.tsconfig.json');
+  const api = new API({
+    cwd: process.cwd(),
+    fs: {
+      fileExists: (name) => (name === config ? true : undefined),
+      readFile: (name) =>
+        name === config
+          ? JSON.stringify({
+              compilerOptions: { noResolve: true, noLib: true, types: [] },
+              files,
+            })
+          : undefined,
+    },
+  });
+  try {
+    const snapshot = await api.updateSnapshot({ openProjects: [config] });
+    const [project] = snapshot.getProjects();
+    if (!project) throw new Error(`${config} tidak termuat`);
+    return await Promise.all(
+      files.map(async (file) => {
+        const source = await project.program.getSourceFile(file);
+        if (!source) throw new Error(`${file} tidak ter-parse`);
+        return source;
+      }),
+    );
+  } finally {
+    await api.close();
+  }
+}
+
+function directWrites(source: SourceFile): Write[] {
+  const rel = path.relative(process.cwd(), source.fileName);
   const found: Write[] = [];
-  const visit = (node: ts.Node) => {
+  const visit = (node: Node): undefined => {
     if (
-      ts.isCallExpression(node) &&
-      ts.isPropertyAccessExpression(node.expression) &&
+      isCallExpression(node) &&
+      isPropertyAccessExpression(node.expression) &&
       node.expression.name.text === 'set' &&
       node.arguments[0] &&
-      ts.isObjectLiteralExpression(node.arguments[0])
+      isObjectLiteralExpression(node.arguments[0])
     ) {
       const update = node.expression.expression;
       if (
-        ts.isCallExpression(update) &&
-        ts.isPropertyAccessExpression(update.expression) &&
+        isCallExpression(update) &&
+        isPropertyAccessExpression(update.expression) &&
         update.expression.name.text === 'update' &&
         update.arguments[0] &&
-        ts.isIdentifier(update.arguments[0])
+        isIdentifier(update.arguments[0])
       ) {
         const table = update.arguments[0].text;
         for (const prop of node.arguments[0].properties) {
-          const name =
-            prop.name && ts.isIdentifier(prop.name) ? prop.name.text : null;
+          if (isSpreadAssignment(prop)) continue;
+          const name = isIdentifier(prop.name) ? prop.name.text : null;
           if (name && WATCHED[table]?.includes(name)) {
             found.push({
               key: `${rel}|${table}.${name}`,
               line:
-                source.getLineAndCharacterOfPosition(prop.getStart()).line + 1,
+                source.getLineAndCharacterOfPosition(prop.getStart(source))
+                  .line + 1,
             });
           }
         }
       }
     }
-    ts.forEachChild(node, visit);
+    node.forEachChild(visit);
   };
   visit(source);
   return found;
 }
 
 describe('penulisan kolom status', () => {
-  it('hanya lewat transition(), kecuali yang tercatat beserta alasannya', () => {
-    const writes = sourceFiles(ROOT).flatMap(directWrites);
+  it('hanya lewat transition(), kecuali yang tercatat beserta alasannya', async () => {
+    const sources = await parse(sourceFiles(ROOT));
+    expect(sources.length).toBeGreaterThan(0);
+    const writes = sources.flatMap(directWrites);
     const counts: Record<string, number> = {};
     for (const w of writes) counts[w.key] = (counts[w.key] ?? 0) + 1;
 

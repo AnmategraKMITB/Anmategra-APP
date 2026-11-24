@@ -1,10 +1,29 @@
 import { type Config } from 'tailwindcss';
 import { fontFamily } from 'tailwindcss/defaultTheme';
-import { withUt } from 'uploadthing/tw';
+import plugin from 'tailwindcss/plugin';
 
-export default withUt({
+// Salinan `uploadthingPlugin` dari 'uploadthing/tw'. Modul itu juga berisi
+// `withUt()` dengan `require.resolve(`@uploadthing/${pkg}`)` dinamis; Turbopack
+// membundel config ini dan ikut memuat semua berkas @uploadthing/*, termasuk
+// .d.cts yang gagal dibangun.
+const uploadthingPlugin = plugin((api) => {
+  api.addVariant('ut-button', '&>*[data-ut-element="button"]');
+  api.addVariant(
+    'ut-allowed-content',
+    '&>*[data-ut-element="allowed-content"]',
+  );
+  api.addVariant('ut-label', '&>*[data-ut-element="label"]');
+  api.addVariant('ut-upload-icon', '&>*[data-ut-element="upload-icon"]');
+  api.addVariant('ut-clear-btn', '&>*[data-ut-element="clear-btn"]');
+  api.addVariant('ut-readying', '&[data-state="readying"]');
+  api.addVariant('ut-ready', '&[data-state="ready"]');
+  api.addVariant('ut-uploading', '&[data-state="uploading"]');
+});
+
+export default {
   darkMode: ['class'],
-  content: ['./src/**/*.tsx'],
+  // Pengganti content yang dulu ditambahkan `withUt()`.
+  content: ['./src/**/*.tsx', './node_modules/@uploadthing/react/dist/**/*.js'],
   theme: {
     extend: {
       fontFamily: {
@@ -132,5 +151,5 @@ export default withUt({
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
-}) satisfies Config;
+  plugins: [require('tailwindcss-animate'), uploadthingPlugin],
+} satisfies Config;

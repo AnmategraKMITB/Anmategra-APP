@@ -11,7 +11,7 @@ const HalamanMahasiswaLayout = async ({
   children: ReactNode;
 }) => {
   const session = await getServerAuthSession();
-  // Lapisan kedua setelah middleware: area ini hanya untuk akun mahasiswa.
+  // Lapisan kedua setelah proxy (src/proxy.ts): area ini hanya untuk akun mahasiswa.
   if (!session) redirect('/authentication');
   if (session.user.role !== 'mahasiswa') redirect(`/${session.user.role}`);
   return (

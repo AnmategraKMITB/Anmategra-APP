@@ -66,7 +66,7 @@ describe('pickFormsCallback', () => {
     expect(pickFormsCallback('?foo=bar')).toBeUndefined();
   });
 
-  it('konsisten dengan lokasi login buatan middleware', () => {
+  it('konsisten dengan lokasi login buatan proxy', () => {
     const decision = decideFormsPath('/forms/abc', '?ref=x', false);
     expect(decision.kind).toBe('login');
     if (decision.kind !== 'login') return;

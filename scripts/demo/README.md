@@ -8,7 +8,7 @@ Dua deployment dari codebase yang sama:
 | `admin.anmategra.com` | `production` | produksi               | SSO ITB/Google, role admin |
 | `demo.anmategra.com`  | `demo`       | database demo terpisah | email/password demo        |
 
-`admin.anmategra.com` mengarah ke `/admin`. `demo.anmategra.com` hanya boleh berjalan dengan `APP_ENV=demo`; middleware menolak host demo pada build produksi.
+`admin.anmategra.com` mengarah ke `/admin`. `demo.anmategra.com` hanya boleh berjalan dengan `APP_ENV=demo`; proxy (`src/proxy.ts`) menolak host demo pada build produksi.
 
 ## Env penting
 
