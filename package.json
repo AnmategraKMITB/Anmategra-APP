@@ -4,6 +4,9 @@
   "private": true,
   "license": "AGPL-3.0-or-later",
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "build": "next build",
     "db:generate": "drizzle-kit generate",
@@ -28,9 +31,9 @@
     "docs:check": "bash scripts/docs-check.sh",
     "docs:db:publish": "bunx dbdocs build docs/api/schema.dbml --project anmategra",
     "dev": "next dev",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "lint:prune": "eslint . --prune-suppressions",
+    "lint": "bun lint --type-aware --report-unused-disable-directives-severity=error",
+    "lint:fix": "bun lint --type-aware --fix",
+    "lint:prune": "bun lint --type-aware --prune-suppressions",
     "check": "next typegen && bun check --no-script",
     "seed:oprec-mock": "SKIP_ENV_VALIDATION=1 bun --config=scripts/oprec/bunfig.seed.toml test ./scripts/oprec/seed-mock.seed.ts",
     "akun:gabung-tpb": "tsx scripts/akun/gabung-akun-tpb.ts",
@@ -105,18 +108,12 @@
   "devDependencies": {
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/csv-parse": "^1.1.12",
-    "@types/eslint": "^8.56.10",
     "@types/node": "^20.17.10",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
-    "@typescript-eslint/eslint-plugin": "^8.73.0",
-    "@typescript-eslint/parser": "^8.73.0",
     "bun-types": "1.4.5-canary.20261123T141143",
     "drizzle-dbml-generator": "^0.10.0",
     "drizzle-kit": "^0.31.11",
-    "eslint": "^9.0.0",
-    "eslint-config-next": "^16.1.1",
-    "eslint-plugin-drizzle": "^0.2.3",
     "husky": "^9.1.7",
     "lint-staged": "^16.1.6",
     "postcss": "^8.4.39",
@@ -124,8 +121,7 @@
     "prettier-plugin-tailwindcss": "^0.6.5",
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.5",
-    "typescript": "6.0.3",
-    "typescript-eslint": "^8.73.0"
+    "typescript": "6.0.3"
   },
   "ct3aMetadata": {
     "initVersion": "7.37.0"
@@ -133,7 +129,7 @@
   "lint-staged": {
     "*.{js,cjs,ts,tsx}": [
       "prettier --write",
-      "eslint --fix"
+      "bun lint --fix"
     ]
   },
   "packageManager": "bun@1.4.5-canary.20261123.1",
