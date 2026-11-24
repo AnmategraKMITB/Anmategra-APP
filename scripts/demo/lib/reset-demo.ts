@@ -9,7 +9,7 @@
  */
 import { sql } from 'drizzle-orm';
 
-import { seedDemo, type DemoDb } from './seed-demo';
+import { type DemoDb, seedDemo } from './seed-demo';
 
 const TABLE_PREFIX = 'anmategra_';
 

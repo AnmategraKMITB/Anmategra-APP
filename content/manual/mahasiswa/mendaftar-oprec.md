@@ -69,11 +69,11 @@ tautannya dan klik **Ubah jawaban**.
 Buka kembali tautan formulir. Bagian **Hasil pendaftaran** menampilkan salah
 satu dari berikut:
 
-| Tampilan                              | Artinya                                              |
-| ------------------------------------- | ---------------------------------------------------- |
-| **Pendaftaranmu sudah kami terima**   | Hasil belum diumumkan. Pantau halaman ini lagi nanti. |
-| **Selamat, kamu diterima!**           | Anda diterima. Divisinya tertulis di bawahnya.       |
-| **Belum diterima**                    | Anda belum diterima di oprec ini.                    |
+| Tampilan                            | Artinya                                               |
+| ----------------------------------- | ----------------------------------------------------- |
+| **Pendaftaranmu sudah kami terima** | Hasil belum diumumkan. Pantau halaman ini lagi nanti. |
+| **Selamat, kamu diterima!**         | Anda diterima. Divisinya tertulis di bawahnya.        |
+| **Belum diterima**                  | Anda belum diterima di oprec ini.                     |
 
 Anda hanya melihat hasil akhir, tanpa nilai maupun alasan.
 

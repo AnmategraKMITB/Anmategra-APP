@@ -23,11 +23,11 @@ const Footer = () => {
   }
 
   return (
-    <div className="w-full h-full mt-auto px-4 sm:px-8 md:px-12 lg:px-16 py-6 md:py-8 flex flex-col items-center justify-start border-t-2 border-slate-100 bg-white">
-      <div className="h-full w-full flex flex-col md:flex-row items-start justify-between gap-6 md:gap-x-8">
-        <div className="w-full flex flex-col gap-y-2 md:flex-[2]">
+    <div className="mt-auto flex h-full w-full flex-col items-center justify-start border-t-2 border-slate-100 bg-white px-4 py-6 sm:px-8 md:px-12 md:py-8 lg:px-16">
+      <div className="flex h-full w-full flex-col items-start justify-between gap-6 md:flex-row md:gap-x-8">
+        <div className="flex w-full flex-col gap-y-2 md:flex-[2]">
           {/* Tinggi sama, lebar mengikuti proporsi tiap logo (logo Kabinet lebih lebar). */}
-          <div className="w-full h-full flex items-center gap-x-3 flex-wrap">
+          <div className="flex h-full w-full flex-wrap items-center gap-x-3">
             <Image
               src={KMLogo}
               alt="Logo KM ITB"
@@ -50,16 +50,18 @@ const Footer = () => {
             />
           </div>
           <div>
-            <h3 className="text-lg sm:text-xl md:text-2xl text-Blue-Dark font-semibold my-2">
-              Kementerian Anmategra<br className="hidden sm:block" />
+            <h3 className="my-2 text-lg font-semibold text-Blue-Dark sm:text-xl md:text-2xl">
+              Kementerian Anmategra
+              <br className="hidden sm:block" />
             </h3>
-            <p className="text-sm md:text-base text-Blue-Dark leading-5">
-              Kemenkoan Pengembangan Sumber Daya Manusia (PSDM) <br className="hidden sm:block" /> Kabinet
-              KM ITB 2026/2027 "Bermakna" 
+            <p className="text-sm leading-5 text-Blue-Dark md:text-base">
+              Kemenkoan Pengembangan Sumber Daya Manusia (PSDM){' '}
+              <br className="hidden sm:block" /> Kabinet KM ITB 2026/2027
+              "Bermakna"
             </p>
           </div>
           <div className="py-2">
-            <p className="text-Blue-Dark text-sm md:text-[16px]">
+            <p className="text-sm text-Blue-Dark md:text-[16px]">
               © 2026 Kementerian Anmategra KM ITB. Kode sumber terbuka di bawah{' '}
               <Link
                 href="https://github.com/AnmategraKMITB/Anmategra-APP/blob/develop/LICENSE"
@@ -69,7 +71,7 @@ const Footer = () => {
               </Link>
               .
             </p>
-            <p className="flex flex-wrap items-center gap-x-2 text-Blue-Dark text-sm md:text-[16px]">
+            <p className="flex flex-wrap items-center gap-x-2 text-sm text-Blue-Dark md:text-[16px]">
               <Link
                 href="/privasi"
                 className="underline underline-offset-2 hover:opacity-80"
@@ -102,31 +104,35 @@ const Footer = () => {
             </p>
           </div>
         </div>
-        <div className="flex flex-row md:contents gap-x-4 w-full">
-          <div className="flex flex-col items-start justify-start w-full gap-y-2 md:flex-1">
-            <h5 className="text-Blue-Dark text-lg md:text-xl font-medium">Narahubung</h5>
+        <div className="flex w-full flex-row gap-x-4 md:contents">
+          <div className="flex w-full flex-col items-start justify-start gap-y-2 md:flex-1">
+            <h5 className="text-lg font-medium text-Blue-Dark md:text-xl">
+              Narahubung
+            </h5>
             <div>
-              <p className="font-semibold text-Blue-Dark text-sm md:text-base">
+              <p className="text-sm font-semibold text-Blue-Dark md:text-base">
                 Z. Nayaka Athadiansyah
               </p>
               <div className="flex items-center gap-x-2">
                 <Image src={LineLogo} alt="Logo Line" width={16} height={16} />
-                <p className="text-Blue-Dark text-sm">nayaka.zna</p>
+                <p className="text-sm text-Blue-Dark">nayaka.zna</p>
               </div>
             </div>
             <div className="py-[1px]" />
             <div>
-              <p className="font-semibold text-Blue-Dark text-sm md:text-base">
+              <p className="text-sm font-semibold text-Blue-Dark md:text-base">
                 Narendra Dharma Wistara M.
               </p>
               <div className="flex items-center gap-x-2">
                 <Image src={LineLogo} alt="Logo Line" width={16} height={16} />
-                <p className="text-Blue-Dark text-sm">raulinns</p>
+                <p className="text-sm text-Blue-Dark">raulinns</p>
               </div>
             </div>
           </div>
-          <div className="flex flex-col items-start justify-start w-full gap-y-2 md:flex-1">
-            <h5 className="text-Blue-Dark text-lg md:text-xl font-medium">Ikuti Kami</h5>
+          <div className="flex w-full flex-col items-start justify-start gap-y-2 md:flex-1">
+            <h5 className="text-lg font-medium text-Blue-Dark md:text-xl">
+              Ikuti Kami
+            </h5>
             <Link
               href="https://instagram.com/anmategra.itb"
               className="flex items-center gap-x-2"
@@ -137,7 +143,7 @@ const Footer = () => {
                 width={16}
                 height={16}
               />
-              <p className="text-Blue-Dark text-sm">anmategra.itb</p>
+              <p className="text-sm text-Blue-Dark">anmategra.itb</p>
             </Link>
             <Link
               href="https://x.com/anmategra_itb?s=21"
@@ -150,11 +156,13 @@ const Footer = () => {
                 height={16}
                 style={{ width: 'auto', height: 'auto' }}
               />
-              <p className="text-Blue-Dark text-sm">anmategra_itb</p>
+              <p className="text-sm text-Blue-Dark">anmategra_itb</p>
             </Link>
             <div className="py-2" />
-            <h5 className="text-Blue-Dark text-lg md:text-xl font-medium">Kontak Kami</h5>
-            <p className="text-Blue-Dark text-sm">anmategra@km.itb.ac.id</p>
+            <h5 className="text-lg font-medium text-Blue-Dark md:text-xl">
+              Kontak Kami
+            </h5>
+            <p className="text-sm text-Blue-Dark">anmategra@km.itb.ac.id</p>
           </div>
         </div>
       </div>

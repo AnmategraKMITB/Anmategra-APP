@@ -88,6 +88,13 @@ export function StateBar({
 
   const state = overview.state;
   const prioritas = overview.method === 'prioritas';
+  // Server memberi tahu perpindahan mana yang belum boleh dan mengapa, jadi
+  // tombolnya dinonaktifkan lebih dulu, bukan ditolak setelah diklik.
+  const canMove = (to: State) =>
+    overview.moves.some((move) => move.to === to && move.enabled);
+  const lockedReasons = overview.moves.flatMap((move) =>
+    move.enabled || !move.reason ? [] : [move.reason],
+  );
   const help =
     prioritas && state === 'berjalan'
       ? 'Keputusan diisi dari daftar prioritas lewat Terapkan. Tab Penempatan baru terbuka untuk Kadiv saat masa banding.'
@@ -99,9 +106,7 @@ export function StateBar({
       className="mt-6 grid gap-3 rounded-[24px] border border-neutral-400 bg-neutral-50 p-4 sm:p-5"
     >
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-sm font-semibold text-neutral-1000">
-          Keadaan
-        </span>
+        <span className="text-sm font-semibold text-neutral-1000">Keadaan</span>
         <Chip tone={state === 'final' ? 'success' : 'primary'}>
           {LABEL[state]}
         </Chip>
@@ -116,7 +121,11 @@ export function StateBar({
       {overview.isAdmin ? (
         <div className="flex flex-wrap gap-2">
           {state === 'berjalan' ? (
-            <Button size="sm" onClick={() => setAsk('masa_banding')}>
+            <Button
+              size="sm"
+              disabled={!canMove('masa_banding')}
+              onClick={() => setAsk('masa_banding')}
+            >
               Masuk masa banding
             </Button>
           ) : null}
@@ -125,11 +134,16 @@ export function StateBar({
               <Button
                 size="sm"
                 variant="dark_blue_outline"
+                disabled={!canMove('berjalan')}
                 onClick={() => setAsk('berjalan')}
               >
                 Kembali ke berjalan
               </Button>
-              <Button size="sm" onClick={() => setAsk('final')}>
+              <Button
+                size="sm"
+                disabled={!canMove('final')}
+                onClick={() => setAsk('final')}
+              >
                 Tetapkan final
               </Button>
             </>
@@ -138,11 +152,17 @@ export function StateBar({
             <Button
               size="sm"
               variant="dark_blue_outline"
+              disabled={!canMove('masa_banding')}
               onClick={() => setAsk('masa_banding')}
             >
               Buka masa banding lagi
             </Button>
           ) : null}
+          {lockedReasons.map((reason) => (
+            <p key={reason} className="basis-full text-sm text-neutral-700">
+              {reason}
+            </p>
+          ))}
           {state === 'final' ? (
             <p
               role="status"

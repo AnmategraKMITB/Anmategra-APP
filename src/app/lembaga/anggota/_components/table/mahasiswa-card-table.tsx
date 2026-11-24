@@ -2,14 +2,37 @@
 
 // Library Import
 import {
+  DndContext,
+  type DragEndEvent,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import {
   type ColumnDef,
+  type Row,
   type SortingState,
+  createPaginatedRowModel,
+  createSortedRowModel,
   flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  rowPaginationFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_text,
+  tableFeatures,
+  useTable,
 } from '@tanstack/react-table';
+import { ChevronDown, ChevronUp, GripVertical } from 'lucide-react';
 import { type Session } from 'next-auth';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -28,24 +51,14 @@ import {
   TableHeader,
   TableRow,
 } from '~/components/ui/table';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
+
+const memberTableFeatures = tableFeatures({
+  rowSortingFeature,
+  rowPaginationFeature,
+  sortedRowModel: createSortedRowModel(),
+  paginatedRowModel: createPaginatedRowModel(),
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+});
 
 type TableMeta = {
   lembagaId?: string;
@@ -66,7 +79,7 @@ function SortableRow({
   totalData,
   itemsPerPage,
 }: {
-  row: any;
+  row: Row<typeof memberTableFeatures, Member>;
   isEditMode: boolean;
   index: number;
   onMoveUp: (index: number) => void;
@@ -95,7 +108,7 @@ function SortableRow({
       {isEditMode && (
         <TableCell className="w-12">
           <button
-            className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+            className="cursor-grab rounded p-1 hover:bg-gray-100 active:cursor-grabbing"
             {...attributes}
             {...listeners}
           >
@@ -103,7 +116,7 @@ function SortableRow({
           </button>
         </TableCell>
       )}
-      {row.getVisibleCells().map((cell: any) => (
+      {row.getAllCells().map((cell) => (
         <TableCell key={cell.id} className="text-neutral-700">
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
@@ -116,7 +129,7 @@ function SortableRow({
               size="sm"
               className="h-8 w-8 p-0"
               onClick={() => onMoveUp(index)}
-              disabled={((currentPage - 1) * itemsPerPage + index) === 0}
+              disabled={(currentPage - 1) * itemsPerPage + index === 0}
             >
               <ChevronUp size={16} />
             </Button>
@@ -125,7 +138,9 @@ function SortableRow({
               size="sm"
               className="h-8 w-8 p-0"
               onClick={() => onMoveDown(index)}
-              disabled={((currentPage - 1) * itemsPerPage + index) === totalData - 1}
+              disabled={
+                (currentPage - 1) * itemsPerPage + index === totalData - 1
+              }
             >
               <ChevronDown size={16} />
             </Button>
@@ -167,9 +182,21 @@ export function MahasiswaCardTable({
   const [localData, setLocalData] = React.useState<Member[]>(data);
   const itemsPerPage = 10;
 
-  React.useEffect(() => {
+  // Saat props berubah, state lokal disesuaikan langsung ketika render
+  // (bukan lewat effect) supaya tidak ada render tambahan dengan data lama.
+  const [prevData, setPrevData] = React.useState(data);
+  if (data !== prevData) {
+    setPrevData(data);
     setLocalData(data);
-  }, [data]);
+  }
+
+  // Dibandingkan per isi: selectedFilters default `[]` baru tiap render.
+  const filterKey = JSON.stringify([searchQuery, selectedFilters]);
+  const [prevFilterKey, setPrevFilterKey] = React.useState(filterKey);
+  if (filterKey !== prevFilterKey) {
+    setPrevFilterKey(filterKey);
+    setCurrentPage(1);
+  }
 
   const filteredData = React.useMemo(() => {
     let filtered = [...localData];
@@ -192,15 +219,11 @@ export function MahasiswaCardTable({
     return filtered;
   }, [localData, searchQuery, selectedFilters]);
 
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery, selectedFilters]);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -223,46 +246,52 @@ export function MahasiswaCardTable({
     }
   };
 
-  const handleMoveUp = React.useCallback((index: number) => {
-    const actualIndex = (currentPage - 1) * itemsPerPage + index;
-    if (actualIndex > 0) {
-      setLocalData((items) => {
-        const newOrder = arrayMove(items, actualIndex, actualIndex - 1);
-        setTimeout(() => {
-          if (onReorder) {
-            onReorder(newOrder);
-          }
-        }, 0);
-        return newOrder;
-      });
-      const newIndex = actualIndex - 1;
-      const newPage = Math.floor(newIndex / itemsPerPage) + 1;
-      if (newPage !== currentPage) {
-        setTimeout(() => setCurrentPage(newPage), 0);
-      }
-    }
-  }, [currentPage, itemsPerPage, onReorder]);
-
-  const handleMoveDown = React.useCallback((index: number) => {
-    const actualIndex = (currentPage - 1) * itemsPerPage + index;
-    setLocalData((items) => {
-      if (actualIndex < items.length - 1) {
-        const newOrder = arrayMove(items, actualIndex, actualIndex + 1);
-        setTimeout(() => {
-          if (onReorder) {
-            onReorder(newOrder);
-          }
-        }, 0);
-        const newIndex = actualIndex + 1;
+  const handleMoveUp = React.useCallback(
+    (index: number) => {
+      const actualIndex = (currentPage - 1) * itemsPerPage + index;
+      if (actualIndex > 0) {
+        setLocalData((items) => {
+          const newOrder = arrayMove(items, actualIndex, actualIndex - 1);
+          setTimeout(() => {
+            if (onReorder) {
+              onReorder(newOrder);
+            }
+          }, 0);
+          return newOrder;
+        });
+        const newIndex = actualIndex - 1;
         const newPage = Math.floor(newIndex / itemsPerPage) + 1;
         if (newPage !== currentPage) {
           setTimeout(() => setCurrentPage(newPage), 0);
         }
-        return newOrder;
       }
-      return items;
-    });
-  }, [currentPage, itemsPerPage, onReorder]);
+    },
+    [currentPage, itemsPerPage, onReorder],
+  );
+
+  const handleMoveDown = React.useCallback(
+    (index: number) => {
+      const actualIndex = (currentPage - 1) * itemsPerPage + index;
+      setLocalData((items) => {
+        if (actualIndex < items.length - 1) {
+          const newOrder = arrayMove(items, actualIndex, actualIndex + 1);
+          setTimeout(() => {
+            if (onReorder) {
+              onReorder(newOrder);
+            }
+          }, 0);
+          const newIndex = actualIndex + 1;
+          const newPage = Math.floor(newIndex / itemsPerPage) + 1;
+          if (newPage !== currentPage) {
+            setTimeout(() => setCurrentPage(newPage), 0);
+          }
+          return newOrder;
+        }
+        return items;
+      });
+    },
+    [currentPage, itemsPerPage, onReorder],
+  );
 
   const paginatedData = React.useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -284,7 +313,7 @@ export function MahasiswaCardTable({
 
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const columns: ColumnDef<Member>[] = [
+  const columns: ColumnDef<typeof memberTableFeatures, Member>[] = [
     {
       accessorKey: 'nama',
       header: 'Nama',
@@ -322,7 +351,7 @@ export function MahasiswaCardTable({
           <Link href={href}>
             <Button
               variant="outline"
-              className="bg-neutral-250 text-gray-700 hover:bg-neutral-300 border-neutral-400 px-3 py-2 rounded-lg flex items-center gap-2"
+              className="bg-neutral-250 flex items-center gap-2 rounded-lg border-neutral-400 px-3 py-2 text-gray-700 hover:bg-neutral-300"
             >
               Lihat
               <Image
@@ -352,22 +381,20 @@ export function MahasiswaCardTable({
     },
   ];
 
-  const table = useReactTable({
+  const table = useTable({
+    features: memberTableFeatures,
     data: paginatedData,
     columns,
     state: { sorting },
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     meta: tableMeta,
   });
 
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-1 flex-col">
       <div className="flex-1">
         {/* Desktop Table View */}
-        <div className="hidden md:block w-full overflow-x-auto">
+        <div className="hidden w-full overflow-x-auto md:block">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -405,25 +432,34 @@ export function MahasiswaCardTable({
                   strategy={verticalListSortingStrategy}
                 >
                   {table.getRowModel().rows.length ? (
-                    table.getRowModel().rows.map((row, index) => (
-                      <SortableRow
-                        key={row.original.id}
-                        row={row}
-                        isEditMode={isEditMode}
-                        index={index}
-                        onMoveUp={handleMoveUp}
-                        onMoveDown={handleMoveDown}
-                        currentPage={currentPage}
-                        totalData={localData.length}
-                        itemsPerPage={itemsPerPage}
-                      />
-                    ))
+                    table
+                      .getRowModel()
+                      .rows.map((row, index) => (
+                        <SortableRow
+                          key={row.original.id}
+                          row={row}
+                          isEditMode={isEditMode}
+                          index={index}
+                          onMoveUp={handleMoveUp}
+                          onMoveDown={handleMoveDown}
+                          currentPage={currentPage}
+                          totalData={localData.length}
+                          itemsPerPage={itemsPerPage}
+                        />
+                      ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={columns.length + (isEditMode ? 2 : 0)} className="text-center py-12">
+                      <TableCell
+                        colSpan={columns.length + (isEditMode ? 2 : 0)}
+                        className="py-12 text-center"
+                      >
                         <div className="text-neutral-500">
-                          <p className="text-lg mb-2">Tidak ada anggota ditemukan</p>
-                          <p className="text-sm">Coba ubah filter atau kata kunci pencarian</p>
+                          <p className="mb-2 text-lg">
+                            Tidak ada anggota ditemukan
+                          </p>
+                          <p className="text-sm">
+                            Coba ubah filter atau kata kunci pencarian
+                          </p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -435,16 +471,16 @@ export function MahasiswaCardTable({
         </div>
 
         {/* Mobile Card View */}
-        <div className="md:hidden space-y-4">
+        <div className="space-y-4 md:hidden">
           {table.getRowModel().rows.length ? (
             table.getRowModel().rows.map((row) => (
               <div
                 key={row.id}
-                className="bg-white rounded-lg border p-4 shadow-sm"
+                className="rounded-lg border bg-white p-4 shadow-sm"
               >
                 {/* Header - Name and NIM */}
-                <div className="mb-4 pb-3 border-b">
-                  <h3 className="font-semibold text-lg text-neutral-700">
+                <div className="mb-4 border-b pb-3">
+                  <h3 className="text-lg font-semibold text-neutral-700">
                     {row.original.nama}
                   </h3>
                   <p className="text-sm text-neutral-500">{row.original.nim}</p>
@@ -452,7 +488,7 @@ export function MahasiswaCardTable({
 
                 {/* Details */}
                 <div className="space-y-3">
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-neutral-500">
                       Divisi
                     </span>
@@ -460,7 +496,7 @@ export function MahasiswaCardTable({
                       {row.original.divisi}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-sm font-medium text-neutral-500">
                       Posisi
                     </span>
@@ -471,7 +507,7 @@ export function MahasiswaCardTable({
                 </div>
 
                 {/* Actions */}
-                <div className="mt-4 pt-3 border-t flex gap-2">
+                <div className="mt-4 flex gap-2 border-t pt-3">
                   <Link
                     href={
                       isKegiatan && eventId
@@ -482,7 +518,7 @@ export function MahasiswaCardTable({
                   >
                     <Button
                       variant="outline"
-                      className="w-full bg-neutral-250 text-gray-700 hover:bg-neutral-300 border-neutral-400"
+                      className="bg-neutral-250 w-full border-neutral-400 text-gray-700 hover:bg-neutral-300"
                     >
                       Lihat Rapor
                     </Button>
@@ -499,10 +535,12 @@ export function MahasiswaCardTable({
               </div>
             ))
           ) : (
-            <div className="text-center py-12 bg-white rounded-lg border">
+            <div className="rounded-lg border bg-white py-12 text-center">
               <div className="text-neutral-500">
-                <p className="text-lg mb-2">Tidak ada anggota ditemukan</p>
-                <p className="text-sm">Coba ubah filter atau kata kunci pencarian</p>
+                <p className="mb-2 text-lg">Tidak ada anggota ditemukan</p>
+                <p className="text-sm">
+                  Coba ubah filter atau kata kunci pencarian
+                </p>
               </div>
             </div>
           )}

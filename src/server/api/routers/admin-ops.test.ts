@@ -1,32 +1,37 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
-
-// Daftar email darurat dibuat tetap agar tes tidak bergantung pada .env.
-vi.mock('~/env', () => ({
-  env: { SUPERADMIN_EMAILS: ['darurat@test.local'], APP_ENV: 'development' },
-}));
-
 import { createCallerFactory } from '~/server/api/trpc';
 import {
   adminAudit,
   adminPermission,
-  alumniPending,
   lembaga,
+  lembagaMembership,
   mahasiswa,
+  support,
   users,
   verifiedUsers,
 } from '~/server/db/schema';
-import { createTestDb, createUser, resetDb } from '~/test/test-db';
+import {
+  addMembership,
+  createLembaga,
+  createTestDb,
+  createUser,
+  resetDb,
+} from '~/test/test-db';
 
 import { adminRouter } from './admin';
 import { adminConsoleRouter } from './admin-console';
 import { adminOpsRouter } from './admin-ops';
 
+// Daftar email darurat dibuat tetap agar tes tidak bergantung pada .env.
+await vi.mock('~/env', () => ({
+  env: { SUPERADMIN_EMAILS: ['darurat@test.local'], APP_ENV: 'development' },
+}));
+
 const { db, close } = createTestDb();
 
 beforeEach(async () => {
   await resetDb(db);
-  await db.execute(sql`TRUNCATE TABLE ${verifiedUsers}, ${alumniPending}`);
 });
 afterAll(async () => {
   await close();
@@ -58,7 +63,10 @@ async function codeOf(promise: Promise<unknown>) {
 }
 
 async function makeSuperadmin(email?: string) {
-  const user = await createUser(db, { role: 'admin', ...(email ? { email } : {}) });
+  const user = await createUser(db, {
+    role: 'admin',
+    ...(email ? { email } : {}),
+  });
   return { id: user.id, role: 'admin' as const, email: user.email };
 }
 
@@ -75,12 +83,19 @@ async function auditActions() {
 
 describe('otorisasi kelola Superadmin', () => {
   it('Operator dengan semua izin tetap ditolak', async () => {
-    const op = await makeOperator(['accounts.write', 'accounts.roles', 'access.write']);
+    const op = await makeOperator([
+      'accounts.write',
+      'accounts.roles',
+      'access.write',
+    ]);
     const target = await createUser(db);
     expect(await codeOf(ops(op).superadminList())).toBe('FORBIDDEN');
     expect(
       await codeOf(
-        ops(op).superadminAdd({ identifier: target.email, confirmEmail: target.email }),
+        ops(op).superadminAdd({
+          identifier: target.email,
+          confirmEmail: target.email,
+        }),
       ),
     ).toBe('FORBIDDEN');
   });
@@ -88,16 +103,16 @@ describe('otorisasi kelola Superadmin', () => {
   it('anonim ditolak 401, lembaga dan mahasiswa 403', async () => {
     expect(await codeOf(ops(null).superadminList())).toBe('UNAUTHORIZED');
     const user = await createUser(db, { role: 'lembaga' });
-    expect(await codeOf(ops({ id: user.id, role: 'lembaga' }).superadminList())).toBe(
-      'FORBIDDEN',
-    );
+    expect(
+      await codeOf(ops({ id: user.id, role: 'lembaga' }).superadminList()),
+    ).toBe('FORBIDDEN');
   });
 
   it('token admin lama ditolak bila peran di basis data sudah diturunkan', async () => {
     const stale = await createUser(db, { role: 'mahasiswa' });
-    expect(await codeOf(ops({ id: stale.id, role: 'admin' }).superadminList())).toBe(
-      'FORBIDDEN',
-    );
+    expect(
+      await codeOf(ops({ id: stale.id, role: 'admin' }).superadminList()),
+    ).toBe('FORBIDDEN');
   });
 
   it('Superadmin berhasil menambah, tercatat di audit', async () => {
@@ -105,7 +120,10 @@ describe('otorisasi kelola Superadmin', () => {
     const target = await createUser(db);
     expect(
       await codeOf(
-        ops(actor).superadminAdd({ identifier: target.email, confirmEmail: target.email }),
+        ops(actor).superadminAdd({
+          identifier: target.email,
+          confirmEmail: target.email,
+        }),
       ),
     ).toBe('OK');
     const [row] = await db.select().from(users).where(eq(users.id, target.id));
@@ -117,7 +135,12 @@ describe('otorisasi kelola Superadmin', () => {
     const actor = await makeSuperadmin();
     const target = await createUser(db);
     expect(
-      await codeOf(ops(actor).superadminAdd({ identifier: target.email, confirmEmail: 'salah@x.id' })),
+      await codeOf(
+        ops(actor).superadminAdd({
+          identifier: target.email,
+          confirmEmail: 'salah@x.id',
+        }),
+      ),
     ).toBe('BAD_REQUEST');
     const [row] = await db.select().from(users).where(eq(users.id, target.id));
     expect(row?.role).toBe('mahasiswa');
@@ -128,7 +151,12 @@ describe('menurunkan Superadmin', () => {
   it('tidak boleh menurunkan diri sendiri', async () => {
     const actor = await makeSuperadmin();
     expect(
-      await codeOf(ops(actor).superadminRemove({ userId: actor.id, confirmEmail: actor.email })),
+      await codeOf(
+        ops(actor).superadminRemove({
+          userId: actor.id,
+          confirmEmail: actor.email,
+        }),
+      ),
     ).toBe('BAD_REQUEST');
   });
 
@@ -137,7 +165,10 @@ describe('menurunkan Superadmin', () => {
     const emergency = await makeSuperadmin('darurat@test.local');
     expect(
       await codeOf(
-        ops(actor).superadminRemove({ userId: emergency.id, confirmEmail: emergency.email }),
+        ops(actor).superadminRemove({
+          userId: emergency.id,
+          confirmEmail: emergency.email,
+        }),
       ),
     ).toBe('FORBIDDEN');
   });
@@ -146,11 +177,19 @@ describe('menurunkan Superadmin', () => {
     const actor = await makeSuperadmin();
     const target = await makeSuperadmin();
     expect(
-      await codeOf(ops(actor).superadminRemove({ userId: target.id, confirmEmail: 'x@y.id' })),
+      await codeOf(
+        ops(actor).superadminRemove({
+          userId: target.id,
+          confirmEmail: 'x@y.id',
+        }),
+      ),
     ).toBe('BAD_REQUEST');
     expect(
       await codeOf(
-        ops(actor).superadminRemove({ userId: target.id, confirmEmail: target.email.toUpperCase() }),
+        ops(actor).superadminRemove({
+          userId: target.id,
+          confirmEmail: target.email.toUpperCase(),
+        }),
       ),
     ).toBe('OK');
     const [row] = await db.select().from(users).where(eq(users.id, target.id));
@@ -166,7 +205,10 @@ describe('menurunkan Superadmin', () => {
       type: 'Himpunan',
       userId: target.id,
     } as never);
-    await ops(actor).superadminRemove({ userId: target.id, confirmEmail: target.email });
+    await ops(actor).superadminRemove({
+      userId: target.id,
+      confirmEmail: target.email,
+    });
     const [row] = await db.select().from(users).where(eq(users.id, target.id));
     expect(row?.role).toBe('lembaga');
   });
@@ -179,22 +221,48 @@ describe('peran diperiksa ulang ke basis data (token lama ditolak)', () => {
     // Sebelum diturunkan semua lolos.
     expect(await codeOf(ops(stale).superadminList())).toBe('OK');
     expect(await codeOf(console_(stale).stats())).toBe('OK');
-    expect(await codeOf(legacy(stale).uploadAlumniCsv({ nims: [13523001] }))).toBe('OK');
+    expect(
+      await codeOf(legacy(stale).uploadAlumniCsv({ nims: [13523001] })),
+    ).toBe('OK');
 
-    await db.update(users).set({ role: 'mahasiswa' }).where(eq(users.id, actor.id));
+    await db
+      .update(users)
+      .set({ role: 'mahasiswa' })
+      .where(eq(users.id, actor.id));
 
     expect(await codeOf(ops(stale).superadminList())).toBe('FORBIDDEN');
-    expect(await codeOf(ops(stale).lembagaCreate({ name: 'X', type: 'Himpunan', email: 'x@gmail.com' }))).toBe('FORBIDDEN');
+    expect(
+      await codeOf(
+        ops(stale).lembagaCreate({
+          name: 'X',
+          type: 'Himpunan',
+          email: 'x@gmail.com',
+        }),
+      ),
+    ).toBe('FORBIDDEN');
     expect(await codeOf(console_(stale).stats())).toBe('FORBIDDEN');
-    expect(await codeOf(console_(stale).usersList({} as never))).toBe('FORBIDDEN');
-    expect(await codeOf(legacy(stale).uploadAlumniCsv({ nims: [13523001] }))).toBe('FORBIDDEN');
-    expect(await console_(stale).myAdminPermissions()).toEqual({ permissions: [], expiresAt: null });
+    expect(await codeOf(console_(stale).usersList({} as never))).toBe(
+      'FORBIDDEN',
+    );
+    expect(
+      await codeOf(legacy(stale).uploadAlumniCsv({ nims: [13523001] })),
+    ).toBe('FORBIDDEN');
+    expect(await console_(stale).myAdminPermissions()).toEqual({
+      permissions: [],
+      expiresAt: null,
+    });
   });
 
   it('Operator dicabut izinnya: panggilan berikutnya ditolak', async () => {
-    const op = await makeOperator(['accounts.read', 'alumni.write', 'lembaga.write']);
+    const op = await makeOperator([
+      'accounts.read',
+      'alumni.write',
+      'lembaga.write',
+    ]);
     expect(await codeOf(console_(op).stats())).toBe('OK');
-    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe('OK');
+    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe(
+      'OK',
+    );
 
     await db
       .update(adminPermission)
@@ -202,7 +270,9 @@ describe('peran diperiksa ulang ke basis data (token lama ditolak)', () => {
       .where(eq(adminPermission.userId, op.id));
 
     expect(await codeOf(console_(op).stats())).toBe('FORBIDDEN');
-    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe('FORBIDDEN');
+    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe(
+      'FORBIDDEN',
+    );
     expect(await codeOf(ops(op).verifiedEmailList())).toBe('FORBIDDEN');
   });
 
@@ -222,12 +292,20 @@ describe('userUpdate tidak lagi membuka eskalasi ke Superadmin', () => {
     const target = await createUser(db);
     expect(
       await codeOf(
-        console_(op).userUpdate({ userId: target.id, role: 'admin', confirmEmail: target.email }),
+        console_(op).userUpdate({
+          userId: target.id,
+          role: 'admin',
+          confirmEmail: target.email,
+        }),
       ),
     ).toBe('FORBIDDEN');
     expect(
       await codeOf(
-        console_(op).userUpdate({ userId: op.id, role: 'admin', confirmEmail: 'x@y.id' }),
+        console_(op).userUpdate({
+          userId: op.id,
+          role: 'admin',
+          confirmEmail: 'x@y.id',
+        }),
       ),
     ).toBe('FORBIDDEN');
   });
@@ -236,11 +314,17 @@ describe('userUpdate tidak lagi membuka eskalasi ke Superadmin', () => {
     const op = await makeOperator(['accounts.write', 'accounts.roles']);
     const admin = await makeSuperadmin();
     expect(
-      await codeOf(console_(op).userUpdate({ userId: admin.id, email: 'ambil@alih.id' })),
+      await codeOf(
+        console_(op).userUpdate({ userId: admin.id, email: 'ambil@alih.id' }),
+      ),
     ).toBe('FORBIDDEN');
     expect(
       await codeOf(
-        console_(op).userUpdate({ userId: admin.id, role: 'mahasiswa', confirmEmail: admin.email }),
+        console_(op).userUpdate({
+          userId: admin.id,
+          role: 'mahasiswa',
+          confirmEmail: admin.email,
+        }),
       ),
     ).toBe('FORBIDDEN');
   });
@@ -249,24 +333,37 @@ describe('userUpdate tidak lagi membuka eskalasi ke Superadmin', () => {
     const op = await makeOperator(['accounts.write', 'accounts.roles']);
     const target = await createUser(db);
     expect(
-      await codeOf(console_(op).userUpdate({ userId: target.id, role: 'lembaga' })),
+      await codeOf(
+        console_(op).userUpdate({ userId: target.id, role: 'lembaga' }),
+      ),
     ).toBe('BAD_REQUEST');
     expect(
       await codeOf(
-        console_(op).userUpdate({ userId: target.id, role: 'lembaga', confirmEmail: target.email }),
+        console_(op).userUpdate({
+          userId: target.id,
+          role: 'lembaga',
+          confirmEmail: target.email,
+        }),
       ),
     ).toBe('OK');
   });
 });
 
 describe('buat lembaga', () => {
-  const input = { name: 'HMIF', type: 'Himpunan' as const, acronym: 'HMIF', email: 'hmif@gmail.com' };
+  const input = {
+    name: 'HMIF',
+    type: 'Himpunan' as const,
+    acronym: 'HMIF',
+    email: 'hmif@gmail.com',
+  };
 
   it('mahasiswa dan Operator tanpa lembaga.write ditolak', async () => {
     const student = await createUser(db);
-    expect(await codeOf(ops({ id: student.id, role: 'mahasiswa' }).lembagaCreate(input))).toBe(
-      'FORBIDDEN',
-    );
+    expect(
+      await codeOf(
+        ops({ id: student.id, role: 'mahasiswa' }).lembagaCreate(input),
+      ),
+    ).toBe('FORBIDDEN');
     const op = await makeOperator(['accounts.write']);
     expect(await codeOf(ops(op).lembagaCreate(input))).toBe('FORBIDDEN');
   });
@@ -274,11 +371,20 @@ describe('buat lembaga', () => {
   it('Operator lembaga.write membuat akun, lembaga, dan email terverifikasi sekaligus', async () => {
     const op = await makeOperator(['lembaga.write']);
     const created = await ops(op).lembagaCreate(input);
-    const [account] = await db.select().from(users).where(eq(users.email, input.email));
+    const [account] = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, input.email));
     expect(account?.role).toBe('lembaga');
-    const [row] = await db.select().from(lembaga).where(eq(lembaga.id, created.id));
+    const [row] = await db
+      .select()
+      .from(lembaga)
+      .where(eq(lembaga.id, created.id));
     expect(row?.userId).toBe(account?.id);
-    const verified = await db.select().from(verifiedUsers).where(eq(verifiedUsers.email, input.email));
+    const verified = await db
+      .select()
+      .from(verifiedUsers)
+      .where(eq(verifiedUsers.email, input.email));
     expect(verified).toHaveLength(1);
     expect(await auditActions()).toContain('lembaga_create');
   });
@@ -294,7 +400,9 @@ describe('buat lembaga', () => {
 describe('email terverifikasi', () => {
   it('butuh accounts.write', async () => {
     const op = await makeOperator(['accounts.read']);
-    expect(await codeOf(ops(op).verifiedEmailAdd({ email: 'a@gmail.com' }))).toBe('FORBIDDEN');
+    expect(
+      await codeOf(ops(op).verifiedEmailAdd({ email: 'a@gmail.com' })),
+    ).toBe('FORBIDDEN');
     expect(await codeOf(ops(op).verifiedEmailList())).toBe('FORBIDDEN');
   });
 
@@ -302,11 +410,17 @@ describe('email terverifikasi', () => {
     const op = await makeOperator(['accounts.write']);
     const owner = await createUser(db, { email: 'owner@gmail.com' });
     await ops(op).verifiedEmailAdd({ email: 'Owner@Gmail.com' });
-    expect(await codeOf(ops(op).verifiedEmailAdd({ email: 'owner@gmail.com' }))).toBe('CONFLICT');
+    expect(
+      await codeOf(ops(op).verifiedEmailAdd({ email: 'owner@gmail.com' })),
+    ).toBe('CONFLICT');
     await ops(op).verifiedEmailRemove({ email: 'owner@gmail.com' });
     expect(await db.select().from(verifiedUsers)).toHaveLength(0);
-    expect(await db.select().from(users).where(eq(users.id, owner.id))).toHaveLength(1);
-    expect(await codeOf(ops(op).verifiedEmailRemove({ email: 'owner@gmail.com' }))).toBe('NOT_FOUND');
+    expect(
+      await db.select().from(users).where(eq(users.id, owner.id)),
+    ).toHaveLength(1);
+    expect(
+      await codeOf(ops(op).verifiedEmailRemove({ email: 'owner@gmail.com' })),
+    ).toBe('NOT_FOUND');
     expect(await auditActions()).toEqual(
       expect.arrayContaining(['verified_email_add', 'verified_email_remove']),
     );
@@ -316,10 +430,16 @@ describe('email terverifikasi', () => {
 describe('impor alumni', () => {
   it('butuh alumni.write', async () => {
     const op = await makeOperator(['accounts.write']);
-    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe('FORBIDDEN');
+    expect(await codeOf(legacy(op).uploadAlumniCsv({ nims: [13523001] }))).toBe(
+      'FORBIDDEN',
+    );
     const student = await createUser(db);
     expect(
-      await codeOf(legacy({ id: student.id, role: 'mahasiswa' }).uploadAlumniCsv({ nims: [13523001] })),
+      await codeOf(
+        legacy({ id: student.id, role: 'mahasiswa' }).uploadAlumniCsv({
+          nims: [13523001],
+        }),
+      ),
     ).toBe('FORBIDDEN');
   });
 
@@ -332,15 +452,163 @@ describe('impor alumni', () => {
       jurusan: 'Teknik Informatika',
       angkatan: 2023,
     });
-    const result = await legacy(op).uploadAlumniCsv({ nims: [13523001, 13523002] });
+    const result = await legacy(op).uploadAlumniCsv({
+      nims: [13523001, 13523002],
+    });
     expect(result).toMatchObject({ updatedCount: 1, pendingCount: 1 });
-    const [m] = await db.select().from(mahasiswa).where(eq(mahasiswa.userId, student.id));
+    const [m] = await db
+      .select()
+      .from(mahasiswa)
+      .where(eq(mahasiswa.userId, student.id));
     expect(m?.status).toBe('alumni');
     expect(await auditActions()).toContain('alumni_import');
   });
 
   it('NIM bukan 8 digit ditolak', async () => {
     const actor = await makeSuperadmin();
-    expect(await codeOf(legacy(actor).uploadAlumniCsv({ nims: [123] }))).toBe('BAD_REQUEST');
+    expect(await codeOf(legacy(actor).uploadAlumniCsv({ nims: [123] }))).toBe(
+      'BAD_REQUEST',
+    );
+  });
+});
+
+describe('membershipUpsert', () => {
+  async function setup() {
+    const actor = await makeSuperadmin();
+    const owner = await createUser(db, { role: 'lembaga' });
+    const l = await createLembaga(db, owner.id);
+    const student = await createUser(db);
+    const rows = () =>
+      db
+        .select({
+          status: lembagaMembership.status,
+          endedAt: lembagaMembership.endedAt,
+        })
+        .from(lembagaMembership)
+        .where(eq(lembagaMembership.userId, student.id));
+    return { actor, lembagaId: l.id, userId: student.id, rows };
+  }
+
+  it('mengakhiri keanggotaan aktif mengisi endedAt', async () => {
+    const s = await setup();
+    await addMembership(db, s.lembagaId, s.userId);
+
+    await console_(s.actor).membershipUpsert({
+      userId: s.userId,
+      lembagaId: s.lembagaId,
+      status: 'keluar',
+    });
+
+    const [row] = await s.rows();
+    expect(row!.status).toBe('keluar');
+    expect(row!.endedAt).not.toBeNull();
+  });
+
+  it('mencatat keanggotaan yang sudah keluar mengisi endedAt', async () => {
+    const s = await setup();
+
+    await console_(s.actor).membershipUpsert({
+      userId: s.userId,
+      lembagaId: s.lembagaId,
+      status: 'keluar',
+    });
+
+    const [row] = await s.rows();
+    expect(row!.status).toBe('keluar');
+    expect(row!.endedAt).not.toBeNull();
+  });
+
+  it('keanggotaan aktif tidak menyimpan endedAt', async () => {
+    const s = await setup();
+
+    await console_(s.actor).membershipUpsert({
+      userId: s.userId,
+      lembagaId: s.lembagaId,
+      status: 'aktif',
+      endedAt: new Date('2026-01-01'),
+    });
+
+    const [row] = await s.rows();
+    expect(row!.status).toBe('aktif');
+    expect(row!.endedAt).toBeNull();
+  });
+});
+
+describe('setReportStatus', () => {
+  async function reportWith(
+    status: (typeof support.$inferInsert)['status'] & string,
+  ) {
+    const id = crypto.randomUUID();
+    await db
+      .insert(support)
+      .values({ id, subject: 'Uji', description: 'Uji', status });
+    return id;
+  }
+  async function statusOf(id: string) {
+    const [row] = await db
+      .select({ status: support.status })
+      .from(support)
+      .where(eq(support.id, id));
+    return row!.status;
+  }
+  async function errorOf(promise: Promise<unknown>) {
+    try {
+      await promise;
+      return null;
+    } catch (error) {
+      const e = error as { code?: string; message?: string };
+      return { code: e.code, message: e.message };
+    }
+  }
+
+  it('maju, boleh melompat', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Reported');
+    const out = await legacy(actor).setReportStatus({ id, status: 'Resolved' });
+    expect(out.message).toBe('Status laporan berhasil diperbarui');
+    expect(await statusOf(id)).toBe('Resolved');
+  });
+
+  it('mundur ditolak dengan pesan yang sama', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Resolved');
+    expect(
+      await errorOf(legacy(actor).setReportStatus({ id, status: 'Reported' })),
+    ).toEqual({
+      code: 'BAD_REQUEST',
+      message:
+        'Tidak dapat mengubah status laporan mundur dari Resolved ke Reported',
+    });
+    expect(await statusOf(id)).toBe('Resolved');
+  });
+
+  it('status yang sama berhasil tanpa perubahan', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Reported');
+    const out = await legacy(actor).setReportStatus({ id, status: 'Reported' });
+    expect(out.message).toBe(
+      'Status laporan sudah diatur ke nilai yang diinginkan',
+    );
+  });
+
+  it('laporan yang tidak ada NOT_FOUND', async () => {
+    const actor = await makeSuperadmin();
+    expect(
+      (
+        await errorOf(
+          legacy(actor).setReportStatus({
+            id: 'tidak-ada',
+            status: 'Resolved',
+          }),
+        )
+      )?.code,
+    ).toBe('NOT_FOUND');
+  });
+
+  it('status lama di luar urutan tetap bebas', async () => {
+    const actor = await makeSuperadmin();
+    const id = await reportWith('Open');
+    await legacy(actor).setReportStatus({ id, status: 'Draft' });
+    expect(await statusOf(id)).toBe('Draft');
   });
 });

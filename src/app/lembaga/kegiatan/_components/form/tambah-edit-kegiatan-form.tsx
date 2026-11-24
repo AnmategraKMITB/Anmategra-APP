@@ -56,29 +56,28 @@ import { api } from '~/trpc/react';
 import CustomDropzone from './dropzone';
 
 // ✅ Schema dengan Zod
-const EventInputSchema = z
-  .object({
-    name: z.string().min(1, 'Nama kegiatan wajib diisi'),
-    label: z.string().max(255).optional(),
-    description: z
-      .string()
-      .min(10, 'Deskripsi minimal 10 karakter')
-      .max(100, 'Deskripsi maksimal 100 karakter'),
-    image: z.string().url(),
-    start_date: z.string().datetime(),
-    end_date: z.string().datetime().nullable().optional(),
-    status: z.enum(['Coming Soon', 'On going', 'Ended']),
-    oprec_link: z
-      .string()
-      .url('Harus berupa URL yang valid')
-      .or(z.literal(''))
-      .optional(),
-    location: z.string().optional(),
-    is_highlighted: z.boolean().optional(),
-    is_organogram: z.boolean().optional(),
-    background_image: z.string().url().optional(),
-    organogram_image: z.string().url().or(z.literal('')).optional(),
-    rapor_visible: z.boolean().optional(),
+const EventInputSchema = z.object({
+  name: z.string().min(1, 'Nama kegiatan wajib diisi'),
+  label: z.string().max(255).optional(),
+  description: z
+    .string()
+    .min(10, 'Deskripsi minimal 10 karakter')
+    .max(100, 'Deskripsi maksimal 100 karakter'),
+  image: z.string().url(),
+  start_date: z.string().datetime(),
+  end_date: z.string().datetime().nullable().optional(),
+  status: z.enum(['Coming Soon', 'On going', 'Ended']),
+  oprec_link: z
+    .string()
+    .url('Harus berupa URL yang valid')
+    .or(z.literal(''))
+    .optional(),
+  location: z.string().optional(),
+  is_highlighted: z.boolean().optional(),
+  is_organogram: z.boolean().optional(),
+  background_image: z.string().url().optional(),
+  organogram_image: z.string().url().or(z.literal('')).optional(),
+  rapor_visible: z.boolean().optional(),
 });
 
 // ✅ Type inference dari schema
@@ -161,7 +160,11 @@ const TambahEditKegiatanForm = ({
       toast({ title: 'Kegiatan berhasil dibuat' });
     },
     onError: (error) => {
-      toast({ title: 'Gagal membuat kegiatan', description: error.message, variant: 'destructive' });
+      toast({
+        title: 'Gagal membuat kegiatan',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -171,7 +174,11 @@ const TambahEditKegiatanForm = ({
       toast({ title: 'Kegiatan berhasil diubah' });
     },
     onError: (error) => {
-      toast({ title: 'Gagal mengubah kegiatan', description: error.message, variant: 'destructive' });
+      toast({
+        title: 'Gagal mengubah kegiatan',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
   });
 
@@ -180,7 +187,7 @@ const TambahEditKegiatanForm = ({
       finish();
       toast({
         title: 'Kegiatan berhasil dibuat',
-      })
+      });
     },
     onError: (error) => {
       toast({
@@ -197,7 +204,7 @@ const TambahEditKegiatanForm = ({
       finish();
       toast({
         title: 'Kegiatan berhasil diubah',
-      })
+      });
     },
     onError: (error) => {
       toast({
@@ -267,10 +274,10 @@ const TambahEditKegiatanForm = ({
 
   return (
     <Form {...form}>
-      <div className="w-full h-[60vh] sm:h-[70vh] md:h-[75vh] lg:h-[80vh] overflow-y-auto">
+      <div className="h-[60vh] w-full overflow-y-auto sm:h-[70vh] md:h-[75vh] lg:h-[80vh]">
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-4 w-full px-4 py-4"
+          className="w-full space-y-4 px-4 py-4"
         >
           {admin?.kind === 'kepengurusan' ? (
             <FormField
@@ -280,7 +287,11 @@ const TambahEditKegiatanForm = ({
                 <FormItem>
                   <FormLabel>Label periode</FormLabel>
                   <FormControl className="p-2">
-                    <Input className="rounded-lg" placeholder="Contoh: 2026/2027" {...field} />
+                    <Input
+                      className="rounded-lg"
+                      placeholder="Contoh: 2026/2027"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -295,7 +306,7 @@ const TambahEditKegiatanForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Nama Kegiatan<span className="text-red-500 ml-1">*</span>
+                  Nama Kegiatan<span className="ml-1 text-red-500">*</span>
                 </FormLabel>
                 <FormControl className="p-2">
                   <Input
@@ -316,7 +327,7 @@ const TambahEditKegiatanForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Deskripsi<span className="text-red-500 ml-1">*</span>
+                  Deskripsi<span className="ml-1 text-red-500">*</span>
                 </FormLabel>
                 <FormControl className="p-2">
                   <Textarea
@@ -335,9 +346,9 @@ const TambahEditKegiatanForm = ({
               control={form.control}
               name="start_date"
               render={({ field }) => (
-                <FormItem className="flex-1 flex flex-col gap-y-[2px]">
+                <FormItem className="flex flex-1 flex-col gap-y-[2px]">
                   <FormLabel>
-                    Tanggal Mulai<span className="text-red-500 ml-1">*</span>
+                    Tanggal Mulai<span className="ml-1 text-red-500">*</span>
                   </FormLabel>
                   <Popover modal={true}>
                     <PopoverTrigger asChild>
@@ -345,7 +356,7 @@ const TambahEditKegiatanForm = ({
                         <Button
                           variant="outline"
                           className={cn(
-                            'w-full justify-between text-left font-normal rounded-lg',
+                            'w-full justify-between rounded-lg text-left font-normal',
                             !field.value && 'text-muted-foreground',
                           )}
                         >
@@ -359,7 +370,7 @@ const TambahEditKegiatanForm = ({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-auto p-0 !z-[9999]"
+                      className="!z-[9999] w-auto p-0"
                       style={{ zIndex: 9999 }}
                     >
                       <Calendar
@@ -381,7 +392,7 @@ const TambahEditKegiatanForm = ({
               control={form.control}
               name="end_date"
               render={({ field }) => (
-                <FormItem className="flex-1 flex flex-col gap-y-[2px]">
+                <FormItem className="flex flex-1 flex-col gap-y-[2px]">
                   <FormLabel>Tanggal Selesai</FormLabel>
                   <Popover modal={true}>
                     <PopoverTrigger asChild>
@@ -389,7 +400,7 @@ const TambahEditKegiatanForm = ({
                         <Button
                           variant="outline"
                           className={cn(
-                            'w-full justify-between text-left font-normal rounded-lg',
+                            'w-full justify-between rounded-lg text-left font-normal',
                             !field.value && 'text-muted-foreground',
                           )}
                         >
@@ -403,7 +414,7 @@ const TambahEditKegiatanForm = ({
                       </FormControl>
                     </PopoverTrigger>
                     <PopoverContent
-                      className="w-auto p-0 !z-[9999]"
+                      className="!z-[9999] w-auto p-0"
                       style={{ zIndex: 9999 }}
                     >
                       <Calendar
@@ -435,7 +446,7 @@ const TambahEditKegiatanForm = ({
               render={({ field }) => (
                 <FormItem className="flex-1">
                   <FormLabel>
-                    Status Kegiatan<span className="text-red-500 ml-1">*</span>
+                    Status Kegiatan<span className="ml-1 text-red-500">*</span>
                   </FormLabel>
                   <Select
                     onValueChange={field.onChange}
@@ -467,7 +478,7 @@ const TambahEditKegiatanForm = ({
                   <FormLabel>Lokasi Kegiatan</FormLabel>
                   <FormControl className="p-2">
                     <Input
-                      className="rounded-lg "
+                      className="rounded-lg"
                       placeholder="Masukkan lokasi"
                       {...field}
                     />
@@ -485,7 +496,7 @@ const TambahEditKegiatanForm = ({
                   <FormLabel>Link Pendaftaran</FormLabel>
                   <FormControl className="p-2">
                     <Input
-                      className="rounded-lg "
+                      className="rounded-lg"
                       type="url"
                       placeholder="https://contoh.com/daftar"
                       {...field}
@@ -607,13 +618,13 @@ const TambahEditKegiatanForm = ({
               control={form.control}
               name="rapor_visible"
               render={({ field }) => (
-                <FormItem className="flex-1 flex flex-row self-end space-x-3 items-center justify-center space-y-0">
+                <FormItem className="flex flex-1 flex-row items-center justify-center space-x-3 space-y-0 self-end">
                   <Checkbox
                     checked={field.value}
                     onCheckedChange={field.onChange}
                   />
                   <FormLabel
-                    className="font-normal cursor-pointer"
+                    className="cursor-pointer font-normal"
                     onClick={() => field.onChange(!field.value)}
                   >
                     Rapor Terlihat Publik
@@ -629,7 +640,7 @@ const TambahEditKegiatanForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Upload Gambar<span className="text-red-500 ml-1">*</span>
+                  Upload Gambar<span className="ml-1 text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <CustomDropzone
@@ -648,7 +659,7 @@ const TambahEditKegiatanForm = ({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Upload Banner <span className="text-red-500 ml-1">*</span>
+                  Upload Banner <span className="ml-1 text-red-500">*</span>
                 </FormLabel>
                 <FormControl>
                   <CustomDropzone
@@ -669,7 +680,7 @@ const TambahEditKegiatanForm = ({
                 <div className="flex items-center justify-between">
                   <FormLabel>
                     Upload Organogram
-                    <span className="text-gray-500 ml-1">(Opsional)</span>
+                    <span className="ml-1 text-gray-500">(Opsional)</span>
                   </FormLabel>
                   <Button
                     type="button"
@@ -677,7 +688,7 @@ const TambahEditKegiatanForm = ({
                     size="icon"
                     onClick={() => setDeleteDialogOpen(true)}
                     disabled={!field.value}
-                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="h-8 w-8 text-red-500 hover:bg-red-50 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -700,7 +711,7 @@ const TambahEditKegiatanForm = ({
             )}
           />
           {/* Tombol Submit */}
-          <div className="flex justify-center w-full">
+          <div className="flex w-full justify-center">
             <Button type="submit" className="bg-primary-400">
               SIMPAN
             </Button>
@@ -714,18 +725,15 @@ const TambahEditKegiatanForm = ({
           <DialogHeader>
             <DialogTitle>Konfirmasi Hapus</DialogTitle>
             <DialogDescription>
-              Apakah Anda yakin ingin menghapus organogram ini? 
-              Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus organogram ini? Tindakan ini
+              tidak dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="mt-4 flex justify-end gap-2">
             <DialogClose asChild>
               <Button variant="outline">Batal</Button>
             </DialogClose>
-            <Button
-              onClick={handleDeleteOrganogram}
-              variant="warning"
-            >
+            <Button onClick={handleDeleteOrganogram} variant="warning">
               Hapus
             </Button>
           </div>

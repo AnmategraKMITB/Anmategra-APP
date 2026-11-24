@@ -5,6 +5,7 @@ Build With [T3 Stack](https://create.t3.gg/)
 ## Tentang Anmategra
 
 Anmategra platform manajemen data kemahasiswaan/lembaga di ITB. Fungsi utama:
+
 - **Lembaga & Keanggotaan** — data lembaga, anggota, posisi/divisi, request asosiasi anggota ke lembaga
 - **Kegiatan/Event** — pengelolaan event, panitia, pendaftaran
 - **Profil** — profil mahasiswa & lembaga, pemetaan profil ke kegiatan/lembaga
@@ -16,46 +17,53 @@ Tech stack: [T3 Stack](https://create.t3.gg/) (Next.js, tRPC, Drizzle ORM, NextA
 ## Setup untuk Developer Baru
 
 ### Prasyarat
+
 1. Node.js v20+
-2. npm 10+ (`packageManager` di `package.json` pin ke `npm@10.9.0`)
+2. Bun canary yang dipatok repo: `sh scripts/install-bun.sh` (memasang ke `~/.bun/bin`; tambahkan ke `PATH`)
 3. PostgreSQL aktif di lokal
 
 ### Instalasi
+
 ```
 git clone <repo-url>
 cd anmategra-app
 cp .env.example .env
-npm install
+bun install
 ```
 
 Isi `.env`, minimal `DATABASE_URL` bener, contoh:
+
 ```
 DATABASE_URL="postgresql://postgres:password@localhost:5432/anmategra"
 ```
 
-`husky` prepare hook otomatis jalan pas `npm install` (setup lint-staged pre-commit).
+`bun install` otomatis memasang hook git [hk](https://hk.jdx.dev) (`hk.pkl`, lewat `scripts/install-hk.sh`): pre-commit merapikan format dan lint berkas yang di-stage; pre-push menjalankan pengecekan yang sama dengan job "Checks" di CI (`scripts/ci/checks.sh`).
 
 ### Setup Database
 
 Opsi A — manual:
+
 ```
 psql -U postgres
 CREATE DATABASE anmategra;
 \q
 
-npm run db:push
+bun run db:push
 ```
 
 Opsi B — pakai Docker (lihat `scripts/start-database.sh`):
+
 ```
 ./scripts/start-database.sh
-npm run db:push
+bun run db:push
 ```
 
 Opsi C — app + database sekaligus di Docker (`compose.local.yml`):
+
 ```
 docker compose -f compose.local.yml up --build
 ```
+
 - Postgres 15 jalan di port host `5433`, app (`next dev`, hot reload) di `3000`. Ubah lewat `APP_PORT` / `DB_PORT`.
 - Kalau ada `anmategra.dump` di folder induk repo, dump itu dipulihkan saat pertama kali jalan, lalu `db:migrate` menyusulkan migrasi yang belum ada. Lokasi lain: set `DB_DUMP_DIR` / `DB_DUMP_FILE`.
 - Kredensial OAuth boleh dibiarkan kosong (diisi placeholder), tetapi login baru berfungsi dengan kredensial sungguhan di `.env`.
@@ -63,54 +71,61 @@ docker compose -f compose.local.yml up --build
 - Ulang dari dump: `docker compose -f compose.local.yml down -v`.
 
 Perintah db lain yang tersedia:
-- `npm run db:generate` — generate migration dari schema (drizzle-kit generate)
-- `npm run db:migrate` — jalanin migration (drizzle-kit migrate)
-- `npm run db:studio` — buka Drizzle Studio buat liat data
-- `npm run db:seed` — generate csv + seed database (dev only)
-- `npm run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
-- `npm run db:seed-mahasiswa -- --file <csv>` — impor mahasiswa (misalnya satu angkatan baru); hanya menambah, format di `src/server/db/seeding/data/README.md`
-- `npm run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
-- `npm run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
-- `npm run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
-- `npm run db:clear` — kosongin database
+
+- `bun run db:generate` — generate migration dari schema (drizzle-kit generate)
+- `bun run db:migrate` — jalanin migration (drizzle-kit migrate)
+- `bun run db:studio` — buka Drizzle Studio buat liat data
+- `bun run db:seed` — generate csv + seed database (dev only)
+- `bun run db:seed-lembaga` — seed akun lembaga resmi dari `src/server/db/seeding/data/lembaga-official.csv` (idempotent)
+- `bun run db:seed-mahasiswa --file <csv>` — impor mahasiswa (misalnya satu angkatan baru); hanya menambah, format di `src/server/db/seeding/data/README.md`
+- `bun run db:backfill-lembaga-descriptions` — lengkapi deskripsi lembaga yang kosong
+- `bun run db:refresh-lembaga` — jalanin `scripts/refresh-lembaga.sh` (refresh data lembaga dari sumber resmi)
+- `bun run db:summarize-lembaga` — jalanin `scripts/km-summarize.ts` (ringkas profil lembaga)
+- `bun run db:clear` — kosongin database
 
 ### Menjalankan Project
+
 ```
-npm run dev
+bun run dev
 ```
+
 Buka [http://localhost:3000](http://localhost:3000).
 
 Script lain:
-- `npm run build` — build production
-- `npm run start` — jalanin hasil build
-- `npm run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `npm run lint:prune` dan commit perubahan file itu.
-- `npm run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
-- `npm test` — jalankan tes otomatis (Vitest); lihat [Menjalankan Tes](#menjalankan-tes). `npm run test:watch` mengulang tes setiap berkas berubah.
-- `npm run docs` — regenerate dokumentasi API & database di `docs/api/`
+
+- `bun run build` — build production
+- `bun run start` — jalanin hasil build
+- `bun lint` — lint dengan `bun lint` (`.oxlintrc.json`: semua kategori aturan menyala, plus aturan bertipe). Pelanggaran lama dicatat di `oxlint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
+- `bun fmt` — format semua berkas (`.prettierrc.json`, termasuk urutan import dan urutan class Tailwind). CI menjalankan `bun fmt --check`.
+- `bun run check` — cek tipe dengan TypeScript 7 (`bun check`), setelah `next typegen` membuat tipe rute di `.next/types`. Paket `typescript` di `package.json` juga versi 7; ia tidak punya API compiler JavaScript lama, jadi `lifecycle-writes.test.ts` membaca AST lewat `typescript/unstable/async` (proses tsgo).
+- `bun run test` — jalankan tes otomatis (`bun test`, paralel per core); lihat [Menjalankan Tes](#menjalankan-tes). `bun run test:watch` mengulang tes setiap berkas berubah.
+- `bun run docs` — regenerate dokumentasi API & database di `docs/api/`
 
 ### Menjalankan Tes
 
-Tes memakai Vitest dan **PostgreSQL asli**, bukan mock, supaya aturan akses diuji terhadap skema yang sama dengan produksi.
+Tes memakai `bun test` (berkas tes tetap mengimpor dari `vitest`; Bun memetakannya ke `bun:test`) dan **PostgreSQL asli**, bukan mock, supaya aturan akses diuji terhadap skema yang sama dengan produksi.
 
 ```
-npm test
+bun run test
 ```
 
 - Database uji terpisah dari database pengembangan. Alamatnya dari `TEST_DATABASE_URL`; bawaannya `postgresql://postgres:password@localhost:5432/anmategra_test`. Nama database **wajib memuat kata `test`**; kalau tidak, tes menolak jalan karena tiap kasus mengosongkan tabel.
-- Sebelum tes pertama, `src/test/global-setup.ts` membuat database itu bila belum ada (dari `template0`) dan menerapkan semua migrasi di `drizzle/`. Run berikutnya melewati migrasi yang sudah diterapkan.
+- Tiap worker memakai database sendiri: nama dari `TEST_DATABASE_URL` ditambah `_w<nomor worker>` (mis. `anmategra_test_w1`). `src/test/preload.ts` (lewat `bunfig.toml`) membuatnya bila belum ada (dari `template0`) dan menerapkan semua migrasi di `drizzle/` sebelum tiap berkas; migrasi yang sudah diterapkan dilewati.
+- Tiap berkas dimuat dengan modul baru (`--isolate=modules`) dan sesudahnya database, timer, mock, dan env dikembalikan. Urutan tes diacak; seed dicetak di akhir run, ulangi dengan `bun run test --seed=<seed>`. `bun test` tanpa `--isolate` sengaja gagal.
+- Untuk Postgres lokal khusus tes, matikan durabilitas supaya TRUNCATE tidak menunggu disk (10x lebih cepat): `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password --tmpfs /var/lib/postgresql/data postgres:15-alpine -c fsync=off -c synchronous_commit=off -c full_page_writes=off`.
 - Berkas tes diberi akhiran `.test.ts` dan diletakkan di samping kodenya. Helper database dan pabrik data ada di `src/test/test-db.ts`.
 - Tes tidak butuh `.env` lengkap: kode yang diuji tidak boleh memuat `~/env`. Prosedur yang butuh sesi atau NextAuth sebaiknya diuji lewat logika yang dipisah, seperti `src/server/api/access.ts`.
-- CI menjalankan `npm test` pada job `Test` dengan layanan PostgreSQL 15.
+- CI menjalankan `bun run test` pada job `Test` dengan PostgreSQL 15 sekali pakai (tmpfs, tanpa fsync).
 
 ### Login Microsoft (SSO ITB)
 
 Mahasiswa login dengan akun `@mahasiswa.itb.ac.id` lewat Microsoft Entra ID milik ITB. Anmategra
 punya app registration sendiri di directory ITB:
 
-- **Supported account types:** *Accounts in any organizational directory* (multitenant).
+- **Supported account types:** _Accounts in any organizational directory_ (multitenant).
 - **Redirect URI** (platform **Web**): `https://anmategra.com/api/auth/callback/azure-ad`, ditambah
   `http://localhost:<APP_PORT>/api/auth/callback/azure-ad` untuk lokal.
-- **Client secret** dibuat di *Certificates & secrets* lalu diisi ke `AZURE_AD_CLIENT_SECRET`.
+- **Client secret** dibuat di _Certificates & secrets_ lalu diisi ke `AZURE_AD_CLIENT_SECRET`.
   Secret punya tanggal kedaluwarsa: catat tanggalnya dan perbarui sebelum lewat. Secret yang
   kedaluwarsa membuat login Microsoft gagal dengan `?error=OAuthCallback`.
 - `AZURE_AD_TENANT_ID` = `db6e1183-4c65-405c-82ce-7cd53fa6e9dc` (directory ITB). Token dari tenant
@@ -145,11 +160,11 @@ kedaluwarsa), `AADSTS7000215` (secret salah), atau `AADSTS50011` (redirect URI b
 ├── docs/api/             # Dokumentasi API & DB hasil generate (OpenAPI + DBML)
 ├── public/                # Static assets
 ├── Dockerfile              # Build image production
-├── docker-entrypoint.sh    # Entry container: jalanin db:migrate lalu npm run start
+├── docker-entrypoint.sh    # Entry container: jalanin db:migrate lalu bun run start
 └── drizzle.config.ts       # Config drizzle-kit
 ```
 
-Config tool lain (`next.config.js`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.cjs`, `.eslintrc.cjs`, `prettier.config.js`, `components.json`) sengaja ditaruh di root karena masing-masing tool nyari file itu di situ secara default.
+Config tool lain (`next.config.js`, `tsconfig.json`, `tailwind.config.ts`, `postcss.config.cjs`, `.oxlintrc.json` (`bun lint`), `.prettierrc.json` (`bun fmt`), `bunfig.toml`, `components.json`) sengaja ditaruh di root karena masing-masing tool nyari file itu di situ secara default.
 
 ## Lisensi
 
@@ -166,6 +181,7 @@ Anmategra (di `public/images/logo/`) milik masing-masing pemiliknya dan tidak ik
 di bawah AGPL.
 
 ## Branch Name Convention
+
 ```
 <tipe>/<BE/FE> /<deskripsi>
 ```
@@ -175,11 +191,13 @@ Contoh : `feat/BE/LandingPage`
 ## Aturan Semantic Commit
 
 1. Format Umum :
+
 ```
 <tipe>(<scope>): <deskripsi>
 ```
 
 2. Tipe Commit :
+
 - `feat`: Menambahkan fitur baru.
 - `fix`: Memperbaiki bug.
 - `docs`: Mengubah dokumentasi.
@@ -193,14 +211,17 @@ Contoh : `fix(api): resolve CORS issue`
 ## Penamaan Component atau Actions
 
 1. Komponen (Components) :
+
 - Format : `PascalCase`
 - Contoh : `UserProfile`, `NavBar`, `Button`
 
-2. Actions : 
+2. Actions :
+
 - Format : `camelCase`
 - Contoh : `fetchUserData`, `updateProfile`, `handleSubmit`
 
 3. Folder dan File :
+
 - Format : `kebab-case`
 - Contoh : `user-profile.tsx`, `nav-bar.tsx`, `api-enpoint.ts`
 
@@ -209,16 +230,16 @@ Contoh : `fix(api): resolve CORS issue`
 Dokumentasinya di-generate dari kode, jadi tidak bisa basi selama di-regenerate.
 
 ```bash
-npm run dev
+bun run dev
 # buka http://localhost:3000/api/docs
 ```
 
 - **API** — Scalar di [`/api/docs`](http://localhost:3000/api/docs): seluruh procedure tRPC
   dan endpoint REST, lengkap dengan level akses, bentuk input/output, dan daftar error.
 - **Database** — `docs/api/schema.dbml`, bisa di-publish ke dbdocs.io lewat
-  `npm run docs:db:publish` atau di-paste ke [dbdiagram.io](https://dbdiagram.io).
+  `bun run docs:db:publish` atau di-paste ke [dbdiagram.io](https://dbdiagram.io).
 
-Setelah mengubah router tRPC atau `src/server/db/schema.ts`, jalankan `npm run docs` dan
+Setelah mengubah router tRPC atau `src/server/db/schema.ts`, jalankan `bun run docs` dan
 commit hasilnya — CI menolak PR yang dokumentasinya sudah tidak sinkron.
 
 Panduan lengkap (cara menulis penjelasan, aturan `.meta({ access })`, cara memanggil
@@ -229,4 +250,3 @@ endpoint dari luar): **[`docs/api/README.md`](docs/api/README.md)**.
 tRPC Panel (`/api/panel`) sudah dihapus: paketnya tidak dirawat lagi dan mengunci Zod 3.
 Kontrak API dibaca di `/api/docs`, dan cara memanggil endpoint (termasuk dengan sesi login)
 ada di [`docs/api/README.md`](docs/api/README.md) bagian 2.
-

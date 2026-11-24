@@ -14,8 +14,9 @@ import {
 } from '~/components/ui/dropdown-menu';
 import { useToast } from '~/hooks/use-toast';
 import { api } from '~/trpc/react';
-import { EditAssociationDialog } from './edit-association';
+
 import { DeleteAssociationDialog } from './delete-association-dialog';
+import { EditAssociationDialog } from './edit-association';
 
 type AssociationRequest = {
   id: string;
@@ -148,14 +149,18 @@ export default function InboxTable({
       },
     });
 
-  const handleEdit = (request: AssociationRequest & { type: 'event' | 'lembaga' }) => {
+  const handleEdit = (
+    request: AssociationRequest & { type: 'event' | 'lembaga' },
+  ) => {
     setSelectedRequest(request);
     setEditDivision(request.division);
     setEditPosition(request.position);
     setEditDialogOpen(true);
   };
 
-  const handleDelete = (request: AssociationRequest & { type: 'event' | 'lembaga' }) => {
+  const handleDelete = (
+    request: AssociationRequest & { type: 'event' | 'lembaga' },
+  ) => {
     setSelectedRequest(request);
     setDeleteDialogOpen(true);
   };
@@ -163,13 +168,21 @@ export default function InboxTable({
   const confirmEdit = () => {
     if (!selectedRequest) return;
 
-    if ('type' in selectedRequest && selectedRequest.type === 'event' && selectedRequest.event_id) {
+    if (
+      'type' in selectedRequest &&
+      selectedRequest.type === 'event' &&
+      selectedRequest.event_id
+    ) {
       editEventMutation.mutate({
         event_id: selectedRequest.event_id,
         division: editDivision,
         position: editPosition,
       });
-    } else if ('type' in selectedRequest && selectedRequest.type === 'lembaga' && selectedRequest.lembaga_id) {
+    } else if (
+      'type' in selectedRequest &&
+      selectedRequest.type === 'lembaga' &&
+      selectedRequest.lembaga_id
+    ) {
       editLembagaMutation.mutate({
         lembaga_id: selectedRequest.lembaga_id,
         division: editDivision,
@@ -177,15 +190,22 @@ export default function InboxTable({
       });
     }
     window.location.reload();
-
   };
 
   const confirmDelete = () => {
     if (!selectedRequest) return;
 
-    if ('type' in selectedRequest && selectedRequest.type === 'event' && selectedRequest.event_id) {
+    if (
+      'type' in selectedRequest &&
+      selectedRequest.type === 'event' &&
+      selectedRequest.event_id
+    ) {
       deleteEventMutation.mutate({ event_id: selectedRequest.event_id });
-    } else if ('type' in selectedRequest && selectedRequest.type === 'lembaga' && selectedRequest.lembaga_id) {
+    } else if (
+      'type' in selectedRequest &&
+      selectedRequest.type === 'lembaga' &&
+      selectedRequest.lembaga_id
+    ) {
       deleteLembagaMutation.mutate({ lembaga_id: selectedRequest.lembaga_id });
     }
     window.location.reload();
@@ -201,11 +221,11 @@ export default function InboxTable({
 
   return (
     <>
-      <div className="flex flex-col rounded-xl font-sans gap-2 sm:gap-0">
+      <div className="flex flex-col gap-2 rounded-xl font-sans sm:gap-0">
         {allRequests.length > 0 ? (
           <>
             {/* Header: hidden on small screens, visible on md+ */}
-            <div className="hidden md:grid grid-cols-[0.5fr_2fr_1fr_1fr_1fr_1fr_0.5fr] items-center gap-4 border-b border-[#E7E9EC] p-4 text-sm md:text-[18px] text-[#9DA4A8]">
+            <div className="hidden grid-cols-[0.5fr_2fr_1fr_1fr_1fr_1fr_0.5fr] items-center gap-4 border-b border-[#E7E9EC] p-4 text-sm text-[#9DA4A8] md:grid md:text-[18px]">
               <div></div>
               <div>Nama</div>
               <div className="text-center">Lembaga</div>
@@ -226,10 +246,10 @@ export default function InboxTable({
                   className="border-b border-[#E7E9EC] px-2 py-4 md:p-4"
                 >
                   {/* Mobile: stacked, Desktop: grid */}
-                  <div className="flex flex-col md:grid md:grid-cols-[0.5fr_2fr_1fr_1fr_1fr_1fr_0.5fr] md:items-center md:gap-4 gap-2">
+                  <div className="flex flex-col gap-2 md:grid md:grid-cols-[0.5fr_2fr_1fr_1fr_1fr_1fr_0.5fr] md:items-center md:gap-4">
                     {/* Avatar */}
                     <div className="flex items-center justify-center">
-                      <Avatar className="w-12 h-12 md:w-14 md:h-14">
+                      <Avatar className="h-12 w-12 md:h-14 md:w-14">
                         <AvatarImage
                           src={
                             item.image ??
@@ -237,40 +257,40 @@ export default function InboxTable({
                           }
                           alt={displayName}
                         />
-                        <AvatarFallback className="bg-[#00B7B7] text-white text-lg font-semibold">
+                        <AvatarFallback className="bg-[#00B7B7] text-lg font-semibold text-white">
                           {getInitials(displayName)}
                         </AvatarFallback>
                       </Avatar>
                     </div>
 
                     {/* Nama */}
-                    <div className="text-sm md:text-[18px] font-regular text-[#636A6D] px-1 md:px-0">
-                      <span className="md:hidden font-semibold">Nama: </span>
+                    <div className="font-regular px-1 text-sm text-[#636A6D] md:px-0 md:text-[18px]">
+                      <span className="font-semibold md:hidden">Nama: </span>
                       {displayName}
                     </div>
 
                     {/* Lembaga */}
-                    <div className="text-sm md:text-[18px] font-regular text-[#636A6D] md:text-center px-1 md:px-0">
-                      <span className="md:hidden font-semibold">Lembaga: </span>
+                    <div className="font-regular px-1 text-sm text-[#636A6D] md:px-0 md:text-center md:text-[18px]">
+                      <span className="font-semibold md:hidden">Lembaga: </span>
                       {item.event_id ? 'Kegiatan' : 'Lembaga'}
                     </div>
 
                     {/* Divisi */}
-                    <div className="text-sm md:text-[18px] font-regular text-[#636A6D] md:text-center px-1 md:px-0">
-                      <span className="md:hidden font-semibold">Divisi: </span>
+                    <div className="font-regular px-1 text-sm text-[#636A6D] md:px-0 md:text-center md:text-[18px]">
+                      <span className="font-semibold md:hidden">Divisi: </span>
                       {item.division}
                     </div>
 
                     {/* Posisi */}
-                    <div className="text-sm md:text-[18px] font-regular text-[#636A6D] md:text-center px-1 md:px-0">
-                      <span className="md:hidden font-semibold">Posisi: </span>
+                    <div className="font-regular px-1 text-sm text-[#636A6D] md:px-0 md:text-center md:text-[18px]">
+                      <span className="font-semibold md:hidden">Posisi: </span>
                       {item.position}
                     </div>
 
                     {/* Status */}
-                    <div className="flex items-center justify-center px-1 md:px-0 mt-2 md:mt-0">
+                    <div className="mt-2 flex items-center justify-center px-1 md:mt-0 md:px-0">
                       <Button
-                        className={`px-4 py-2 text-xs md:text-sm font-semibold rounded-lg ${
+                        className={`rounded-lg px-4 py-2 text-xs font-semibold md:text-sm ${
                           statusConfig[item.status].className
                         }`}
                         disabled
@@ -285,26 +305,26 @@ export default function InboxTable({
                         <DropdownMenu modal={false}>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="p-1">
-                              <p className='text-bold text-2xl'>...</p>
+                              <p className="text-bold text-2xl">...</p>
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="rounded-xl min-w-[120px] p-0 overflow-hidden"
+                            className="min-w-[120px] overflow-hidden rounded-xl p-0"
                           >
                             <DropdownMenuItem
                               onSelect={() => handleEdit(item)}
-                              className="w-full rounded-none cursor-pointer flex items-center gap-3 px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                              className="flex w-full cursor-pointer items-center gap-3 rounded-none px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
                             >
-                              <Pencil className="text-[#00B7B7] h-4 w-4" />
+                              <Pencil className="h-4 w-4 text-[#00B7B7]" />
                               <span className="text-sm">Edit</span>
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="mx-0 my-0 h-px bg-gray-200" />
                             <DropdownMenuItem
                               onSelect={() => handleDelete(item)}
-                              className="w-full rounded-none cursor-pointer flex items-center gap-3 px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
+                              className="flex w-full cursor-pointer items-center gap-3 rounded-none px-3 py-2 hover:bg-gray-100 focus:bg-gray-100"
                             >
-                              <Trash className="text-[#F16350] h-4 w-4" />
+                              <Trash className="h-4 w-4 text-[#F16350]" />
                               <span className="text-sm">Delete</span>
                             </DropdownMenuItem>
                           </DropdownMenuContent>
@@ -317,7 +337,7 @@ export default function InboxTable({
             })}
           </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center">
             <Image
               src="/images/miscellaneous/not-found-association.svg"
               alt="No Data"
@@ -325,10 +345,10 @@ export default function InboxTable({
               height={120}
               className="mb-6"
             />
-            <div className="text-xl md:text-[32px] font-semibold text-[#768085] mb-2">
+            <div className="mb-2 text-xl font-semibold text-[#768085] md:text-[32px]">
               Tidak ada permintaan asosiasi
             </div>
-            <p className="text-sm md:text-[24px] text-[#C4CACE] max-w-xs md:max-w-md">
+            <p className="max-w-xs text-sm text-[#C4CACE] md:max-w-md md:text-[24px]">
               Belum ada permintaan asosiasi yang Anda ajukan
             </p>
           </div>

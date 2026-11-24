@@ -64,13 +64,13 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
   {
     label: 'Organogram',
     href: '/organogram',
-    icon: <Network className="w-5 h-5" />,
+    icon: <Network className="h-5 w-5" />,
   },
-  { label: 'Forms', href: '/forms', icon: <FileText className="w-5 h-5" /> },
+  { label: 'Forms', href: '/forms', icon: <FileText className="h-5 w-5" /> },
   {
     label: 'Oprec',
     href: '/oprec',
-    icon: <ClipboardList className="w-5 h-5" />,
+    icon: <ClipboardList className="h-5 w-5" />,
   },
   { label: 'Inbox', href: '/inbox', icon: <EnvelopeOpenIcon /> },
   {
@@ -81,7 +81,7 @@ const SIDEBAR_ITEMS_LEMBAGA: SidebarItemType[] = [
   {
     label: 'Manual',
     href: '/manual',
-    icon: <BookOpen className="w-5 h-5" />,
+    icon: <BookOpen className="h-5 w-5" />,
   },
 ];
 
@@ -97,7 +97,7 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
   {
     label: 'Manual',
     href: '/manual',
-    icon: <BookOpen className="w-5 h-5" />,
+    icon: <BookOpen className="h-5 w-5" />,
   },
 ];
 
@@ -106,7 +106,7 @@ const SIDEBAR_ITEMS_MAHASISWA: SidebarItemType[] = [
 const KELOLA_ITEM: SidebarItemType = {
   label: 'Kelola',
   href: '/manage',
-  icon: <Settings2 className="w-5 h-5" />,
+  icon: <Settings2 className="h-5 w-5" />,
 };
 
 const SIDEBAR_ITEMS_ADMIN: SidebarItemType[] = [
@@ -115,18 +115,22 @@ const SIDEBAR_ITEMS_ADMIN: SidebarItemType[] = [
   {
     label: 'Lembaga',
     href: '/admin/lembaga',
-    icon: <Network className="w-5 h-5" />,
+    icon: <Network className="h-5 w-5" />,
   },
   {
     label: 'Akses',
     href: '/admin/akses',
-    icon: <ClipboardList className="w-5 h-5" />,
+    icon: <ClipboardList className="h-5 w-5" />,
   },
-  { label: 'Audit', href: '/admin/audit', icon: <FileText className="w-5 h-5" /> },
+  {
+    label: 'Audit',
+    href: '/admin/audit',
+    icon: <FileText className="h-5 w-5" />,
+  },
   {
     label: 'Manual',
     href: '/manual',
-    icon: <BookOpen className="w-5 h-5" />,
+    icon: <BookOpen className="h-5 w-5" />,
   },
 ];
 
@@ -224,10 +228,16 @@ export const Sidebar = ({
   const profileData = useSidebarProfile(session);
 
   return (
-    <div className="fixed top-0 left-0 z-[60] flex h-screen w-64 flex-col border-r bg-neutral-50 p-6">
+    <div className="fixed left-0 top-0 z-[60] flex h-screen w-64 flex-col border-r bg-neutral-50 p-6">
       <div className="mb-8 flex items-center justify-between">
         <Link
-          href={role === 'lembaga' ? '/lembaga' : role === 'admin' ? '/admin' : '/mahasiswa'}
+          href={
+            role === 'lembaga'
+              ? '/lembaga'
+              : role === 'admin'
+                ? '/admin'
+                : '/mahasiswa'
+          }
           className="flex items-center"
           onClick={onClose}
         >
@@ -308,7 +318,7 @@ const SidebarItems = ({
                   onClick={onItemClick}
                 >
                   <div className="flex flex-row items-center gap-[12px]">
-                    <span className="w-5 h-5">{item.icon}</span>
+                    <span className="h-5 w-5">{item.icon}</span>
                     <span>{item.label}</span>
                   </div>
                 </Link>

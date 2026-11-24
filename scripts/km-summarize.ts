@@ -2,10 +2,10 @@
  * Build concise lembaga descriptions from official km.itb.ac.id profiles.
  *
  * Smoke test one page:
- *   npx tsx scripts/km-summarize.ts https://km.itb.ac.id/lembaga/hmp/hmif-itb
+ *   bunx tsx scripts/km-summarize.ts https://km.itb.ac.id/lembaga/hmp/hmif-itb
  *
  * Resume the full checkpointed CSV update:
- *   npm run db:summarize-lembaga
+ *   bun run db:summarize-lembaga
  */
 import { parse } from 'csv-parse/sync';
 import 'dotenv/config';

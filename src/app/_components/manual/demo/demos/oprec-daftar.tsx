@@ -2,11 +2,10 @@
 
 // Library Import
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_DIVISIONS, divisionName } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import { Btn, Field, inputClass } from '../ui';
 
 const STEPS: DemoStep[] = [
@@ -24,7 +23,8 @@ const STEPS: DemoStep[] = [
   { id: 'kirim', title: 'Periksa **Tinjau jawabanmu**, lalu klik **Kirim**' },
   {
     id: 'hasil',
-    title: 'Klik **Simulasikan rilis hasil** untuk melihat tampilan setelah panitia merilis',
+    title:
+      'Klik **Simulasikan rilis hasil** untuk melihat tampilan setelah panitia merilis',
   },
 ];
 
@@ -104,8 +104,8 @@ function Body({ guide }: { guide: DemoGuide }) {
         <div className="rounded-lg border border-neutral-400 p-4">
           <p className="text-base font-semibold">Kamu sudah mengirim jawaban</p>
           <p className="mt-1 text-xs text-neutral-700">
-            Jawabanmu untuk “Pendaftaran Oprec Aku Masuk ITB 2027” terkirim
-            pada 12 Nov 2026 19.04 WIB.
+            Jawabanmu untuk “Pendaftaran Oprec Aku Masuk ITB 2027” terkirim pada
+            12 Nov 2026 19.04 WIB.
           </p>
           <p className="mt-2 text-xs text-neutral-700">
             Kamu masih bisa mengubah jawaban selama formulir belum ditutup.
@@ -129,7 +129,8 @@ function Body({ guide }: { guide: DemoGuide }) {
                 Selamat, kamu diterima!
               </p>
               <p className="mt-1">
-                Diterima di <strong>Divisi {divisionName(answers.first)}</strong>.
+                Diterima di{' '}
+                <strong>Divisi {divisionName(answers.first)}</strong>.
               </p>
             </>
           ) : (
@@ -171,15 +172,15 @@ function Body({ guide }: { guide: DemoGuide }) {
       ['Mengapa Anda ingin bergabung?', answers.motivation],
       [
         'Pilihan tujuan',
-        chosen.map((id, index) => `${index + 1}. ${divisionName(id)}`).join(' · '),
+        chosen
+          .map((id, index) => `${index + 1}. ${divisionName(id)}`)
+          .join(' · '),
       ],
       ['Bersedia dipindahkan', answers.willing ? 'Ya' : 'Tidak'],
-      ...chosen.map(
-        (id): [string, string] => [
-          DIVISION_QUESTION[id] ?? id,
-          answers.perDivision[id] ?? '',
-        ],
-      ),
+      ...chosen.map((id): [string, string] => [
+        DIVISION_QUESTION[id] ?? id,
+        answers.perDivision[id] ?? '',
+      ]),
       ['Tautan CV', answers.cv],
     ];
     return (
@@ -336,7 +337,10 @@ function Body({ guide }: { guide: DemoGuide }) {
         </div>
       ))}
 
-      <Field label="Tautan CV *" hint="Pastikan tautan bisa dibuka oleh panitia.">
+      <Field
+        label="Tautan CV *"
+        hint="Pastikan tautan bisa dibuka oleh panitia."
+      >
         {(id) => (
           <>
             <input

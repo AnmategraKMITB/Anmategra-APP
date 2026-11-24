@@ -1,11 +1,10 @@
 // Library Import
 import { notFound } from 'next/navigation';
+// Server Import
+import { getDocNav, getDocPage } from '~/server/manual/docs';
 
 // Components Import
 import { DocsShell } from './docs-shell';
-
-// Server Import
-import { getDocNav, getDocPage } from '~/server/manual/docs';
 
 /**
  * Server component for the manual. Rendered by the single authenticated
@@ -24,7 +23,5 @@ export async function DocsPage({
 
   if (!page) notFound();
 
-  return (
-    <DocsShell nav={nav} page={page} basePath={basePath} />
-  );
+  return <DocsShell nav={nav} page={page} basePath={basePath} />;
 }

@@ -1,4 +1,3 @@
-
 export function formatTanggal(dateInput: Date | string): string {
   const date = new Date(dateInput);
 

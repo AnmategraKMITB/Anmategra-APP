@@ -22,11 +22,11 @@ export default async function HistoriView({
   const namaLembaga = lembagaInfo?.lembagaData?.name ?? 'Lembaga';
 
   return (
-    <div className="w-full flex h-screen flex-col items-center overflow-y-hidden">
-      <div className="flex max-w-7xl w-full flex-col gap-6 px-9 py-[68px]">
-        <div className="flex w-full justify-between items-start">
+    <div className="flex h-screen w-full flex-col items-center overflow-y-hidden">
+      <div className="flex w-full max-w-7xl flex-col gap-6 px-9 py-[68px]">
+        <div className="flex w-full items-start justify-between">
           <div className="flex flex-col gap-2">
-            <h1 className="font-semibold text-[32px]">{namaLembaga}</h1>
+            <h1 className="text-[32px] font-semibold">{namaLembaga}</h1>
             <HistoriBreadCrumb
               items={[
                 { label: 'Beranda', href: '/' },
@@ -44,10 +44,10 @@ export default async function HistoriView({
             trigger={
               <Button
                 variant="dark_blue"
-                className="rounded-xl gap-2 px-4 py-3"
+                className="gap-2 rounded-xl px-4 py-3"
               >
-                <Plus className="w-5 h-5" />
-                <span className="font-semibold text-base">Tambah Periode</span>
+                <Plus className="h-5 w-5" />
+                <span className="text-base font-semibold">Tambah Periode</span>
               </Button>
             }
           />

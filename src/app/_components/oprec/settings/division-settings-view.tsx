@@ -1,7 +1,14 @@
 'use client';
 
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from 'lucide-react';
-import { useState } from 'react';
+import {
+  type ChangeEvent,
+  type FormEvent,
+  type MouseEvent,
+  useCallback,
+  useMemo,
+  useState,
+} from 'react';
 import { Button } from '~/components/ui/button';
 import { type RouterOutputs, api } from '~/trpc/react';
 
@@ -34,133 +41,6 @@ const STATUS_METHOD_LABEL: Record<string, string> = {
 const iconButton =
   'inline-flex size-8 items-center justify-center rounded-md text-neutral-700 transition-colors duration-150 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:pointer-events-none disabled:opacity-40';
 
-/**
- * Pengaturan divisi untuk pengurus (Kadiv/Kabid): kriteria dan penilai
- * tambahan divisi yang ia pegang. Kriteria boleh diubah kapan saja, termasuk
- * di tengah penilaian; skor dihitung ulang dan pengurus diberi tahu dulu.
- */
-export function DivisionSettingsView({
-  recruitmentId,
-  periodName,
-  tabs,
-}: {
-  recruitmentId: string;
-  periodName: string;
-  tabs?: React.ReactNode;
-}) {
-  const overview = api.oprec.divisionSettings.useQuery(
-    { recruitmentId },
-    { retry: false },
-  );
-  const [picked, setPicked] = useState('');
-
-  const data = overview.data;
-  const divisions = data?.divisions ?? [];
-  const active =
-    divisions.find((division) => division.id === picked) ??
-    divisions[0] ??
-    null;
-
-  return (
-    <div className="py-6 sm:py-8">
-      <header>
-        <h1 className="break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
-          Pengaturan divisi
-        </h1>
-        <p className="mt-1 text-sm text-neutral-700">
-          {data?.name ?? 'Oprec'}
-          {periodName ? ` · ${periodName}` : ''}. Atur kriteria dan penilai
-          tambahan divisi yang kamu pegang. Pengaturan lain dipegang pengelola
-          oprec.
-        </p>
-      </header>
-
-      {tabs}
-
-      {overview.isError ? (
-        <div className="mt-6">
-          <ErrorNote message={overview.error.message} />
-        </div>
-      ) : !data ? (
-        <Loading label="Memuat pengaturan divisi…" />
-      ) : active === null ? (
-        <div className="mt-6">
-          <Notice>Tidak ada divisi yang kamu pegang di oprec ini.</Notice>
-        </div>
-      ) : (
-        <>
-          {divisions.length > 1 ? (
-            <nav aria-label="Divisi" className="mt-6 flex flex-wrap gap-1">
-              {divisions.map((division) => {
-                const current = division.id === active.id;
-                return (
-                  <button
-                    key={division.id}
-                    type="button"
-                    aria-pressed={current}
-                    onClick={() => setPicked(division.id)}
-                    className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
-                      current
-                        ? 'bg-primary-200 text-primary-400'
-                        : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
-                    }`}
-                  >
-                    {division.label}
-                  </button>
-                );
-              })}
-            </nav>
-          ) : null}
-
-          <section
-            aria-label="Diatur pengelola oprec"
-            className="mt-6 grid gap-2 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 text-sm sm:grid-cols-3"
-          >
-            <ReadOnly
-              label="Kuota"
-              value={active.quota === 0 ? 'Tanpa batas' : String(active.quota)}
-            />
-            <ReadOnly
-              label="Status otomatis"
-              value={
-                data.scoringMode === 'skor'
-                  ? (STATUS_METHOD_LABEL[data.statusMethod] ??
-                    data.statusMethod)
-                  : 'Diputuskan langsung'
-              }
-            />
-            <ReadOnly
-              label="Penempatan"
-              value={
-                data.placementMethod === 'prioritas' ? 'Prioritas' : 'Manual'
-              }
-            />
-            <p className="text-xs text-neutral-700 sm:col-span-3">
-              Diatur pengelola oprec. Hubungi mereka bila perlu diubah.
-            </p>
-          </section>
-
-          <CriteriaSection
-            key={`kriteria-${active.id}`}
-            recruitmentId={recruitmentId}
-            divisionId={active.id}
-            divisionLabel={active.label}
-            assessedCount={active.assessedCount}
-            onChanged={() => void overview.refetch()}
-          />
-
-          <AssessorSection
-            key={`penilai-${active.id}`}
-            recruitmentId={recruitmentId}
-            divisionId={active.id}
-            divisionLabel={active.label}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
 function ReadOnly({ label, value }: { label: string; value: string }) {
   return (
     <div>
@@ -192,41 +72,89 @@ function CriteriaSection({
   const [editing, setEditing] = useState<CriterionItem | 'baru' | null>(null);
   const [deleting, setDeleting] = useState<CriterionItem | null>(null);
 
-  const refresh = () => {
+  const refresh = useCallback(() => {
     void utils.oprec.criteriaList.invalidate({ recruitmentId });
     onChanged();
-  };
+  }, [onChanged, recruitmentId, utils]);
+  const { mutate: removeCriterion } = remove;
+  const onEditorOpenChange = useCallback((open: boolean) => {
+    if (!open) setEditing(null);
+  }, []);
+  const onSaved = useCallback(() => {
+    setEditing(null);
+    refresh();
+  }, [refresh]);
+  const onDeleteOpenChange = useCallback((open: boolean) => {
+    if (!open) setDeleting(null);
+  }, []);
+  const cancelDelete = useCallback(() => setDeleting(null), []);
+  const confirmDelete = useCallback(() => {
+    if (!deleting) return;
+    removeCriterion(
+      { recruitmentId, criterionId: deleting.id },
+      {
+        onSuccess: () => {
+          setDeleting(null);
+          refresh();
+        },
+      },
+    );
+  }, [deleting, recruitmentId, refresh, removeCriterion]);
 
-  if (list.isError) return <ErrorNote message={list.error.message} />;
-  if (!list.data) return <Loading label="Memuat kriteria…" />;
-
-  const slot = list.data.slots.find((s) => s.scope === divisionId);
-  const general = list.data.slots.find((s) => s.scope === 'umum');
+  const data = list.data;
+  const slot = data?.slots.find((s) => s.scope === divisionId);
+  const general = data?.slots.find((s) => s.scope === 'umum');
   // Pertanyaan bagian Umum dan bagian divisi ini; bagian divisi lain disembunyikan.
-  const sectionOk = new Map(
-    list.data.sections.map((section) => [
-      section.id,
-      section.divisionIds.length === 0 ||
-        section.divisionIds.includes(divisionId),
-    ]),
-  );
-  const fields = list.data.fields.filter(
-    (field) => field.sectionId === null || sectionOk.get(field.sectionId),
-  );
-  const criteria = slot?.criteria ?? [];
+  const fields = useMemo(() => {
+    if (!data) return [];
+    const sectionOk = new Map(
+      data.sections.map((section) => [
+        section.id,
+        section.divisionIds.length === 0 ||
+          section.divisionIds.includes(divisionId),
+      ]),
+    );
+    return data.fields.filter(
+      (field) => sectionOk.get(field.sectionId) === true,
+    );
+  }, [data, divisionId]);
+  const criteria = useMemo(() => slot?.criteria ?? [], [slot]);
   const editable = slot?.editable ?? false;
   const scoreCriteria = criteria.filter((c) => c.kind === 'skor');
 
-  const move = (index: number, step: number) => {
-    const ids = criteria.map((c) => c.id);
-    const target = index + step;
-    if (target < 0 || target >= ids.length) return;
-    [ids[index], ids[target]] = [ids[target]!, ids[index]!];
-    reorder.mutate(
-      { recruitmentId, scope: divisionId, criterionIds: ids },
-      { onSuccess: refresh },
-    );
-  };
+  const { mutate: reorderCriteria } = reorder;
+  const onMove = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      const index = Number(event.currentTarget.dataset.index);
+      const target = index + Number(event.currentTarget.dataset.step);
+      const ids = criteria.map((c) => c.id);
+      if (target < 0 || target >= ids.length) return;
+      [ids[index], ids[target]] = [ids[target]!, ids[index]!];
+      reorderCriteria(
+        { recruitmentId, scope: divisionId, criterionIds: ids },
+        { onSuccess: refresh },
+      );
+    },
+    [criteria, divisionId, recruitmentId, refresh, reorderCriteria],
+  );
+  const itemOf = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) =>
+      criteria.find((c) => c.id === event.currentTarget.dataset.criterionId),
+    [criteria],
+  );
+  const onEdit = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => setEditing(itemOf(event) ?? null),
+    [itemOf],
+  );
+  const onDelete = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) =>
+      setDeleting(itemOf(event) ?? null),
+    [itemOf],
+  );
+  const startNew = useCallback(() => setEditing('baru'), []);
+
+  if (list.isError) return <ErrorNote message={list.error.message} />;
+  if (!data) return <Loading label="Memuat kriteria…" />;
 
   const changeNote =
     assessedCount > 0
@@ -257,11 +185,7 @@ function CriteriaSection({
           ) : null}
         </div>
         {editable ? (
-          <Button
-            size="sm"
-            variant="dark_blue"
-            onClick={() => setEditing('baru')}
-          >
+          <Button size="sm" variant="dark_blue" onClick={startNew}>
             <Plus /> Tambah kriteria
           </Button>
         ) : null}
@@ -313,7 +237,9 @@ function CriteriaSection({
                     className={iconButton}
                     aria-label={`Naikkan ${item.name}`}
                     disabled={index === 0 || reorder.isPending}
-                    onClick={() => move(index, -1)}
+                    data-index={index}
+                    data-step={-1}
+                    onClick={onMove}
                   >
                     <ArrowUp className="size-4" />
                   </button>
@@ -324,7 +250,9 @@ function CriteriaSection({
                     disabled={
                       index === criteria.length - 1 || reorder.isPending
                     }
-                    onClick={() => move(index, 1)}
+                    data-index={index}
+                    data-step={1}
+                    onClick={onMove}
                   >
                     <ArrowDown className="size-4" />
                   </button>
@@ -332,7 +260,8 @@ function CriteriaSection({
                     type="button"
                     className={iconButton}
                     aria-label={`Ubah ${item.name}`}
-                    onClick={() => setEditing(item)}
+                    data-criterion-id={item.id}
+                    onClick={onEdit}
                   >
                     <Pencil className="size-4" />
                   </button>
@@ -340,7 +269,8 @@ function CriteriaSection({
                     type="button"
                     className={iconButton}
                     aria-label={`Hapus ${item.name}`}
-                    onClick={() => setDeleting(item)}
+                    data-criterion-id={item.id}
+                    onClick={onDelete}
                   >
                     <Trash2 className="size-4" />
                   </button>
@@ -376,45 +306,24 @@ function CriteriaSection({
         criterion={editing === 'baru' ? null : editing}
         fields={fields}
         open={editing !== null}
-        onOpenChange={(open) => {
-          if (!open) setEditing(null);
-        }}
-        onSaved={() => {
-          setEditing(null);
-          refresh();
-        }}
+        onOpenChange={onEditorOpenChange}
+        onSaved={onSaved}
       />
 
       <Modal
         open={deleting !== null}
-        onOpenChange={(open) => {
-          if (!open) setDeleting(null);
-        }}
+        onOpenChange={onDeleteOpenChange}
         title={`Hapus kriteria "${deleting?.name ?? ''}"?`}
         description="Nilai yang sudah diisi untuk kriteria ini ikut terhapus."
         footer={
           <>
-            <Button
-              variant="dark_blue_outline"
-              onClick={() => setDeleting(null)}
-            >
+            <Button variant="dark_blue_outline" onClick={cancelDelete}>
               Batal
             </Button>
             <Button
               variant="dark_blue"
               disabled={remove.isPending}
-              onClick={() => {
-                if (!deleting) return;
-                remove.mutate(
-                  { recruitmentId, criterionId: deleting.id },
-                  {
-                    onSuccess: () => {
-                      setDeleting(null);
-                      refresh();
-                    },
-                  },
-                );
-              }}
+              onClick={confirmDelete}
             >
               {remove.isPending ? 'Menghapus…' : 'Hapus'}
             </Button>
@@ -452,6 +361,28 @@ function AssessorSection({
     },
   });
   const remove = api.oprec.assessorRemove.useMutation({ onSuccess: refresh });
+  const { mutate: addAssessor } = add;
+  const { mutate: removeAssessor } = remove;
+  const onRemove = useCallback(
+    (event: MouseEvent<HTMLButtonElement>) => {
+      const assessorId = event.currentTarget.dataset.assessorId;
+      if (assessorId) removeAssessor({ recruitmentId, assessorId });
+    },
+    [recruitmentId, removeAssessor],
+  );
+  const onSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+      const value = identifier.trim();
+      if (!value) return;
+      addAssessor({ recruitmentId, identifier: value, divisionId });
+    },
+    [addAssessor, divisionId, identifier, recruitmentId],
+  );
+  const onIdentifierChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => setIdentifier(event.target.value),
+    [],
+  );
   const assessors = (list.data ?? []).filter(
     (row) => row.divisionId === divisionId,
   );
@@ -493,9 +424,8 @@ function AssessorSection({
                 size="icon"
                 aria-label={`Hapus ${row.name ?? row.email} dari penilai`}
                 disabled={remove.isPending}
-                onClick={() =>
-                  remove.mutate({ recruitmentId, assessorId: row.id })
-                }
+                data-assessor-id={row.id}
+                onClick={onRemove}
               >
                 <Trash2 />
               </Button>
@@ -504,25 +434,14 @@ function AssessorSection({
         </ul>
       )}
 
-      <form
-        className="flex flex-wrap items-end gap-2"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (!identifier.trim()) return;
-          add.mutate({
-            recruitmentId,
-            identifier: identifier.trim(),
-            divisionId,
-          });
-        }}
-      >
+      <form className="flex flex-wrap items-end gap-2" onSubmit={onSubmit}>
         <label className="grid min-w-56 flex-1 gap-1 text-sm font-semibold text-neutral-1000">
           Email atau NIM
           <input
             className={inputClass}
             value={identifier}
             placeholder="mis. 13523001"
-            onChange={(event) => setIdentifier(event.target.value)}
+            onChange={onIdentifierChange}
           />
         </label>
         <Button
@@ -537,5 +456,139 @@ function AssessorSection({
         <ErrorNote message={(add.error ?? remove.error)!.message} />
       ) : null}
     </section>
+  );
+}
+
+/**
+ * Pengaturan divisi untuk pengurus divisi: kriteria dan penilai tambahan
+ * divisi yang ia pegang. Kriteria boleh diubah kapan saja, termasuk
+ * di tengah penilaian; skor dihitung ulang dan pengurus diberi tahu dulu.
+ */
+export function DivisionSettingsView({
+  recruitmentId,
+  periodName,
+  children,
+}: {
+  recruitmentId: string;
+  periodName: string;
+  /** Sub-navigasi oprec (`OprecTabs`). */
+  children?: React.ReactNode;
+}) {
+  const overview = api.oprec.divisionSettings.useQuery(
+    { recruitmentId },
+    { retry: false },
+  );
+  const [picked, setPicked] = useState('');
+  const { refetch } = overview;
+  const onPick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+    setPicked(event.currentTarget.dataset.divisionId ?? '');
+  }, []);
+  const onChanged = useCallback(() => void refetch(), [refetch]);
+
+  const data = overview.data;
+  const divisions = data?.divisions ?? [];
+  const active =
+    divisions.find((division) => division.id === picked) ??
+    divisions[0] ??
+    null;
+
+  return (
+    <div className="py-6 sm:py-8">
+      <header>
+        <h1 className="break-words text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
+          Pengaturan divisi
+        </h1>
+        <p className="mt-1 text-sm text-neutral-700">
+          {data?.name ?? 'Oprec'}
+          {periodName ? ` · ${periodName}` : ''}. Atur kriteria dan penilai
+          tambahan divisi yang kamu pegang. Pengaturan lain dipegang pengelola
+          oprec.
+        </p>
+      </header>
+
+      {children}
+
+      {overview.isError ? (
+        <div className="mt-6">
+          <ErrorNote message={overview.error.message} />
+        </div>
+      ) : !data ? (
+        <Loading label="Memuat pengaturan divisi…" />
+      ) : active === null ? (
+        <div className="mt-6">
+          <Notice>Tidak ada divisi yang kamu pegang di oprec ini.</Notice>
+        </div>
+      ) : (
+        <>
+          {divisions.length > 1 ? (
+            <nav aria-label="Divisi" className="mt-6 flex flex-wrap gap-1">
+              {divisions.map((division) => {
+                const current = division.id === active.id;
+                return (
+                  <button
+                    key={division.id}
+                    type="button"
+                    aria-pressed={current}
+                    data-division-id={division.id}
+                    onClick={onPick}
+                    className={`rounded-full px-3 py-1.5 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 ${
+                      current
+                        ? 'bg-primary-200 text-primary-400'
+                        : 'border border-neutral-400 text-neutral-700 hover:bg-neutral-200'
+                    }`}
+                  >
+                    {division.label}
+                  </button>
+                );
+              })}
+            </nav>
+          ) : null}
+
+          <section
+            aria-label="Diatur pengelola oprec"
+            className="mt-6 grid gap-2 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4 text-sm sm:grid-cols-3"
+          >
+            <ReadOnly
+              label="Kuota"
+              value={active.quota === 0 ? 'Tanpa batas' : String(active.quota)}
+            />
+            <ReadOnly
+              label="Status otomatis"
+              value={
+                data.scoringMode === 'skor'
+                  ? (STATUS_METHOD_LABEL[data.statusMethod] ??
+                    data.statusMethod)
+                  : 'Diputuskan langsung'
+              }
+            />
+            <ReadOnly
+              label="Penempatan"
+              value={
+                data.placementMethod === 'prioritas' ? 'Prioritas' : 'Manual'
+              }
+            />
+            <p className="text-xs text-neutral-700 sm:col-span-3">
+              Diatur pengelola oprec. Hubungi mereka bila perlu diubah.
+            </p>
+          </section>
+
+          <CriteriaSection
+            key={`kriteria-${active.id}`}
+            recruitmentId={recruitmentId}
+            divisionId={active.id}
+            divisionLabel={active.label}
+            assessedCount={active.assessedCount}
+            onChanged={onChanged}
+          />
+
+          <AssessorSection
+            key={`penilai-${active.id}`}
+            recruitmentId={recruitmentId}
+            divisionId={active.id}
+            divisionLabel={active.label}
+          />
+        </>
+      )}
+    </div>
   );
 }

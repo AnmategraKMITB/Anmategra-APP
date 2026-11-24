@@ -1,8 +1,8 @@
 import { sql } from 'drizzle-orm';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-
 import { createTestDb, resetDb } from '~/test/test-db';
-import { DEMO_ACCOUNTS, seedDemo, type DemoDb } from './seed-demo';
+
+import { DEMO_ACCOUNTS, type DemoDb, seedDemo } from './seed-demo';
 import { countAll } from './test-helpers';
 
 const { db, close } = createTestDb();

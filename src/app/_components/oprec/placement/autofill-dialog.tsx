@@ -29,9 +29,7 @@ export function AutofillDialog({
   );
   const commit = api.oprec.autofillCommit.useMutation({
     onSuccess: (result) => {
-      announce(
-        `${result.applied} keputusan diisi dari penilaian.`,
-      );
+      announce(`${result.applied} keputusan diisi dari penilaian.`);
       onDone();
       onOpenChange(false);
     },
@@ -53,7 +51,11 @@ export function AutofillDialog({
             Batal
           </Button>
           <Button
-            disabled={commit.isPending || !preview.data || (totals?.terima ?? 0) + (totals?.tolak ?? 0) === 0}
+            disabled={
+              commit.isPending ||
+              !preview.data ||
+              (totals?.terima ?? 0) + (totals?.tolak ?? 0) === 0
+            }
             onClick={() => commit.mutate({ recruitmentId, overQuota })}
           >
             {commit.isPending ? 'Menerapkan…' : 'Terapkan'}
@@ -80,7 +82,10 @@ export function AutofillDialog({
               </thead>
               <tbody>
                 {preview.data.divisions.map((row) => (
-                  <tr key={row.divisionId} className="border-t border-neutral-400">
+                  <tr
+                    key={row.divisionId}
+                    className="border-t border-neutral-400"
+                  >
                     <td className="px-3 py-2 font-semibold text-neutral-1000">
                       {row.label}
                     </td>

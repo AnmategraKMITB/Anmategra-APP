@@ -2,10 +2,12 @@
 
 import {
   type ColumnDef,
+  type RowData,
   type SortingState,
   flexRender,
-  getCoreRowModel,
-  useReactTable,
+  rowSortingFeature,
+  tableFeatures,
+  useTable,
 } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp, ChevronsUpDown } from 'lucide-react';
 import { Button } from '~/components/ui/button';
@@ -18,8 +20,16 @@ import {
   TableRow,
 } from '~/components/ui/table';
 
-type AdminDataTableProps<T> = {
-  columns: ColumnDef<T, unknown>[];
+// Sorting dan paging dikerjakan server, jadi tabel cukup tahu status sort.
+const adminTableFeatures = tableFeatures({ rowSortingFeature });
+
+export type AdminColumnDef<T extends RowData> = ColumnDef<
+  typeof adminTableFeatures,
+  T
+>;
+
+type AdminDataTableProps<T extends RowData> = {
+  columns: AdminColumnDef<T>[];
   data: T[];
   sorting: SortingState;
   onSortingChange: (sorting: SortingState) => void;
@@ -45,7 +55,7 @@ function ariaSort(sorted: false | 'asc' | 'desc') {
   return 'none' as const;
 }
 
-export function AdminDataTable<T>({
+export function AdminDataTable<T extends RowData>({
   columns,
   data,
   sorting,
@@ -59,18 +69,16 @@ export function AdminDataTable<T>({
   empty = 'Tidak ada data yang cocok.',
   rowKey,
 }: AdminDataTableProps<T>) {
-  const table = useReactTable({
+  const table = useTable({
+    features: adminTableFeatures,
     data,
     columns,
     state: { sorting },
     onSortingChange: (updater) => {
-      const next =
-        typeof updater === 'function' ? updater(sorting) : updater;
+      const next = typeof updater === 'function' ? updater(sorting) : updater;
       onSortingChange(next);
     },
     manualSorting: true,
-    manualPagination: true,
-    getCoreRowModel: getCoreRowModel(),
     getRowId: (row) => rowKey(row),
   });
   const pages = Math.max(1, Math.ceil(total / pageSize));
@@ -121,22 +129,31 @@ export function AdminDataTable<T>({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="py-6 text-center text-neutral-700">
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-6 text-center text-neutral-700"
+                >
                   Memuat…
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="py-6 text-center text-neutral-700">
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-6 text-center text-neutral-700"
+                >
                   {empty}
                 </TableCell>
               </TableRow>
             ) : (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getAllCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>

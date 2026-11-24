@@ -2,9 +2,9 @@
 import { redirect } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { getServerAuthSession } from '~/server/auth';
-import { WidthWrapper } from '../_components/layout/width-wrapper';
 
 import Navbar from '../_components/layout/navbar';
+import { WidthWrapper } from '../_components/layout/width-wrapper';
 
 // Metadata
 // export const metadata: Metadata = {
@@ -15,7 +15,7 @@ import Navbar from '../_components/layout/navbar';
 
 const LembagaLayout = async ({ children }: { children: ReactNode }) => {
   const session = await getServerAuthSession();
-  // Lapisan kedua setelah middleware: area ini hanya untuk akun lembaga.
+  // Lapisan kedua setelah proxy (src/proxy.ts): area ini hanya untuk akun lembaga.
   if (!session) redirect('/authentication');
   if (session.user.role !== 'lembaga') redirect(`/${session.user.role}`);
   return (

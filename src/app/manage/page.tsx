@@ -142,7 +142,11 @@ const ManageIndexPage = async () => {
       )}
 
       {[...groups.entries()].map(([key, group]) => (
-        <section key={key} aria-label={`Kegiatan ${group.name}`} className="space-y-3">
+        <section
+          key={key}
+          aria-label={`Kegiatan ${group.name}`}
+          className="space-y-3"
+        >
           <h2 className="text-lg font-semibold text-neutral-1000">
             Kegiatan {group.name}
           </h2>
@@ -165,9 +169,7 @@ const ManageIndexPage = async () => {
                 <div className="flex flex-wrap gap-2">
                   {TOOLS.filter((t) => allows(e.features, t.key)).map((t) => (
                     <Button key={t.key} asChild variant="outline" size="sm">
-                      <Link
-                        href={`/manage/kegiatan/${e.eventId}/${t.path}`}
-                      >
+                      <Link href={`/manage/kegiatan/${e.eventId}/${t.path}`}>
                         {t.label}
                       </Link>
                     </Button>

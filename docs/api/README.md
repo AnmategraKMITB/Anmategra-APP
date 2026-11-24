@@ -4,12 +4,13 @@ Dokumentasi di folder ini **di-generate dari kode**, bukan ditulis ulang manual.
 kamu menjalankan `npm run docs` setelah mengubah router atau schema, dokumentasinya tidak
 bisa basi — dan CI akan menolak PR yang lupa melakukannya.
 
-Ada dua artefak:
+Ada tiga artefak:
 
-| Artefak | Isi | Dilihat lewat |
-|---|---|---|
-| `openapi.json` | Procedure tRPC + Endpoint REST | Scalar di `http://localhost:3000/api/docs` |
-| `schema.dbml` | Tabel Drizzle beserta relasinya | dbdocs.io (`npm run docs:db:publish`) |
+| Artefak                             | Isi                                                                                            | Dilihat lewat                                          |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `openapi.json`                      | Procedure tRPC + Endpoint REST                                                                 | Scalar di `http://localhost:3000/api/docs`             |
+| `schema.dbml`                       | Tabel Drizzle beserta relasinya                                                                | dbdocs.io (`npm run docs:db:publish`)                  |
+| `lifecycles.md` / `lifecycles.json` | Perpindahan status yang sah (form, oprec, penempatan, rilis hasil, permintaan pindah, laporan) | Diagram Mermaid di GitHub; JSON untuk agen dan tooling |
 
 ---
 
@@ -104,7 +105,9 @@ dan `access`-nya harus terdaftar di tipe `ApiMeta`:
 ```ts
 export const contohProcedure = protectedProcedure
   .meta({ access: 'authenticated' })
-  .use(({ ctx, next }) => { /* ... */ });
+  .use(({ ctx, next }) => {
+    /* ... */
+  });
 ```
 
 Kalau lupa, `npm run docs:api` sengaja gagal dan menyebut procedure mana saja yang bolong.
@@ -116,6 +119,13 @@ di-generate — endpoint privat bisa terdokumentasi sebagai publik.
 1. Ubah `src/server/db/schema.ts`, jalankan `npm run db:generate` seperti biasa.
 2. `npm run docs:db` supaya `schema.dbml` ikut terbarui.
 3. Tabel baru? Tambahkan penjelasannya di `schema-notes.json` (lihat bagian berikutnya).
+
+### Mau mengubah status (Draft/Published, draft/open/closed, berjalan/masa_banding/final, ...)
+
+1. Aturan perpindahannya ada di `src/lib/lifecycle/<nama>.ts`; lihat dulu `lifecycles.md`.
+2. Tulis status lewat `transition()` dari `src/server/api/lifecycle.ts`, bukan `.update().set({ status })`
+   langsung. `src/server/api/lifecycle-writes.test.ts` gagal untuk penulisan langsung yang tidak tercatat.
+3. Syarat baru? Tambahkan `guard` beserta `when` (kalimat pendeknya), lalu `npm run docs:lifecycle`.
 
 ### Mau memahami domain yang belum kamu sentuh
 
@@ -135,16 +145,16 @@ konsumen di luar aplikasi Next.js ini (mobile app, service lain, skrip internal)
 
 ## 4. Menambahkan prosa (penjelasan tulisan tangan)
 
-Generator hanya bisa menyimpulkan *bentuk* data, bukan *maksudnya*. Penjelasan manusia
+Generator hanya bisa menyimpulkan _bentuk_ data, bukan _maksudnya_. Penjelasan manusia
 disimpan di file terpisah supaya **tidak pernah tertimpa** saat regenerate:
 
-| Berkas | Sumber | Ditulis oleh |
-|---|---|---|
-| `openapi.json` | router tRPC + `rest-openapi.json` + `api-notes.json` | generator |
-| `schema.dbml` | skema Drizzle + `schema-notes.json` | generator |
-| `api-notes.json` | — | manusia |
-| `rest-openapi.json` | — | manusia |
-| `schema-notes.json` | — | manusia |
+| Berkas              | Sumber                                               | Ditulis oleh |
+| ------------------- | ---------------------------------------------------- | ------------ |
+| `openapi.json`      | router tRPC + `rest-openapi.json` + `api-notes.json` | generator    |
+| `schema.dbml`       | skema Drizzle + `schema-notes.json`                  | generator    |
+| `api-notes.json`    | —                                                    | manusia      |
+| `rest-openapi.json` | —                                                    | manusia      |
+| `schema-notes.json` | —                                                    | manusia      |
 
 - **Procedure tRPC** → `api-notes.json`, key `router.procedure`:
   ```json
@@ -179,9 +189,10 @@ domain dan paham seluk-beluknya, tulis satu-dua kalimat di `api-notes.json` /
 ## 5. Perintah
 
 ```bash
-npm run docs        # generate keduanya
+npm run docs        # generate semuanya
 npm run docs:api    # hanya openapi.json
 npm run docs:db     # hanya schema.dbml
+npm run docs:lifecycle  # hanya lifecycles.{md,json}
 npm run docs:check  # gagal kalau hasil generate beda dari yang di-commit (dipakai CI)
 npm run docs:db:publish   # push schema.dbml ke dbdocs.io
 ```

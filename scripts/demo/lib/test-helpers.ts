@@ -1,5 +1,4 @@
 import { sql } from 'drizzle-orm';
-
 import { type createTestDb } from '~/test/test-db';
 
 /** Jumlah baris tiap tabel aplikasi, urut nama tabel. */

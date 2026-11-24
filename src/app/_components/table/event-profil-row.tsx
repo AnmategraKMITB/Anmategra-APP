@@ -10,7 +10,7 @@ const ProfilRow = ({ profilGroup }: ProfilRowProps) => {
           {/* Only render KM Profil cell for the first event profil */}
           {index === 0 && (
             <TableCell
-              className="font-normal align-middle pr-8"
+              className="pr-8 align-middle font-normal"
               rowSpan={profilGroup.eventProfil.length}
             >
               {profilGroup.kmProfil}

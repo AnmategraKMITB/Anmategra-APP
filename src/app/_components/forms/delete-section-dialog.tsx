@@ -48,7 +48,10 @@ export function DeleteSectionDialog({
     await builder.removeSection(
       section,
       mode === 'move'
-        ? { type: 'move', toSectionId: target === '' ? (others[0]?.id ?? '') : target }
+        ? {
+            type: 'move',
+            toSectionId: target === '' ? (others[0]?.id ?? '') : target,
+          }
         : { type: 'delete' },
     );
     setBusy(false);

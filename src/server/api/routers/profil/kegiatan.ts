@@ -1,7 +1,10 @@
 import { TRPCError } from '@trpc/server';
-import { LembagaScopeInput } from '~/server/api/types/scope';
 import { eq } from 'drizzle-orm';
-import { createTRPCRouter, lembagaScopedProcedure, protectedProcedure } from '~/server/api/trpc';
+import {
+  createTRPCRouter,
+  lembagaScopedProcedure,
+  protectedProcedure,
+} from '~/server/api/trpc';
 import {
   CreateProfilKegiatanInputSchema,
   CreateProfilKegiatanOutputSchema,
@@ -12,6 +15,7 @@ import {
   GetAllProfilKegiatanInputSchema,
   GetAllProfilKegiatanOutputSchema,
 } from '~/server/api/types/profil.type';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import {
   events,
   pemetaanProfilKegiatan,
@@ -127,7 +131,11 @@ export const profilKegiatanRouter = createTRPCRouter({
     .input(DeleteProfilInputSchema.and(LembagaScopeInput))
     .output(DeleteProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateKegiatanProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
+      await validateKegiatanProfileOwnership(
+        ctx,
+        input.profil_id,
+        ctx.lembagaId,
+      );
 
       const profilExists = await ctx.db.query.profilKegiatan.findFirst({
         where: eq(profilKegiatan.id, input.profil_id),
@@ -151,7 +159,11 @@ export const profilKegiatanRouter = createTRPCRouter({
     .input(EditProfilInputSchema.and(LembagaScopeInput))
     .output(EditProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateKegiatanProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
+      await validateKegiatanProfileOwnership(
+        ctx,
+        input.profil_id,
+        ctx.lembagaId,
+      );
 
       // Validate profil KM IDs exist
       if (input.profil_km_id && input.profil_km_id.length > 0) {

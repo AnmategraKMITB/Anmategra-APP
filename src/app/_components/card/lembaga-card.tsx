@@ -1,9 +1,9 @@
 'use client';
 
 // Library Import
-import React from 'react';
-import Image, { type StaticImageData } from 'next/image';
 import { PersonIcon } from '@radix-ui/react-icons';
+import Image, { type StaticImageData } from 'next/image';
+import React from 'react';
 // Components Import
 import { Card } from '~/components/ui/card';
 
@@ -31,8 +31,8 @@ const LembagaCard = ({
 }: LembagaCardProps) => {
   if (variant === 'vertical') {
     return (
-      <Card className="flex h-[350px] w-full cursor-pointer overflow-hidden transition-shadow ease-out hover:shadow-md flex-col">
-        <div className="relative h-[250px] w-full overflow-hidden aspect-[2.35]">
+      <Card className="flex h-[350px] w-full cursor-pointer flex-col overflow-hidden transition-shadow ease-out hover:shadow-md">
+        <div className="relative aspect-[2.35] h-[250px] w-full overflow-hidden">
           <Image
             src={lembagaPicture || ''}
             alt={nama}
@@ -72,18 +72,22 @@ const LembagaCard = ({
   }
 
   return (
-    <Card className="px-6 py-4 flex items-center justify-start gap-x-6 transition-all hover:shadow-md">
-      <Image 
-        src={lembagaPicture || '/images/placeholder/profile-lembaga-kegiatan.png'}
-        alt='Foto Lembaga'
+    <Card className="flex items-center justify-start gap-x-6 px-6 py-4 transition-all hover:shadow-md">
+      <Image
+        src={
+          lembagaPicture || '/images/placeholder/profile-lembaga-kegiatan.png'
+        }
+        alt="Foto Lembaga"
         width={100}
         height={100}
-        className='rounded-xl object-cover'
+        className="rounded-xl object-cover"
       />
-      <div className='space-y-1 flex-1'>
-        <p className='text-xl font-medium text-Blue-Dark line-clamp-1'>{nama}</p>
-        <p className='text-neutral-600 text-sm line-clamp-1'>{kategori}</p>
-        <p className='text-neutral-1000 text-sm line-clamp-2'>{deskripsi}</p>
+      <div className="flex-1 space-y-1">
+        <p className="line-clamp-1 text-xl font-medium text-Blue-Dark">
+          {nama}
+        </p>
+        <p className="line-clamp-1 text-sm text-neutral-600">{kategori}</p>
+        <p className="line-clamp-2 text-sm text-neutral-1000">{deskripsi}</p>
       </div>
     </Card>
   );

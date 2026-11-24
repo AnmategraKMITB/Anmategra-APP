@@ -4,9 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
 import { type Report, ReportCard } from './report-card';
-import {
-  type ColumnType,
-} from './report-column';
+import { type ColumnType } from './report-column';
 
 export function SortableReportCard({
   report,
@@ -56,7 +54,7 @@ export function SortableReportCard({
         column={column}
         onClick={onClickAction}
         onEdit={onEdit}
-        onDelete={onDelete}      
+        onDelete={onDelete}
         onSubmit={onSubmitReport}
       />
     </div>

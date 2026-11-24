@@ -73,15 +73,15 @@ export default function RaporIndividuPage({
         : [];
 
   return (
-    <main className="flex flex-col p-4 sm:p-6 md:p-8 min-h-screen w-full overflow-hidden">
-      <div className="flex flex-col pb-4 sm:pb-6 md:pb-7 border-b border-neutral-400 mb-6 sm:mb-7 md:mb-8">
-        <h1 className="text-2xl sm:text-3xl md:text-[32px] font-semibold mb-2 text-neutral-1000">
+    <main className="flex min-h-screen w-full flex-col overflow-hidden p-4 sm:p-6 md:p-8">
+      <div className="mb-6 flex flex-col border-b border-neutral-400 pb-4 sm:mb-7 sm:pb-6 md:mb-8 md:pb-7">
+        <h1 className="mb-2 text-2xl font-semibold text-neutral-1000 sm:text-3xl md:text-[32px]">
           Rapor Individu
         </h1>
         <RaporBreadcrumb items={breadcrumbItems} />
       </div>
 
-      <div className="flex flex-col gap-8 sm:gap-12 md:gap-16 w-full">
+      <div className="flex w-full flex-col gap-8 sm:gap-12 md:gap-16">
         <RaporIndividuHeader
           dataNilaiProfil={raporData}
           id={id}
@@ -90,8 +90,8 @@ export default function RaporIndividuPage({
           canEdit={canEdit}
         />
 
-        <div className="flex flex-col gap-y-3 sm:gap-y-4 w-full min-w-0">
-          <h2 className="text-neutral-700 text-lg sm:text-xl md:text-[20px] font-normal">
+        <div className="flex w-full min-w-0 flex-col gap-y-3 sm:gap-y-4">
+          <h2 className="text-lg font-normal text-neutral-700 sm:text-xl md:text-[20px]">
             Profil {isLembaga ? 'Lembaga' : 'Kegiatan'}
           </h2>
           <ProfilTable
@@ -101,8 +101,8 @@ export default function RaporIndividuPage({
           />
         </div>
 
-        <div className="flex flex-col gap-y-3 sm:gap-y-4 w-full min-w-0">
-          <h2 className="text-neutral-700 text-lg sm:text-xl md:text-[20px] font-normal">
+        <div className="flex w-full min-w-0 flex-col gap-y-3 sm:gap-y-4">
+          <h2 className="text-lg font-normal text-neutral-700 sm:text-xl md:text-[20px]">
             Detail Pemetaan Profil {isLembaga ? 'Lembaga' : 'Kegiatan'}
           </h2>
           <ProfilTable

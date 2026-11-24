@@ -16,7 +16,7 @@ export function isFillFormPath(pathname: string): boolean {
   return FILL_PATH_PATTERN.test(pathname);
 }
 
-/** Keputusan middleware untuk jalur /forms dan /f: pratinjau publik, halaman isi, atau bukan urusan ini. */
+/** Keputusan proxy untuk jalur /forms dan /f: pratinjau publik, halaman isi, atau bukan urusan ini. */
 export function decideFormsPath(
   pathname: string,
   search: string,

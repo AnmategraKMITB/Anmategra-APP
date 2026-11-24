@@ -33,7 +33,8 @@ export function TentangSection() {
           <p>
             Tujuannya sederhana: menyatukan data keorganisasian yang sebelumnya
             tersebar di banyak berkas, sehingga pengurus dapat mengelola
-            keanggotaan dan kegiatan tanpa mendata ulang dari awal setiap periode.
+            keanggotaan dan kegiatan tanpa mendata ulang dari awal setiap
+            periode.
           </p>
         </div>
         <div className="mt-2 grid grid-cols-1 gap-4 md:grid-cols-3">

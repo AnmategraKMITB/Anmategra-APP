@@ -1,7 +1,9 @@
 import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, inArray, max } from 'drizzle-orm';
 import { MAX_RULES } from '~/lib/forms/conditions';
+import { oprecLifecycle } from '~/lib/lifecycle/oprec';
 import { waveOverlapMessage } from '~/lib/oprec/waves';
+import { transition } from '~/server/api/lifecycle';
 import {
   createTRPCRouter,
   oprecPeriodProcedure,
@@ -247,22 +249,23 @@ export const oprecRouter = createTRPCRouter({
         if (!current) notFound('Oprec tidak ditemukan.');
         if (current.status === input.status) return;
 
-        if (input.status === 'open') {
-          const [problem] = await oprecOpenProblems(tx, current);
-          if (problem) conflict(problem);
-        }
-        if (
-          input.status === 'draft' &&
-          (await countApplications(tx, current.id)) > 0
-        ) {
-          conflict(
-            'Oprec yang sudah punya pendaftar tidak bisa kembali ke draf.',
-          );
-        }
-        await tx
-          .update(recruitment)
-          .set({ status: input.status })
-          .where(eq(recruitment.id, current.id));
+        await transition(tx, oprecLifecycle, {
+          table: recruitment,
+          column: recruitment.status,
+          where: eq(recruitment.id, current.id),
+          from: current.status,
+          to: input.status,
+          ctx: {
+            openProblems:
+              input.status === 'open'
+                ? await oprecOpenProblems(tx, current)
+                : [],
+            applications:
+              input.status === 'draft'
+                ? await countApplications(tx, current.id)
+                : 0,
+          },
+        });
         await syncFormToOprec(tx, current.formId, input.status);
       });
       return OK;

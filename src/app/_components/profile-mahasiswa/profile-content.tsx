@@ -38,8 +38,8 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
   const baseHref = '/profile-kegiatan';
 
   return (
-    <div className="w-full flex min-h-screen flex-col items-center px-4 sm:px-6">
-      <div className="max-w-7xl flex w-full flex-col gap-4 py-6">
+    <div className="flex min-h-screen w-full flex-col items-center px-4 sm:px-6">
+      <div className="flex w-full max-w-7xl flex-col gap-4 py-6">
         {/* Title and Search */}
         <div className="flex flex-col">
           <h1 className="text-2xl font-semibold text-neutral-1000">Beranda</h1>
@@ -53,7 +53,7 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
 
         {/* Profil Mahasiswa */}
         {!isEdit && (
-          <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-6 pt-12 md:mb-6">
+          <div className="flex w-full flex-col items-center justify-center gap-6 pt-12 sm:flex-row md:mb-6">
             <Avatar
               className={cn(
                 'rounded-full',
@@ -78,14 +78,14 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                   .join('')}
               </AvatarFallback>
             </Avatar>
-            <div className="space-y-1 flex-col items-center sm:items-start text-center sm:text-left">
-              <p className="text-xl md:text-2xl text-[#181818] font-semibold mb-2">
+            <div className="flex-col items-center space-y-1 text-center sm:items-start sm:text-left">
+              <p className="mb-2 text-xl font-semibold text-[#181818] md:text-2xl">
                 {mahasiswaData?.user.name}
               </p>
-              <p className="text-base md:text-lg text-neutral-600">
+              <p className="text-base text-neutral-600 md:text-lg">
                 {mahasiswaData?.mahasiswa.nim}
               </p>
-              <p className="text-base md:text-lg text-neutral-600">
+              <p className="text-base text-neutral-600 md:text-lg">
                 {mahasiswaData?.mahasiswa.jurusan} &#39;
                 {mahasiswaData?.mahasiswa.angkatan}
               </p>
@@ -149,16 +149,16 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
         )}
         <div
           className={cn(
-            'flex items-center justify-center w-full',
+            'flex w-full items-center justify-center',
             isEdit ? '' : '',
-            isLembagaView ? '' : 'sm:mt-6 sm:mb-8',
+            isLembagaView ? '' : 'sm:mb-8 sm:mt-6',
           )}
         >
           {session?.user.id === userId && (
             <div
               className={cn(
-                'w-full flex',
-                isEdit ? 'max-w-none' : 'max-w-[600px] h-[56px]',
+                'flex w-full',
+                isEdit ? 'max-w-none' : 'h-[56px] max-w-[600px]',
               )}
             >
               <EditProfileDialog
@@ -184,7 +184,7 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
           (bestStaffData.best_staff_lembaga.length > 0 ||
             bestStaffData.best_staff_kegiatan.length > 0) && (
             <div className="space-y-6 pb-12">
-              <h5 className="text-xl md:text-2xl font-semibold text-neutral-1000">
+              <h5 className="text-xl font-semibold text-neutral-1000 md:text-2xl">
                 Histori Best Staff
               </h5>
 
@@ -193,7 +193,7 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                   <h6 className="text-lg font-semibold text-slate-600">
                     Lembaga
                   </h6>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {bestStaffData.best_staff_lembaga.map((item, index) => (
                       <BestStaffCard
                         key={index}
@@ -225,7 +225,7 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                   <h6 className="text-lg font-semibold text-slate-600">
                     Kegiatan
                   </h6>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     {bestStaffData.best_staff_kegiatan.map((item, index) => (
                       <BestStaffCard
                         key={index}
@@ -256,11 +256,11 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
 
         {/* Kepanitiaan */}
         <div className="space-y-4 pb-12 md:mt-[50px]">
-          <h5 className="text-xl md:text-2xl font-semibold text-neutral-1000">
+          <h5 className="text-xl font-semibold text-neutral-1000 md:text-2xl">
             Kepanitiaan
           </h5>
           {newestEvent && newestEvent.length !== 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {newestEvent.map((item: Kepanitiaan) => (
                 <Link key={item.id} href={`${baseHref}/${item.id}`}>
                   <KepanitiaanCard
@@ -273,10 +273,10 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
               ))}
             </div>
           ) : (
-            <div className="w-full py-16 flex flex-col items-center gap-y-4">
+            <div className="flex w-full flex-col items-center gap-y-4 py-16">
               {session?.user.id === userId ? (
                 <>
-                  <div className="text-center items-center flex flex-col sm:flex-row gap-8">
+                  <div className="flex flex-col items-center gap-8 text-center sm:flex-row">
                     <Image
                       src={NoKepanitiaan}
                       alt="Tidak Ada Anggota"
@@ -284,10 +284,10 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                       height={128}
                     />
                     <div className="max-w-[400px] text-left">
-                      <h5 className="text-xl md:text-2xl font-semibold text-slate-600 md:text-left text-center">
+                      <h5 className="text-center text-xl font-semibold text-slate-600 md:text-left md:text-2xl">
                         Tidak Ada Informasi Kepanitiaan
                       </h5>
-                      <p className="text-sm md:text-base text-slate-400 mt-2 md:text-left text-center">
+                      <p className="mt-2 text-center text-sm text-slate-400 md:text-left md:text-base">
                         Kami tidak dapat menemukan informasi kepanitiaan yang
                         diikuti, silahkan menambahkan jika ada
                       </p>
@@ -297,7 +297,7 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                 </>
               ) : (
                 <>
-                  <div className="text-center items-center flex-col sm:flex-row gap-8">
+                  <div className="flex-col items-center gap-8 text-center sm:flex-row">
                     <Image
                       src={NoKepanitiaan}
                       alt="Tidak Ada Anggota"
@@ -305,10 +305,10 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
                       height={128}
                     />
                     <div className="max-w-[400px] text-left">
-                      <h5 className="text-xl md:text-2xl font-semibold text-slate-600">
+                      <h5 className="text-xl font-semibold text-slate-600 md:text-2xl">
                         Tidak Ada Informasi Kepanitiaan
                       </h5>
-                      <p className="text-sm md:text-base text-slate-400 mt-2">
+                      <p className="mt-2 text-sm text-slate-400 md:text-base">
                         Kami tidak dapat menemukan informasi kepanitiaan yang
                         diikuti oleh mahasiswa ini
                       </p>
@@ -323,10 +323,10 @@ const ProfileMahasiswaContent: React.FC<ProfileMahasiswaContentProps> = ({
         {/* Lembaga */}
         {memberLembaga && memberLembaga.length > 0 && (
           <div className="space-y-4 pb-12">
-            <h5 className="text-xl md:text-2xl font-semibold text-neutral-1000">
+            <h5 className="text-xl font-semibold text-neutral-1000 md:text-2xl">
               Lembaga
             </h5>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {memberLembaga.map((item) => (
                 <Link
                   key={item.id}

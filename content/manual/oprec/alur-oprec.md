@@ -24,12 +24,12 @@ Jika rekrutmen Anda dijalankan lewat formulir di luar Anmategra, isi saja
 
 ## Siapa yang terlibat
 
-| Peran               | Yang dilakukan                                                                                  |
-| ------------------- | ----------------------------------------------------------------------------------------------- |
+| Peran               | Yang dilakukan                                                                                   |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
 | **Pengelola oprec** | Membuat oprec, mengatur formulir dan kriteria, memantau pendaftar, menetapkan dan merilis hasil. |
-| **Penilai**         | Membaca berkas dan memberi skor pada kriteria yang ditugaskan kepadanya.                        |
-| **Ketua divisi**    | Memutuskan penerimaan di divisinya bila oprec diatur demikian.                                  |
-| **Pendaftar**       | Mengisi formulir, memilih divisi, dan melihat hasil setelah dirilis.                            |
+| **Penilai**         | Membaca berkas dan memberi skor pada kriteria yang ditugaskan kepadanya.                         |
+| **Ketua divisi**    | Memutuskan penerimaan di divisinya bila oprec diatur demikian.                                   |
+| **Pendaftar**       | Mengisi formulir, memilih divisi, dan melihat hasil setelah dirilis.                             |
 
 Pemilik dan admin lembaga selalu menjadi pengelola. Orang lain dapat diberi
 akses khusus oprec tanpa menjadi admin penuh.

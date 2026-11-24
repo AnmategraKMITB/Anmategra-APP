@@ -92,8 +92,10 @@ export function AkunDetail({ userId }: { userId: string }) {
     onSuccess: () => void utils.adminConsole.userDetail.invalidate({ userId }),
   });
 
-  if (detail.isLoading) return <p className="text-sm text-neutral-700">Memuat akun…</p>;
-  if (detail.isError) return <p className="text-sm text-danger-dark">{detail.error.message}</p>;
+  if (detail.isLoading)
+    return <p className="text-sm text-neutral-700">Memuat akun…</p>;
+  if (detail.isError)
+    return <p className="text-sm text-danger-dark">{detail.error.message}</p>;
   if (!detail.data || !form) return null;
 
   const data = detail.data;
@@ -153,7 +155,12 @@ export function AkunDetail({ userId }: { userId: string }) {
         error={update.error?.message ?? null}
         footer={
           canWrite ? (
-            <Button type="button" variant="dark_blue" disabled={update.isPending} onClick={save}>
+            <Button
+              type="button"
+              variant="dark_blue"
+              disabled={update.isPending}
+              onClick={save}
+            >
               {update.isPending ? 'Menyimpan…' : 'Simpan perubahan'}
             </Button>
           ) : (
@@ -166,9 +173,15 @@ export function AkunDetail({ userId }: { userId: string }) {
             <div className="relative h-32 w-32 overflow-hidden rounded-full bg-neutral-200">
               {form.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={form.image} alt="" className="h-full w-full object-cover" />
+                <img
+                  src={form.image}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
               ) : (
-                <span className="grid h-full place-items-center text-xs text-neutral-700">Tanpa foto</span>
+                <span className="grid h-full place-items-center text-xs text-neutral-700">
+                  Tanpa foto
+                </span>
               )}
             </div>
             {canWrite ? (
@@ -183,14 +196,17 @@ export function AkunDetail({ userId }: { userId: string }) {
             ) : null}
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <p className="sm:col-span-2 text-xs text-neutral-700">
-              Perubahan email atau role baru berlaku di sesi user setelah login ulang.
+            <p className="text-xs text-neutral-700 sm:col-span-2">
+              Perubahan email atau role baru berlaku di sesi user setelah login
+              ulang.
             </p>
             <Field label="Nama">
               <Input
                 value={form.name}
                 disabled={!canWrite}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
+                onChange={(event) =>
+                  setForm({ ...form, name: event.target.value })
+                }
               />
             </Field>
             <Field label="Email">
@@ -198,7 +214,9 @@ export function AkunDetail({ userId }: { userId: string }) {
                 type="email"
                 value={form.email}
                 disabled={!canWrite || !canRoles || data.user.role === 'admin'}
-                onChange={(event) => setForm({ ...form, email: event.target.value })}
+                onChange={(event) =>
+                  setForm({ ...form, email: event.target.value })
+                }
               />
             </Field>
             <Field label="Role">
@@ -206,16 +224,24 @@ export function AkunDetail({ userId }: { userId: string }) {
                 className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
                 value={form.role}
                 disabled={!canWrite || !canRoles || data.user.role === 'admin'}
-                onChange={(event) => setForm({ ...form, role: event.target.value as FormState['role'] })}
+                onChange={(event) =>
+                  setForm({
+                    ...form,
+                    role: event.target.value as FormState['role'],
+                  })
+                }
               >
                 <option value="mahasiswa">mahasiswa</option>
                 <option value="lembaga">lembaga</option>
-                {data.user.role === 'admin' ? <option value="admin">admin</option> : null}
+                {data.user.role === 'admin' ? (
+                  <option value="admin">admin</option>
+                ) : null}
               </select>
             </Field>
             {data.user.role === 'admin' ? (
-              <p className="sm:col-span-2 text-xs text-neutral-700">
-                Akun ini Superadmin. Email dan role-nya hanya dapat diubah lewat menu Superadmin.
+              <p className="text-xs text-neutral-700 sm:col-span-2">
+                Akun ini Superadmin. Email dan role-nya hanya dapat diubah lewat
+                menu Superadmin.
               </p>
             ) : null}
             {form.role !== data.user.role ? (
@@ -233,7 +259,9 @@ export function AkunDetail({ userId }: { userId: string }) {
                   type="checkbox"
                   checked={form.emailVerified}
                   disabled={!canWrite || !canRoles}
-                  onChange={(event) => setForm({ ...form, emailVerified: event.target.checked })}
+                  onChange={(event) =>
+                    setForm({ ...form, emailVerified: event.target.checked })
+                  }
                 />
                 Email terverifikasi
               </label>
@@ -242,7 +270,9 @@ export function AkunDetail({ userId }: { userId: string }) {
                   type="checkbox"
                   checked={form.hidden}
                   disabled={!canWrite}
-                  onChange={(event) => setForm({ ...form, hidden: event.target.checked })}
+                  onChange={(event) =>
+                    setForm({ ...form, hidden: event.target.checked })
+                  }
                 />
                 Disembunyikan
               </label>
@@ -251,7 +281,9 @@ export function AkunDetail({ userId }: { userId: string }) {
                   type="checkbox"
                   checked={form.isDemo}
                   disabled={!canWrite}
-                  onChange={(event) => setForm({ ...form, isDemo: event.target.checked })}
+                  onChange={(event) =>
+                    setForm({ ...form, isDemo: event.target.checked })
+                  }
                 />
                 Demo
               </label>
@@ -262,53 +294,97 @@ export function AkunDetail({ userId }: { userId: string }) {
 
       {hasMahasiswa ? (
         <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
-          <h2 className="text-lg font-semibold text-neutral-1000">Profil mahasiswa</h2>
+          <h2 className="text-lg font-semibold text-neutral-1000">
+            Profil mahasiswa
+          </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Field label="NIM">
-              <Input value={form.nim} disabled={!canWrite} onChange={(e) => setForm({ ...form, nim: e.target.value })} />
+              <Input
+                value={form.nim}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, nim: e.target.value })}
+              />
             </Field>
             <Field label="NIM TPB">
-              <Input value={form.nimTpb} disabled={!canWrite} onChange={(e) => setForm({ ...form, nimTpb: e.target.value })} />
+              <Input
+                value={form.nimTpb}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, nimTpb: e.target.value })}
+              />
             </Field>
             <Field label="Nama di profil">
-              <Input value={form.namaMahasiswa} disabled={!canWrite} onChange={(e) => setForm({ ...form, namaMahasiswa: e.target.value })} />
+              <Input
+                value={form.namaMahasiswa}
+                disabled={!canWrite}
+                onChange={(e) =>
+                  setForm({ ...form, namaMahasiswa: e.target.value })
+                }
+              />
             </Field>
             <Field label="Jurusan">
-              <Input value={form.jurusan} disabled={!canWrite} onChange={(e) => setForm({ ...form, jurusan: e.target.value })} />
+              <Input
+                value={form.jurusan}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, jurusan: e.target.value })}
+              />
             </Field>
             <Field label="Angkatan">
-              <Input value={form.angkatan} disabled={!canWrite} onChange={(e) => setForm({ ...form, angkatan: e.target.value })} />
+              <Input
+                value={form.angkatan}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, angkatan: e.target.value })}
+              />
             </Field>
             <Field label="Status">
               <select
                 className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
                 value={form.status}
                 disabled={!canWrite}
-                onChange={(e) => setForm({ ...form, status: e.target.value as FormState['status'] })}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    status: e.target.value as FormState['status'],
+                  })
+                }
               >
                 <option value="aktif">aktif</option>
                 <option value="alumni">alumni</option>
               </select>
             </Field>
             <Field label="LINE">
-              <Input value={form.lineId} disabled={!canWrite} onChange={(e) => setForm({ ...form, lineId: e.target.value })} />
+              <Input
+                value={form.lineId}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, lineId: e.target.value })}
+              />
             </Field>
             <Field label="WhatsApp">
-              <Input value={form.whatsapp} disabled={!canWrite} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} />
+              <Input
+                value={form.whatsapp}
+                disabled={!canWrite}
+                onChange={(e) => setForm({ ...form, whatsapp: e.target.value })}
+              />
             </Field>
             <label className="flex items-end gap-2 text-sm">
               <input
                 type="checkbox"
                 checked={form.raporVisible}
                 disabled={!canWrite}
-                onChange={(e) => setForm({ ...form, raporVisible: e.target.checked })}
+                onChange={(e) =>
+                  setForm({ ...form, raporVisible: e.target.checked })
+                }
               />
               Rapor terlihat publik
             </label>
           </div>
           {canWrite ? (
             <div>
-              <Button type="button" variant="dark_blue" disabled={update.isPending} onClick={save}>
+              <Button
+                type="button"
+                variant="dark_blue"
+                disabled={update.isPending}
+                onClick={save}
+              >
                 Simpan profil mahasiswa
               </Button>
             </div>
@@ -317,7 +393,9 @@ export function AkunDetail({ userId }: { userId: string }) {
       ) : null}
 
       <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
-        <h2 className="text-lg font-semibold text-neutral-1000">Afiliasi lembaga</h2>
+        <h2 className="text-lg font-semibold text-neutral-1000">
+          Afiliasi lembaga
+        </h2>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_130px_180px_auto] sm:items-end">
           <div className="grid gap-1 text-sm font-semibold text-neutral-700">
             Lembaga
@@ -329,10 +407,17 @@ export function AkunDetail({ userId }: { userId: string }) {
             />
           </div>
           <Field label="Angkatan">
-            <Input value={cohortYear} onChange={(e) => setCohortYear(e.target.value)} inputMode="numeric" />
+            <Input
+              value={cohortYear}
+              onChange={(e) => setCohortYear(e.target.value)}
+              inputMode="numeric"
+            />
           </Field>
           <Field label="Label">
-            <Input value={cohortLabel} onChange={(e) => setCohortLabel(e.target.value)} />
+            <Input
+              value={cohortLabel}
+              onChange={(e) => setCohortLabel(e.target.value)}
+            />
           </Field>
           <Button
             type="button"
@@ -353,7 +438,10 @@ export function AkunDetail({ userId }: { userId: string }) {
         </div>
         <ul className="grid gap-2">
           {data.memberships.map((row) => (
-            <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+            <li
+              key={row.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+            >
               <span>
                 <strong>{row.lembagaName ?? row.lembagaId}</strong>
                 {row.cohortYear ? ` · ${row.cohortYear}` : ''}
@@ -364,19 +452,25 @@ export function AkunDetail({ userId }: { userId: string }) {
                   size="sm"
                   variant="ghost"
                   disabled={membershipRemove.isPending}
-                  onClick={() => membershipRemove.mutate({ membershipId: row.id })}
+                  onClick={() =>
+                    membershipRemove.mutate({ membershipId: row.id })
+                  }
                 >
                   Hapus
                 </Button>
               ) : null}
             </li>
           ))}
-          {data.memberships.length === 0 ? <li className="text-sm text-neutral-700">Belum ada keanggotaan.</li> : null}
+          {data.memberships.length === 0 ? (
+            <li className="text-sm text-neutral-700">Belum ada keanggotaan.</li>
+          ) : null}
         </ul>
       </section>
 
       <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
-        <h2 className="text-lg font-semibold text-neutral-1000">Penempatan organogram</h2>
+        <h2 className="text-lg font-semibold text-neutral-1000">
+          Penempatan organogram
+        </h2>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-1 text-sm font-semibold text-neutral-700">
             Jabatan
@@ -395,16 +489,22 @@ export function AkunDetail({ userId }: { userId: string }) {
             type="button"
             variant="dark_blue"
             disabled={!canWrite || !positionId || placementAdd.isPending}
-            onClick={() => placementAdd.mutate({ userId, positionId, source: 'manual' })}
+            onClick={() =>
+              placementAdd.mutate({ userId, positionId, source: 'manual' })
+            }
           >
             Tempatkan
           </Button>
         </div>
         <ul className="grid gap-2">
           {data.placements.map((row) => (
-            <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+            <li
+              key={row.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+            >
               <span>
-                <strong>{row.positionTitle}</strong> · {row.unitName} · {row.structureName}
+                <strong>{row.positionTitle}</strong> · {row.unitName} ·{' '}
+                {row.structureName}
                 {row.lembagaName ? ` · ${row.lembagaName}` : ''}
                 {row.periodName ? ` · ${row.periodName}` : ''}
               </span>
@@ -413,14 +513,18 @@ export function AkunDetail({ userId }: { userId: string }) {
                   size="sm"
                   variant="ghost"
                   disabled={placementRemove.isPending}
-                  onClick={() => placementRemove.mutate({ placementId: row.id })}
+                  onClick={() =>
+                    placementRemove.mutate({ placementId: row.id })
+                  }
                 >
                   Hapus
                 </Button>
               ) : null}
             </li>
           ))}
-          {data.placements.length === 0 ? <li className="text-sm text-neutral-700">Belum ada penempatan.</li> : null}
+          {data.placements.length === 0 ? (
+            <li className="text-sm text-neutral-700">Belum ada penempatan.</li>
+          ) : null}
         </ul>
       </section>
 
@@ -428,38 +532,77 @@ export function AkunDetail({ userId }: { userId: string }) {
         <h2 className="text-lg font-semibold text-neutral-1000">Akses</h2>
         <ul className="grid gap-2">
           {data.grants.map((row) => (
-            <li key={row.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm">
+            <li
+              key={row.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-300 bg-white px-3 py-2 text-sm"
+            >
               <span>
-                {row.lembagaName ? `Lembaga · ${row.lembagaName}` : `Kegiatan · ${row.periodName ?? ''}`}
+                {row.lembagaName
+                  ? `Lembaga · ${row.lembagaName}`
+                  : `Kegiatan · ${row.periodName ?? ''}`}
                 {' · '}
                 {row.features.join(', ')}
                 {row.propagate ? ' · propagate' : ''}
               </span>
               {canWrite ? (
-                <Button size="sm" variant="ghost" onClick={() => revokeGrant.mutate({ grantId: row.id })}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => revokeGrant.mutate({ grantId: row.id })}
+                >
                   Cabut
                 </Button>
               ) : null}
             </li>
           ))}
-          {data.grants.length === 0 ? <li className="text-sm text-neutral-700">Belum ada akses.</li> : null}
+          {data.grants.length === 0 ? (
+            <li className="text-sm text-neutral-700">Belum ada akses.</li>
+          ) : null}
         </ul>
       </section>
 
       <section className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
-        <h2 className="text-lg font-semibold text-neutral-1000">Riwayat (read-only)</h2>
+        <h2 className="text-lg font-semibold text-neutral-1000">
+          Riwayat (read-only)
+        </h2>
         <div className="grid gap-3 md:grid-cols-2">
-          <History title="Best staff kegiatan" rows={data.bestStaff.kegiatan.map((r) => `${r.eventName ?? r.eventId} · ${r.division}`)} />
-          <History title="Best staff lembaga" rows={data.bestStaff.lembaga.map((r) => `${r.lembagaName ?? r.lembagaId} · ${r.division}`)} />
-          <History title="Riwayat organisasi" rows={data.riwayat.organisasi.map((r) => `${r.lembagaNama} · ${r.division} · ${r.position}`)} />
-          <History title="Riwayat kepanitiaan" rows={data.riwayat.kepanitiaan.map((r) => `${r.eventNama} · ${r.division} · ${r.position}`)} />
+          <History
+            title="Best staff kegiatan"
+            rows={data.bestStaff.kegiatan.map(
+              (r) => `${r.eventName ?? r.eventId} · ${r.division}`,
+            )}
+          />
+          <History
+            title="Best staff lembaga"
+            rows={data.bestStaff.lembaga.map(
+              (r) => `${r.lembagaName ?? r.lembagaId} · ${r.division}`,
+            )}
+          />
+          <History
+            title="Riwayat organisasi"
+            rows={data.riwayat.organisasi.map(
+              (r) => `${r.lembagaNama} · ${r.division} · ${r.position}`,
+            )}
+          />
+          <History
+            title="Riwayat kepanitiaan"
+            rows={data.riwayat.kepanitiaan.map(
+              (r) => `${r.eventNama} · ${r.division} · ${r.position}`,
+            )}
+          />
         </div>
       </section>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="grid gap-1 text-sm font-semibold text-neutral-700">
       {label}
@@ -473,7 +616,11 @@ function History({ title, rows }: { title: string; rows: string[] }) {
     <div>
       <h3 className="text-sm font-semibold text-neutral-1000">{title}</h3>
       <ul className="mt-1 grid gap-1 text-sm text-neutral-700">
-        {rows.length === 0 ? <li>—</li> : rows.map((row, index) => <li key={`${row}-${index}`}>{row}</li>)}
+        {rows.length === 0 ? (
+          <li>—</li>
+        ) : (
+          rows.map((row, index) => <li key={`${row}-${index}`}>{row}</li>)
+        )}
       </ul>
     </div>
   );

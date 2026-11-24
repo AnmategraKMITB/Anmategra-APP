@@ -77,10 +77,10 @@ export default function FormProfilKegiatan({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent
-        className={`h-auto max-h-screen overflow-auto max-w-none w-[907px] rounded-[26.1px] bg-white border-[0.82px] border-[#C4CACE] px-9 py-6 flex flex-col gap-[21px] text-[#141718] ${customClassName}`}
+        className={`flex h-auto max-h-screen w-[907px] max-w-none flex-col gap-[21px] overflow-auto rounded-[26.1px] border-[0.82px] border-[#C4CACE] bg-white px-9 py-6 text-[#141718] ${customClassName}`}
         aria-describedby={undefined}
       >
-        <DialogHeader className="flex flex-row justify-between items-center">
+        <DialogHeader className="flex flex-row items-center justify-between">
           <DialogTitle className="text-2xl font-semibold">
             {modalType === 'tambah'
               ? 'Tambah Profil Kegiatan'
@@ -105,7 +105,7 @@ export default function FormProfilKegiatan({
             value={deskripsi}
             onChange={(e) => setDeskripsi(e.target.value)}
             placeholder="Jelaskan tentang profil ini ..."
-            className="min-h-[152px] rounded-xl px-6 py-4 !text-[20px] resize-none"
+            className="min-h-[152px] resize-none rounded-xl px-6 py-4 !text-[20px]"
           />
         </div>
 
@@ -114,7 +114,7 @@ export default function FormProfilKegiatan({
           <div className="flex flex-col gap-[10px] overflow-y-auto">
             {selects.map((id) => (
               <div
-                className="flex flex-row gap-[16px] justify-between"
+                className="flex flex-row justify-between gap-[16px]"
                 key={id}
               >
                 <Select
@@ -136,7 +136,7 @@ export default function FormProfilKegiatan({
                       .filter((option) => {
                         const isAlreadySelected = pemetaan.some(
                           (selectedValue, index) =>
-                            index !== id && selectedValue === option.value
+                            index !== id && selectedValue === option.value,
                         );
                         return !isAlreadySelected;
                       })
@@ -151,9 +151,9 @@ export default function FormProfilKegiatan({
                   type="button"
                   onClick={addSelect}
                   variant="outline"
-                  className="flex items-center justify-center w-[54px] h-[48px] rounded-xl border border-[#C4CACE] px-6 py-3 text-[#444444]"
+                  className="flex h-[48px] w-[54px] items-center justify-center rounded-xl border border-[#C4CACE] px-6 py-3 text-[#444444]"
                 >
-                  <Plus className="w-6 h-6" />
+                  <Plus className="h-6 w-6" />
                 </Button>
               </div>
             ))}
@@ -163,7 +163,7 @@ export default function FormProfilKegiatan({
         <div className="flex justify-center gap-4 pt-4">
           <Button
             variant="warning"
-            className="w-[120px] h-[40px] bg-[#F16350] rounded-xl px-6 py-3 font-bold text-[14px]"
+            className="h-[40px] w-[120px] rounded-xl bg-[#F16350] px-6 py-3 text-[14px] font-bold"
             onClick={handleBatal}
           >
             {cancelButtonText}
@@ -172,7 +172,7 @@ export default function FormProfilKegiatan({
             onClick={
               modalType === 'tambah' ? handleSimpanTambah : handleSimpanEdit
             }
-            className="w-[196px] h-[40px] rounded-xl px-6 py-3 bg-[#2B6282] font-bold text-[14px] hover:bg-[#1a4a5c] "
+            className="h-[40px] w-[196px] rounded-xl bg-[#2B6282] px-6 py-3 text-[14px] font-bold hover:bg-[#1a4a5c]"
           >
             {saveButtonText}
           </Button>

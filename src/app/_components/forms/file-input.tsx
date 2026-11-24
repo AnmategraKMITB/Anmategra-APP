@@ -268,7 +268,7 @@ export function FileInput({
           if (!open) setPreview(null);
         }}
       >
-        <DialogContent className="w-[calc(100%-2rem)] max-w-3xl min-w-0 rounded-[20px] [grid-template-columns:minmax(0,1fr)] sm:w-full">
+        <DialogContent className="w-[calc(100%-2rem)] min-w-0 max-w-3xl rounded-[20px] [grid-template-columns:minmax(0,1fr)] sm:w-full">
           <DialogHeader>
             <DialogTitle className="truncate pr-6">{preview?.name}</DialogTitle>
             <DialogDescription>

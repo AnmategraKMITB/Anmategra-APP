@@ -1,0 +1,5254 @@
+{
+  "docker/local/dev-login.mjs": {
+    "no-undef": {
+      "count": 6
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "lint/drizzle.js": {
+    "import/no-anonymous-default-export": {
+      "count": 1
+    }
+  },
+  "loadtest/forms-load.js": {
+    "no-shadow": {
+      "count": 1
+    },
+    "no-undef": {
+      "count": 15
+    },
+    "no-unused-vars": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/prefer-optional-chain": {
+      "count": 2
+    }
+  },
+  "loadtest/make-sessions.mjs": {
+    "no-undef": {
+      "count": 12
+    }
+  },
+  "loadtest/oprec-load.js": {
+    "no-undef": {
+      "count": 8
+    }
+  },
+  "postcss.config.cjs": {
+    "no-undef": {
+      "count": 1
+    }
+  },
+  "scripts/akun/gabung-akun-tpb.ts": {
+    "no-await-in-loop": {
+      "count": 5
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "scripts/apply-merge.cjs": {
+    "no-undef": {
+      "count": 11
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "scripts/demo/lib/reset-demo.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    },
+    "vitest/valid-expect": {
+      "count": 1
+    }
+  },
+  "scripts/demo/lib/seed-demo.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "scripts/demo/lib/seed-demo.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 10
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 5
+    }
+  },
+  "scripts/demo/lib/test-helpers.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "scripts/gen-dbml.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "scripts/gen-openapi.cts": {
+    "no-underscore-dangle": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-type-conversion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-member-access": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    },
+    "unicorn/no-useless-fallback-in-spread": {
+      "count": 3
+    }
+  },
+  "scripts/km-summarize.ts": {
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 6
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 3
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "scripts/merge-lembaga-xlsx.cjs": {
+    "no-shadow": {
+      "count": 1
+    },
+    "no-undef": {
+      "count": 19
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 3
+    }
+  },
+  "scripts/oprec/finalize-mock.seed.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "vitest/expect-expect": {
+      "count": 1
+    }
+  },
+  "scripts/oprec/seed-mock.seed.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 3
+    },
+    "no-await-in-loop": {
+      "count": 11
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "vitest/expect-expect": {
+      "count": 1
+    }
+  },
+  "scripts/organogram/backfill.ts": {
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/(public)/manual/[[...slug]]/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/(public)/profile-kegiatan/[profileKegiatanId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/error-boundaries": {
+      "count": 22
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 21
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/app/(public)/profile-lembaga/[lembagaId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/error-boundaries": {
+      "count": 31
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 18
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/admin-data-table.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/admin/admin-entity-search.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "jsx-a11y/role-has-required-aria-props": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/admin-guard.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/akses-page.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "no-shadow": {
+      "count": 2
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 15
+    },
+    "react/no-unstable-nested-components": {
+      "count": 2
+    }
+  },
+  "src/app/_components/admin/akun-detail.tsx": {
+    "no-use-before-define": {
+      "count": 32
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 29
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/admin/akun-page.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 23
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 22
+    },
+    "react/no-unstable-nested-components": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/app/_components/admin/alt-login-panel.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/admin/alumni-page.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/admin/audit-page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react/no-unstable-nested-components": {
+      "count": 3
+    }
+  },
+  "src/app/_components/admin/email-terverifikasi-page.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/admin/lembaga-create-form.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/lembaga-detail.tsx": {
+    "no-use-before-define": {
+      "count": 23
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 28
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/lembaga-page.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "react/no-unstable-nested-components": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/admin/superadmin-page.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/auth/alt-login-flow.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/auth/demo-login-form.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/breadcrumb.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/card/best-staff-card.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "typescript/no-useless-default-assignment": {
+      "count": 2
+    }
+  },
+  "src/app/_components/card/kegiatan-card.tsx": {
+    "typescript/no-useless-default-assignment": {
+      "count": 8
+    }
+  },
+  "src/app/_components/card/kepanitiaan-card.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/card/lembaga-card.tsx": {
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/app/_components/card/nilai-profil-card.tsx": {
+    "typescript/no-useless-default-assignment": {
+      "count": 1
+    }
+  },
+  "src/app/_components/carousel/carousel-best-staff.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/carousel/layout-carousel-best-staff.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/csv-form/csv-form.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 16
+    },
+    "typescript/consistent-return": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/export/export-menu.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/export/question-picker.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 16
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/filter/filter-dropdown.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/form/action-cell.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/form/edit-anggota-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/form/edit-anggota-kegiatan-form.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/form/form-nilai-profil.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/form/tambah-anggota-kegiatan-form.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    }
+  },
+  "src/app/_components/form/tambah-edit-anggota-form.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 15
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/add-menu.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/forms/applicant-result-card.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/forms/builder-shell.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 21
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/canvas-dnd.tsx": {
+    "import/no-extraneous-dependencies": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/client-form-renderer.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/condition-editor.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 15
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/delete-section-dialog.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/design-sheet.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 15
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/draft-writer.test.ts": {
+    "vitest/require-mock-type-parameters": {
+      "count": 4
+    }
+  },
+  "src/app/_components/forms/endings-panel.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/forms/event-forms-page.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/field-card.tsx": {
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 19
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/file-input.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    }
+  },
+  "src/app/_components/forms/file-preview.tsx": {
+    "react/iframe-missing-sandbox": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/fill-form.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/flow-pane.tsx": {
+    "bun/react-no-latest-value-ref": {
+      "count": 2
+    },
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-autofocus": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 11
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 37
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 7
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 5
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/form-renderer.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 4
+    },
+    "react/preserve-manual-memoization": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/form-validate.ts": {
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/forms-list.tsx": {
+    "jsx-a11y/no-autofocus": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 20
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/image-upload.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/insert-section.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/model.ts": {
+    "typescript/consistent-return": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/app/_components/forms/notice.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/pages-panel.tsx": {
+    "import/no-extraneous-dependencies": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/penilaian/criterion-dialog.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 15
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/penilaian/penilaian-pane.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 6
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 20
+    }
+  },
+  "src/app/_components/forms/penilaian/rope-canvas.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/penilaian/sheet-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 13
+    },
+    "react/no-array-index-key": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "unicorn/prefer-add-event-listener": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/penilaian/tsv.ts": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/preview-pane.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/renderer-inputs.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 8
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 16
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/app/_components/forms/responses-summary.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/responses-table.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 12
+    }
+  },
+  "src/app/_components/forms/responses-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/rich-text-editor.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/section-binding.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/forms/section-card.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 11
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/settings-sheet.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    }
+  },
+  "src/app/_components/forms/share-popover.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 11
+    }
+  },
+  "src/app/_components/forms/submitted-fill.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/type-editors.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 32
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/forms/use-field-dnd.ts": {
+    "bun/react-no-latest-value-ref": {
+      "count": 1
+    },
+    "react/refs": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/use-file-upload.ts": {
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/forms/use-form-builder.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "promise/always-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/json-ld.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/kelola-admin/kelola-admin-panel.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 16
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "src/app/_components/landing/hero.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 6
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/no-inferrable-types": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "src/app/_components/landing/kegiatan-section.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/_components/landing/kepanitiaan-section.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/_components/laporan/board/column-type.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/prefer-set-has": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/board/draggable.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/board/droppable.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/board/kanban-board.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 5
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 6
+    }
+  },
+  "src/app/_components/laporan/board/report-card.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/board/report-column.tsx": {
+    "import/no-absolute-path": {
+      "count": 3
+    },
+    "no-unused-vars": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/app/_components/laporan/board/sortable-report-card.tsx": {
+    "import/no-extraneous-dependencies": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/detail/laporan-card.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/detail/laporan-form.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 12
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 8
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/laporan-header.tsx": {
+    "import/no-absolute-path": {
+      "count": 7
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-useless-default-assignment": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/laporan-main-container.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    },
+    "react/hooks": {
+      "count": 2
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "unicorn/no-useless-length-check": {
+      "count": 1
+    }
+  },
+  "src/app/_components/laporan/list/accordion-display.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/laporan/list/list-display.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/divider.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/footer.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/no-unescaped-entities": {
+      "count": 2
+    }
+  },
+  "src/app/_components/layout/mobile-search-overlay.tsx": {
+    "jsx-a11y/no-autofocus": {
+      "count": 1
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "typescript/no-meaningless-void-operator": {
+      "count": 2
+    }
+  },
+  "src/app/_components/layout/navbar.tsx": {
+    "import/no-absolute-path": {
+      "count": 1
+    },
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/pagination-comp.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/search-bar.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-meaningless-void-operator": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/layout/sidebar.tsx": {
+    "import/no-absolute-path": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    }
+  },
+  "src/app/_components/layout/width-wrapper.tsx": {
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demo-frame.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/admin-akses.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/anggota.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 16
+    }
+  },
+  "src/app/_components/manual/demo/demos/best-staff.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/form-shared.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/manual/demo/demos/forms-builder.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "no-use-before-define": {
+      "count": 5
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 55
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/manual/demo/demos/forms-isi.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 4
+    },
+    "no-use-before-define": {
+      "count": 6
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 11
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/forms-kondisi.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 25
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 30
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 5
+    },
+    "react/no-array-index-key": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/forms-respons.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/forms-terbit.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 16
+    }
+  },
+  "src/app/_components/manual/demo/demos/inbox-lembaga.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/manual/demo/demos/inbox-mahasiswa.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/manual/demo/demos/kegiatan-mahasiswa.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 12
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/kegiatan.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/manual/demo/demos/laporan.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/masuk.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/manual/demo/demos/navigasi.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-daftar.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 11
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-hasil.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 23
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-kriteria.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 11
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-nilai.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 4
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 22
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    },
+    "unicorn/no-useless-fallback-in-spread": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-pendaftar.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-penempatan.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 28
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/app/_components/manual/demo/demos/oprec-setup.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 5
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 15
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/organogram-editor.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 34
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 3
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/organogram-pengaturan.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "no-use-before-define": {
+      "count": 19
+    },
+    "oxc/no-map-spread": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 26
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/demo/demos/profil-lembaga.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    }
+  },
+  "src/app/_components/manual/demo/demos/profil-mahasiswa.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    }
+  },
+  "src/app/_components/manual/demo/demos/rapor-mahasiswa.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/manual/demo/demos/rapor.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    }
+  },
+  "src/app/_components/manual/demo/ui.tsx": {
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/manual/docs-article.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/no-array-index-key": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/docs-nav.tsx": {
+    "react/no-unstable-nested-components": {
+      "count": 1
+    },
+    "react/static-components": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/docs-page.tsx": {
+    "react/no-object-type-as-default-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/docs-shell.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/manual/docs-toc.tsx": {
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/applicant-sheet.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/applicants-page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/applicants-summary.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/applicants-table.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/applicants-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "no-use-before-define": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 14
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/app/_components/oprec/hasil-page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/hasil/division-summary.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/hasil/hasil-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/hasil/release-panel.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    }
+  },
+  "src/app/_components/oprec/hasil/results-table.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/manage-bar.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/oprec/nilai-page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/nilai/answers.tsx": {
+    "no-use-before-define": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react/no-object-type-as-default-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/nilai/berkas.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/nilai/criterion-card.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 5
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/nilai/flags-bar.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    }
+  },
+  "src/app/_components/oprec/nilai/nilai-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/nilai/override-panel.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    }
+  },
+  "src/app/_components/oprec/nilai/sheet.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    }
+  },
+  "src/app/_components/oprec/nilai/status.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/notification-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 5
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/oprec-tabs.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/penempatan-page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/pengaturan-page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/pengumuman/announcement-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 9
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "react/no-array-index-key": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/placement-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 35
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/placement/autofill-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/oprec/placement/closerec-panel.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    }
+  },
+  "src/app/_components/oprec/placement/decision-table.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/placement/other-divisions.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/placement/row-history.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/placement/shared.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/placement/state-bar.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 13
+    }
+  },
+  "src/app/_components/oprec/placement/transfer-inbox.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 13
+    }
+  },
+  "src/app/_components/oprec/placement/visibility-panel.tsx": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 7
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/prioritas-page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/answers-sheet.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/division-picker.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/import-dialog.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 5
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "unicorn/prefer-add-event-listener": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/priority/matching-panel.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    },
+    "unicorn/no-useless-spread": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/multi-filter.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/oprec/priority/offer-panel.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    },
+    "react/purity": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/order.test.ts": {
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/order.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/priority/pager.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 6
+    }
+  },
+  "src/app/_components/oprec/priority/priority-board.tsx": {
+    "import/no-extraneous-dependencies": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 41
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 3
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 3
+    }
+  },
+  "src/app/_components/oprec/priority/priority-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/oprec/settings/assessor-team.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/oprec/settings/model.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/settings/placement-method.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/settings/settings-view.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 8
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 10
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 17
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 8
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/helpers.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/illustrations.tsx": {
+    "typescript/no-unnecessary-template-expression": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/model.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/wizard/model.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/app/_components/oprec/wizard/preset-screen.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/oprec/wizard/steps-dasar.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 12
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/steps-form.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 3
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 5
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 20
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/app/_components/oprec/wizard/steps-lanjut.tsx": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 16
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 15
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 25
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/success.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/summary.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/ui.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/oprec/wizard/wizard.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 5
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/no-useless-fallback-in-spread": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/chart-layout.ts": {
+    "no-shadow": {
+      "count": 1
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/chart-view.tsx": {
+    "bun/react-no-latest-value-ref": {
+      "count": 1
+    },
+    "jsx-a11y/no-noninteractive-element-interactions": {
+      "count": 1
+    },
+    "jsx-a11y/no-noninteractive-tabindex": {
+      "count": 1
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 34
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 12
+    },
+    "typescript/consistent-return": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/export-dialog.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 5
+    }
+  },
+  "src/app/_components/organogram/export-image.ts": {
+    "no-shadow": {
+      "count": 3
+    },
+    "no-useless-assignment": {
+      "count": 1
+    },
+    "unicorn/prefer-add-event-listener": {
+      "count": 4
+    }
+  },
+  "src/app/_components/organogram/import-sheet.tsx": {
+    "no-use-before-define": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 18
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/organogram/inspector.tsx": {
+    "no-use-before-define": {
+      "count": 7
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 30
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/model.ts": {
+    "no-use-before-define": {
+      "count": 6
+    },
+    "oxc/no-map-spread": {
+      "count": 4
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 12
+    }
+  },
+  "src/app/_components/organogram/organogram-editor.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 5
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 33
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "typescript/consistent-return": {
+      "count": 3
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/panel-resize.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/person-picker.tsx": {
+    "jsx-a11y/no-autofocus": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/organogram/position-row.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 19
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/settings-view.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 14
+    }
+  },
+  "src/app/_components/organogram/structure-panel.tsx": {
+    "bun/react-no-latest-value-ref": {
+      "count": 1
+    },
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-autofocus": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 2
+    },
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-useless-assignment": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 35
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 5
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/app/_components/organogram/table-view.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/organogram/use-organogram-editor.ts": {
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/_components/pencarian/pencarian-content.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 9
+    }
+  },
+  "src/app/_components/placeholder/event-header.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    }
+  },
+  "src/app/_components/placeholder/search-bar.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/profile-kegiatan/organogram-dialog.tsx": {
+    "next/no-img-element": {
+      "count": 1
+    }
+  },
+  "src/app/_components/profile-kegiatan/profil-kegiatan-comp.tsx": {
+    "no-extra-boolean-cast": {
+      "count": 2
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/_components/profile-mahasiswa/contact-visibility-notice.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/_components/profile-mahasiswa/edit-profile-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 12
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "react/no-unstable-nested-components": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    }
+  },
+  "src/app/_components/profile-mahasiswa/profil-mahasiswa-comp.tsx": {
+    "typescript/no-useless-default-assignment": {
+      "count": 5
+    }
+  },
+  "src/app/_components/profile-mahasiswa/profile-content.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 2
+    },
+    "react/no-object-type-as-default-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 24
+    },
+    "typescript/no-useless-default-assignment": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/edit-nilai-button.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/form-profil-kegiatan.tsx": {
+    "jsx-a11y/label-has-associated-control": {
+      "count": 3
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/_components/rapor/import-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/rapor/individu/nilai-profil-comp.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/individu/rapor-individu-header.tsx": {
+    "no-useless-assignment": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "react/hooks": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/individu/rapor-individu-page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/_components/rapor/link-button.tsx": {
+    "jsx-a11y/anchor-is-valid": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/profil-menu.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/_components/rapor/rapor-table-header.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/rapor-table-row.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/_components/rapor/rapor-table.tsx": {
+    "jsx-a11y/control-has-associated-label": {
+      "count": 1
+    },
+    "no-shadow": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 12
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 10
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-type-conversion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/rapor/rapor-visibility-switch.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-argument": {
+      "count": 1
+    },
+    "typescript/no-unsafe-member-access": {
+      "count": 3
+    }
+  },
+  "src/app/_components/slides/sneakpeek.tsx": {
+    "jsx-a11y/click-events-have-key-events": {
+      "count": 1
+    },
+    "jsx-a11y/no-static-element-interactions": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 9
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/_components/table/event-profil-table.tsx": {
+    "react/no-array-index-key": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/admin/[laporanId]/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/admin/layout.tsx": {
+    "no-useless-assignment": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/admin/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/api/lembaga/[lembaga_id]/anggota/route.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 5
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/api/lembaga/[lembaga_id]/nilai/route.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "no-shadow": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/api/lembaga/kegiatan/[event_id]/anggota/route.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "no-shadow": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 5
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/api/lembaga/kegiatan/[event_id]/nilai/route.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "no-shadow": {
+      "count": 6
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/api/oprec/[recruitmentId]/prioritas/route.ts": {
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/auth-error/error-content.tsx": {
+    "no-unused-vars": {
+      "count": 2
+    }
+  },
+  "src/app/authentication/page.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/layout.tsx": {
+    "typescript/no-unnecessary-template-expression": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/_components/best-staff-form.tsx": {
+    "import/no-extraneous-dependencies": {
+      "count": 1
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 9
+    },
+    "react/hooks": {
+      "count": 4
+    },
+    "react/no-array-index-key": {
+      "count": 2
+    },
+    "react/purity": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/_components/histori-best-staff-content.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/_components/tambah-anggota-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    }
+  },
+  "src/app/lembaga/anggota/[raporId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/anggota/_components/anggota-content.tsx": {
+    "react-hooks/exhaustive-deps": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react/memo-dependencies": {
+      "count": 1
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-floating-promises": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/lembaga/anggota/_components/table/mahasiswa-card-table.tsx": {
+    "import/no-extraneous-dependencies": {
+      "count": 1
+    },
+    "no-shadow": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/no-object-type-as-default-prop": {
+      "count": 1
+    },
+    "react/no-unstable-nested-components": {
+      "count": 6
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 8
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 8
+    }
+  },
+  "src/app/lembaga/anggota/histori/_components/histori-view.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    }
+  },
+  "src/app/lembaga/anggota/histori/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/anggota/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/lembaga/anggota/rapor/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 6
+    }
+  },
+  "src/app/lembaga/forms/page.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/inbox/[slug]/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/inbox/_components/inbox-detail-content.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/inbox/_components/inbox-view.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/inbox/_components/request-table-associations-entries.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    }
+  },
+  "src/app/lembaga/inbox/_components/request-table-events-entries.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/inbox/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/kegiatan/[kegiatanId]/panitia/[raporId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/kegiatan/[kegiatanId]/panitia/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/kegiatan/[kegiatanId]/profil/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 4
+    },
+    "react/error-boundaries": {
+      "count": 10
+    }
+  },
+  "src/app/lembaga/kegiatan/[kegiatanId]/rapor/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/lembaga/kegiatan/_components/form/dropzone.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "unicorn/prefer-add-event-listener": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/kegiatan/_components/form/tambah-edit-kegiatan-form.tsx": {
+    "no-unused-vars": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 19
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "react/purity": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/kegiatan/_components/kegiatan-container.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 3
+    }
+  },
+  "src/app/lembaga/kegiatan/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/landing-content.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/laporan/[laporanId]/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/lembaga/laporan/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/layout.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/organogram/_components/create-period-button.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/pencarian/[params]/page.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profil/_components/profil-lembaga-view.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profil/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/[profileKegiatanId]/histori/page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/[profileKegiatanId]/kelola-admin/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/[profileKegiatanId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 27
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 25
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/[profileKegiatanId]/rapor/[raporId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-kegiatan/_components/ajuan-asosiasi-form.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 8
+    },
+    "react/set-state-in-effect": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/histori/_components/histori-breadcrumb.tsx": {
+    "react/no-array-index-key": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/histori/page.tsx": {
+    "react-perf/jsx-no-jsx-as-prop": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react/error-boundaries": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/profile-lembaga-content.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-argument": {
+      "count": 2
+    },
+    "typescript/no-unsafe-call": {
+      "count": 1
+    },
+    "typescript/no-unsafe-member-access": {
+      "count": 16
+    }
+  },
+  "src/app/lembaga/profile-lembaga/[lembagaId]/rapor/[raporId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/lembaga/profile-lembaga/_components/edit-profil-lembaga.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 10
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "react/no-unstable-nested-components": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/lembaga/profile-lembaga/_components/highlighted-event-card.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/lembaga/profile-mahasiswa/[mahasiswaId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/inbox/_components/delete-association-dialog.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/inbox/_components/edit-association.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 3
+    }
+  },
+  "src/app/mahasiswa/inbox/_components/inbox-table.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/inbox/_components/result-notifications.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/mahasiswa/inbox/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/mahasiswa/kegiatan/_components/kegiatan-list.tsx": {
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/kegiatan/_components/kegiatan-page-content.tsx": {
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/app/mahasiswa/laporan/[laporanId]/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/mahasiswa/laporan/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/pencarian/[params]/page.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-kegiatan/[profileKegiatanId]/histori/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-kegiatan/[profileKegiatanId]/kelola-admin/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-kegiatan/[profileKegiatanId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/error-boundaries": {
+      "count": 34
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 38
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-kegiatan/[profileKegiatanId]/rapor/[raporId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-lembaga/[lembagaId]/histori/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    }
+  },
+  "src/app/mahasiswa/profile-lembaga/[lembagaId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 3
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    },
+    "react/error-boundaries": {
+      "count": 41
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 30
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/app/mahasiswa/profile-lembaga/[lembagaId]/rapor/[raporId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 1
+    },
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    }
+  },
+  "src/app/mahasiswa/profile-mahasiswa/[mahasiswaId]/page.tsx": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "react/error-boundaries": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/anggota/[raporId]/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/anggota/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    }
+  },
+  "src/app/manage/[lembagaId]/anggota/rapor/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    }
+  },
+  "src/app/manage/[lembagaId]/forms/page.tsx": {
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/kegiatan/[kegiatanId]/panitia/[raporId]/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/kegiatan/[kegiatanId]/panitia/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/kegiatan/[kegiatanId]/profil/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    }
+  },
+  "src/app/manage/[lembagaId]/kegiatan/[kegiatanId]/rapor/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/kegiatan/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/manage/[lembagaId]/page.tsx": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/app/manage/[lembagaId]/profil/page.tsx": {
+    "react-perf/jsx-no-new-array-as-prop": {
+      "count": 1
+    }
+  },
+  "src/app/prototype/oprec/_components/wizard.tsx": {
+    "jsx-a11y/prefer-tag-over-role": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 2
+    },
+    "react-perf/jsx-no-new-function-as-prop": {
+      "count": 4
+    },
+    "react-perf/jsx-no-new-object-as-prop": {
+      "count": 2
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/app/sitemap.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    }
+  },
+  "src/env.js": {
+    "no-undef": {
+      "count": 27
+    }
+  },
+  "src/hooks/use-toast.ts": {
+    "no-shadow": {
+      "count": 2
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "react/exhaustive-effect-dependencies": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/lib/forms/conditions.ts": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/lib/forms/file-answer.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 5
+    }
+  },
+  "src/lib/forms/file-provider.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/lib/forms/google-drive.ts": {
+    "preserve-caught-error": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/lib/forms/onedrive.ts": {
+    "typescript/no-misused-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/lib/lifecycle/define.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/lib/lifecycle/describe.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/lib/lifecycle/form.ts": {
+    "no-use-before-define": {
+      "count": 1
+    }
+  },
+  "src/lib/lifecycle/oprec.ts": {
+    "no-use-before-define": {
+      "count": 2
+    }
+  },
+  "src/lib/lifecycle/support.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/allocation.test.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/allocation.ts": {
+    "unicorn/no-array-sort": {
+      "count": 3
+    }
+  },
+  "src/lib/oprec/announcement-view.test.ts": {
+    "unicorn/no-array-reverse": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/announcement.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/eligibility.ts": {
+    "typescript/consistent-return": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/matching.test.ts": {
+    "unicorn/no-array-reverse": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 4
+    },
+    "vitest/no-conditional-expect": {
+      "count": 3
+    }
+  },
+  "src/lib/oprec/matching.ts": {
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/lib/oprec/priority-import.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/priority.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/registration.test.ts": {
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/scoring.test.ts": {
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    },
+    "vitest/warn-todo": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/scoring.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/lib/oprec/waves.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/lib/spreadsheet/workbook.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    }
+  },
+  "src/proxy.test.ts": {
+    "vitest/hoisted-apis-on-top": {
+      "count": 1
+    },
+    "vitest/require-mock-type-parameters": {
+      "count": 1
+    }
+  },
+  "src/server/akun/gabung-akun.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/server/akun/gabung-akun.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/prefer-set-size": {
+      "count": 1
+    }
+  },
+  "src/server/alt-login.db.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "vitest/hoisted-apis-on-top": {
+      "count": 1
+    }
+  },
+  "src/server/alt-login.ts": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "no-use-before-define": {
+      "count": 2
+    }
+  },
+  "src/server/api/access.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/access.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/server/api/contact.test.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/contact.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    }
+  },
+  "src/server/api/lifecycle.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/lifecycle.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "typescript/no-generated-empty-object-type": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/log-error.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/mahasiswa-profile.test.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/managed-scope.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/managed-scope.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/oprec-release.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    }
+  },
+  "src/server/api/period-listing.test.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/admin-console.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 7
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 15
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 23
+    }
+  },
+  "src/server/api/routers/admin-grant.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 4
+    },
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/consistent-type-imports": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/admin-ops.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 3
+    },
+    "no-underscore-dangle": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 5
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 4
+    },
+    "vitest/hoisted-apis-on-top": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/admin-ops.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/admin.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "no-unused-vars": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/alt-login.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "unicorn/prefer-set-has": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/association-request.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/event/getByID.ts": {
+    "no-shadow": {
+      "count": 3
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/event/update.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/form/csv.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/form/ending.ts": {
+    "typescript/consistent-return": {
+      "count": 4
+    }
+  },
+  "src/server/api/routers/form/export-presets.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/form/field.ts": {
+    "typescript/consistent-return": {
+      "count": 5
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/form/form.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 7
+    },
+    "unicorn/prefer-set-has": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/form/responses-delete.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/form/responses.ts": {
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/form/section.ts": {
+    "typescript/consistent-return": {
+      "count": 4
+    }
+  },
+  "src/server/api/routers/form/services.ts": {
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 4
+    },
+    "oxc/no-map-spread": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/form/submission.ts": {
+    "no-shadow": {
+      "count": 1
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/consistent-return": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 6
+    }
+  },
+  "src/server/api/routers/form/summary.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/form/update-submission.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/kegiatan.ts": {
+    "typescript/no-unnecessary-condition": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/landing.ts": {
+    "no-shadow": {
+      "count": 24
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 6
+    },
+    "typescript/no-unnecessary-type-arguments": {
+      "count": 3
+    },
+    "typescript/no-unsafe-call": {
+      "count": 6
+    },
+    "typescript/no-unsafe-member-access": {
+      "count": 6
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 5
+    },
+    "typescript/non-nullable-type-assertion-style": {
+      "count": 5
+    }
+  },
+  "src/server/api/routers/lembaga-anggota.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/lembaga-best-staff.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/lembaga-inbox.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/lembaga-kegiatan.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/lembaga-profil-rapor.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/lembaga.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 5
+    },
+    "no-shadow": {
+      "count": 15
+    },
+    "no-unused-vars": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 31
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-conversion": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/announcement.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 7
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    },
+    "vitest/no-conditional-expect": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/announcement.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/applicants-export.ts": {
+    "no-useless-escape": {
+      "count": 2
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/applicants.ts": {
+    "no-use-before-define": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/oprec/application.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/assess.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/assessors.ts": {
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/criteria.ts": {
+    "no-await-in-loop": {
+      "count": 5
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 5
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/export-answers.test.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "no-shadow": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/index.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "no-underscore-dangle": {
+      "count": 1
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/notification.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/offer.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/offer.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/oprec.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/pengurus.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "unicorn/no-array-sort": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/oprec/placement.ts": {
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 16
+    },
+    "oxc/no-map-spread": {
+      "count": 2
+    },
+    "typescript/consistent-return": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 7
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    },
+    "unicorn/no-useless-fallback-in-spread": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/priority-import.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "no-shadow": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/priority-import.ts": {
+    "no-await-in-loop": {
+      "count": 10
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/priority-sheet.ts": {
+    "no-useless-assignment": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/priority.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 4
+    }
+  },
+  "src/server/api/routers/oprec/priority.ts": {
+    "no-await-in-loop": {
+      "count": 8
+    },
+    "oxc/no-map-spread": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/recompute.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/result-notification.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 4
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/result-notification.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "oxc/no-map-spread": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/oprec/results-release.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 4
+    }
+  },
+  "src/server/api/routers/oprec/results.ts": {
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/services.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "require-atomic-updates": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/settings.test.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/setup-draft.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/oprec/setup.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 12
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 5
+    }
+  },
+  "src/server/api/routers/oprec/setup.ts": {
+    "no-await-in-loop": {
+      "count": 12
+    },
+    "no-use-before-define": {
+      "count": 5
+    },
+    "no-useless-assignment": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/oprec/status-sync.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    }
+  },
+  "src/server/api/routers/oprec/transfer-request.test.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/organization/import-plan.ts": {
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/organization/import.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/organization/membership.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/organization/placement.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/organization/root.test.ts": {
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "vitest/require-to-throw-message": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/organization/structure.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/organization/tree.ts": {
+    "unicorn/no-array-reverse": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/profil/kegiatan.ts": {
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    },
+    "unicorn/prefer-set-has": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/profil/lembaga.ts": {
+    "typescript/no-unnecessary-condition": {
+      "count": 4
+    },
+    "unicorn/prefer-set-has": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/profil/services.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/profile.ts": {
+    "no-shadow": {
+      "count": 19
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 3
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 2
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 2
+    }
+  },
+  "src/server/api/routers/rapor.ts": {
+    "no-await-in-loop": {
+      "count": 8
+    },
+    "no-shadow": {
+      "count": 10
+    },
+    "no-unused-vars": {
+      "count": 2
+    },
+    "typescript/consistent-type-imports": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 18
+    }
+  },
+  "src/server/api/routers/riwayat.ts": {
+    "typescript/consistent-type-imports": {
+      "count": 1
+    }
+  },
+  "src/server/api/routers/user.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 9
+    },
+    "no-shadow": {
+      "count": 24
+    },
+    "no-unused-vars": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 11
+    }
+  },
+  "src/server/api/superadmin.test.ts": {
+    "vitest/require-to-throw-message": {
+      "count": 2
+    }
+  },
+  "src/server/api/trpc.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "vitest/hoisted-apis-on-top": {
+      "count": 1
+    }
+  },
+  "src/server/api/trpc.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 7
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 8
+    }
+  },
+  "src/server/api/types/admin-console.type.ts": {
+    "no-unused-vars": {
+      "count": 2
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/server/api/types/form.type.ts": {
+    "no-control-regex": {
+      "count": 2
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/api/types/oprec.type.ts": {
+    "no-control-regex": {
+      "count": 1
+    }
+  },
+  "src/server/api/types/user.type.ts": {
+    "no-unused-vars": {
+      "count": 3
+    }
+  },
+  "src/server/auth.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "no-unreachable": {
+      "count": 1
+    },
+    "no-unused-expressions": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    },
+    "require-atomic-updates": {
+      "count": 18
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 9
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    },
+    "typescript/prefer-optional-chain": {
+      "count": 1
+    }
+  },
+  "src/server/db/index.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/db/schema.ts": {
+    "no-use-before-define": {
+      "count": 36
+    }
+  },
+  "src/server/db/seed.ts": {
+    "import/no-unassigned-import": {
+      "count": 1
+    }
+  },
+  "src/server/db/seeding/backfill-lembaga-descriptions.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 1
+    },
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/db/seeding/clear-db.ts": {
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    },
+    "unicorn/consistent-function-scoping": {
+      "count": 1
+    }
+  },
+  "src/server/db/seeding/seed-lembaga.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 1
+    },
+    "typescript/no-base-to-string": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 3
+    },
+    "typescript/prefer-nullish-coalescing": {
+      "count": 4
+    }
+  },
+  "src/server/db/seeding/seed-mahasiswa.ts": {
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/db/seeding/seed.ts": {
+    "drizzle/enforce-update-with-where": {
+      "count": 2
+    },
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 7
+    }
+  },
+  "src/server/demo-auth.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/export/form-responses.ts": {
+    "no-await-in-loop": {
+      "count": 1
+    }
+  },
+  "src/server/export/oprec.test.ts": {
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/server/export/oprec.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-assertion": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-type-conversion": {
+      "count": 1
+    },
+    "unicorn/no-array-sort": {
+      "count": 1
+    }
+  },
+  "src/server/manual/docs.ts": {
+    "import/no-unassigned-import": {
+      "count": 1
+    },
+    "no-await-in-loop": {
+      "count": 4
+    },
+    "typescript/no-unsafe-argument": {
+      "count": 4
+    },
+    "typescript/no-unsafe-call": {
+      "count": 2
+    },
+    "typescript/no-unsafe-member-access": {
+      "count": 7
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 1
+    }
+  },
+  "src/server/uploads.ts": {
+    "unicorn/prefer-array-find": {
+      "count": 1
+    }
+  },
+  "src/test/oprec-fixture.ts": {
+    "no-await-in-loop": {
+      "count": 6
+    },
+    "oxc/no-map-spread": {
+      "count": 1
+    },
+    "typescript/no-unsafe-type-assertion": {
+      "count": 2
+    }
+  },
+  "src/test/oprec-fixtures.ts": {
+    "no-await-in-loop": {
+      "count": 3
+    }
+  },
+  "src/test/test-db.ts": {
+    "no-await-in-loop": {
+      "count": 2
+    },
+    "no-unmodified-loop-condition": {
+      "count": 1
+    },
+    "typescript/no-unnecessary-condition": {
+      "count": 1
+    }
+  },
+  "src/trpc/query-client.ts": {
+    "import/no-named-as-default": {
+      "count": 1
+    },
+    "import/no-named-as-default-member": {
+      "count": 2
+    }
+  },
+  "src/trpc/react.tsx": {
+    "import/no-named-as-default": {
+      "count": 1
+    },
+    "no-use-before-define": {
+      "count": 1
+    }
+  },
+  "src/trpc/server.ts": {
+    "import/no-unassigned-import": {
+      "count": 1
+    }
+  },
+  "tailwind.config.ts": {
+    "typescript/no-require-imports": {
+      "count": 1
+    }
+  }
+}

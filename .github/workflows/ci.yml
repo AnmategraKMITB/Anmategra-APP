@@ -3,16 +3,22 @@ name: CI
 on:
   pull_request:
     branches: ['develop']
-  # Push hanya di main (jaring pengaman produksi). Untuk develop, kode yang
-  # masuk sudah lulus CI di PR-nya (branch protection mewajibkan check hijau),
-  # jadi menjalankan CI lagi setelah merge hanya membuang waktu runner.
-  # push:
-    # branches: ['main']
+  # Merge queue: tiap PR diuji lagi di atas develop terbaru, dengan seluruh tes,
+  # sebelum benar-benar masuk.
+  merge_group:
+  # Tiap PR lulus CI sendiri-sendiri, tetapi beberapa PR yang di-merge berurutan
+  # tanpa rebase bisa rusak saat digabung (mis. bun.lock hasil merge
+  # otomatis membuat `bun install --frozen-lockfile` gagal). Jalankan lagi setelah merge ke develop.
+  # Run di develop juga mengisi cache yang dibaca PR.
+  push:
+    branches: ['develop']
 
-# Push baru ke PR yang sama membatalkan run sebelumnya. Run di main tidak
-# dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
+# Push baru ke PR yang sama membatalkan run sebelumnya. Push ke develop dan merge
+# queue mendapat grup per commit: dalam satu grup GitHub hanya menyimpan satu run
+# yang menunggu dan membuang yang lain, jadi tanpa ini commit yang di-merge
+# berdekatan tidak pernah diuji (dan durasi tesnya tidak tercatat).
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
@@ -21,34 +27,39 @@ permissions:
 env:
   SKIP_ENV_VALIDATION: 1
 
+# Tiga job berjalan paralel dan tidak ada yang menunggu job lain. Tiap job
+# punya anggaran waktu (langkah terakhir); melewatinya membuat job gagal.
 jobs:
-  lint:
-    name: Lint
+  checks:
+    # Semua pengecekan kecil sekaligus; semua kegagalan dicetak di akhir.
+    name: Checks
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra
     steps:
+      - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
+      # Database kosong untuk pengecekan migrasi. Dijalankan duluan supaya
+      # booting bersamaan dengan checkout dan install.
+      - name: Start Postgres
+        run: >-
+          docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres
+          -e POSTGRES_DB=anmategra --tmpfs /var/lib/postgresql/data postgres:15-alpine
+          -c fsync=off -c synchronous_commit=off -c full_page_writes=off
       - uses: actions/checkout@v7
+        with:
+          filter: blob:none
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      # Pelanggaran lama dicatat di eslint-suppressions.json; pelanggaran baru gagal.
-      # Kalau kamu memperbaiki pelanggaran lama, jalankan `npm run lint:prune`.
-      - run: npm run lint
-
-  typecheck:
-    name: Typecheck
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm run typecheck
+      - uses: ./.github/actions/setup-bun
+      # Lewat TCP: server sementara saat initdb hanya mendengar socket Unix.
+      - name: Wait for Postgres
+        run: timeout 30 sh -c 'until docker exec pg pg_isready -h 127.0.0.1 -U postgres -q; do sleep 0.2; done'
+      # Lint, format, tipe, docs, migrasi, drift schema. Lihat skripnya untuk
+      # cara memperbaiki tiap kegagalan.
+      - run: bash scripts/ci/checks.sh
+      - run: sh scripts/ci/budget.sh check 90
 
   build:
     # Nama ini dipakai sebagai required status check di branch protection.
@@ -56,106 +67,126 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
       - uses: actions/checkout@v7
+        with:
+          filter: blob:none
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-
-      # Docs di docs/api/ di-generate dari router tRPC dan schema Drizzle.
-      # Kalau ada procedure/tabel baru tapi docs belum di-regenerate, step ini gagal.
-      # Perbaikannya: jalankan `npm run docs` lalu commit hasilnya.
-      - name: Check generated docs are up to date
-        run: npm run docs:check
+      - uses: ./.github/actions/setup-bun
 
       - uses: actions/cache@v6
         with:
           path: .next/cache
-          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'content/**') }}
-          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+          key: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-${{ hashFiles('src/**', 'public/**', 'content/**') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('bun.lock') }}-
 
       - name: Build
-        run: npm run build
+        run: bun run build
         env:
           # PR dari fork tidak mendapat secrets; build tetap butuh URL (robots/sitemap).
           NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL || 'https://anmategra.com' }}
 
+      # `next build` tidak lagi mengecek tipe sendiri (lihat next.config.js). Tipe
+      # rute yang ia buat di .next/types (lebih banyak dari `next typegen`) dicek di sini.
+      - name: Check types of the build output
+        run: bun check --no-script
+      - run: sh scripts/ci/budget.sh check 180
+
   test:
-    name: Test
+    # Tiap shard: runner, Postgres, dan database sendiri. Bagiannya dihitung dari
+    # durasi per berkas yang dicatat run penuh di develop (scripts/ci/test-shards.ts).
+    name: Test (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    services:
-      postgres:
-        # Samakan dengan versi Postgres di production.
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     env:
-      # Database ini dibuat oleh src/test/global-setup.ts bila belum ada.
+      SHARDS: 3
+      # Tiap worker `bun test` membuat database sendiri: anmategra_test_w<n>.
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra_test
     steps:
+      - run: sh -c 'date +%s > "$RUNNER_TEMP/job-start"'
+      # Postgres sekali pakai di tmpfs tanpa fsync: TRUNCATE per tes ~10x lebih
+      # cepat. Tidak lewat `services` karena butuh argumen server. Dijalankan
+      # duluan supaya booting bersamaan dengan checkout dan install.
+      - name: Start Postgres
+        run: >-
+          docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres
+          --tmpfs /var/lib/postgresql/data postgres:15-alpine
+          -c fsync=off -c synchronous_commit=off -c full_page_writes=off
+      # Riwayat penuh tanpa isi berkas (blobless): cukup untuk diff nama berkas
+      # terhadap base PR.
       - uses: actions/checkout@v7
+        with:
+          filter: blob:none
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-      - run: npm test
+      - uses: ./.github/actions/setup-bun
 
-  migrations:
-    name: Migrations
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    services:
-      postgres:
-        # Samakan dengan versi Postgres di production.
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: anmategra
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 10
-    env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      # Durasi terbaru tiap shard dari run penuh develop. Kalau belum ada,
+      # berkas dianggap sama panjang; pembagian tetap lengkap, hanya kurang rata.
+      - uses: actions/cache/restore@v6
         with:
-          node-version-file: .nvmrc
-          cache: npm
-      - run: npm ci
-
-      # Semua migrasi harus bisa dijalankan dari database kosong (developer baru,
-      # environment baru), bukan hanya di atas database yang sudah ada.
-      - name: Apply all migrations to an empty database
-        run: npm run db:migrate
-
-      # Snapshot terakhir di drizzle/meta harus sama dengan src/server/db/schema.ts.
-      # Kalau gagal: jalankan `npm run db:generate`, lalu commit migrasi barunya.
-      - name: Check schema.ts has no ungenerated changes
+          path: .timings/1.json
+          key: test-timings-1-${{ github.run_id }}
+          restore-keys: test-timings-1-
+      - uses: actions/cache/restore@v6
+        with:
+          path: .timings/2.json
+          key: test-timings-2-${{ github.run_id }}
+          restore-keys: test-timings-2-
+      - uses: actions/cache/restore@v6
+        with:
+          path: .timings/3.json
+          key: test-timings-3-${{ github.run_id }}
+          restore-keys: test-timings-3-
+      # Di PR hanya tes yang bisa dicapai diff (lihat RERUN_ALL dan FS_INPUTS di
+      # skrip). Push ke develop dan merge queue selalu menjalankan semuanya.
+      - name: Plan shard
         run: |
-          npx drizzle-kit generate
-          if [ -n "$(git status --porcelain drizzle)" ]; then
-            echo "::error::schema.ts berubah tanpa migrasi. Jalankan 'npm run db:generate' lalu commit hasilnya."
-            git status --porcelain drizzle
-            exit 1
+          bun scripts/ci/test-shards.ts plan --shards "$SHARDS" --shard ${{ matrix.shard }} \
+            --out "$RUNNER_TEMP/shard" --timings .timings/1.json .timings/2.json .timings/3.json \
+            ${{ github.event_name == 'pull_request' && format('--changed-from {0}', github.event.pull_request.base.sha) || '' }}
+          # Durasi run ini ditulis ulang dari nol, hanya untuk berkas shard ini.
+          mkdir -p .timings && echo '{"version":1,"files":{}}' > .timings/${{ matrix.shard }}.json
+
+      # Lewat TCP: server sementara saat initdb hanya mendengar socket Unix.
+      - name: Wait for Postgres
+        run: timeout 30 sh -c 'until docker exec pg pg_isready -h 127.0.0.1 -U postgres -q; do sleep 0.2; done'
+      - name: Test
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          OUT: ${{ runner.temp }}/shard
+        run: |
+          if [ "$(cat "$OUT/mode")" = selective ]; then
+            bun run test --files-from="$OUT/files.txt" --changed="$BASE" --pass-with-no-tests \
+              --reporter=junit --reporter-outfile="$OUT/junit.xml"
+            if [ -s "$OUT/forced.txt" ]; then
+              bun run test --files-from="$OUT/forced.txt" \
+                --reporter=junit --reporter-outfile="$OUT/junit-forced.xml"
+            fi
+          else
+            bun run test --files-from="$OUT/files.txt" \
+              --reporter=junit --reporter-outfile="$OUT/junit.xml" \
+              --timings=.timings/${{ matrix.shard }}.json --update-timings
           fi
+      # Bersama pengecekan gabungan di "Plan shard", ini membuktikan semua shard
+      # bersama-sama menjalankan setiap berkas tes (di PR: setiap tes terpilih).
+      - name: Verify shard ran its files
+        run: bun scripts/ci/test-shards.ts verify --out "$RUNNER_TEMP/shard"
+
+      - if: github.event_name == 'push'
+        uses: actions/cache/save@v6
+        with:
+          path: .timings/${{ matrix.shard }}.json
+          key: test-timings-${{ matrix.shard }}-${{ github.run_id }}
+      - run: sh scripts/ci/budget.sh check 90
 
   dependency-review:
     name: Dependency review

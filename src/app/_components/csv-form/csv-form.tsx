@@ -16,10 +16,7 @@ type UploadState =
 
 interface CsvFormContentProps {
   importType:
-    | 'kegiatan-anggota'
-    | 'kegiatan-nilai'
-    | 'lembaga-anggota'
-    | 'lembaga-nilai';
+    'kegiatan-anggota' | 'kegiatan-nilai' | 'lembaga-anggota' | 'lembaga-nilai';
   entityId: string;
   onImportSuccess?: (data: any) => void;
   triggerElement?: React.ReactNode;
@@ -200,15 +197,15 @@ const CsvFormContent = ({
     switch (uploadState.status) {
       case 'initial':
         return (
-          <div className="flex flex-col h-full">
-            <h3 className="m-0 text-[20px] font-semibold text-[#141718] pb-[15px]">
+          <div className="flex h-full flex-col">
+            <h3 className="m-0 pb-[15px] text-[20px] font-semibold text-[#141718]">
               {typeInfo.title}
             </h3>
 
-            <div className="h-px w-full bg-black mb-5" />
+            <div className="mb-5 h-px w-full bg-black" />
 
             <div
-              className={`group flex flex-col justify-center items-center h-full max-h-[400px] p-[150px_20px] bg-white font-normal text-center rounded-[10px] border-2 border-dashed ${isHovered ? 'border-[#00B7B7]' : 'border-[#C4CACE]'}`}
+              className={`group flex h-full max-h-[400px] flex-col items-center justify-center rounded-[10px] border-2 border-dashed bg-white p-[150px_20px] text-center font-normal ${isHovered ? 'border-[#00B7B7]' : 'border-[#C4CACE]'}`}
               onMouseEnter={() => setIsHovered(true)}
               onMouseLeave={() => setIsHovered(false)}
               onDrop={handleDrop}
@@ -225,13 +222,13 @@ const CsvFormContent = ({
                 alt="Upload Icon"
                 width={60}
                 height={60}
-                className="pb-5 pointer-events-none"
+                className="pointer-events-none pb-5"
               />
 
-              <p className="font-semibold text-xl text-[#636A6D] group-hover:text-[#00A5A5] pointer-events-none">
+              <p className="pointer-events-none text-xl font-semibold text-[#636A6D] group-hover:text-[#00A5A5]">
                 Select an Excel file to upload{' '}
               </p>
-              <p className="font-bold text-md text-[#C7CCCF] pb-5 pointer-events-none">
+              <p className="text-md pointer-events-none pb-5 font-bold text-[#C7CCCF]">
                 or drag and drop it here{' '}
               </p>
 
@@ -251,7 +248,7 @@ const CsvFormContent = ({
                     }
                   }}
                   variant="light_blue"
-                  className="pt-[7px] pb-[7px] text-[12px] font-semibold pointer-events-auto"
+                  className="pointer-events-auto pb-[7px] pt-[7px] text-[12px] font-semibold"
                 >
                   + Unggah dokumen
                 </Button>
@@ -262,17 +259,17 @@ const CsvFormContent = ({
 
       case 'uploading':
         return (
-          <div className="flex flex-col h-full">
-            <h3 className="m-0 text-[20px] font-semibold text-[#141718] pb-[15px]">
+          <div className="flex h-full flex-col">
+            <h3 className="m-0 pb-[15px] text-[20px] font-semibold text-[#141718]">
               {typeInfo.title}
             </h3>
 
-            <div className="h-px w-full bg-black mb-5" />
+            <div className="mb-5 h-px w-full bg-black" />
 
-            <div className="group flex flex-col justify-center items-center h-[400px] p-[150px_20px] bg-white rounded-[10px] border-2 border-dashed border-[#C4CACE]">
-              <div className="w-[100px] h-[100px] relative mb-5">
+            <div className="group flex h-[400px] flex-col items-center justify-center rounded-[10px] border-2 border-dashed border-[#C4CACE] bg-white p-[150px_20px]">
+              <div className="relative mb-5 h-[100px] w-[100px]">
                 {/* progress circle */}
-                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
                   <path
                     d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                     fill="none"
@@ -291,7 +288,7 @@ const CsvFormContent = ({
                 </svg>
 
                 {/* percentage text */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[20px] font-bold text-[#141718]">
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[20px] font-bold text-[#141718]">
                   {uploadState.progress}%
                 </div>
               </div>
@@ -313,15 +310,15 @@ const CsvFormContent = ({
 
       case 'complete':
         return (
-          <div className="flex flex-col h-full">
-            <h3 className="m-0 text-[20px] font-semibold text-[#141718] pb-[15px]">
+          <div className="flex h-full flex-col">
+            <h3 className="m-0 pb-[15px] text-[20px] font-semibold text-[#141718]">
               {typeInfo.title}
             </h3>
 
-            <div className="h-px w-full bg-black mb-5" />
+            <div className="mb-5 h-px w-full bg-black" />
 
-            <div className="group flex flex-col justify-start w-full h-[400px]">
-              <div className="flex items-center gap-4 border border-[#C4CACE] rounded-[8px] p-[20px_16px]">
+            <div className="group flex h-[400px] w-full flex-col justify-start">
+              <div className="flex items-center gap-4 rounded-[8px] border border-[#C4CACE] p-[20px_16px]">
                 <Image
                   src="/images/miscellaneous/excel.svg"
                   alt="File icon"
@@ -330,9 +327,9 @@ const CsvFormContent = ({
                 />
 
                 {/* container list file */}
-                <div className="flex-1 flex flex-col gap-1">
-                  <div className="pb-1 flex items-center justify-between">
-                    <p className="font-medium text-[#141718] text-[16px] m-0">
+                <div className="flex flex-1 flex-col gap-1">
+                  <div className="flex items-center justify-between pb-1">
+                    <p className="m-0 text-[16px] font-medium text-[#141718]">
                       {uploadState.file.name}
                     </p>
 
@@ -347,16 +344,16 @@ const CsvFormContent = ({
                   </div>
 
                   <div className="flex items-center justify-between">
-                    <p className="text-[#666] text-[10px] m-0 opacity-70">
+                    <p className="m-0 text-[10px] text-[#666] opacity-70">
                       200 KB
                     </p>
 
-                    <p className="text-[#141718] text-[10px] font-normal m-0">
+                    <p className="m-0 text-[10px] font-normal text-[#141718]">
                       Completed
                     </p>
                   </div>
 
-                  <div className="w-full h-2 bg-[#00A5A5] rounded"> </div>
+                  <div className="h-2 w-full rounded bg-[#00A5A5]"> </div>
                 </div>
               </div>
             </div>
@@ -365,21 +362,21 @@ const CsvFormContent = ({
 
       case 'success':
         return (
-          <div className="flex flex-col h-full">
-            <h3 className="m-0 text-[20px] font-semibold text-[#141718] pb-[15px]">
+          <div className="flex h-full flex-col">
+            <h3 className="m-0 pb-[15px] text-[20px] font-semibold text-[#141718]">
               {typeInfo.title}
             </h3>
 
-            <div className="h-px w-full bg-black mb-5" />
+            <div className="mb-5 h-px w-full bg-black" />
 
-            <div className="group flex flex-col justify-center items-center h-[400px] p-[50px_20px] bg-white rounded-[10px] border-2 border-[#00A5A5]">
-              <div className="w-[80px] h-[80px] bg-[#00A5A5] rounded-full flex items-center justify-center mb-5">
+            <div className="group flex h-[400px] flex-col items-center justify-center rounded-[10px] border-2 border-[#00A5A5] bg-white p-[50px_20px]">
+              <div className="mb-5 flex h-[80px] w-[80px] items-center justify-center rounded-full bg-[#00A5A5]">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
                   <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
                 </svg>
               </div>
 
-              <p className="text-[20px] font-semibold text-[#00A5A5] text-center">
+              <p className="text-center text-[20px] font-semibold text-[#00A5A5]">
                 {uploadState.message}
               </p>
 
@@ -396,25 +393,25 @@ const CsvFormContent = ({
 
       case 'error':
         return (
-          <div className="flex flex-col h-full">
-            <h3 className="m-0 text-[20px] font-semibold text-[#141718] pb-[15px]">
+          <div className="flex h-full flex-col">
+            <h3 className="m-0 pb-[15px] text-[20px] font-semibold text-[#141718]">
               {typeInfo.title}
             </h3>
 
-            <div className="h-px w-full bg-black mb-5" />
+            <div className="mb-5 h-px w-full bg-black" />
 
-            <div className="group flex flex-col justify-center items-center h-[400px] p-[50px_20px] bg-white rounded-[10px] border-2 border-[#FF4444]">
-              <div className="w-[80px] h-[80px] bg-[#FF4444] rounded-full flex items-center justify-center mb-5">
+            <div className="group flex h-[400px] flex-col items-center justify-center rounded-[10px] border-2 border-[#FF4444] bg-white p-[50px_20px]">
+              <div className="mb-5 flex h-[80px] w-[80px] items-center justify-center rounded-full bg-[#FF4444]">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
                 </svg>
               </div>
 
-              <p className="text-[20px] font-semibold text-[#FF4444] text-center mb-2">
+              <p className="mb-2 text-center text-[20px] font-semibold text-[#FF4444]">
                 Upload Failed
               </p>
 
-              <p className="text-[14px] text-[#666] text-center mb-5">
+              <p className="mb-5 text-center text-[14px] text-[#666]">
                 {uploadState.error}
               </p>
 
@@ -435,20 +432,20 @@ const CsvFormContent = ({
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {renderContent()}
 
       {/* delete confirmation dialog */}
       {isConfirmOpen && (
         <>
           {/* bg hitam */}
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-screen bg-black/50 z-[1000]" />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border border-[#ccc] w-[500px] rounded-[20px] p-5 shadow-[0_4px_8px_rgba(0,0,0,0.1)] z-[1001]">
+          <div className="fixed left-1/2 top-1/2 z-[1000] h-screen w-screen -translate-x-1/2 -translate-y-1/2 bg-black/50" />
+          <div className="fixed left-1/2 top-1/2 z-[1001] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[#ccc] bg-white p-5 shadow-[0_4px_8px_rgba(0,0,0,0.1)]">
             <p className="text-center">
               Apakah Anda yakin ingin menghapus file ini?
             </p>
 
-            <div className="flex flex-row justify-center gap-4 mt-3">
+            <div className="mt-3 flex flex-row justify-center gap-4">
               <Button
                 onClick={handleCancelDelete}
                 variant="warning"
@@ -473,19 +470,19 @@ const CsvFormContent = ({
       {isUploadConfirmOpen && pendingFile && (
         <>
           {/* bg hitam */}
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen h-screen bg-black/50 z-[1000]" />
-          <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white border border-[#ccc] w-[500px] rounded-[20px] p-5 shadow-[0_4px_8px_rgba(0,0,0,0.1)] z-[1001]">
-            <p className="text-center font-semibold text-[16px] mb-2">
+          <div className="fixed left-1/2 top-1/2 z-[1000] h-screen w-screen -translate-x-1/2 -translate-y-1/2 bg-black/50" />
+          <div className="fixed left-1/2 top-1/2 z-[1001] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-[20px] border border-[#ccc] bg-white p-5 shadow-[0_4px_8px_rgba(0,0,0,0.1)]">
+            <p className="mb-2 text-center text-[16px] font-semibold">
               Konfirmasi Upload
             </p>
             <p className="text-center text-[14px] text-[#666]">
               Apakah Anda yakin ingin mengunggah file:
             </p>
-            <p className="text-center font-semibold text-[14px] mt-1 mb-4">
+            <p className="mb-4 mt-1 text-center text-[14px] font-semibold">
               {pendingFile.name}
             </p>
 
-            <div className="flex flex-row justify-center gap-4 mt-3">
+            <div className="mt-3 flex flex-row justify-center gap-4">
               <Button
                 onClick={handleCancelUpload}
                 variant="warning"

@@ -1,18 +1,21 @@
 import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+import proxy, { config } from './proxy';
+
 const getToken = vi.fn();
-vi.mock('next-auth/jwt', () => ({
+await vi.mock('next-auth/jwt', () => ({
   getToken: (...args: unknown[]) => getToken(...args) as unknown,
 }));
 
-import middleware, { config } from './middleware';
-
 type Result = { kind: 'next' } | { kind: 'redirect'; to: string };
 
-async function run(path: string, token: { role: string } | null): Promise<Result> {
+async function run(
+  path: string,
+  token: { role: string } | null,
+): Promise<Result> {
   getToken.mockResolvedValue(token);
-  const res = await middleware(new NextRequest(`https://app.test${path}`));
+  const res = await proxy(new NextRequest(`https://app.test${path}`));
   const location = res.headers.get('location');
   if (location) {
     const url = new URL(location);
@@ -39,7 +42,7 @@ describe('/prototype/*', () => {
     });
   });
 
-  it('middleware berjalan untuk /prototype (tidak dikecualikan matcher)', () => {
+  it('proxy berjalan untuk /prototype (tidak dikecualikan matcher)', () => {
     const matcher = new RegExp(`^${config.matcher[0]}$`);
     expect(matcher.test('/prototype/oprec')).toBe(true);
   });

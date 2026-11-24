@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
 import {
-  contactLink,
   Daftar,
-  LegalPage,
   type LegalContent,
   type LegalLocale,
+  LegalPage,
+  contactLink,
 } from './legal-page';
 
 export type PolicyLocale = LegalLocale;
@@ -46,10 +46,11 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
     intro: (
       <p className="leading-relaxed text-slate-700">
         Anmategra adalah platform pendataan kemahasiswaan yang dikelola
-        Kementerian Anmategra, Kemenkoan Pengembangan Sumber Daya Manusia (PSDM),
-        Kabinet Keluarga Mahasiswa Institut Teknologi Bandung. Kebijakan ini
-        menjelaskan data apa yang kami kumpulkan saat Anda menggunakan Anmategra
-        di {homeLink}, bagaimana data itu digunakan, dan pilihan yang Anda miliki.
+        Kementerian Anmategra, Kemenkoan Pengembangan Sumber Daya Manusia
+        (PSDM), Kabinet Keluarga Mahasiswa Institut Teknologi Bandung. Kebijakan
+        ini menjelaskan data apa yang kami kumpulkan saat Anda menggunakan
+        Anmategra di {homeLink}, bagaimana data itu digunakan, dan pilihan yang
+        Anda miliki.
       </p>
     ),
     sections: [
@@ -57,13 +58,13 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '1. Tentang Anmategra',
         body: (
           <p>
-            Anmategra membantu lembaga kemahasiswaan ITB — himpunan, unit kegiatan
-            mahasiswa, dan kepanitiaan — mendata anggota, menyusun struktur
-            organisasi, menyelenggarakan kegiatan, membuka pendaftaran, serta
-            mengelola formulir dan penilaian. Sebagian besar fitur hanya dapat
-            dipakai setelah masuk dengan akun kampus, tetapi halaman publik
-            seperti beranda, profil lembaga, profil kegiatan, manual, dan halaman
-            ini dapat dibaca tanpa masuk.
+            Anmategra membantu lembaga kemahasiswaan ITB — himpunan, unit
+            kegiatan mahasiswa, dan kepanitiaan — mendata anggota, menyusun
+            struktur organisasi, menyelenggarakan kegiatan, membuka pendaftaran,
+            serta mengelola formulir dan penilaian. Sebagian besar fitur hanya
+            dapat dipakai setelah masuk dengan akun kampus, tetapi halaman
+            publik seperti beranda, profil lembaga, profil kegiatan, manual, dan
+            halaman ini dapat dibaca tanpa masuk.
           </p>
         ),
       },
@@ -88,14 +89,14 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
                 struktur kepanitiaan.
               </li>
               <li>
-                <strong>Konten yang Anda kirim.</strong> Jawaban formulir, berkas
-                lampiran, gambar, dan tulisan yang Anda isi pada formulir
+                <strong>Konten yang Anda kirim.</strong> Jawaban formulir,
+                berkas lampiran, gambar, dan tulisan yang Anda isi pada formulir
                 pendaftaran atau penilaian.
               </li>
               <li>
-                <strong>Data teknis.</strong> Waktu akses, alamat IP, dan catatan
-                audit tindakan administratif yang kami gunakan untuk keamanan dan
-                penyelesaian sengketa.
+                <strong>Data teknis.</strong> Waktu akses, alamat IP, dan
+                catatan audit tindakan administratif yang kami gunakan untuk
+                keamanan dan penyelesaian sengketa.
               </li>
             </Daftar>
           </>
@@ -107,33 +108,34 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
           <>
             <p>
               Saat Anda masuk dengan akun Google, kami menerima nama, alamat
-              email, dan foto profil dari Google untuk membuat dan mengenali akun
-              Anda. Untuk itu kami meminta izin <code>openid</code>,{' '}
+              email, dan foto profil dari Google untuk membuat dan mengenali
+              akun Anda. Untuk itu kami meminta izin <code>openid</code>,{' '}
               <code>email</code>, dan <code>profile</code>.
             </p>
             <p>
               Jika pengelola formulir mengaktifkan penyimpanan berkas di Google
               Drive dan Anda memilih menghubungkan Drive Anda, kami juga meminta
               izin <code>https://www.googleapis.com/auth/drive.file</code>. Izin
-              ini bersifat per-berkas: Anmategra hanya dapat membuat dan mengubah
-              berkas yang dibuat oleh Anmategra sendiri. Kami tidak dapat melihat,
-              membaca, atau mengubah berkas lain di Drive Anda.
+              ini bersifat per-berkas: Anmategra hanya dapat membuat dan
+              mengubah berkas yang dibuat oleh Anmategra sendiri. Kami tidak
+              dapat melihat, membaca, atau mengubah berkas lain di Drive Anda.
             </p>
             <p>
               Pada alur tersebut, berkas jawaban diunggah langsung dari peramban
               Anda ke Google Drive milik Anda. Anmategra tidak menyimpan isi
-              berkas. Kami hanya menyimpan tautan berkas, nama, ukuran, dan jenis
-              berkasnya agar pengelola formulir dapat membukanya. Tautan dibuat
-              dengan akses baca untuk siapa saja yang memiliki tautan; Anda dapat
-              mengubah atau mencabut akses itu kapan saja dari Google Drive Anda.
+              berkas. Kami hanya menyimpan tautan berkas, nama, ukuran, dan
+              jenis berkasnya agar pengelola formulir dapat membukanya. Tautan
+              dibuat dengan akses baca untuk siapa saja yang memiliki tautan;
+              Anda dapat mengubah atau mencabut akses itu kapan saja dari Google
+              Drive Anda.
             </p>
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4">
               Penggunaan data yang kami terima dari Google API oleh Anmategra
-              mematuhi {policyLink}, termasuk persyaratan Limited Use. Kami tidak
-              menggunakan data Google untuk periklanan, tidak menjualnya kepada
-              pihak ketiga, tidak menggunakannya untuk menentukan kelayakan kredit
-              atau pinjaman, dan tidak menggunakannya untuk melatih model
-              kecerdasan buatan.
+              mematuhi {policyLink}, termasuk persyaratan Limited Use. Kami
+              tidak menggunakan data Google untuk periklanan, tidak menjualnya
+              kepada pihak ketiga, tidak menggunakannya untuk menentukan
+              kelayakan kredit atau pinjaman, dan tidak menggunakannya untuk
+              melatih model kecerdasan buatan.
             </p>
           </>
         ),
@@ -153,8 +155,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
             </li>
             <li>Menyusun laporan kegiatan dan rekapitulasi keanggotaan.</li>
             <li>
-              Menjaga keamanan layanan, mencegah penyalahgunaan, dan menyelesaikan
-              sengketa kepemilikan akun.
+              Menjaga keamanan layanan, mencegah penyalahgunaan, dan
+              menyelesaikan sengketa kepemilikan akun.
             </li>
             <li>Memperbaiki kualitas layanan secara agregat.</li>
           </Daftar>
@@ -182,8 +184,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               </li>
               <li>
                 <strong>Kewajiban hukum.</strong> Kami dapat mengungkapkan data
-                bila diwajibkan oleh peraturan yang berlaku atau permintaan resmi
-                Institut Teknologi Bandung.
+                bila diwajibkan oleh peraturan yang berlaku atau permintaan
+                resmi Institut Teknologi Bandung.
               </li>
             </Daftar>
           </>
@@ -202,8 +204,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               kegiatan berlangsung dan untuk keperluan arsip organisasi.
             </li>
             <li>
-              Foto KTM pada pengajuan akses alternatif dihapus otomatis setelah 7
-              hari; yang tersisa hanya catatan klaim.
+              Foto KTM pada pengajuan akses alternatif dihapus otomatis setelah
+              7 hari; yang tersisa hanya catatan klaim.
             </li>
             <li>
               Catatan audit disimpan untuk keperluan keamanan dan dapat dihapus
@@ -229,7 +231,9 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         body: (
           <>
             <Daftar>
-              <li>Meminta salinan data pribadi yang kami simpan tentang Anda.</li>
+              <li>
+                Meminta salinan data pribadi yang kami simpan tentang Anda.
+              </li>
               <li>Meminta perbaikan data yang tidak akurat.</li>
               <li>
                 Meminta penghapusan data, sepanjang tidak bertentangan dengan
@@ -241,8 +245,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               </li>
             </Daftar>
             <p>
-              Permintaan dapat dikirim ke {contactLink}. Kami akan menindaklanjuti
-              dalam waktu yang wajar.
+              Permintaan dapat dikirim ke {contactLink}. Kami akan
+              menindaklanjuti dalam waktu yang wajar.
             </p>
           </>
         ),
@@ -252,8 +256,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         body: (
           <p>
             Kebijakan ini dapat diperbarui bila layanan atau ketentuan yang
-            berlaku berubah. Versi terbaru selalu tersedia di halaman ini beserta
-            tanggal berlakunya.
+            berlaku berubah. Versi terbaru selalu tersedia di halaman ini
+            beserta tanggal berlakunya.
           </p>
         ),
       },
@@ -261,8 +265,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '10. Hubungi kami',
         body: (
           <p>
-            Pertanyaan tentang kebijakan ini dapat disampaikan kepada Kementerian
-            Anmategra KM ITB melalui {contactLink}.
+            Pertanyaan tentang kebijakan ini dapat disampaikan kepada
+            Kementerian Anmategra KM ITB melalui {contactLink}.
           </p>
         ),
       },
@@ -287,9 +291,10 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
       <p className="leading-relaxed text-slate-700">
         Anmategra is a student-organization data platform operated by the
         Anmategra Ministry, Human Resources Development Coordinating Ministry
-        (PSDM), Student Cabinet of Keluarga Mahasiswa Institut Teknologi Bandung.
-        This policy explains what data we collect when you use Anmategra at{' '}
-        {homeLink}, how that data is used, and the choices available to you.
+        (PSDM), Student Cabinet of Keluarga Mahasiswa Institut Teknologi
+        Bandung. This policy explains what data we collect when you use
+        Anmategra at {homeLink}, how that data is used, and the choices
+        available to you.
       </p>
     ),
     sections: [
@@ -302,8 +307,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
             membership, lay out their organizational structure, run events, open
             recruitment, and manage forms and assessments. Most features require
             signing in with a campus account, but public pages such as the
-            homepage, organization profiles, event profiles, the manual, and this
-            page can be read without signing in.
+            homepage, organization profiles, event profiles, the manual, and
+            this page can be read without signing in.
           </p>
         ),
       },
@@ -319,16 +324,18 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               <li>
                 <strong>Identity and account data.</strong> Name, email address,
                 profile photo, and account role. Students sign in through ITB
-                Microsoft Entra ID; organization managers may sign in with Google.
+                Microsoft Entra ID; organization managers may sign in with
+                Google.
               </li>
               <li>
-                <strong>Student and organization data.</strong> Student ID number
-                (NIM), study program, cohort year, organization membership, and
-                positions held in committee structures.
+                <strong>Student and organization data.</strong> Student ID
+                number (NIM), study program, cohort year, organization
+                membership, and positions held in committee structures.
               </li>
               <li>
-                <strong>Content you submit.</strong> Form answers, attached files,
-                images, and text you enter in registration or assessment forms.
+                <strong>Content you submit.</strong> Form answers, attached
+                files, images, and text you enter in registration or assessment
+                forms.
               </li>
               <li>
                 <strong>Technical data.</strong> Access times, IP addresses, and
@@ -344,33 +351,34 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         body: (
           <>
             <p>
-              When you sign in with a Google account, we receive your name, email
-              address, and profile photo from Google in order to create and
-              recognize your account. For this we request the <code>openid</code>,{' '}
-              <code>email</code>, and <code>profile</code> scopes.
+              When you sign in with a Google account, we receive your name,
+              email address, and profile photo from Google in order to create
+              and recognize your account. For this we request the{' '}
+              <code>openid</code>, <code>email</code>, and <code>profile</code>{' '}
+              scopes.
             </p>
             <p>
-              If a form manager enables file storage in Google Drive and you choose
-              to connect your Drive, we also request the{' '}
-              <code>https://www.googleapis.com/auth/drive.file</code> scope. This
-              scope is per-file: Anmategra can only create and modify files it
-              created itself. We cannot see, read, or modify any other files in
-              your Drive.
+              If a form manager enables file storage in Google Drive and you
+              choose to connect your Drive, we also request the{' '}
+              <code>https://www.googleapis.com/auth/drive.file</code> scope.
+              This scope is per-file: Anmategra can only create and modify files
+              it created itself. We cannot see, read, or modify any other files
+              in your Drive.
             </p>
             <p>
-              In that flow, answer files are uploaded directly from your browser to
-              your own Google Drive. Anmategra does not store file contents. We
-              store only the file link, name, size, and type so that the form
+              In that flow, answer files are uploaded directly from your browser
+              to your own Google Drive. Anmategra does not store file contents.
+              We store only the file link, name, size, and type so that the form
               manager can open it. Links are created with view access for anyone
-              with the link; you can change or revoke that access at any time from
-              your Google Drive.
+              with the link; you can change or revoke that access at any time
+              from your Google Drive.
             </p>
             <p className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              Anmategra&apos;s use of data received from Google APIs complies with
-              the {policyLink}, including the Limited Use requirements. We do not
-              use Google data for advertising, do not sell it to third parties, do
-              not use it to determine credit or lending eligibility, and do not use
-              it to train artificial intelligence models.
+              Anmategra&apos;s use of data received from Google APIs complies
+              with the {policyLink}, including the Limited Use requirements. We
+              do not use Google data for advertising, do not sell it to third
+              parties, do not use it to determine credit or lending eligibility,
+              and do not use it to train artificial intelligence models.
             </p>
           </>
         ),
@@ -379,14 +387,16 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '4. How we use data',
         body: (
           <Daftar>
-            <li>To authenticate you and set access rights according to role.</li>
+            <li>
+              To authenticate you and set access rights according to role.
+            </li>
             <li>
               To display organization, event, and member profiles to other users
               within the KM ITB community.
             </li>
             <li>
-              To store and show form answers and assessment results to authorized
-              managers.
+              To store and show form answers and assessment results to
+              authorized managers.
             </li>
             <li>To compile event reports and membership recaps.</li>
             <li>
@@ -432,16 +442,16 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
               as long as needed for organizational purposes.
             </li>
             <li>
-              Form answers and assessment results are kept for the duration of the
-              event period and for organizational archiving.
+              Form answers and assessment results are kept for the duration of
+              the event period and for organizational archiving.
             </li>
             <li>
-              Student ID card photos submitted for alternative access are deleted
-              automatically after 7 days; only the claim record remains.
+              Student ID card photos submitted for alternative access are
+              deleted automatically after 7 days; only the claim record remains.
             </li>
             <li>
-              Audit records are kept for security purposes and may be deleted once
-              no longer needed.
+              Audit records are kept for security purposes and may be deleted
+              once no longer needed.
             </li>
           </Daftar>
         ),
@@ -485,9 +495,9 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '9. Changes to this policy',
         body: (
           <p>
-            This policy may be updated if the service or applicable rules change.
-            The latest version is always available on this page together with its
-            effective date.
+            This policy may be updated if the service or applicable rules
+            change. The latest version is always available on this page together
+            with its effective date.
           </p>
         ),
       },
@@ -495,8 +505,8 @@ export const PRIVACY_POLICY: Record<PolicyLocale, PolicyContent> = {
         title: '10. Contact us',
         body: (
           <p>
-            Questions about this policy can be sent to the Anmategra Ministry, KM
-            ITB, at {contactLink}.
+            Questions about this policy can be sent to the Anmategra Ministry,
+            KM ITB, at {contactLink}.
           </p>
         ),
       },

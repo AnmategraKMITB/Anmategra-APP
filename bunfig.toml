@@ -1,0 +1,6 @@
+[test]
+# Membuat database uji per worker dan mengembalikan state setelah tiap berkas.
+preload = ["./src/test/preload.ts"]
+# Urutan acak memunculkan tes yang bergantung pada sisa tes lain. Seed dicetak
+# di akhir run; ulangi dengan `bun run test --seed=<seed>`.
+randomize = true

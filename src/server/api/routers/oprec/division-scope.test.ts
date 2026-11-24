@@ -232,26 +232,36 @@ describe('Pengaturan divisi oleh pengurus', () => {
     ).toBe(2);
   });
 
-  it('pengurus kehilangan akses saat tidak ikut menilai atau sesudah Final', async () => {
+  it('pengurus kehilangan akses sesudah penempatan Final', async () => {
     const { fx, kadivAcara } = await setup();
     const kadiv = callerFor(db, kadivAcara).oprec;
+    const owner = callerFor(db, fx.owner).oprec;
     const input = { recruitmentId: fx.recruitmentId };
     expect(await codeOf(kadiv.divisionSettings(input))).toBe('OK');
 
-    await db
-      .update(schema.recruitment)
-      .set({ placementState: 'final' })
-      .where(eq(schema.recruitment.id, fx.recruitmentId));
+    await owner.setPlacementState({ ...input, state: 'masa_banding' });
+    expect(await codeOf(kadiv.divisionSettings(input))).toBe('OK');
+    await owner.setPlacementState({ ...input, state: 'final' });
     expect(await codeOf(kadiv.divisionSettings(input))).toBe('FORBIDDEN');
     expect(
-      await codeOf(callerFor(db, fx.owner).oprec.divisionSettings(input)),
-    ).toBe('OK');
+      await codeOf(kadiv.criterionSave(save(fx, fx.divisions.Acara!.id, 'X'))),
+    ).toBe('FORBIDDEN');
+    expect(await codeOf(owner.divisionSettings(input))).toBe('OK');
+  });
 
-    await db
-      .update(schema.recruitment)
-      .set({ placementState: 'berjalan', assessorMode: 'umum' })
-      .where(eq(schema.recruitment.id, fx.recruitmentId));
+  it('pengurus kehilangan akses bila hanya penilai umum yang menilai', async () => {
+    const { fx, kadivAcara } = await setup();
+    const kadiv = callerFor(db, kadivAcara).oprec;
+    const input = { recruitmentId: fx.recruitmentId };
+    await callerFor(db, fx.owner).oprec.update({
+      ...input,
+      settings: { assessorMode: 'umum' },
+    });
     expect(await codeOf(kadiv.criteriaList(input))).toBe('FORBIDDEN');
+    expect(await codeOf(kadiv.assessorList(input))).toBe('FORBIDDEN');
+    expect(
+      await codeOf(kadiv.criterionSave(save(fx, fx.divisions.Acara!.id, 'X'))),
+    ).toBe('FORBIDDEN');
   });
 
   it('divisionSettings hanya memuat divisi yang dipegang', async () => {

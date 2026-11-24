@@ -3,10 +3,13 @@
 import {
   type ColumnDef,
   type SortingState,
+  createSortedRowModel,
   flexRender,
-  getCoreRowModel,
-  getSortedRowModel,
-  useReactTable,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  sortFn_text,
+  tableFeatures,
+  useTable,
 } from '@tanstack/react-table';
 import { ArrowDown, ArrowUp, ChevronsUpDown, Search } from 'lucide-react';
 import { useMemo, useState } from 'react';
@@ -58,7 +61,13 @@ function fillClass(filled: number, quota: number): string {
   return 'text-neutral-700';
 }
 
-const COLUMNS: ColumnDef<Row>[] = [
+const FEATURES = tableFeatures({
+  rowSortingFeature,
+  sortedRowModel: createSortedRowModel(),
+  sortFns: { alphanumeric: sortFn_alphanumeric, text: sortFn_text },
+});
+
+const COLUMNS: ColumnDef<typeof FEATURES, Row>[] = [
   {
     id: 'bagian',
     accessorFn: (row) => `${row.path} ${row.unitName}`,
@@ -259,16 +268,12 @@ export function TableView(props: {
     [rows, query],
   );
 
-  // TanStack Table mengembalikan fungsi yang tidak stabil; React Compiler
-  // tidak perlu memoisasi hasilnya.
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
+  const table = useTable({
+    features: FEATURES,
     data: filtered,
     columns: COLUMNS,
     state: { sorting },
     onSortingChange: setSorting,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getRowId: (row) => row.positionId,
   });
 
@@ -356,7 +361,7 @@ export function TableView(props: {
                       : 'hover:bg-neutral-200',
                   )}
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getAllCells().map((cell) => (
                     <TableCell key={cell.id} className="px-3 py-3 text-sm">
                       {flexRender(
                         cell.column.columnDef.cell,

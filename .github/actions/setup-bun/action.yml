@@ -1,0 +1,34 @@
+name: Setup Bun
+description: Memasang Bun versi repo (scripts/install-bun.sh), lalu `bun install` dengan node_modules dari cache.
+
+runs:
+  using: composite
+  steps:
+    - name: Cache Bun
+      id: bun-cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.bun/bin
+        key: bun-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('scripts/install-bun.sh') }}
+
+    - name: Install Bun
+      if: steps.bun-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: sh scripts/install-bun.sh
+
+    - shell: bash
+      run: echo "$HOME/.bun/bin" >> "$GITHUB_PATH"
+
+    # node_modules di-cache utuh (bukan hanya cache unduhan), jadi cache hit
+    # melewati `bun install` sepenuhnya. Kunci memakai bun.lock dan package.json.
+    - name: Cache node_modules
+      id: modules-cache
+      uses: actions/cache@v6
+      with:
+        path: node_modules
+        key: modules-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('bun.lock', 'package.json', 'scripts/install-bun.sh') }}
+
+    - name: Install dependencies
+      if: steps.modules-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: bun install --frozen-lockfile

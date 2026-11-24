@@ -25,9 +25,7 @@ export function fallbackReason(status: ComputedStatus | null) {
 }
 
 export type ResultsFinalStatus =
-  | 'diterima'
-  | 'tidak_diterima'
-  | 'belum_diputuskan';
+  'diterima' | 'tidak_diterima' | 'belum_diputuskan';
 
 export function finalStatus(
   accepted: boolean,

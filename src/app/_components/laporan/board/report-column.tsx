@@ -6,6 +6,7 @@ import Image, { type StaticImageData } from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '~/components/ui/button';
 
+import { type ColumnType } from './column-type';
 import { type Report } from './report-card';
 import { SortableReportCard } from './sortable-report-card';
 import DraftIcon from '/public/images/laporan/draft.svg';
@@ -13,7 +14,6 @@ import InProgressIcon from '/public/images/laporan/in-progress.svg';
 import ResolvedIcon from '/public/images/laporan/resolved.svg';
 
 export { type ColumnType, toColumnType } from './column-type';
-import { type ColumnType } from './column-type';
 
 export interface ColumnProps {
   title: ColumnType;
@@ -63,7 +63,7 @@ export function ReportColumn({
   return (
     <>
       {displayedStatus.includes(title) && (
-        <div className="flex flex-col bg-gray-100 rounded-xl p-4 shadow-sm w-full flex-shrink-0 h-auto md:h-[574px]">
+        <div className="flex h-auto w-full flex-shrink-0 flex-col rounded-xl bg-gray-100 p-4 shadow-sm md:h-[574px]">
           <div className="mb-4 flex flex-row items-center">
             <div className="flex flex-row items-center gap-3">
               <Image src={getTypeImage(title)} alt="Status" />
@@ -74,25 +74,13 @@ export function ReportColumn({
             </div>
           </div>
 
-          <div
-            className="
-            flex-1 overflow-y-auto pr-2 
-
-            /* SCROLLBAR STYLE */
-            scrollbar-thin 
-            scrollbar-thumb-gray-400 
-            scrollbar-track-transparent
-
-            /* MOBILE SCROLLBAR HIDE */
-            [-webkit-overflow-scrolling:touch]
-          "
-          >
+          <div className="/* SCROLLBAR STYLE */ scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent /* MOBILE SCROLLBAR HIDE */ flex-1 overflow-y-auto pr-2 [-webkit-overflow-scrolling:touch]">
             <SortableContext
               id={title}
               items={reports.map((r) => r.id)}
               strategy={verticalListSortingStrategy}
             >
-              <div className="flex flex-col space-y-4 min-h-[120px] pb-4 pr-1">
+              <div className="flex min-h-[120px] flex-col space-y-4 pb-4 pr-1">
                 {reports.map((report) => (
                   <SortableReportCard
                     key={report.id}

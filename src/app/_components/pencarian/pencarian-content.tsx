@@ -7,8 +7,8 @@ import { type Session } from 'next-auth';
 // Image Import
 import Image from 'next/image';
 import Link from 'next/link';
-import dummyLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 import NotFound from 'public/images/miscellaneous/not-found-general.png';
+import dummyLembaga from 'public/images/placeholder/profile-lembaga-kegiatan.png';
 // Dummy Asset Import
 import dummyProfile from 'public/images/placeholder/profile-pic.png';
 import React from 'react';
@@ -41,11 +41,11 @@ const PencarianContent = ({
   return (
     <div
       className={cn(
-        'flex w-full flex-col items-center overflow-hidden gap-6',
-        'pt-20 sm:pt-10 px-4 md:px-6',
+        'flex w-full flex-col items-center gap-6 overflow-hidden',
+        'px-4 pt-20 sm:pt-10 md:px-6',
       )}
     >
-      <div className="flex w-full flex-col gap-3 max-w-7xl">
+      <div className="flex w-full max-w-7xl flex-col gap-3">
         <h1 className="text-2xl font-semibold text-slate-600">
           Hasil Pencarian
         </h1>
@@ -53,13 +53,13 @@ const PencarianContent = ({
 
       <div
         className={cn(
-          'flex flex-col items-center w-full',
+          'flex w-full flex-col items-center',
           session?.user.role === 'mahasiswa' && 'mt-0',
         )}
       >
-        <div className="w-full space-y-8 max-w-7xl">
+        <div className="w-full max-w-7xl space-y-8">
           {data?.mahasiswa.length !== 0 && (
-            <div className="space-y-2 w-full">
+            <div className="w-full space-y-2">
               <h5 className="text-xl font-semibold text-slate-600">
                 Mahasiswa
               </h5>
@@ -67,9 +67,7 @@ const PencarianContent = ({
                 {data?.mahasiswa.map((item) => (
                   <Link
                     key={item.userId}
-                    href={
-                      '/profile-mahasiswa/' + item.userId
-                    }
+                    href={'/profile-mahasiswa/' + item.userId}
                   >
                     <MahasiswaCard
                       nama={item.nama ?? ''}
@@ -84,15 +82,13 @@ const PencarianContent = ({
           )}
 
           {data?.lembaga.length !== 0 && (
-            <div className="space-y-2 w-full">
+            <div className="w-full space-y-2">
               <h5 className="text-xl font-semibold text-slate-600">Lembaga</h5>
               <div className="flex w-full flex-col gap-y-4">
                 {data?.lembaga.map((item) => (
                   <Link
                     key={item.lembaga.id}
-                    href={
-                      `/profile-lembaga/${item.lembaga.id}`
-                    }
+                    href={`/profile-lembaga/${item.lembaga.id}`}
                   >
                     <LembagaCard
                       nama={item.name}
@@ -107,16 +103,11 @@ const PencarianContent = ({
           )}
 
           {data?.kegiatan.length !== 0 && (
-            <div className="space-y-2 w-full">
+            <div className="w-full space-y-2">
               <h5 className="text-xl font-semibold text-slate-600">Kegiatan</h5>
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {data?.kegiatan.map((item) => (
-                  <Link
-                    key={item.name}
-                    href={
-                      `/profile-kegiatan/${item.id}`
-                    }
-                  >
+                  <Link key={item.name} href={`/profile-kegiatan/${item.id}`}>
                     <KepanitiaanCard kepanitiaan={item} />
                   </Link>
                 ))}
@@ -127,7 +118,7 @@ const PencarianContent = ({
           {data?.mahasiswa.length === 0 &&
             data?.lembaga.length === 0 &&
             data?.kegiatan.length === 0 && (
-              <div className="w-full flex flex-col justify-center items-center gap-6 p-12">
+              <div className="flex w-full flex-col items-center justify-center gap-6 p-12">
                 <Image
                   src={NotFound}
                   alt="Not Found Icon"
@@ -135,10 +126,10 @@ const PencarianContent = ({
                   height={128}
                 />
                 <div className="space-y-2">
-                  <p className="text-slate-600 font-semibold text-2xl text-center">
+                  <p className="text-center text-2xl font-semibold text-slate-600">
                     Pencarian Tidak Ditemukan
                   </p>
-                  <p className="text-slate-400 text-center">
+                  <p className="text-center text-slate-400">
                     Kami tidak dapat menemukan hal yang Anda cari. <br />{' '}
                     Cobalah menggunakan kata kunci lainnya
                   </p>

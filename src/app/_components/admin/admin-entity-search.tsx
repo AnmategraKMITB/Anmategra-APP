@@ -58,7 +58,6 @@ export function AdminEntitySearch({
     { enabled: kind === 'position' && enabled },
   );
 
-
   const loading =
     kind === 'user'
       ? users.isLoading
@@ -72,7 +71,9 @@ export function AdminEntitySearch({
       ? (users.data ?? []).map((row) => ({
           id: row.id,
           title: row.name ?? row.email,
-          meta: [row.email, row.nim, row.lembagaName].filter(Boolean).join(' · '),
+          meta: [row.email, row.nim, row.lembagaName]
+            .filter(Boolean)
+            .join(' · '),
         }))
       : kind === 'lembaga'
         ? (lembaga.data ?? []).map((row) => ({
@@ -89,7 +90,12 @@ export function AdminEntitySearch({
           : (positions.data ?? []).map((row) => ({
               id: row.id,
               title: row.title,
-              meta: [row.unitName, row.structureName, row.lembagaName, row.periodName]
+              meta: [
+                row.unitName,
+                row.structureName,
+                row.lembagaName,
+                row.periodName,
+              ]
                 .filter(Boolean)
                 .join(' · '),
             }));

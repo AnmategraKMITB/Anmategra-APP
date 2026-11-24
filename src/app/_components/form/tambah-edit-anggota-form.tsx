@@ -166,32 +166,34 @@ const TambahEditAnggotaForm = ({
   }, [isEditMode, editData]);
 
   // Server-side search for mahasiswa by name
-  const { data: mahasiswaSearchResults, isLoading: isMahasiswaSearchLoading } = api.users.searchMahasiswa.useQuery(
-    {
-      query: debouncedMahasiswaSearch,
-      lembagaId: !isKegiatan ? activeLembagaId : undefined,
-      eventId: isKegiatan ? eventId : undefined,
-      isKegiatan,
-      limit: 10,
-    },
-    {
-      enabled: !manualMode && debouncedMahasiswaSearch.length > 0,
-    },
-  );
+  const { data: mahasiswaSearchResults, isLoading: isMahasiswaSearchLoading } =
+    api.users.searchMahasiswa.useQuery(
+      {
+        query: debouncedMahasiswaSearch,
+        lembagaId: !isKegiatan ? activeLembagaId : undefined,
+        eventId: isKegiatan ? eventId : undefined,
+        isKegiatan,
+        limit: 10,
+      },
+      {
+        enabled: !manualMode && debouncedMahasiswaSearch.length > 0,
+      },
+    );
 
   // Server-side search for mahasiswa by NIM
-  const { data: nimSearchResults, isLoading: isNimSearchLoading } = api.users.searchMahasiswa.useQuery(
-    {
-      query: debouncedNimSearch,
-      lembagaId: !isKegiatan ? activeLembagaId : undefined,
-      eventId: isKegiatan ? eventId : undefined,
-      isKegiatan,
-      limit: 10,
-    },
-    {
-      enabled: !manualMode && debouncedNimSearch.length > 0,
-    },
-  );
+  const { data: nimSearchResults, isLoading: isNimSearchLoading } =
+    api.users.searchMahasiswa.useQuery(
+      {
+        query: debouncedNimSearch,
+        lembagaId: !isKegiatan ? activeLembagaId : undefined,
+        eventId: isKegiatan ? eventId : undefined,
+        isKegiatan,
+        limit: 10,
+      },
+      {
+        enabled: !manualMode && debouncedNimSearch.length > 0,
+      },
+    );
 
   // Watch form values
   const userId = form.watch('user_id');
@@ -220,28 +222,23 @@ const TambahEditAnggotaForm = ({
   }, [nim, nimSearchResults]);
 
   const onSubmit = (values: AnggotaSchemaType) => {
-
     if (isEditMode) {
       // Edit mode - only update position and division
       if (isKegiatan && eventId) {
-        editEventMutation.mutate(
-          {
-            lembagaId: activeLembagaId ?? '',
-            user_id: values.user_id,
-            event_id: eventId,
-            position: values.position,
-            division: values.division,
-          },
-        );
+        editEventMutation.mutate({
+          lembagaId: activeLembagaId ?? '',
+          user_id: values.user_id,
+          event_id: eventId,
+          position: values.position,
+          division: values.division,
+        });
       } else {
-        editLembagaMutation.mutate(
-          {
-            lembagaId: activeLembagaId ?? '',
-            user_id: values.user_id,
-            position: values.position,
-            division: values.division,
-          },
-        );
+        editLembagaMutation.mutate({
+          lembagaId: activeLembagaId ?? '',
+          user_id: values.user_id,
+          position: values.position,
+          division: values.division,
+        });
       }
     } else {
       // Add mode
@@ -296,19 +293,19 @@ const TambahEditAnggotaForm = ({
   return (
     <Form {...form}>
       {manualMode && (
-        <p className="text-base text-center text-[#98A2B3] -mt-4 mb-4">
+        <p className="-mt-4 mb-4 text-center text-base text-[#98A2B3]">
           Masukkan informasi anggota baru untuk kegiatan
         </p>
       )}
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 w-full">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="w-full space-y-4">
         {/* User ID */}
         <FormField
           control={form.control}
           name="user_id"
           render={({ field }) => {
             return (
-              <FormItem className="w-full flex flex-col">
+              <FormItem className="flex w-full flex-col">
                 <FormLabel>Nama Mahasiswa</FormLabel>
                 <FormControl>
                   {manualMode ? (
@@ -342,7 +339,7 @@ const TambahEditAnggotaForm = ({
                           />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="p-0 PopoverContent">
+                      <PopoverContent className="PopoverContent p-0">
                         <Command shouldFilter={false}>
                           <CommandInput
                             placeholder="Cari Mahasiswa"
@@ -407,7 +404,7 @@ const TambahEditAnggotaForm = ({
           name="nim"
           render={({ field }) => {
             return (
-              <FormItem className="w-full flex flex-col">
+              <FormItem className="flex w-full flex-col">
                 <FormLabel>NIM</FormLabel>
                 <FormControl>
                   {manualMode ? (
@@ -439,7 +436,7 @@ const TambahEditAnggotaForm = ({
                           />
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="p-0 PopoverContent">
+                      <PopoverContent className="PopoverContent p-0">
                         <Command shouldFilter={false}>
                           <CommandInput
                             placeholder="Cari NIM"
@@ -518,7 +515,7 @@ const TambahEditAnggotaForm = ({
                       />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 PopoverContent">
+                  <PopoverContent className="PopoverContent p-0">
                     <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Cari atau ketik bidang baru"
@@ -535,7 +532,7 @@ const TambahEditAnggotaForm = ({
                       />
                       <CommandList>
                         <CommandEmpty>
-                          <div className="py-2 px-3 text-sm">
+                          <div className="px-3 py-2 text-sm">
                             Tekan Enter untuk menggunakan:{' '}
                             <span className="font-semibold">{field.value}</span>
                           </div>
@@ -600,7 +597,7 @@ const TambahEditAnggotaForm = ({
                       />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 PopoverContent">
+                  <PopoverContent className="PopoverContent p-0">
                     <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Cari atau ketik posisi baru"
@@ -617,7 +614,7 @@ const TambahEditAnggotaForm = ({
                       />
                       <CommandList>
                         <CommandEmpty>
-                          <div className="py-2 px-3 text-sm">
+                          <div className="px-3 py-2 text-sm">
                             Tekan Enter untuk menggunakan:{' '}
                             <span className="font-semibold">{field.value}</span>
                           </div>
@@ -663,8 +660,7 @@ const TambahEditAnggotaForm = ({
         {/* Tombol Submit */}
         <Button
           type="submit"
-          className="w-full bg-[#00B7B7] hover:bg-[#00B7B7]/85 text-white text-base font-semibold
-                     rounded-[10px] border border-[#636A6D] shadow-none items-center h-12"
+          className="h-12 w-full items-center rounded-[10px] border border-[#636A6D] bg-[#00B7B7] text-base font-semibold text-white shadow-none hover:bg-[#00B7B7]/85"
         >
           {isEditMode ? 'Simpan Perubahan' : 'Simpan Anggota'}
         </Button>
@@ -679,13 +675,13 @@ const TambahEditAnggotaForm = ({
             </div>
 
             {/* Manual Option */}
-            <div className="mt-3 flex w-full text-sm justify-between flex-nowrap gap-3">
-              <span className="text-black/80 font-light whitespace-nowrap">
+            <div className="mt-3 flex w-full flex-nowrap justify-between gap-3 text-sm">
+              <span className="whitespace-nowrap font-light text-black/80">
                 Nama mahasiswa tidak ada dalam daftar?
               </span>
               <button
                 type="button"
-                className="text-[#00B7B7] font-semibold hover:underline whitespace-nowrap"
+                className="whitespace-nowrap font-semibold text-[#00B7B7] hover:underline"
                 onClick={() => {
                   setManualMode(true);
                   setSelectedMahasiswaData(null);

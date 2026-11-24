@@ -1,0 +1,4 @@
+# Menjalankan seed mock oprec lewat `bun test`: router oprec memuat NextAuth,
+# yang butuh lingkungan tes. Tanpa preload tes (database uji per worker), jadi
+# seed langsung menulis ke DATABASE_URL.
+[test]

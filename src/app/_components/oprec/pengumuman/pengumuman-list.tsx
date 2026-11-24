@@ -11,7 +11,7 @@ export function PengumumanList({
   if (items.length === 0) return null;
   return (
     <section className="space-y-4 pb-12">
-      <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+      <h2 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
         Pengumuman Oprec
       </h2>
       <ul className="grid gap-3 md:grid-cols-2">

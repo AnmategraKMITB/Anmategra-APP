@@ -1,11 +1,11 @@
 import { getTableName, is } from 'drizzle-orm';
 import { PgTable } from 'drizzle-orm/pg-core';
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-
 import * as schema from '~/server/db/schema';
 import { createTestDb, createUser, resetDb } from '~/test/test-db';
+
 import { listAppTables, resetDemo, truncateAllTables } from './reset-demo';
-import { seedDemo, type DemoDb } from './seed-demo';
+import { type DemoDb, seedDemo } from './seed-demo';
 import { countAll } from './test-helpers';
 
 const { db, close } = createTestDb();
@@ -53,7 +53,9 @@ describe('resetDemo', () => {
     const baseline = await countAll(db);
 
     await createUser(db, { email: 'sisa-demo@test.local' });
-    expect((await countAll(db)).anmategra_user).toBe(baseline.anmategra_user! + 1);
+    expect((await countAll(db)).anmategra_user).toBe(
+      baseline.anmategra_user! + 1,
+    );
 
     await resetDemo(demoDb);
     expect(await countAll(db)).toEqual(baseline);

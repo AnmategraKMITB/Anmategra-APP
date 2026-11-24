@@ -1,4 +1,10 @@
-import { NODE_WIDTH_DEFAULT, ROOT_DEPTH, effectiveEvenRows, effectiveTier, rankIndexOf } from './model';
+import {
+  NODE_WIDTH_DEFAULT,
+  ROOT_DEPTH,
+  effectiveEvenRows,
+  effectiveTier,
+  rankIndexOf,
+} from './model';
 import type { Draft, Person, PlacementsByPosition, Rank, Unit } from './model';
 
 export const NODE_W = NODE_WIDTH_DEFAULT;
@@ -403,11 +409,7 @@ export function layoutChart(
       const neckRows: Entry[][] = [];
       for (const entry of neckEntries) {
         const last = neckRows[neckRows.length - 1];
-        if (
-          !last ||
-          last[0]?.tier !== entry.tier ||
-          last.length >= 2
-        ) {
+        if (!last || last[0]?.tier !== entry.tier || last.length >= 2) {
           neckRows.push([entry]);
         } else {
           last.push(entry);
@@ -450,11 +452,7 @@ export function layoutChart(
       const spine = Math.max(ownW, mainWidth) / 2;
 
       const nodesOut: ChartNode[] = [{ ...own, x: spine - ownW / 2, y: 0 }];
-      const addSubtree = (
-        sub: Subtree,
-        boundLeft: number,
-        nodeY: number,
-      ) => {
+      const addSubtree = (sub: Subtree, boundLeft: number, nodeY: number) => {
         const nodeX = boundLeft - sub.minX;
         for (const childNode of sub.nodes) {
           nodesOut.push({
@@ -469,9 +467,7 @@ export function layoutChart(
       let leftCount = 0;
       let rightCount = 0;
       for (const band of neckBands) {
-        const bandHeight = Math.max(
-          ...band.map((entry) => entry.sub.height),
-        );
+        const bandHeight = Math.max(...band.map((entry) => entry.sub.height));
         let leftX = spine - CORRIDOR;
         let rightX = spine + CORRIDOR;
         const taken = new Set<'left' | 'right' | 'center'>();

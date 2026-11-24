@@ -17,9 +17,9 @@ export default async function RaporPage(props: RaporPageProps) {
 
   if (!session || !event_id) {
     return (
-      <main className="flex flex-col p-8 min-h-screen">
-        <h1 className="text-[32px] font-semibold mb-2">Rapor Panitia</h1>
-        <div className="flex items-center justify-center h-64">
+      <main className="flex min-h-screen flex-col p-8">
+        <h1 className="mb-2 text-[32px] font-semibold">Rapor Panitia</h1>
+        <div className="flex h-64 items-center justify-center">
           <div className="text-lg">Loading...</div>
         </div>
       </main>
@@ -37,8 +37,8 @@ export default async function RaporPage(props: RaporPageProps) {
   const event = await api.event.getByID({ id: event_id });
 
   return (
-    <main className="flex flex-col p-8 min-h-screen">
-      <div className="flex items-center justify-between mb-2">
+    <main className="flex min-h-screen flex-col p-8">
+      <div className="mb-2 flex items-center justify-between">
         <h1 className="text-[32px] font-semibold">
           Rapor Panitia {event?.name ?? ''}
         </h1>

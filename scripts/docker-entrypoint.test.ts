@@ -21,10 +21,10 @@ function stub(path: string, body: string) {
   chmodSync(path, 0o755);
 }
 
-/** Menjalankan entrypoint dengan `npm` palsu yang gagal `failures` kali dahulu. */
+/** Menjalankan entrypoint dengan `drizzle-kit` palsu yang gagal `failures` kali dahulu. */
 function run(failures: number, maxAttempts: number) {
   stub(
-    join(dir, 'bin/npm'),
+    join(dir, 'node_modules/.bin/drizzle-kit'),
     `n=$(cat "${dir}/count" 2>/dev/null || echo 0)
 n=$((n + 1)); echo $n > "${dir}/count"
 [ "$n" -gt ${failures} ]`,
@@ -35,7 +35,6 @@ n=$((n + 1)); echo $n > "${dir}/count"
     encoding: 'utf8',
     env: {
       ...process.env,
-      PATH: `${join(dir, 'bin')}:${process.env.PATH ?? ''}`,
       MIGRATE_MAX_ATTEMPTS: String(maxAttempts),
       MIGRATE_RETRY_DELAY: '0',
     },

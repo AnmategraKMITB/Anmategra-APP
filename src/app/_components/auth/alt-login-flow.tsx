@@ -25,7 +25,9 @@ const KTM_ACCEPT = 'image/jpeg,image/png,image/webp,application/pdf';
 const KTM_MAX_BYTES = 10 * 1024 * 1024;
 
 function errorText(error: unknown): string {
-  return error instanceof Error ? error.message : 'Terjadi kesalahan. Coba lagi.';
+  return error instanceof Error
+    ? error.message
+    : 'Terjadi kesalahan. Coba lagi.';
 }
 
 function formatTime(iso: string): string {
@@ -111,7 +113,9 @@ export function AltLoginFlow() {
         redirect: false,
       });
       if (result?.error) {
-        throw new Error('Pengajuan tersimpan tetapi gagal masuk. Coba ajukan lagi.');
+        throw new Error(
+          'Pengajuan tersimpan tetapi gagal masuk. Coba ajukan lagi.',
+        );
       }
       setSession(await getSession());
     } catch (e) {
@@ -132,7 +136,9 @@ export function AltLoginFlow() {
       await navigator.clipboard.writeText(message);
       setCopied(true);
     } catch {
-      setError('Pesan tidak bisa disalin otomatis. Salin manual dari kotak di atas.');
+      setError(
+        'Pesan tidak bisa disalin otomatis. Salin manual dari kotak di atas.',
+      );
     }
   };
 
@@ -146,8 +152,8 @@ export function AltLoginFlow() {
         </CardTitle>
         <CardDescription className="text-xs sm:text-sm">
           Akses sementara 6 jam, hanya untuk mengisi form (misalnya open
-          recruitment). Setelah akun ITB-mu pulih, masuk seperti biasa dan
-          akses ini otomatis dicabut.
+          recruitment). Setelah akun ITB-mu pulih, masuk seperti biasa dan akses
+          ini otomatis dicabut.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-3">
@@ -232,12 +238,14 @@ export function AltLoginFlow() {
               role="note"
               className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-xs text-slate-700"
             >
-              <p className="font-semibold">Gunakan hanya untuk akunmu sendiri.</p>
+              <p className="font-semibold">
+                Gunakan hanya untuk akunmu sendiri.
+              </p>
               <p className="mt-1">
                 Memakai NIM atau KTM orang lain adalah pelanggaran. Setiap
                 pengajuan tercatat lengkap (email, NIM, alamat IP, dan foto
-                KTM), dapat ditelusuri admin, dan akses bisa dicabut kapan
-                saja. Pelanggaran dapat dilaporkan kepada pihak yang berwenang.
+                KTM), dapat ditelusuri admin, dan akses bisa dicabut kapan saja.
+                Pelanggaran dapat dilaporkan kepada pihak yang berwenang.
               </p>
             </div>
             <label className="flex items-start gap-2 text-xs text-slate-700">
@@ -284,7 +292,12 @@ export function AltLoginFlow() {
                 {message}
               </p>
               <div className="flex gap-2">
-                <Button type="button" size="sm" variant="outline" onClick={copyMessage}>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={copyMessage}
+                >
                   {copied ? 'Tersalin' : 'Salin pesan'}
                 </Button>
               </div>

@@ -91,11 +91,11 @@ export const SearchBar = ({
 
   return (
     <div ref={searchRef} className={`relative ${className}`}>
-      <div className="flex items-center w-full h-12 bg-white border border-[#C4CACE] rounded-full py-2 px-4 gap-2">
-        <MagnifyingGlassIcon className="w-5 h-5 text-gray-500 flex-shrink-0" />
+      <div className="flex h-12 w-full items-center gap-2 rounded-full border border-[#C4CACE] bg-white px-4 py-2">
+        <MagnifyingGlassIcon className="h-5 w-5 flex-shrink-0 text-gray-500" />
         <Input
           placeholder={placeholder}
-          className="w-full h-full bg-transparent border-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 font-normal text-base text-[#636A6D]"
+          className="h-full w-full border-none bg-transparent text-base font-normal text-[#636A6D] shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -104,7 +104,7 @@ export const SearchBar = ({
 
       {/* Preview Dropdown */}
       {showPreview && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg max-h-[500px] overflow-y-auto z-50">
+        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-[500px] overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg">
           {isLoading ? (
             <div className="p-4 text-center text-gray-500">
               <div className="animate-pulse">Mencari...</div>
@@ -114,7 +114,7 @@ export const SearchBar = ({
               {/* Mahasiswa Results */}
               {previewData.mahasiswa.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  <div className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
                     Mahasiswa
                   </div>
                   {previewData.mahasiswa.map((mahasiswa) => (
@@ -122,7 +122,7 @@ export const SearchBar = ({
                       key={mahasiswa.userId}
                       href={`/profile-mahasiswa/${mahasiswa.userId}`}
                       onClick={handleLinkClick}
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      className="block px-4 py-3 transition-colors hover:bg-gray-50"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex-1">
@@ -142,7 +142,7 @@ export const SearchBar = ({
               {/* Lembaga Results */}
               {previewData.lembaga.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  <div className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
                     Lembaga
                   </div>
                   {previewData.lembaga.map((lembaga) => (
@@ -150,7 +150,7 @@ export const SearchBar = ({
                       key={lembaga.lembagaId}
                       href={`/profile-lembaga/${lembaga.lembagaId}`}
                       onClick={handleLinkClick}
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      className="block px-4 py-3 transition-colors hover:bg-gray-50"
                     >
                       <div className="font-medium text-gray-900">
                         {lembaga.name}
@@ -163,7 +163,7 @@ export const SearchBar = ({
               {/* Kegiatan Results */}
               {previewData.kegiatan.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  <div className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
                     Kegiatan
                   </div>
                   {previewData.kegiatan.map((kegiatan) => (
@@ -171,7 +171,7 @@ export const SearchBar = ({
                       key={kegiatan.id}
                       href={`/profile-kegiatan/${kegiatan.id}`}
                       onClick={handleLinkClick}
-                      className="block px-4 py-3 hover:bg-gray-50 transition-colors"
+                      className="block px-4 py-3 transition-colors hover:bg-gray-50"
                     >
                       <div className="font-medium text-gray-900">
                         {kegiatan.name}
@@ -182,10 +182,10 @@ export const SearchBar = ({
               )}
 
               {/* See All Results Link */}
-              <div className="border-t border-gray-200 mt-2">
+              <div className="mt-2 border-t border-gray-200">
                 <button
                   onClick={navigateToSearch}
-                  className="w-full px-4 py-3 text-center text-sm font-medium text-[#00B7B7] hover:bg-gray-50 transition-colors"
+                  className="w-full px-4 py-3 text-center text-sm font-medium text-[#00B7B7] transition-colors hover:bg-gray-50"
                 >
                   Lihat Semua Hasil
                 </button>

@@ -3,9 +3,9 @@
  * akun NIM jurusan yang dipakai login, supaya jabatan organogram, keanggotaan,
  * dan akses oprec ikut pindah.
  *
- *   SKIP_ENV_VALIDATION=1 DATABASE_URL=... npm run akun:gabung-tpb
- *   ... npm run akun:gabung-tpb -- --pair 16325024:12025048 --pair ...
- *   ... npm run akun:gabung-tpb -- --apply
+ *   SKIP_ENV_VALIDATION=1 DATABASE_URL=... bun run akun:gabung-tpb
+ *   ... bun run akun:gabung-tpb --pair 16325024:12025048 --pair ...
+ *   ... bun run akun:gabung-tpb --apply
  *
  * Tanpa `--apply` semuanya dijalankan lalu di-rollback (dry-run), jadi laporan
  * jumlah baris yang dipindah sama persis dengan saat diterapkan.

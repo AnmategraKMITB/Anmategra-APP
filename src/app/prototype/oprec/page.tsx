@@ -17,7 +17,7 @@ const SECTIONS = [
 
 export default function PrototypeOprecHome() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-10 px-4 py-16 bg-neutral-100">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-neutral-100 px-4 py-16">
       <div className="flex flex-col items-center gap-3 text-center">
         <Image
           src={AnmategraLogo}

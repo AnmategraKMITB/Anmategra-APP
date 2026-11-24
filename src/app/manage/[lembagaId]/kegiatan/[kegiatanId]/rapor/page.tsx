@@ -24,8 +24,8 @@ const ManageKegiatanRaporPage = async ({
   }));
 
   return (
-    <main className="flex flex-col p-8 min-h-screen">
-      <div className="flex items-center justify-between mb-2">
+    <main className="flex min-h-screen flex-col p-8">
+      <div className="mb-2 flex items-center justify-between">
         <h1 className="text-[32px] font-semibold">
           Rapor Panitia {event.name}
         </h1>

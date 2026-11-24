@@ -25,12 +25,12 @@ const DaftarPanitiaKegiatanPage = async ({
 
   if (event && session && eventLembaga?.id !== session?.user.lembagaId) {
     return (
-      <div className="flex items-center justify-center h-screen">
+      <div className="flex h-screen items-center justify-center">
         <div className="text-lg">Unauthorized Access</div>
       </div>
-    )
+    );
   }
-  
+
   return (
     <main>
       <AnggotaContent

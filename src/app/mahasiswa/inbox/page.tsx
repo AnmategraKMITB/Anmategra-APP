@@ -18,16 +18,17 @@ export default function MahasiswaInboxPage() {
       // enabled: !!session,
     });
 
-
   const isLoading = isLoadingEvents || isLoadingLembaga;
 
   return (
-    <main className="flex flex-col min-h-screen bg-[#FAFAFA] px-4 sm:px-8">
+    <main className="flex min-h-screen flex-col bg-[#FAFAFA] px-4 sm:px-8">
       <ResultNotifications />
-      <h1 className="text-[28px] sm:text-[32px] font-semibold mb-6">Pengajuan Asosiasi</h1>
+      <h1 className="mb-6 text-[28px] font-semibold sm:text-[32px]">
+        Pengajuan Asosiasi
+      </h1>
 
       {isLoading ? (
-        <div className="flex items-center justify-center h-64">
+        <div className="flex h-64 items-center justify-center">
           <div className="text-lg text-neutral-500">Loading...</div>
         </div>
       ) : (

@@ -19,10 +19,7 @@ const ManageLembagaFormsPage = async ({
         kegiatannya.
       </p>
       <div className="mt-6">
-        <FormsList
-          scope={{ type: 'lembaga', lembagaId }}
-          basePath="/manage"
-        />
+        <FormsList scope={{ type: 'lembaga', lembagaId }} basePath="/manage" />
       </div>
     </main>
   );

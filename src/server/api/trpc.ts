@@ -667,8 +667,12 @@ export const oprecDivisionProcedure = protectedProcedure
   .meta({ access: 'oprec-division' })
   .use(timingMiddleware)
   .use(async ({ ctx, next, getRawInput }) => {
-    const raw = (await getRawInput()) as { recruitmentId?: unknown };
-    const recruitmentId = rawId(raw?.recruitmentId);
+    const raw = await getRawInput();
+    const recruitmentId = rawId(
+      typeof raw === 'object' && raw !== null && 'recruitmentId' in raw
+        ? raw.recruitmentId
+        : undefined,
+    );
     if (!recruitmentId) {
       throw new TRPCError({
         code: 'BAD_REQUEST',

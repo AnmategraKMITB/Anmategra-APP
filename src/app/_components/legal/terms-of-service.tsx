@@ -1,11 +1,11 @@
 import Link from 'next/link';
 
 import {
-  contactLink,
   Daftar,
-  LegalPage,
   type LegalContent,
   type LegalLocale,
+  LegalPage,
+  contactLink,
 } from './legal-page';
 
 export type TermsLocale = LegalLocale;
@@ -28,8 +28,8 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         Syarat dan Ketentuan ini mengatur penggunaan platform Anmategra yang
         dikelola Kementerian Anmategra, Kemenkoan Pengembangan Sumber Daya
         Manusia (PSDM), Kabinet Keluarga Mahasiswa Institut Teknologi Bandung.
-        Dengan mengakses atau memakai Anmategra, Anda menyatakan telah membaca dan
-        menyetujui ketentuan ini. Bila Anda tidak menyetujuinya, mohon tidak
+        Dengan mengakses atau memakai Anmategra, Anda menyatakan telah membaca
+        dan menyetujui ketentuan ini. Bila Anda tidak menyetujuinya, mohon tidak
         menggunakan layanan.
       </p>
     ),
@@ -41,9 +41,9 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
             Anmategra adalah platform pendataan kemahasiswaan untuk lingkungan
             KM ITB. Layanan mencakup profil lembaga dan kegiatan, keanggotaan
             organisasi, formulir dan pendaftaran, struktur kepanitiaan, serta
-            penilaian seleksi. Sebagian fitur hanya tersedia setelah masuk dengan
-            akun kampus, dan sebagian lagi hanya untuk pengurus dengan peran
-            tertentu.
+            penilaian seleksi. Sebagian fitur hanya tersedia setelah masuk
+            dengan akun kampus, dan sebagian lagi hanya untuk pengurus dengan
+            peran tertentu.
           </p>
         ),
       },
@@ -54,8 +54,9 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
             <Daftar>
               <li>
                 Mahasiswa masuk menggunakan akun Microsoft Entra ID ITB
-                berdomain <code>@mahasiswa.itb.ac.id</code>, dan pengelola lembaga
-                dapat masuk menggunakan akun Google yang telah diverifikasi.
+                berdomain <code>@mahasiswa.itb.ac.id</code>, dan pengelola
+                lembaga dapat masuk menggunakan akun Google yang telah
+                diverifikasi.
               </li>
               <li>
                 Anda bertanggung jawab menjaga kerahasiaan kredensial akun serta
@@ -79,14 +80,14 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
           <>
             <p>
               Mahasiswa yang akun kampusnya bermasalah dapat mengajukan akses
-              alternatif dengan memasukkan email kontak, NIM, dan foto Kartu Tanda
-              Mahasiswa (KTM). Ketentuan berikut berlaku:
+              alternatif dengan memasukkan email kontak, NIM, dan foto Kartu
+              Tanda Mahasiswa (KTM). Ketentuan berikut berlaku:
             </p>
             <Daftar>
               <li>
-                Email kontak yang Anda masukkan tidak diverifikasi, sehingga sesi
-                akses alternatif hanya berlaku untuk mengisi formulir dan tidak
-                memberi akses lain.
+                Email kontak yang Anda masukkan tidak diverifikasi, sehingga
+                sesi akses alternatif hanya berlaku untuk mengisi formulir dan
+                tidak memberi akses lain.
               </li>
               <li>
                 Sesi akses alternatif berlaku paling lama 6 jam sejak klaim
@@ -106,9 +107,10 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
                 klaim per jaringan per jam.
               </li>
               <li>
-                Memakai NIM milik orang lain, atau mengunggah KTM yang bukan milik
-                Anda, merupakan pelanggaran berat dan menyebabkan pencabutan akses
-                serta pelaporan kepada pihak yang berwenang di ITB.
+                Memakai NIM milik orang lain, atau mengunggah KTM yang bukan
+                milik Anda, merupakan pelanggaran berat dan menyebabkan
+                pencabutan akses serta pelaporan kepada pihak yang berwenang di
+                ITB.
               </li>
             </Daftar>
           </>
@@ -122,7 +124,8 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
             <Daftar>
               <li>
                 Mengakses data yang bukan hak Anda, termasuk mencoba melewati
-                pembatasan peran atau menebak tautan formulir milik lembaga lain.
+                pembatasan peran atau menebak tautan formulir milik lembaga
+                lain.
               </li>
               <li>
                 Mengunggah konten yang melanggar hukum, mengandung malware, atau
@@ -153,17 +156,18 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
               Anda tetap memiliki hak atas konten yang Anda unggah, seperti
               jawaban formulir, foto, dan berkas lampiran. Dengan mengunggahnya,
               Anda memberi Anmategra izin untuk menyimpan, menampilkan, dan
-              memproses konten tersebut sebatas keperluan penyelenggaraan layanan
-              dan kegiatan organisasi terkait.
+              memproses konten tersebut sebatas keperluan penyelenggaraan
+              layanan dan kegiatan organisasi terkait.
             </p>
             <p>
-              Kode sumber Anmategra terbuka di bawah Lisensi AGPL-3.0. Lisensi itu
-              mengatur penggunaan kode, bukan penggunaan layanan; ketentuan pada
-              halaman ini yang mengatur penggunaan layanan.
+              Kode sumber Anmategra terbuka di bawah Lisensi AGPL-3.0. Lisensi
+              itu mengatur penggunaan kode, bukan penggunaan layanan; ketentuan
+              pada halaman ini yang mengatur penggunaan layanan.
             </p>
             <p>
-              Berkas yang diunggah melalui Google Drive tetap berada di akun Drive
-              Anda. Anmategra hanya menyimpan tautannya, sebagaimana dijelaskan di{' '}
+              Berkas yang diunggah melalui Google Drive tetap berada di akun
+              Drive Anda. Anmategra hanya menyimpan tautannya, sebagaimana
+              dijelaskan di{' '}
               <Link
                 href="/privasi"
                 className="underline underline-offset-2 hover:opacity-80"
@@ -183,10 +187,10 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
             kemahasiswaan, bukan layanan komersial. Layanan disediakan
             &ldquo;sebagaimana adanya&rdquo; tanpa jaminan ketersediaan
             berkelanjutan, dan dapat dihentikan, diubah, atau dipulihkan dari
-            cadangan kapan saja untuk keperluan pemeliharaan atau perbaikan. Kami
-            berupaya menjaga data dengan baik, tetapi tidak menjamin bahwa data
-            tidak akan pernah hilang. Untuk berkas penting, simpan salinan Anda
-            sendiri.
+            cadangan kapan saja untuk keperluan pemeliharaan atau perbaikan.
+            Kami berupaya menjaga data dengan baik, tetapi tidak menjamin bahwa
+            data tidak akan pernah hilang. Untuk berkas penting, simpan salinan
+            Anda sendiri.
           </p>
         ),
       },
@@ -194,9 +198,9 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         title: '7. Penangguhan dan penghentian',
         body: (
           <p>
-            Kami dapat membatasi, menangguhkan, atau menghentikan akses Anda bila
-            Anda melanggar ketentuan ini, memanipulasi data atau penilaian, atau
-            bila diperlukan untuk melindungi pengguna lain. Bila terjadi
+            Kami dapat membatasi, menangguhkan, atau menghentikan akses Anda
+            bila Anda melanggar ketentuan ini, memanipulasi data atau penilaian,
+            atau bila diperlukan untuk melindungi pengguna lain. Bila terjadi
             sengketa kepemilikan akun, admin dapat meminta bukti tambahan dan
             keputusannya bersifat final. Anda dapat berhenti menggunakan layanan
             kapan saja.
@@ -209,11 +213,11 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
           <p>
             Sepanjang diizinkan hukum yang berlaku, Kementerian Anmategra KM ITB
             dan Institut Teknologi Bandung tidak bertanggung jawab atas kerugian
-            tidak langsung atau konsekuensial yang timbul dari penggunaan layanan,
-            termasuk kehilangan data, kegagalan unggahan, atau keputusan seleksi
-            yang diambil oleh pengelola lembaga. Keputusan penerimaan anggota,
-            penilaian, dan hasil seleksi sepenuhnya berada pada lembaga atau
-            kepanitiaan yang bersangkutan.
+            tidak langsung atau konsekuensial yang timbul dari penggunaan
+            layanan, termasuk kehilangan data, kegagalan unggahan, atau
+            keputusan seleksi yang diambil oleh pengelola lembaga. Keputusan
+            penerimaan anggota, penilaian, dan hasil seleksi sepenuhnya berada
+            pada lembaga atau kepanitiaan yang bersangkutan.
           </p>
         ),
       },
@@ -222,9 +226,9 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <p>
             Ketentuan ini dapat diperbarui sewaktu-waktu. Versi terbaru selalu
-            tersedia di halaman ini beserta tanggal berlakunya. Penggunaan layanan
-            setelah pembaruan berarti Anda menyetujui ketentuan yang berlaku saat
-            itu.
+            tersedia di halaman ini beserta tanggal berlakunya. Penggunaan
+            layanan setelah pembaruan berarti Anda menyetujui ketentuan yang
+            berlaku saat itu.
           </p>
         ),
       },
@@ -233,9 +237,9 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <>
             <p>
-              Ketentuan ini tunduk pada hukum yang berlaku di Republik Indonesia.
-              Pertanyaan tentang ketentuan ini dapat disampaikan kepada
-              Kementerian Anmategra KM ITB melalui {contactLink}.
+              Ketentuan ini tunduk pada hukum yang berlaku di Republik
+              Indonesia. Pertanyaan tentang ketentuan ini dapat disampaikan
+              kepada Kementerian Anmategra KM ITB melalui {contactLink}.
             </p>
           </>
         ),
@@ -259,12 +263,12 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
     effective: 'Effective 16 November 2026',
     intro: (
       <p className="leading-relaxed text-slate-700">
-        These Terms of Service govern your use of the Anmategra platform, operated
-        by the Anmategra Ministry, Human Resources Development Coordinating
-        Ministry (PSDM), Student Cabinet of Keluarga Mahasiswa Institut Teknologi
-        Bandung. By accessing or using Anmategra, you confirm that you have read
-        and agree to these terms. If you do not agree, please do not use the
-        service.
+        These Terms of Service govern your use of the Anmategra platform,
+        operated by the Anmategra Ministry, Human Resources Development
+        Coordinating Ministry (PSDM), Student Cabinet of Keluarga Mahasiswa
+        Institut Teknologi Bandung. By accessing or using Anmategra, you confirm
+        that you have read and agree to these terms. If you do not agree, please
+        do not use the service.
       </p>
     ),
     sections: [
@@ -274,9 +278,10 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
           <p>
             Anmategra is a student-organization data platform for the KM ITB
             community. The service covers organization and event profiles,
-            membership, forms and registration, committee structures, and selection
-            assessments. Some features require signing in with a campus account,
-            and some are limited to officers with specific roles.
+            membership, forms and registration, committee structures, and
+            selection assessments. Some features require signing in with a
+            campus account, and some are limited to officers with specific
+            roles.
           </p>
         ),
       },
@@ -286,20 +291,21 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
           <Daftar>
             <li>
               Students sign in with an ITB Microsoft Entra ID account in the{' '}
-              <code>@mahasiswa.itb.ac.id</code> domain, and organization managers
-              may sign in with a verified Google account.
+              <code>@mahasiswa.itb.ac.id</code> domain, and organization
+              managers may sign in with a verified Google account.
             </li>
             <li>
               You are responsible for keeping your account credentials
-              confidential and for all activity that occurs through your account.
+              confidential and for all activity that occurs through your
+              account.
             </li>
             <li>
               You must provide accurate information. Deliberately falsified data
               may result in suspension of access.
             </li>
             <li>
-              You may not create or use more than one account to circumvent quotas,
-              assessments, or access rights.
+              You may not create or use more than one account to circumvent
+              quotas, assessments, or access rights.
             </li>
           </Daftar>
         ),
@@ -309,9 +315,10 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <>
             <p>
-              Students whose campus account is not working may request alternative
-              access by submitting a contact email, student ID number (NIM), and a
-              photo of their student ID card (KTM). The following applies:
+              Students whose campus account is not working may request
+              alternative access by submitting a contact email, student ID
+              number (NIM), and a photo of their student ID card (KTM). The
+              following applies:
             </p>
             <Daftar>
               <li>
@@ -320,27 +327,27 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
                 access.
               </li>
               <li>
-                An alternative access session lasts at most 6 hours from the time
-                the claim is created. A successful Microsoft login revokes it
-                automatically.
+                An alternative access session lasts at most 6 hours from the
+                time the claim is created. A successful Microsoft login revokes
+                it automatically.
               </li>
               <li>
                 The student ID card photo is deleted automatically after 7 days;
                 only the claim record remains.
               </li>
               <li>
-                A NIM claimed by another party within the last 24 hours is treated
-                as a dispute. All parties are held until an admin decides, and the
-                admin&apos;s decision is final.
+                A NIM claimed by another party within the last 24 hours is
+                treated as a dispute. All parties are held until an admin
+                decides, and the admin&apos;s decision is final.
               </li>
               <li>
-                Submissions are limited to 3 claims per email per day and 10 claims
-                per network per hour.
+                Submissions are limited to 3 claims per email per day and 10
+                claims per network per hour.
               </li>
               <li>
-                Using someone else&apos;s NIM, or uploading a student ID card that
-                is not yours, is a serious violation and will result in revoked
-                access and a report to the relevant ITB authority.
+                Using someone else&apos;s NIM, or uploading a student ID card
+                that is not yours, is a serious violation and will result in
+                revoked access and a report to the relevant ITB authority.
               </li>
             </Daftar>
           </>
@@ -353,13 +360,13 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
             <p>You may not:</p>
             <Daftar>
               <li>
-                Access data you are not entitled to, including attempting to bypass
-                role restrictions or guess links to another organization&apos;s
-                forms.
+                Access data you are not entitled to, including attempting to
+                bypass role restrictions or guess links to another
+                organization&apos;s forms.
               </li>
               <li>
-                Upload content that is unlawful, contains malware, or infringes the
-                copyright or privacy rights of others.
+                Upload content that is unlawful, contains malware, or infringes
+                the copyright or privacy rights of others.
               </li>
               <li>
                 Disrupt service availability, including scanning for
@@ -383,20 +390,21 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <>
             <p>
-              You retain your rights to content you upload, such as form answers,
-              photos, and attachments. By uploading it, you grant Anmategra
-              permission to store, display, and process that content as far as
-              needed to operate the service and the related organizational
-              activities.
+              You retain your rights to content you upload, such as form
+              answers, photos, and attachments. By uploading it, you grant
+              Anmategra permission to store, display, and process that content
+              as far as needed to operate the service and the related
+              organizational activities.
             </p>
             <p>
-              Anmategra&apos;s source code is open under the AGPL-3.0 License. That
-              license governs use of the code, not use of the service; these terms
-              govern use of the service.
+              Anmategra&apos;s source code is open under the AGPL-3.0 License.
+              That license governs use of the code, not use of the service;
+              these terms govern use of the service.
             </p>
             <p>
-              Files uploaded through Google Drive remain in your own Drive account.
-              Anmategra stores only the link, as described in the Privacy Policy.
+              Files uploaded through Google Drive remain in your own Drive
+              account. Anmategra stores only the link, as described in the
+              Privacy Policy.
             </p>
           </>
         ),
@@ -406,11 +414,12 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <p>
             Anmategra is run by students as part of student activities, not as a
-            commercial service. The service is provided &ldquo;as is&rdquo; without
-            any guarantee of continuous availability, and may be stopped, changed,
-            or restored from backup at any time for maintenance or repair. We take
-            reasonable care of your data but cannot guarantee it will never be
-            lost. Keep your own copy of important files.
+            commercial service. The service is provided &ldquo;as is&rdquo;
+            without any guarantee of continuous availability, and may be
+            stopped, changed, or restored from backup at any time for
+            maintenance or repair. We take reasonable care of your data but
+            cannot guarantee it will never be lost. Keep your own copy of
+            important files.
           </p>
         ),
       },
@@ -418,11 +427,11 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         title: '7. Suspension and termination',
         body: (
           <p>
-            We may restrict, suspend, or terminate your access if you violate these
-            terms, manipulate data or assessments, or where necessary to protect
-            other users. In an account ownership dispute, an admin may request
-            additional evidence and the decision is final. You may stop using the
-            service at any time.
+            We may restrict, suspend, or terminate your access if you violate
+            these terms, manipulate data or assessments, or where necessary to
+            protect other users. In an account ownership dispute, an admin may
+            request additional evidence and the decision is final. You may stop
+            using the service at any time.
           </p>
         ),
       },
@@ -430,12 +439,13 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         title: '8. Limitation of liability',
         body: (
           <p>
-            To the extent permitted by applicable law, the Anmategra Ministry, KM
-            ITB, and Institut Teknologi Bandung are not liable for indirect or
-            consequential losses arising from use of the service, including data
-            loss, upload failures, or selection decisions made by organization
-            managers. Decisions on admission, assessment, and selection results
-            rest entirely with the organization or committee concerned.
+            To the extent permitted by applicable law, the Anmategra Ministry,
+            KM ITB, and Institut Teknologi Bandung are not liable for indirect
+            or consequential losses arising from use of the service, including
+            data loss, upload failures, or selection decisions made by
+            organization managers. Decisions on admission, assessment, and
+            selection results rest entirely with the organization or committee
+            concerned.
           </p>
         ),
       },
@@ -444,8 +454,9 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <p>
             These terms may be updated from time to time. The latest version is
-            always available on this page together with its effective date. Using
-            the service after an update means you accept the terms then in effect.
+            always available on this page together with its effective date.
+            Using the service after an update means you accept the terms then in
+            effect.
           </p>
         ),
       },
@@ -454,15 +465,18 @@ export const TERMS_OF_SERVICE: Record<TermsLocale, TermsContent> = {
         body: (
           <p>
             These terms are governed by the laws of the Republic of Indonesia.
-            Questions about these terms can be sent to the Anmategra Ministry, KM
-            ITB, at {contactLink}.
+            Questions about these terms can be sent to the Anmategra Ministry,
+            KM ITB, at {contactLink}.
           </p>
         ),
       },
     ],
     related: [
       { href: '/privacy', label: 'Privacy Policy' },
-      { href: '/ketentuan', label: 'Baca ketentuan ini dalam Bahasa Indonesia' },
+      {
+        href: '/ketentuan',
+        label: 'Baca ketentuan ini dalam Bahasa Indonesia',
+      },
     ],
   },
 };

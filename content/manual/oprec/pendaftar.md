@@ -55,13 +55,13 @@ Gunakan baris **Saringan pendaftar**:
 
 ## Arti status pilihan
 
-| Status             | Artinya                                                                  |
-| ------------------ | ------------------------------------------------------------------------ |
-| **Belum lengkap**  | Belum cukup penilai yang memberi skor.                                   |
-| **Lolos**          | Nilainya memenuhi metode status oprec, misalnya masuk peringkat kuota.   |
-| **Tidak lolos**    | Nilainya tidak memenuhi metode status.                                   |
+| Status             | Artinya                                                                                           |
+| ------------------ | ------------------------------------------------------------------------------------------------- |
+| **Belum lengkap**  | Belum cukup penilai yang memberi skor.                                                            |
+| **Lolos**          | Nilainya memenuhi metode status oprec, misalnya masuk peringkat kuota.                            |
+| **Tidak lolos**    | Nilainya tidak memenuhi metode status.                                                            |
 | **Perlu ditinjau** | Ada kriteria yang ditandai perlu ditinjau, atau nilainya berubah setelah statusnya diubah manual. |
-| **Gugur**          | Tidak memenuhi kriteria gugur.                                           |
+| **Gugur**          | Tidak memenuhi kriteria gugur.                                                                    |
 
 Status dengan keterangan **diubah manual** ditetapkan oleh pengambil keputusan,
 bukan dari hitungan nilai.

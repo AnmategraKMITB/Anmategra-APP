@@ -7,8 +7,7 @@ import { type AssessorMode, type PlacementState } from '~/server/db/schema';
  * divisi yang ia pegang di organogram (lihat `pengurus.ts`).
  */
 export type DivisionScope =
-  | { isAdmin: true }
-  | { isAdmin: false; divisionIds: Set<string> };
+  { isAdmin: true } | { isAdmin: false; divisionIds: Set<string> };
 
 /**
  * Cakupan seseorang atas satu oprec, atau `null` bila tidak boleh mengubah.

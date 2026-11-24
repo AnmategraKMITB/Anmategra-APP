@@ -125,7 +125,11 @@ export const profileLembagaRouter = createTRPCRouter({
     .input(DeleteProfilInputSchema.extend({ lembagaId: z.string().nonempty() }))
     .output(DeleteProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateLembagaProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
+      await validateLembagaProfileOwnership(
+        ctx,
+        input.profil_id,
+        ctx.lembagaId,
+      );
 
       const profilExists = await ctx.db.query.profilLembaga.findFirst({
         where: eq(profilLembaga.id, input.profil_id),
@@ -149,7 +153,11 @@ export const profileLembagaRouter = createTRPCRouter({
     .input(EditProfilInputSchema.extend({ lembagaId: z.string().nonempty() }))
     .output(EditProfilOutputSchema)
     .mutation(async ({ ctx, input }) => {
-      await validateLembagaProfileOwnership(ctx, input.profil_id, ctx.lembagaId);
+      await validateLembagaProfileOwnership(
+        ctx,
+        input.profil_id,
+        ctx.lembagaId,
+      );
 
       // Validate profil KM IDs exist
       if (input.profil_km_id && input.profil_km_id.length > 0) {

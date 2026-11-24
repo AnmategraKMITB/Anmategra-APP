@@ -2,6 +2,7 @@ import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import RaporTable from '~/app/_components/rapor/rapor-table';
 import RaporVisibilitySwitch from '~/app/_components/rapor/rapor-visibility-switch';
 import { api } from '~/trpc/server';
+
 import { requireManagedLembaga } from '../../../_lib/require-lembaga';
 
 const ManageRaporPage = async ({
@@ -23,9 +24,9 @@ const ManageRaporPage = async ({
   }));
 
   return (
-    <main className="flex flex-col p-4 sm:p-6 md:p-8 min-h-screen">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl sm:text-3xl md:text-[32px] font-semibold">
+    <main className="flex min-h-screen flex-col p-4 sm:p-6 md:p-8">
+      <div className="mb-2 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold sm:text-3xl md:text-[32px]">
           Rapor Anggota {info?.nama ?? ''}
         </h1>
         <RaporVisibilitySwitch

@@ -1,7 +1,6 @@
 import { sql } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
-
 import * as schema from '~/server/db/schema';
 
 export const TEST_DATABASE_URL =
@@ -38,9 +37,59 @@ export function createTestDb() {
   return { db, close: () => client.end() };
 }
 
-/** Mengosongkan semua tabel yang bergantung pada `users` (termasuk lembaga dan kegiatan). */
+/**
+ * Mengosongkan semua tabel aplikasi (awalan `anmategra_`), bukan hanya yang
+ * bergantung pada `users`: tabel tanpa FK ke users (mis. `profil_km`) dulu
+ * lolos dan sisanya terbawa ke kasus atau berkas berikutnya.
+ */
 export async function resetDb(db: TestDb) {
-  await db.execute(sql`TRUNCATE TABLE ${schema.users} CASCADE`);
+  const tables = await db.execute<{ name: string }>(sql`
+    select string_agg(quote_ident(tablename), ', ') as name from pg_tables
+    where schemaname = 'public' and tablename like 'anmategra\_%'
+  `);
+  await db.execute(sql.raw(`TRUNCATE TABLE ${tables[0]!.name} CASCADE`));
+}
+
+/**
+ * Mereproduksi dua keputusan yang datang bersamaan: koneksi lain menjalankan
+ * `update` dan menahan kuncinya, `call` dimulai, lalu perubahan itu di-commit
+ * begitu `call` tertahan kunci (atau sudah selesai). Hasil `call` diteruskan
+ * apa adanya, termasuk galatnya.
+ */
+export async function raceWithCommittedUpdate<T>(
+  update: (tx: postgres.ReservedSql) => Promise<unknown>,
+  call: () => Promise<T>,
+): Promise<T> {
+  const other = postgres(TEST_DATABASE_URL, { max: 2, onnotice: silentNotice });
+  try {
+    const tx = await other.reserve();
+    await tx`begin`;
+    await update(tx);
+
+    let settled = false;
+    const result = call().then(
+      (value) => ({ ok: true as const, value }),
+      (error: unknown) => ({ ok: false as const, error }),
+    );
+    void result.then(() => (settled = true));
+
+    for (let i = 0; i < 100 && !settled; i++) {
+      const [row] = await other<{ n: number }[]>`
+        select count(*)::int as n from pg_stat_activity
+        where wait_event_type = 'Lock' and datname = current_database()
+      `;
+      if ((row?.n ?? 0) > 0) break;
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    await tx`commit`;
+    tx.release();
+
+    const outcome = await result;
+    if (!outcome.ok) throw outcome.error;
+    return outcome.value;
+  } finally {
+    await other.end();
+  }
 }
 
 // ---------------------------------------------------------------------------

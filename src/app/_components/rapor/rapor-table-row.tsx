@@ -34,10 +34,10 @@ export default function RaporTableRow({
 
   return (
     <TableRow className="text-neutral-700">
-      <TableCell className="sticky left-0 z-10 bg-neutral-100 border-b border-[#E0E5E8]">
+      <TableCell className="sticky left-0 z-10 border-b border-[#E0E5E8] bg-neutral-100">
         {row.nama}
       </TableCell>
-      <TableCell className="sticky left-[283px] z-10 bg-neutral-100 border-b border-[#E0E5E8]">
+      <TableCell className="sticky left-[283px] z-10 border-b border-[#E0E5E8] bg-neutral-100">
         {row.nim}
       </TableCell>
       {row.profil.map((val: string, colIdx: number) => {
@@ -51,7 +51,7 @@ export default function RaporTableRow({
                 type="number"
                 min={0}
                 max={100}
-                className="w-16 px-2 py-1 border rounded"
+                className="w-16 rounded border px-2 py-1"
                 value={editedValue}
                 onChange={(e) => handleInputChange(colIdx, e.target.value)}
               />

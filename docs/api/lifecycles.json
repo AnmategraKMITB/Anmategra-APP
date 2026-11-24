@@ -1,0 +1,306 @@
+[
+  {
+    "name": "form",
+    "states": [
+      "Draft",
+      "Published",
+      "Closed"
+    ],
+    "moves": [
+      {
+        "from": "Draft",
+        "to": "Published"
+      },
+      {
+        "from": "Published",
+        "to": "Closed"
+      },
+      {
+        "from": "Published",
+        "to": "Draft",
+        "guarded": true,
+        "when": "belum ada jawaban"
+      },
+      {
+        "from": "Closed",
+        "to": "Published"
+      },
+      {
+        "from": "Closed",
+        "to": "Draft",
+        "guarded": true,
+        "when": "belum ada jawaban"
+      }
+    ]
+  },
+  {
+    "name": "oprec",
+    "states": [
+      "draft",
+      "open",
+      "closed"
+    ],
+    "moves": [
+      {
+        "from": "draft",
+        "to": "open",
+        "guarded": true,
+        "when": "pengaturan lengkap"
+      },
+      {
+        "from": "draft",
+        "to": "closed"
+      },
+      {
+        "from": "open",
+        "to": "draft",
+        "guarded": true,
+        "when": "belum ada pendaftar"
+      },
+      {
+        "from": "open",
+        "to": "closed"
+      },
+      {
+        "from": "closed",
+        "to": "open",
+        "guarded": true,
+        "when": "pengaturan lengkap"
+      },
+      {
+        "from": "closed",
+        "to": "draft",
+        "guarded": true,
+        "when": "belum ada pendaftar"
+      }
+    ]
+  },
+  {
+    "name": "penempatan",
+    "states": [
+      "berjalan",
+      "masa_banding",
+      "final"
+    ],
+    "moves": [
+      {
+        "from": "berjalan",
+        "to": "masa_banding"
+      },
+      {
+        "from": "masa_banding",
+        "to": "berjalan",
+        "guarded": true,
+        "when": "hasil belum dirilis"
+      },
+      {
+        "from": "masa_banding",
+        "to": "final"
+      },
+      {
+        "from": "final",
+        "to": "masa_banding"
+      }
+    ]
+  },
+  {
+    "name": "rilis hasil",
+    "states": [
+      "belum_dirilis",
+      "dirilis"
+    ],
+    "moves": [
+      {
+        "from": "belum_dirilis",
+        "to": "dirilis",
+        "guarded": true,
+        "when": "penempatan tidak berjalan"
+      },
+      {
+        "from": "dirilis",
+        "to": "belum_dirilis"
+      }
+    ]
+  },
+  {
+    "name": "permintaan pindah",
+    "states": [
+      "diminta",
+      "disetujui",
+      "ditolak",
+      "dibatalkan"
+    ],
+    "moves": [
+      {
+        "from": "diminta",
+        "to": "disetujui"
+      },
+      {
+        "from": "diminta",
+        "to": "ditolak"
+      },
+      {
+        "from": "diminta",
+        "to": "dibatalkan"
+      }
+    ]
+  },
+  {
+    "name": "laporan",
+    "states": [
+      "Open",
+      "In Progress",
+      "Resolved",
+      "Closed",
+      "Draft",
+      "Backlog",
+      "Reported"
+    ],
+    "moves": [
+      {
+        "from": "Open",
+        "to": "In Progress"
+      },
+      {
+        "from": "Open",
+        "to": "Resolved"
+      },
+      {
+        "from": "Open",
+        "to": "Closed"
+      },
+      {
+        "from": "Open",
+        "to": "Draft"
+      },
+      {
+        "from": "Open",
+        "to": "Backlog"
+      },
+      {
+        "from": "Open",
+        "to": "Reported"
+      },
+      {
+        "from": "In Progress",
+        "to": "Open"
+      },
+      {
+        "from": "In Progress",
+        "to": "Resolved"
+      },
+      {
+        "from": "In Progress",
+        "to": "Closed"
+      },
+      {
+        "from": "In Progress",
+        "to": "Backlog"
+      },
+      {
+        "from": "Resolved",
+        "to": "Open"
+      },
+      {
+        "from": "Resolved",
+        "to": "Closed"
+      },
+      {
+        "from": "Resolved",
+        "to": "Backlog"
+      },
+      {
+        "from": "Closed",
+        "to": "Open"
+      },
+      {
+        "from": "Closed",
+        "to": "In Progress"
+      },
+      {
+        "from": "Closed",
+        "to": "Resolved"
+      },
+      {
+        "from": "Closed",
+        "to": "Draft"
+      },
+      {
+        "from": "Closed",
+        "to": "Backlog"
+      },
+      {
+        "from": "Closed",
+        "to": "Reported"
+      },
+      {
+        "from": "Draft",
+        "to": "Open"
+      },
+      {
+        "from": "Draft",
+        "to": "In Progress"
+      },
+      {
+        "from": "Draft",
+        "to": "Resolved"
+      },
+      {
+        "from": "Draft",
+        "to": "Closed"
+      },
+      {
+        "from": "Draft",
+        "to": "Backlog"
+      },
+      {
+        "from": "Draft",
+        "to": "Reported"
+      },
+      {
+        "from": "Backlog",
+        "to": "Open"
+      },
+      {
+        "from": "Backlog",
+        "to": "In Progress"
+      },
+      {
+        "from": "Backlog",
+        "to": "Resolved"
+      },
+      {
+        "from": "Backlog",
+        "to": "Closed"
+      },
+      {
+        "from": "Backlog",
+        "to": "Draft"
+      },
+      {
+        "from": "Backlog",
+        "to": "Reported"
+      },
+      {
+        "from": "Reported",
+        "to": "Open"
+      },
+      {
+        "from": "Reported",
+        "to": "In Progress"
+      },
+      {
+        "from": "Reported",
+        "to": "Resolved"
+      },
+      {
+        "from": "Reported",
+        "to": "Closed"
+      },
+      {
+        "from": "Reported",
+        "to": "Backlog"
+      }
+    ]
+  }
+]

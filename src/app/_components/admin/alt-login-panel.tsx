@@ -85,8 +85,9 @@ export function AltLoginPanel({
                 </span>
               </div>
               <p className="text-neutral-700">
-                Email (tidak terverifikasi): {row.contactEmail} · diajukan {formatDate(row.createdAt)}{' '}
-                · berlaku sampai {formatDate(row.expiresAt)}
+                Email (tidak terverifikasi): {row.contactEmail} · diajukan{' '}
+                {formatDate(row.createdAt)} · berlaku sampai{' '}
+                {formatDate(row.expiresAt)}
                 {row.revokedReason ? ` · dicabut (${row.revokedReason})` : ''}
               </p>
               <div className="flex flex-wrap items-center gap-3">

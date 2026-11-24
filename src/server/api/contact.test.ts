@@ -1,5 +1,4 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
-
 import {
   addMembership,
   createEvent,
@@ -129,11 +128,7 @@ describe('contactAccess: selalu boleh melihat', () => {
     const { toggles } = await makeTarget();
     const admin = await createUser(db, { role: 'admin' });
     expect(
-      await contactAccess(
-        database,
-        { id: admin.id, role: 'admin' },
-        toggles,
-      ),
+      await contactAccess(database, { id: admin.id, role: 'admin' }, toggles),
     ).toEqual(SHOWN);
   });
 
@@ -160,11 +155,7 @@ describe('contactAccess: selalu boleh melihat', () => {
     });
     for (const u of [other, expired, revoked]) {
       expect(
-        await contactAccess(
-          database,
-          { id: u.id, role: 'mahasiswa' },
-          toggles,
-        ),
+        await contactAccess(database, { id: u.id, role: 'mahasiswa' }, toggles),
       ).toEqual(HIDDEN);
     }
   });
@@ -215,9 +206,9 @@ describe('contactAccess: pengelola lembaga atau kegiatan', () => {
 
     const pendingEvent = await makeTarget();
     await requestEventAssociation(db, e.id, pendingEvent.user.id, 'Pending');
-    expect(
-      await contactAccess(database, viewer, pendingEvent.toggles),
-    ).toEqual(SHOWN);
+    expect(await contactAccess(database, viewer, pendingEvent.toggles)).toEqual(
+      SHOWN,
+    );
 
     const pendingLembaga = await makeTarget();
     await requestLembagaAssociation(

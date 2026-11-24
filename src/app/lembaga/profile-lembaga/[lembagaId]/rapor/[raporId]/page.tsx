@@ -15,7 +15,9 @@ interface RaporIndividuMahasiswaLembagaPageProps {
   }>;
 }
 
-export default async function RaporIndividuMahasiswaLembagaPage(props: RaporIndividuMahasiswaLembagaPageProps) {
+export default async function RaporIndividuMahasiswaLembagaPage(
+  props: RaporIndividuMahasiswaLembagaPageProps,
+) {
   const params = await props.params;
   const { lembagaId, raporId } = params;
 
@@ -53,21 +55,27 @@ export default async function RaporIndividuMahasiswaLembagaPage(props: RaporIndi
     );
   } catch (error) {
     return (
-      <main className="flex flex-col p-4 sm:p-6 md:p-8 min-h-screen w-full overflow-hidden">
-        <div className="flex flex-col pb-4 sm:pb-6 md:pb-7 border-b border-neutral-400 mb-6 sm:mb-7 md:mb-8">
-          <h1 className="text-2xl sm:text-3xl md:text-[32px] font-semibold mb-2 text-neutral-1000">
+      <main className="flex min-h-screen w-full flex-col overflow-hidden p-4 sm:p-6 md:p-8">
+        <div className="mb-6 flex flex-col border-b border-neutral-400 pb-4 sm:mb-7 sm:pb-6 md:mb-8 md:pb-7">
+          <h1 className="mb-2 text-2xl font-semibold text-neutral-1000 sm:text-3xl md:text-[32px]">
             Rapor Individu
           </h1>
           <RaporBreadcrumb
             items={[
-              { label: 'Profile Lembaga', href: `/profile-lembaga/${lembagaId}` },
-              { label: 'Rapor Individu', href: `/profile-lembaga/${lembagaId}/rapor/${raporId}` },
+              {
+                label: 'Profile Lembaga',
+                href: `/profile-lembaga/${lembagaId}`,
+              },
+              {
+                label: 'Rapor Individu',
+                href: `/profile-lembaga/${lembagaId}/rapor/${raporId}`,
+              },
             ]}
           />
         </div>
-        <div className="text-center flex flex-col items-center justify-center space-y-8 py-6 sm:py-8">
-          <Lock className='size-20 text-neutral-500' />
-          <p className="text-sm sm:text-base text-neutral-500">
+        <div className="flex flex-col items-center justify-center space-y-8 py-6 text-center sm:py-8">
+          <Lock className="size-20 text-neutral-500" />
+          <p className="text-sm text-neutral-500 sm:text-base">
             {error instanceof Error &&
             error.message.includes('tidak dapat diakses')
               ? 'Rapor tidak dapat diakses. Rapor mungkin tidak dipublikasikan.'

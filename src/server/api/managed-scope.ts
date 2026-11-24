@@ -1,5 +1,4 @@
 import { and, desc, eq, inArray, isNotNull, ne } from 'drizzle-orm';
-
 import { listedAsKegiatan } from '~/server/api/period-listing';
 import { resolveAssessAccess } from '~/server/api/routers/oprec/assess-access';
 import { type db } from '~/server/db';
@@ -322,10 +321,7 @@ export async function listHandledOprecs(
     .innerJoin(events, eq(events.id, recruitment.periodId))
     .leftJoin(lembaga, eq(lembaga.id, events.org_id))
     .where(
-      and(
-        inArray(recruitment.id, candidates),
-        ne(recruitment.status, 'draft'),
-      ),
+      and(inArray(recruitment.id, candidates), ne(recruitment.status, 'draft')),
     )
     .orderBy(desc(recruitment.created_at));
 

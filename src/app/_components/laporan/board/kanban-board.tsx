@@ -11,8 +11,10 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { useState } from 'react';
-import { api } from '~/trpc/react';
 import { useToast } from '~/hooks/use-toast';
+import { api } from '~/trpc/react';
+
+import { canDropReport } from './column-type';
 import { Droppable } from './droppable';
 import { type Report, ReportCard } from './report-card';
 import {
@@ -83,7 +85,7 @@ export const KanbanBoard = ({
       });
       onRefresh?.();
     },
-    onError: () =>{
+    onError: () => {
       toast({
         title: 'Gagal menghapus laporan',
         description: 'Terjadi kesalahan saat menghapus laporan.',
@@ -92,10 +94,10 @@ export const KanbanBoard = ({
   });
 
   const setReportStatusMutation = api.admin.setReportStatus.useMutation({
-    onError: () => {
+    onError: (error) => {
       toast({
         title: 'Gagal memperbarui status',
-        description: 'Perubahan status tidak tersimpan. Coba lagi.',
+        description: error.message,
       });
     },
   });
@@ -105,20 +107,8 @@ export const KanbanBoard = ({
       reports[col].some((r) => r.id === id),
     );
 
-  const isForbiddenMove = (source?: ColumnType, dest?: ColumnType) => {
-    if (isAdminView) return false;
-
-    if (!source || !dest) return true;
-
-    if (source === dest) {
-      if (source === 'Draft' || source === 'Reported') return false;
-      return true; 
-    }
-
-    if (source === 'Draft' && dest === 'Reported') return false;
-
-    return true;
-  };
+  const isForbiddenMove = (source?: ColumnType, dest?: ColumnType) =>
+    !canDropReport(isAdminView, source, dest);
 
   // const onDragOver = (_event: DragOverEvent) => {
   //   //empty
@@ -143,16 +133,22 @@ export const KanbanBoard = ({
     }
     if (!sourceColumn || !destinationColumn) return;
 
-    if (!isAdminView && sourceColumn === 'Draft' && destinationColumn === 'Reported') {
+    if (
+      !isAdminView &&
+      sourceColumn === 'Draft' &&
+      destinationColumn === 'Reported'
+    ) {
       try {
-        await submitReportMutation.mutateAsync({id:activeId});
+        await submitReportMutation.mutateAsync({ id: activeId });
         setReports((prev) => {
           const src = prev[sourceColumn].filter((r) => r.id !== activeId);
           const moved = prev[sourceColumn].find((r) => r.id === activeId);
           return {
             ...prev,
             [sourceColumn]: src,
-            [destinationColumn]: moved ? [...prev[destinationColumn], moved] : prev[destinationColumn],
+            [destinationColumn]: moved
+              ? [...prev[destinationColumn], moved]
+              : prev[destinationColumn],
           };
         });
       } catch (e) {
@@ -233,9 +229,7 @@ export const KanbanBoard = ({
         return {
           ...prev,
           [srcColumn]: src,
-          [destColumn]: moved
-            ? [...prev[destColumn], moved]
-            : prev[destColumn],
+          [destColumn]: moved ? [...prev[destColumn], moved] : prev[destColumn],
         };
       });
     } catch (e) {
@@ -243,16 +237,16 @@ export const KanbanBoard = ({
     }
   };
 
-  const handleDelete = async (id:string) => {
+  const handleDelete = async (id: string) => {
     try {
-      await deleteReportMutation.mutateAsync({id});
-      setReports((prev)=> {
-        const copy = {...prev};
+      await deleteReportMutation.mutateAsync({ id });
+      setReports((prev) => {
+        const copy = { ...prev };
         (Object.keys(copy) as ColumnType[]).forEach((c) => {
           copy[c] = copy[c].filter((r) => r.id !== id);
         });
         return copy;
-      })
+      });
     } catch (e) {
       console.error('deleteReport failed', e);
     }
@@ -271,7 +265,9 @@ export const KanbanBoard = ({
         onDragStart={({ active }) => {
           if (!isAdminView) return;
           const col = findColumnByReportId(active.id.toString());
-          const item = col ? reports[col].find((r) => r.id === active.id.toString()) : null;
+          const item = col
+            ? reports[col].find((r) => r.id === active.id.toString())
+            : null;
           setActiveReport(item ?? null);
         }}
         // onDragOver={onDragOver}
@@ -292,7 +288,9 @@ export const KanbanBoard = ({
                 onEditReport={handleEdit}
                 onDeleteReport={handleDelete}
                 onSubmitReport={
-                  !isAdminView && colId === 'Draft' ? handleSubmitReport : undefined
+                  !isAdminView && colId === 'Draft'
+                    ? handleSubmitReport
+                    : undefined
                 }
               />
             </Droppable>
@@ -300,15 +298,15 @@ export const KanbanBoard = ({
         </div>
 
         <DragOverlay>
-            {activeReport && (
-              <ReportCard
-                report={activeReport}
-                column={findColumnByReportId(activeReport.id) ?? "Draft"}
-                // onClick={() => {}}
-                // onEdit={() => {}}
-                // onDelete={() => {}}
-              />
-            )}
+          {activeReport && (
+            <ReportCard
+              report={activeReport}
+              column={findColumnByReportId(activeReport.id) ?? 'Draft'}
+              // onClick={() => {}}
+              // onEdit={() => {}}
+              // onDelete={() => {}}
+            />
+          )}
         </DragOverlay>
       </DndContext>
     </div>

@@ -5,23 +5,11 @@ import {
   protectedProcedure,
   publicProcedure,
 } from '~/server/api/trpc';
-import {
-  events,
-  lembaga,
-  mahasiswa,
-  users,
-} from '~/server/db/schema';
+import { events, lembaga, mahasiswa, users } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
+
 import { byUserId, loadMahasiswaProfile } from '../mahasiswa-profile';
 import { listedAsKegiatan, registrationLink } from '../period-listing';
-
-import {
-  lembagaMembersSq,
-  periodMembersSq,
-  userKegiatanMemberships,
-  userLembagaMemberships,
-} from './organization/membership';
-
 import {
   GetKegiatanInputSchema,
   GetKegiatanOutputSchema,
@@ -32,6 +20,12 @@ import {
   GetMahasiswaInputSchema,
   GetMahasiswaOutputSchema,
 } from '../types/profile.type';
+import {
+  lembagaMembersSq,
+  periodMembersSq,
+  userKegiatanMemberships,
+  userLembagaMemberships,
+} from './organization/membership';
 
 export const profileRouter = createTRPCRouter({
   getMahasiswa: protectedProcedure
@@ -133,7 +127,10 @@ export const profileRouter = createTRPCRouter({
         orderBy: desc(events.start_date),
       });
 
-      const lembagaUsers = lembaga.users as { id: string; image: string | null };
+      const lembagaUsers = lembaga.users as {
+        id: string;
+        image: string | null;
+      };
       const formattedEvents: Kepanitiaan[] = newestEvent.map((item) => ({
         lembaga: {
           id: lembaga.id,
@@ -323,7 +320,10 @@ export const profileRouter = createTRPCRouter({
         orderBy: desc(events.start_date),
       });
 
-      const lembagaUsers = lembaga.users as { id: string; image: string | null };
+      const lembagaUsers = lembaga.users as {
+        id: string;
+        image: string | null;
+      };
       const formattedEvents: Kepanitiaan[] = newestEvent.map((item) => ({
         lembaga: {
           id: lembaga.id,

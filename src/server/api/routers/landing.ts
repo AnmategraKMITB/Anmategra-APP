@@ -13,12 +13,12 @@ import {
 } from 'drizzle-orm';
 import type { SQL } from 'drizzle-orm';
 import { z } from 'zod';
+import { listedAsKegiatan } from '~/server/api/period-listing';
 import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
 } from '~/server/api/trpc';
-import { listedAsKegiatan } from '~/server/api/period-listing';
 import { events, lembaga, mahasiswa, users } from '~/server/db/schema';
 import { type Kepanitiaan } from '~/types/kepanitiaan';
 
@@ -365,8 +365,7 @@ export const landingRouter = createTRPCRouter({
       }));
 
       const visibleLembaga = lembaga.filter(
-        (item) =>
-          !(item.users as { hiddenAt: Date | null } | null)?.hiddenAt,
+        (item) => !(item.users as { hiddenAt: Date | null } | null)?.hiddenAt,
       );
       const formattedLembaga: Kepanitiaan[] = visibleLembaga.map((item) => {
         const itemUsers = item.users as { image: string | null } | null;
@@ -387,11 +386,8 @@ export const landingRouter = createTRPCRouter({
 
       const visibleEvent = event.filter(
         (item) =>
-          !(
-            item.lembaga as
-              | { users?: { hiddenAt: Date | null } | null }
-              | null
-          )?.users?.hiddenAt,
+          !(item.lembaga as { users?: { hiddenAt: Date | null } | null } | null)
+            ?.users?.hiddenAt,
       );
       const formattedKepanitiaan: Kepanitiaan[] = visibleEvent.map((item) => {
         const lembagaItem = item.lembaga as {

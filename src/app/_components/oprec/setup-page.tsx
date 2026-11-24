@@ -26,7 +26,7 @@ export async function SetupPage({
       >
         ← Daftar oprec
       </Link>
-      <h1 className="mt-2 mb-6 text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
+      <h1 className="mb-6 mt-2 text-2xl font-semibold text-neutral-1000 sm:text-[32px]">
         Buat oprec
       </h1>
       <SetupWizard

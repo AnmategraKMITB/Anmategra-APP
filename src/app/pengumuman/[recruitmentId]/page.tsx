@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
-import { getServerAuthSession } from '~/server/auth';
 import { AnnouncementView } from '~/app/_components/oprec/pengumuman/announcement-view';
+import { getServerAuthSession } from '~/server/auth';
 
 export const metadata = {
   title: 'Pengumuman Hasil Oprec',

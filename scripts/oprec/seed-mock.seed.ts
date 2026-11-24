@@ -2,7 +2,7 @@
  * Mock oprec besar untuk mencoba alur Nilai dan Penempatan di database dev.
  * JANGAN dijalankan ke database production.
  *
- *   DATABASE_URL=... npm run seed:oprec-mock
+ *   DATABASE_URL=... bun run seed:oprec-mock
  *
  * Tiap kali dijalankan membuat lembaga, periode, organogram, dan oprec baru
  * (tidak menghapus data lama). Akun-akunnya ber-email `@mock.oprec.test`,

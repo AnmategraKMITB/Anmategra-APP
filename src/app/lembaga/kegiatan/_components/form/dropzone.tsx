@@ -95,28 +95,28 @@ const CustomDropzone = ({
       className="group"
     >
       <div
-        className={`relative w-full h-44 border-2 p-4 rounded-xl transition-all ${filePreview && !isUploading ? 'border-solid border-[#00B7B7]' : 'border-dashed border-gray-300 group-hover:border-[#00B7B7]'}`}
+        className={`relative h-44 w-full rounded-xl border-2 p-4 transition-all ${filePreview && !isUploading ? 'border-solid border-[#00B7B7]' : 'border-dashed border-gray-300 group-hover:border-[#00B7B7]'}`}
       >
         {!files && !isUploading && !filePreview && (
-          <div className="flex flex-col items-center justify-center h-full gap-3 group-hover:text-[#00B7B7] transition-colors">
-            <div className="relative w-12 h-12">
+          <div className="flex h-full flex-col items-center justify-center gap-3 transition-colors group-hover:text-[#00B7B7]">
+            <div className="relative h-12 w-12">
               <Image
                 src="/images/miscellaneous/upload.svg"
                 alt="Upload icon"
                 width={50}
                 height={50}
-                className="absolute inset-0 group-hover:opacity-0 transition-opacity"
+                className="absolute inset-0 transition-opacity group-hover:opacity-0"
               />
               <Image
                 src="/images/miscellaneous/upload-blue.svg"
                 alt="Upload icon hover"
                 width={50}
                 height={50}
-                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="absolute inset-0 opacity-0 transition-opacity group-hover:opacity-100"
               />
             </div>
-            <div className="flex flex-col text-center -mt-2">
-              <p className="text-base font-medium text-gray-700 group-hover:text-[#00B7B7] transition-colors">
+            <div className="-mt-2 flex flex-col text-center">
+              <p className="text-base font-medium text-gray-700 transition-colors group-hover:text-[#00B7B7]">
                 Select image to upload
               </p>
               <p className="text-sm text-gray-500">or drag to drop it here</p>
@@ -124,7 +124,7 @@ const CustomDropzone = ({
             <Button
               type="button"
               variant="light_blue"
-              className=" border-gray-300 hover:border-[#00B7B7]"
+              className="border-gray-300 hover:border-[#00B7B7]"
             >
               + Unggah
             </Button>
@@ -132,9 +132,9 @@ const CustomDropzone = ({
         )}
 
         {isUploading && (
-          <div className="flex flex-col items-center justify-center h-full gap-4">
-            <div className="relative w-20 h-20">
-              <svg className="w-20 h-20 transform -rotate-90">
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <div className="relative h-20 w-20">
+              <svg className="h-20 w-20 -rotate-90 transform">
                 <circle
                   cx="40"
                   cy="40"
@@ -168,28 +168,28 @@ const CustomDropzone = ({
               variant="outline"
               size="sm"
               onClick={handleCancel}
-              className="text-red-600 border-red-300 hover:bg-red-50"
+              className="border-red-300 text-red-600 hover:bg-red-50"
             >
-              <X className="w-4 h-4 mr-1" />
+              <X className="mr-1 h-4 w-4" />
               Cancel
             </Button>
           </div>
         )}
 
         {filePreview && !isUploading && (
-          <div className="absolute inset-0 w-full h-full rounded-lg overflow-hidden">
+          <div className="absolute inset-0 h-full w-full overflow-hidden rounded-lg">
             <Image
               alt="Preview"
-              className="w-full h-full object-cover"
+              className="h-full w-full object-cover"
               src={filePreview}
               fill
             />
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 transition-opacity hover:opacity-100">
               <Button
                 type="button"
                 variant={'outline'}
                 onClick={handleChange}
-                className="bg-white text-gray-900 hover:bg-gray-100 border border-neutral-700"
+                className="border border-neutral-700 bg-white text-gray-900 hover:bg-gray-100"
               >
                 Ubah File
               </Button>

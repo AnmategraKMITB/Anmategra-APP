@@ -14,7 +14,9 @@ describe('remainingSuperadmins', () => {
     expect(remainingSuperadmins(['a@x.id'], ['d@x.id'], 'a@x.id')).toBe(1);
   });
   it('email yang sama di basis data dan env tidak dihitung ganda', () => {
-    expect(remainingSuperadmins(['a@x.id', 'D@x.id'], ['d@x.id'], 'a@x.id')).toBe(1);
+    expect(
+      remainingSuperadmins(['a@x.id', 'D@x.id'], ['d@x.id'], 'a@x.id'),
+    ).toBe(1);
   });
   it('akun darurat tidak pernah hilang walau dikecualikan', () => {
     expect(remainingSuperadmins(['d@x.id'], ['d@x.id'], 'd@x.id')).toBe(1);

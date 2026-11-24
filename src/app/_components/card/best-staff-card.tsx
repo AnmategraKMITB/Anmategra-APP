@@ -47,10 +47,10 @@ export default function BestStaffCard({
     divisi.length > 28 ? divisi.slice(0, 20) + '...' : divisi;
 
   const cardContent = (
-    <Card className="w-60 max-h-[200px] rounded-[20px] bg-white hover:bg-[#00B7B7] group border border-[#E0E5E8] flex flex-col items-center justify-center hover:cursor-pointer">
-      <div className="w-full h-full flex">
-        <div className="relative w-full h-full flex flex-col items-center justify-center">
-          <div className="absolute top-[17px] left-[192px]">
+    <Card className="group flex max-h-[200px] w-60 flex-col items-center justify-center rounded-[20px] border border-[#E0E5E8] bg-white hover:cursor-pointer hover:bg-[#00B7B7]">
+      <div className="flex h-full w-full">
+        <div className="relative flex h-full w-full flex-col items-center justify-center">
+          <div className="absolute left-[192px] top-[17px]">
             <Image
               src={YellowStarIcon}
               alt="Yellow Star Icon"
@@ -60,24 +60,24 @@ export default function BestStaffCard({
             />
           </div>
           <div className="flex flex-col items-center justify-center px-1 py-[27px]">
-            <div className="w-16 h-16 rounded-full overflow-hidden border border-[#009292] group-hover:border-[#E0E5E8] mb-[9px]">
+            <div className="mb-[9px] h-16 w-16 overflow-hidden rounded-full border border-[#009292] group-hover:border-[#E0E5E8]">
               <Image
                 src={profilePicture ?? dummyProfile}
                 alt="Profile Picture"
                 width={64}
                 height={64}
-                className="object-cover w-full h-full"
+                className="h-full w-full object-cover"
               />
             </div>
 
             <div className="text-center">
-              <h1 className="font-bold text-xl text-[#009292] group-hover:text-white">
+              <h1 className="text-xl font-bold text-[#009292] group-hover:text-white">
                 {namaSliced}
               </h1>
               <p className="text-xs text-[#141718] group-hover:text-white">
                 {subtitle ?? (NIM && jurusan ? `${NIM} - ${jurusan}` : '')}
               </p>
-              <h2 className="text-[#9DA4A8] font-semibold group-hover:text-white">
+              <h2 className="font-semibold text-[#9DA4A8] group-hover:text-white">
                 {divisiSliced}
               </h2>
             </div>
@@ -92,9 +92,10 @@ export default function BestStaffCard({
   }
 
   if (targetType && targetId) {
-    const href = targetType === 'lembaga' 
-      ? `/profile-lembaga/${targetId}` 
-      : `/profile-kegiatan/${targetId}`;
+    const href =
+      targetType === 'lembaga'
+        ? `/profile-lembaga/${targetId}`
+        : `/profile-kegiatan/${targetId}`;
     return (
       <Link href={href} className="no-underline">
         {cardContent}
@@ -104,7 +105,10 @@ export default function BestStaffCard({
 
   if (id_mahasiswa) {
     return (
-      <Link href={`/profile-mahasiswa/${id_mahasiswa}`} className="no-underline">
+      <Link
+        href={`/profile-mahasiswa/${id_mahasiswa}`}
+        className="no-underline"
+      >
         {cardContent}
       </Link>
     );

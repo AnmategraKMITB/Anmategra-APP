@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import React from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
-import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
+import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 // Components Import
 import { EventHeader } from '~/app/_components/placeholder/event-header';
 import { PenyelenggaraCard } from '~/app/_components/placeholder/penyelenggara-card';
@@ -49,10 +49,10 @@ const ProfileKegiatan = async ({
     }
 
     return (
-      <div className="w-full flex min-h-screen flex-col items-center px-6">
+      <div className="flex min-h-screen w-full flex-col items-center px-6">
         <div className="w-full max-w-7xl bg-slate-50 py-6">
           <div className="mb-4">
-            <h1 className="text-xl md:text-2xl font-semibold text-slate-600">
+            <h1 className="text-xl font-semibold text-slate-600 md:text-2xl">
               {kegiatan?.name}
             </h1>
             <RaporBreadcrumb
@@ -81,10 +81,10 @@ const ProfileKegiatan = async ({
             session={session}
           />
           <div className="mb-8">
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+            <h2 className="mb-3 text-xl font-semibold text-slate-600 md:text-2xl">
               Deskripsi Kegiatan
             </h2>
-            <div className="rounded-xl bg-white border border-neutral-200 px-4 py-3 md:px-6 md:py-4 text-sm md:text-base text-neutral-800 leading-relaxed">
+            <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-800 md:px-6 md:py-4 md:text-base">
               {kegiatan?.description?.trim()
                 ? kegiatan.description
                 : 'Belum ada deskripsi untuk kegiatan ini.'}
@@ -94,7 +94,7 @@ const ProfileKegiatan = async ({
           {/* Organogram Section */}
           {kegiatan?.is_organogram && kegiatan?.organogram_image && (
             <div className="mb-8">
-              <h2 className="text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+              <h2 className="mb-3 text-xl font-semibold text-slate-600 md:text-2xl">
                 Organogram
               </h2>
               <OrganogramDialog
@@ -105,7 +105,7 @@ const ProfileKegiatan = async ({
           )}
 
           <div className="mb-8">
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+            <h2 className="mb-3 text-xl font-semibold text-slate-600 md:text-2xl">
               Penyelenggara
             </h2>
             <Link href={`/profile-lembaga/${lembaga?.id}`}>
@@ -122,9 +122,9 @@ const ProfileKegiatan = async ({
 
           {/* Best Staff Section */}
           {latestBestStaff && (
-            <div className="flex flex-col gap-12 w-full mb-8">
-              <div className="flex flex-col gap-3 w-full">
-                <div className="flex flex-row justify-between items-center">
+            <div className="mb-8 flex w-full flex-col gap-12">
+              <div className="flex w-full flex-col gap-3">
+                <div className="flex flex-row items-center justify-between">
                   <h2 className="text-2xl font-semibold text-[##141718]">
                     Best Staff Periode{' '}
                     {new Date(latestBestStaff.start_date).toLocaleDateString(
@@ -151,7 +151,7 @@ const ProfileKegiatan = async ({
                       >
                         <span>Lihat Histori</span>
                         <ChevronRight
-                          className="!w-4 !h-4 text-slate-600"
+                          className="!h-4 !w-4 text-slate-600"
                           aria-hidden
                         />
                       </Link>

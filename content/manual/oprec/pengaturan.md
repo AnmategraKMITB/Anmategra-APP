@@ -95,10 +95,10 @@ Untuk menambah penilai lain:
 Penilai masuk dengan akunnya sendiri, sehingga setiap skor tercatat atas
 namanya. Nilai yang sudah diisi tetap tersimpan meski penilainya dihapus.
 
-## Pengaturan divisi untuk Kadiv dan Kabid
+## Pengaturan divisi untuk pengurus divisi
 
-Pengurus divisi (Kadiv, Kabid, atau jabatan lain di atas Staf yang membawahi
-divisi itu di organogram) tidak bisa membuka Pengaturan penuh. Mereka melihat
+Pengurus divisi (pemegang jabatan di atas Staf yang membawahi divisi itu di
+organogram, apa pun nama jabatannya) tidak bisa membuka Pengaturan penuh. Mereka melihat
 tab **Pengaturan divisi** yang hanya memuat divisi yang mereka pegang:
 
 - **Kriteria divisi** — tambah, ubah, urutkan, dan hapus. Kriteria boleh diubah

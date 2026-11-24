@@ -42,14 +42,14 @@ export default function LayoutCarouselBestStaff({
           variant="light_blue"
           size="icon"
           onClick={scrollLeft}
-          className="absolute left-0 sm:left-1 top-1/2 z-10 -translate-y-1/2 rounded-[8px] shadow"
+          className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-[8px] shadow sm:left-1"
         >
           <ChevronLeft className="size-4" />
         </Button>
       )}
       <div
         ref={containerRef}
-        className="flex justify-start gap-4 scroll-smooth overflow-x-hidden pb-4"
+        className="flex justify-start gap-4 overflow-x-hidden scroll-smooth pb-4"
       >
         {wrappedChildren}
       </div>
@@ -58,7 +58,7 @@ export default function LayoutCarouselBestStaff({
           variant="light_blue"
           size="icon"
           onClick={scrollRight}
-          className="absolute right-0 sm:right-1 top-1/2 z-10 -translate-y-1/2 rounded-[8px] shadow"
+          className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-[8px] shadow sm:right-1"
         >
           <ChevronRight className="size-4" />
         </Button>

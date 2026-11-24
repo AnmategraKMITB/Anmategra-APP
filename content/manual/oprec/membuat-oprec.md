@@ -48,11 +48,11 @@ menerbitkan formulirnya.
 
 ## Preset yang tersedia
 
-| Preset                                | Cocok untuk   | Isi bawaan                                                                 |
-| ------------------------------------- | ------------- | -------------------------------------------------------------------------- |
+| Preset                                | Cocok untuk   | Isi bawaan                                                                    |
+| ------------------------------------- | ------------- | ----------------------------------------------------------------------------- |
 | **Kepanitiaan besar**                 | OSKM, KAT     | Hingga 3 pilihan, bergelombang, rubrik umum dan per divisi, ada penilai umum. |
-| **Acara dengan penilai ketua divisi** | AMI           | 1–2 pilihan, tanpa gelombang, rubrik per divisi.                           |
-| **Staf himpunan atau badan**          | Himpunan, UKM | 1 pilihan, rubrik umum, kriteria Motivasi, Komitmen, dan Komunikasi.       |
+| **Acara dengan penilai ketua divisi** | AMI           | 1–2 pilihan, tanpa gelombang, rubrik per divisi.                              |
+| **Staf himpunan atau badan**          | Himpunan, UKM | 1 pilihan, rubrik umum, kriteria Motivasi, Komitmen, dan Komunikasi.          |
 
 Preset hanya mengisi pengaturan. Nama, divisi yang dibuka, dan tanggal tetap
 Anda isi sendiri. Memilih preset lagi lewat **Ganti preset** menimpa pengaturan
@@ -60,17 +60,17 @@ yang sudah diisi.
 
 ## Pertanyaan setup
 
-| Kelompok                 | Yang ditentukan                                                                                       |
-| ------------------------ | ----------------------------------------------------------------------------------------------------- |
-| **Dasar**                | Nama oprec, divisi yang dibuka, dan apakah pendaftaran dibagi gelombang.                              |
-| **Siapa yang mendaftar** | Syarat pendaftar: angkatan, program studi, status mahasiswa, atau keanggotaan lembaga.                |
-| **Isi form**             | Jumlah pilihan divisi, kesediaan dipindahkan, lampiran wajib, dan pengelompokan pertanyaan.           |
-| **Form**                 | Membuat formulir dari templat oprec atau memakai formulir kosong yang sudah ada.                      |
-| **Penilaian**            | Rubrik umum atau per divisi, dinilai dengan skor atau langsung diputuskan, siapa penilainya, kriteria. |
-| **Keputusan dan akses**  | Apakah keputusan akhir ada di ketua divisi, dan siapa saja pengelola oprec.                           |
+| Kelompok                 | Yang ditentukan                                                                                         |
+| ------------------------ | ------------------------------------------------------------------------------------------------------- |
+| **Dasar**                | Nama oprec, divisi yang dibuka, dan apakah pendaftaran dibagi gelombang.                                |
+| **Siapa yang mendaftar** | Syarat pendaftar: angkatan, program studi, status mahasiswa, atau keanggotaan lembaga.                  |
+| **Isi form**             | Jumlah pilihan divisi, kesediaan dipindahkan, lampiran wajib, dan pengelompokan pertanyaan.             |
+| **Form**                 | Membuat formulir dari templat oprec atau memakai formulir kosong yang sudah ada.                        |
+| **Penilaian**            | Rubrik umum atau per divisi, dinilai dengan skor atau langsung diputuskan, siapa penilainya, kriteria.  |
+| **Keputusan dan akses**  | Apakah keputusan akhir ada di ketua divisi, dan siapa saja pengelola oprec.                             |
 | **Penempatan**           | Dikerjakan bertahap per pilihan atau sekaligus, dan apakah divisi boleh melihat penerimaan divisi lain. |
-| **Hasil**                | Siapa yang bisa membuka menu Hasil dan apakah hasil ditampilkan ke pendaftar.                         |
-| **Closerec**             | Apakah ada jalur mengajak anggota langsung tanpa mendaftar.                                           |
+| **Hasil**                | Siapa yang bisa membuka menu Hasil dan apakah hasil ditampilkan ke pendaftar.                           |
+| **Closerec**             | Apakah ada jalur mengajak anggota langsung tanpa mendaftar.                                             |
 
 Beberapa hal yang sering ditanyakan:
 

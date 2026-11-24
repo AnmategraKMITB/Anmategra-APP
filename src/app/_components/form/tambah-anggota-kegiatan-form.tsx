@@ -122,7 +122,7 @@ const TambahAnggotaKegiatanForm = ({
           control={form.control}
           name="user_id"
           render={({ field }) => (
-            <FormItem className="w-full flex flex-col">
+            <FormItem className="flex w-full flex-col">
               <FormLabel>Nama Mahasiswa</FormLabel>
               <FormControl>
                 <Popover open={open} onOpenChange={setOpen}>
@@ -138,7 +138,7 @@ const TambahAnggotaKegiatanForm = ({
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 PopoverContent">
+                  <PopoverContent className="PopoverContent p-0">
                     <Command>
                       <CommandInput placeholder="Cari Mahasiswa" />
                       <CommandList>
@@ -192,7 +192,7 @@ const TambahAnggotaKegiatanForm = ({
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 PopoverContent">
+                  <PopoverContent className="PopoverContent p-0">
                     <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Cari atau ketik posisi baru"
@@ -203,7 +203,7 @@ const TambahAnggotaKegiatanForm = ({
                       />
                       <CommandList>
                         <CommandEmpty>
-                          <div className="py-2 px-3 text-sm">
+                          <div className="px-3 py-2 text-sm">
                             Tekan Enter untuk menggunakan:{' '}
                             <span className="font-semibold">{field.value}</span>
                           </div>
@@ -263,7 +263,7 @@ const TambahAnggotaKegiatanForm = ({
                       <ChevronsUpDown className="opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0 PopoverContent">
+                  <PopoverContent className="PopoverContent p-0">
                     <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Cari atau ketik divisi baru"
@@ -274,7 +274,7 @@ const TambahAnggotaKegiatanForm = ({
                       />
                       <CommandList>
                         <CommandEmpty>
-                          <div className="py-2 px-3 text-sm">
+                          <div className="px-3 py-2 text-sm">
                             Tekan Enter untuk menggunakan:{' '}
                             <span className="font-semibold">{field.value}</span>
                           </div>

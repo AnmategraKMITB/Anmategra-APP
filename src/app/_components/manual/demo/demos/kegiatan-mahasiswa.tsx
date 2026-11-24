@@ -3,18 +3,17 @@
 // Library Import
 import { ArrowLeft } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Modal,
   Pill,
   ScreenTitle,
+  inputClass,
   useFlash,
 } from '../ui';
 
@@ -42,9 +41,30 @@ type Event = {
 };
 
 const EVENTS: Event[] = [
-  { id: 'fk', name: 'Aku Masuk ITB 2027', host: 'Kabinet KM ITB', status: 'Coming Soon', oprec: true, participants: 24 },
-  { id: 'kd', name: 'Kelas Desain Dasar', host: 'UKM Rupa', status: 'On going', oprec: false, participants: 8 },
-  { id: 'mk', name: 'Malam Keakraban 2026', host: 'Kabinet KM ITB', status: 'Ended', oprec: false, participants: 31 },
+  {
+    id: 'fk',
+    name: 'Aku Masuk ITB 2027',
+    host: 'Kabinet KM ITB',
+    status: 'Coming Soon',
+    oprec: true,
+    participants: 24,
+  },
+  {
+    id: 'kd',
+    name: 'Kelas Desain Dasar',
+    host: 'UKM Rupa',
+    status: 'On going',
+    oprec: false,
+    participants: 8,
+  },
+  {
+    id: 'mk',
+    name: 'Malam Keakraban 2026',
+    host: 'Kabinet KM ITB',
+    status: 'Ended',
+    oprec: false,
+    participants: 31,
+  },
 ];
 
 export default function KegiatanMahasiswaDemo() {
@@ -108,9 +128,7 @@ function Body({ guide }: { guide: DemoGuide }) {
               <Btn
                 tone="dangerOutline"
                 onClick={() =>
-                  setRequested((prev) =>
-                    prev.filter((id) => id !== opened.id),
-                  )
+                  setRequested((prev) => prev.filter((id) => id !== opened.id))
                 }
               >
                 Batalkan Pengajuan
@@ -160,7 +178,12 @@ function Body({ guide }: { guide: DemoGuide }) {
               </>
             }
           >
-            <div className={cn('grid gap-3 rounded-lg sm:grid-cols-2', guide.spot('kirim'))}>
+            <div
+              className={cn(
+                'grid gap-3 rounded-lg sm:grid-cols-2',
+                guide.spot('kirim'),
+              )}
+            >
               <Field label="Posisi">
                 {(id) => (
                   <input

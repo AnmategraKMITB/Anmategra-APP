@@ -138,7 +138,7 @@ const EditProfileDialog = ({
     <div className="w-full px-6">
       {!isEdit && (
         <Button
-          className="w-full bg-secondary-400 hover:bg-secondary-500 space-x-3 px-6 py-3 text-sm sm:text-base md:text-lg rounded-2xl"
+          className="w-full space-x-3 rounded-2xl bg-secondary-400 px-6 py-3 text-sm hover:bg-secondary-500 sm:text-base md:text-lg"
           onClick={() => setIsEdit(true)}
         >
           <Pencil /> Edit Profile Info
@@ -147,7 +147,7 @@ const EditProfileDialog = ({
       {isEdit && (
         <div className="w-full items-center pb-2">
           <div className="mb-4">
-            <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-neutral-1000">
+            <h2 className="text-lg font-semibold text-neutral-1000 sm:text-xl md:text-2xl">
               Edit Profile
             </h2>
           </div>
@@ -155,10 +155,10 @@ const EditProfileDialog = ({
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="space-y-4 w-full"
+              className="w-full space-y-4"
             >
               {/* Profile Section with Avatar and Personal Info */}
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-x-8">
+              <div className="flex flex-col items-center gap-x-8 sm:flex-row sm:items-start">
                 {/* Avatar with Upload Button */}
                 <div className="flex flex-col items-start">
                   <FormField
@@ -167,7 +167,7 @@ const EditProfileDialog = ({
                     render={({ field }) => (
                       <FormItem>
                         <FormControl>
-                          <div className="relative w-24 h-24 sm:w-32 sm:h-32 md:w-40 md:h-40 rounded-full overflow-hidden bg-gray-200 cursor-pointer group">
+                          <div className="group relative h-24 w-24 cursor-pointer overflow-hidden rounded-full bg-gray-200 sm:h-32 sm:w-32 md:h-40 md:w-40">
                             {/* Display the image */}
                             {field.value ? (
                               <Image
@@ -175,35 +175,35 @@ const EditProfileDialog = ({
                                 alt="Profile Picture"
                                 width={160}
                                 height={160}
-                                className="w-full h-full object-cover relative z-0"
+                                className="relative z-0 h-full w-full object-cover"
                               />
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center text-gray-400 relative z-0">
-                                <Camera className="w-6 h-6 mb-2" />
-                                <span className="text-xs text-center">
+                              <div className="relative z-0 flex h-full w-full flex-col items-center justify-center text-gray-400">
+                                <Camera className="mb-2 h-6 w-6" />
+                                <span className="text-center text-xs">
                                   Click to upload
                                 </span>
                               </div>
                             )}
 
                             {/* Hover overlay */}
-                            <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                            <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center bg-black bg-opacity-50 opacity-0 transition-opacity group-hover:opacity-100">
                               <Image
                                 src={'/images/miscellaneous/photo-camera.svg'}
                                 alt="Camera Icon"
                                 height={20}
                                 width={20}
                               />
-                              <span className="text-white text-xs text-center font-semibold mt-1">
+                              <span className="mt-1 text-center text-xs font-semibold text-white">
                                 {field.value ? 'Change photo' : 'Upload photo'}
                               </span>
                             </div>
 
                             {/* Loading Overlay */}
                             {isUploading && (
-                              <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col items-center justify-center z-30">
-                                <Loader2 className="w-8 h-8 text-white animate-spin" />
-                                <span className="text-white text-xs mt-2">
+                              <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black bg-opacity-60">
+                                <Loader2 className="h-8 w-8 animate-spin text-white" />
+                                <span className="mt-2 text-xs text-white">
                                   Uploading...
                                 </span>
                               </div>
@@ -240,7 +240,7 @@ const EditProfileDialog = ({
                                 }}
                                 content={{
                                   button: () => (
-                                    <div className="w-full h-full bg-transparent" />
+                                    <div className="h-full w-full bg-transparent" />
                                   ),
                                 }}
                               />
@@ -254,14 +254,14 @@ const EditProfileDialog = ({
                 </div>
 
                 {/* Personal Information */}
-                <div className="flex-1 space-y-4 gap-3 w-full">
+                <div className="w-full flex-1 gap-3 space-y-4">
                   {/* Nama */}
                   <FormField
                     control={form.control}
                     name="nama"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-normal text-neutral-1000 text-sm md:text-lg">
+                        <FormLabel className="text-sm font-normal text-neutral-1000 md:text-lg">
                           Nama
                         </FormLabel>
                         <FormControl>
@@ -269,7 +269,7 @@ const EditProfileDialog = ({
                             placeholder="Masukkan nama lengkap"
                             {...field}
                             disabled
-                            className="border rounded-xl border-neutral-400 bg-neutral-200 text-sm md:text-lg"
+                            className="rounded-xl border border-neutral-400 bg-neutral-200 text-sm md:text-lg"
                           />
                         </FormControl>
                         <FormMessage />
@@ -283,7 +283,7 @@ const EditProfileDialog = ({
                     name="nim"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-normal text-neutral-1000 text-sm md:text-lg">
+                        <FormLabel className="text-sm font-normal text-neutral-1000 md:text-lg">
                           NIM
                         </FormLabel>
                         <FormControl>
@@ -292,7 +292,7 @@ const EditProfileDialog = ({
                             {...field}
                             readOnly
                             disabled
-                            className="bg-gray-100 cursor-not-allowed text-gray-600 text-sm md:text-lg"
+                            className="cursor-not-allowed bg-gray-100 text-sm text-gray-600 md:text-lg"
                           />
                         </FormControl>
                         <FormMessage />
@@ -306,7 +306,7 @@ const EditProfileDialog = ({
                     name="jurusanAngkatan"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="font-normal text-neutral-1000 text-sm md:text-lg">
+                        <FormLabel className="text-sm font-normal text-neutral-1000 md:text-lg">
                           Jurusan&apos;Angkatan
                         </FormLabel>
                         <FormControl>
@@ -326,10 +326,10 @@ const EditProfileDialog = ({
 
               {/* Contact Information Section */}
               <div className="space-y-4">
-                <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-neutral-1000">
+                <h3 className="text-lg font-semibold text-neutral-1000 sm:text-xl md:text-2xl">
                   Contact Info
                 </h3>
-                <div className="flex flex-col sm:flex-row gap-x-4 gap-y-4">
+                <div className="flex flex-col gap-x-4 gap-y-4 sm:flex-row">
                   {/* ID Line */}
                   <FormField
                     control={form.control}
@@ -343,7 +343,7 @@ const EditProfileDialog = ({
                             width={20}
                             height={20}
                           />
-                          <p className="font-normal text-sm sm:text-md md:text-xl">
+                          <p className="sm:text-md text-sm font-normal md:text-xl">
                             ID Line
                           </p>
                         </FormLabel>
@@ -368,7 +368,7 @@ const EditProfileDialog = ({
                             width={20}
                             height={20}
                           />
-                          <p className="font-normal text-sm sm:text-md md:text-xl">
+                          <p className="sm:text-md text-sm font-normal md:text-xl">
                             Nomor WhatsApp
                           </p>
                         </FormLabel>
@@ -385,7 +385,7 @@ const EditProfileDialog = ({
               {/* Visibilitas Kontak */}
               <div className="space-y-4">
                 <div>
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-neutral-1000">
+                  <h3 className="text-lg font-semibold text-neutral-1000 sm:text-xl md:text-2xl">
                     Visibilitas Kontak
                   </h3>
                   <p className="text-sm text-neutral-600">
@@ -407,7 +407,7 @@ const EditProfileDialog = ({
                     name={name}
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-center justify-between rounded-xl border px-4 py-3">
-                        <FormLabel className="font-normal text-sm sm:text-base">
+                        <FormLabel className="text-sm font-normal sm:text-base">
                           {label}
                         </FormLabel>
                         <FormControl>
@@ -424,7 +424,7 @@ const EditProfileDialog = ({
               </div>
 
               {/* Submit Button */}
-              <div className="w-full gap-x-3 flex justify-center items-center sm:justify-end sm:items-end pt-2">
+              <div className="flex w-full items-center justify-center gap-x-3 pt-2 sm:items-end sm:justify-end">
                 <Button
                   variant={'outline'}
                   className="border-Blue-Dark text-Blue-Dark"

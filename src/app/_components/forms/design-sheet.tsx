@@ -122,7 +122,7 @@ function ColorPicker({
           title="Warna lain"
           style={custom ? { backgroundColor: current } : undefined}
           className={cn(
-            'relative flex size-9 cursor-pointer items-center justify-center rounded-full border border-dashed border-neutral-700 text-neutral-700 transition-transform duration-150 hover:scale-110 focus-within:ring-2 focus-within:ring-primary-400 focus-within:ring-offset-2',
+            'relative flex size-9 cursor-pointer items-center justify-center rounded-full border border-dashed border-neutral-700 text-neutral-700 transition-transform duration-150 focus-within:ring-2 focus-within:ring-primary-400 focus-within:ring-offset-2 hover:scale-110',
             custom && 'border-solid ring-2 ring-primary-400 ring-offset-2',
           )}
         >

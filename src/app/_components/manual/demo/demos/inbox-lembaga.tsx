@@ -2,23 +2,16 @@
 
 // Library Import
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import {
-  Btn,
-  Empty,
-  inputClass,
-  Pill,
-  ScreenTitle,
-  useFlash,
-} from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Empty, Pill, ScreenTitle, inputClass, useFlash } from '../ui';
 
 const STEPS: DemoStep[] = [
   {
     id: 'cari',
-    title: 'Saring pengajuan dengan **Cari nama pemohon** atau filter **Divisi**',
+    title:
+      'Saring pengajuan dengan **Cari nama pemohon** atau filter **Divisi**',
   },
   {
     id: 'terima',
@@ -38,9 +31,27 @@ type Request = {
 };
 
 const INITIAL: Request[] = [
-  { id: 1, name: 'Dimas Wicaksono', nim: '13124073', division: 'Logistik', position: 'Staf' },
-  { id: 2, name: 'Salsa Rahmadhani', nim: '17424021', division: 'Publikasi', position: 'Staf' },
-  { id: 3, name: 'Fajar Nugraha', nim: '10523044', division: 'Event Organizer', position: 'Kepala Divisi' },
+  {
+    id: 1,
+    name: 'Dimas Wicaksono',
+    nim: '13124073',
+    division: 'Logistik',
+    position: 'Staf',
+  },
+  {
+    id: 2,
+    name: 'Salsa Rahmadhani',
+    nim: '17424021',
+    division: 'Publikasi',
+    position: 'Staf',
+  },
+  {
+    id: 3,
+    name: 'Fajar Nugraha',
+    nim: '10523044',
+    division: 'Event Organizer',
+    position: 'Kepala Divisi',
+  },
 ];
 
 export default function InboxLembagaDemo() {
@@ -87,7 +98,9 @@ function Body({ guide }: { guide: DemoGuide }) {
         title="Inbox"
         subtitle="Pengajuan asosiasi untuk Aku Masuk ITB 2027"
       />
-      <div className={cn('flex flex-wrap gap-2 rounded-lg', guide.spot('cari'))}>
+      <div
+        className={cn('flex flex-wrap gap-2 rounded-lg', guide.spot('cari'))}
+      >
         <input
           aria-label="Cari nama pemohon"
           placeholder="Cari nama pemohon"
@@ -128,7 +141,9 @@ function Body({ guide }: { guide: DemoGuide }) {
               </p>
             </div>
             {request.decision ? (
-              <Pill tone={request.decision === 'ACCEPTED' ? 'success' : 'danger'}>
+              <Pill
+                tone={request.decision === 'ACCEPTED' ? 'success' : 'danger'}
+              >
                 {request.decision}
               </Pill>
             ) : (
@@ -154,7 +169,9 @@ function Body({ guide }: { guide: DemoGuide }) {
           </li>
         ))}
       </ul>
-      {rows.length === 0 ? <Empty>Tidak ada pengajuan yang cocok.</Empty> : null}
+      {rows.length === 0 ? (
+        <Empty>Tidak ada pengajuan yang cocok.</Empty>
+      ) : null}
       {node}
     </div>
   );

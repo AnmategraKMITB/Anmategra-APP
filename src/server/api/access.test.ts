@@ -1,6 +1,5 @@
 import { eq } from 'drizzle-orm';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-
 import { lembaga } from '~/server/db/schema';
 import {
   type TestDb,
@@ -111,7 +110,14 @@ describe('canManageLembaga', () => {
         features: ['oprec'],
       });
       const check = (feature: 'admin' | 'oprec' | 'forms') =>
-        canManageLembaga(database, student.id, 'mahasiswa', null, l.id, feature);
+        canManageLembaga(
+          database,
+          student.id,
+          'mahasiswa',
+          null,
+          l.id,
+          feature,
+        );
       expect(await check('oprec')).toBe('admin');
       expect(await check('forms')).toBeNull();
       expect(await check('admin')).toBeNull();
@@ -445,10 +451,24 @@ describe('canManageEvent', () => {
       features: ['oprec'],
     });
     expect(
-      await canManageEvent(database, student.id, 'mahasiswa', null, e.id, 'oprec'),
+      await canManageEvent(
+        database,
+        student.id,
+        'mahasiswa',
+        null,
+        e.id,
+        'oprec',
+      ),
     ).toBe('admin');
     expect(
-      await canManageEvent(database, student.id, 'mahasiswa', null, e.id, 'forms'),
+      await canManageEvent(
+        database,
+        student.id,
+        'mahasiswa',
+        null,
+        e.id,
+        'forms',
+      ),
     ).toBeNull();
   });
 
@@ -463,11 +483,15 @@ describe('canManageEvent', () => {
         periodId: e1.id,
         features: ['oprec'],
       });
-      const check = (
-        eventId: string,
-        feature: 'oprec' | 'forms' | 'admin',
-      ) =>
-        canManageEvent(database, student.id, 'mahasiswa', null, eventId, feature);
+      const check = (eventId: string, feature: 'oprec' | 'forms' | 'admin') =>
+        canManageEvent(
+          database,
+          student.id,
+          'mahasiswa',
+          null,
+          eventId,
+          feature,
+        );
       expect(await check(e1.id, 'oprec')).toBe('admin');
       expect(await check(e1.id, 'forms')).toBeNull();
       expect(await check(e1.id, 'admin')).toBeNull();
@@ -481,10 +505,24 @@ describe('canManageEvent', () => {
       const student = await createUser(db);
       await grantAccess(db, { userId: student.id, periodId: e1.id });
       expect(
-        await canManageEvent(database, student.id, 'mahasiswa', null, e1.id, 'forms'),
+        await canManageEvent(
+          database,
+          student.id,
+          'mahasiswa',
+          null,
+          e1.id,
+          'forms',
+        ),
       ).toBe('admin');
       expect(
-        await canManageEvent(database, student.id, 'mahasiswa', null, e2.id, 'forms'),
+        await canManageEvent(
+          database,
+          student.id,
+          'mahasiswa',
+          null,
+          e2.id,
+          'forms',
+        ),
       ).toBeNull();
     });
 
@@ -553,7 +591,14 @@ describe('canManageEvent', () => {
     expect(await event(forms.id, 'oprec')).toBeNull();
     expect(await event(forms.id)).toBeNull();
     expect(
-      await canManageLembaga(database, forms.id, 'mahasiswa', null, l.id, 'forms'),
+      await canManageLembaga(
+        database,
+        forms.id,
+        'mahasiswa',
+        null,
+        l.id,
+        'forms',
+      ),
     ).toBe('admin');
     expect(
       await canManageLembaga(database, forms.id, 'mahasiswa', null, l.id),

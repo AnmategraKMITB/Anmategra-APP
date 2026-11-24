@@ -18786,7 +18786,7 @@
           "oprec"
         ],
         "summary": "oprec.assessorAdd",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -19033,7 +19033,7 @@
           "oprec"
         ],
         "summary": "oprec.assessorList",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -19159,7 +19159,7 @@
           "oprec"
         ],
         "summary": "oprec.assessorRemove",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21004,7 +21004,7 @@
           "oprec"
         ],
         "summary": "oprec.criteriaList",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21130,7 +21130,7 @@
           "oprec"
         ],
         "summary": "oprec.criteriaReorder",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21251,7 +21251,7 @@
           "oprec"
         ],
         "summary": "oprec.criterionDelete",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21372,7 +21372,7 @@
           "oprec"
         ],
         "summary": "oprec.criterionSave",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []
@@ -21856,7 +21856,7 @@
           "oprec"
         ],
         "summary": "oprec.divisionSettings",
-        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (Kadiv/Kabid dari organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
+        "description": "**Akses:** Pengurus Divisi Oprec — Butuh `recruitmentId` di input. Boleh diakses admin oprec (semua divisi dan Umum), atau pengurus divisi yang dibuka (pemegang jabatan di atas Staf di organogram) hanya untuk divisinya, selama pengurus ikut menilai dan penempatan belum final.\n\n> Procedure ini belum punya `.output()` schema, jadi respons di bawah hanya perkiraan bentuk envelope-nya.",
         "security": [
           {
             "sessionCookie": []

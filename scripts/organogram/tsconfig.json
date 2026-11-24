@@ -1,10 +1,9 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "baseUrl": "../..",
     "paths": {
-      "~/server/auth": ["./scripts/organogram/auth-stub.ts"],
-      "~/*": ["./src/*"]
+      "~/server/auth": ["./auth-stub.ts"],
+      "~/*": ["../../src/*"]
     }
   },
   "include": ["./*.ts"]

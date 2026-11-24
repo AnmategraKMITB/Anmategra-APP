@@ -20,11 +20,7 @@ export type RendererField = Pick<
  * option ids, or `{ [rowId]: columnId | columnId[] }` for a matrix.
  */
 export type AnswerValue =
-  | string
-  | number
-  | boolean
-  | string[]
-  | Record<string, string | string[]>;
+  string | number | boolean | string[] | Record<string, string | string[]>;
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 

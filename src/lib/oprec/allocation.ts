@@ -20,11 +20,7 @@ export type StageReason =
 export type Decision = 'terima' | 'tolak';
 
 export type StageStatus =
-  | 'lolos'
-  | 'tidak_lolos'
-  | 'belum_lengkap'
-  | 'perlu_ditinjau'
-  | null;
+  'lolos' | 'tidak_lolos' | 'belum_lengkap' | 'perlu_ditinjau' | null;
 
 export type StageInput = {
   id: string;
@@ -126,10 +122,7 @@ export function acceptedCount(
 }
 
 /** `null` = tanpa batas (kuota 0). Negatif berarti sudah melewati kuota. */
-export function remainingQuota(
-  quota: number,
-  accepted: number,
-): number | null {
+export function remainingQuota(quota: number, accepted: number): number | null {
   return quota === 0 ? null : quota - accepted;
 }
 
@@ -221,9 +214,7 @@ export function planAutofill(input: {
     const quota = input.quotaByDivision.get(divisionId) ?? 0;
     const accepted = input.acceptedByDivision.get(divisionId) ?? 0;
     const available =
-      quota === 0
-        ? Number.POSITIVE_INFINITY
-        : Math.max(0, quota - accepted);
+      quota === 0 ? Number.POSITIVE_INFINITY : Math.max(0, quota - accepted);
     if (candidates.length <= available) continue;
 
     if (overQuota === 'masukkan') {

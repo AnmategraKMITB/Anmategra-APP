@@ -49,11 +49,11 @@ const KegiatanPageContent = () => {
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
-      <div className="w-full flex min-h-screen flex-col items-center">
-        <div className="w-full max-w-6xl bg-slate-50 py-6 rounded-none sm:rounded-xl">
-          <div className="mb-4 px-1 sm:px-2 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-h-screen w-full flex-col items-center">
+        <div className="w-full max-w-6xl rounded-none bg-slate-50 py-6 sm:rounded-xl">
+          <div className="mb-4 flex flex-col gap-3 px-1 sm:flex-row sm:items-center sm:justify-between sm:px-2">
             <div>
-              <h1 className="text-[28px] sm:text-[32px] font-semibold text-black">
+              <h1 className="text-[28px] font-semibold text-black sm:text-[32px]">
                 Kegiatan
               </h1>
             </div>

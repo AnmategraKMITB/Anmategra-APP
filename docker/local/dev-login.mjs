@@ -51,7 +51,9 @@ const token = await encode({
     picture: u.image ?? '/images/placeholder/profile-pic.png',
   },
 });
-console.error(`Masuk sebagai ${u.email} (${u.role}). Tempel baris berikut ke console browser:`);
+console.error(
+  `Masuk sebagai ${u.email} (${u.role}). Tempel baris berikut ke console browser:`,
+);
 console.log(
   `document.cookie = "next-auth.session-token=${token}; path=/; max-age=2592000"; location.href = "/";`,
 );

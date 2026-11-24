@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt';
 import { type NextRequest, NextResponse } from 'next/server';
 import { decideFormsPath, isFillFormPath } from '~/lib/forms-path';
 
-const AUTH_ROUTES = ['/authentication', '/authentication/alternatif'];
+const AUTH_ROUTES = new Set(['/authentication', '/authentication/alternatif']);
 const STATIC = [
   '/_next',
   '/api',
@@ -15,11 +15,7 @@ const STATIC = [
   // dialihkan ke halaman peran.
   '/msal-redirect',
 ];
-const PUBLIC_ROUTES = [
-  '/profile-lembaga',
-  '/profile-kegiatan',
-  '/404',
-];
+const PUBLIC_ROUTES = ['/profile-lembaga', '/profile-kegiatan', '/404'];
 // Rute publik tanpa prefiks role: URL yang sama berlaku untuk pengunjung dan
 // semua role, jadi tidak dialihkan ke `/<role>/...`.
 // `/slides` berisi presentasi publik yang tayang tanpa login.
@@ -34,9 +30,9 @@ const PUBLIC_SHARED_ROUTES = [
   '/ketentuan',
   '/terms',
 ];
-// Purwarupa internal: middleware hanya melewatkan. Gerbangnya ada di
+// Purwarupa internal: proxy hanya melewatkan. Gerbangnya ada di
 // src/app/prototype/layout.tsx (superadmin/operator atau kata sandi statis);
-// operator butuh DB sehingga tidak bisa diperiksa di middleware edge.
+// izin operator ada di DB, jadi diperiksa di layout, bukan di sini.
 const PROTOTYPE_ROUTES = ['/prototype'];
 // Authenticated-only routes shared by all roles. These stay unprefixed so the
 // same URL works for lembaga, mahasiswa, and admin users.
@@ -48,7 +44,7 @@ const AUTHENTICATED_SHARED_ROUTES = ['/manage', '/pengumuman'];
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   // Skip static files and API routes
   if (STATIC.some((route) => req.nextUrl.pathname.startsWith(route))) {
     return NextResponse.next();
@@ -75,7 +71,8 @@ export default async function middleware(req: NextRequest) {
   // dan, bila klaim aktif, halaman isi form. Semua rute lain dialihkan; server
   // tetap menolak lewat tRPC dan getServerAuthSession (default-deny).
   if (token?.alt) {
-    const isPreview = pathname === '/forms/preview' || pathname.startsWith('/forms/preview/');
+    const isPreview =
+      pathname === '/forms/preview' || pathname.startsWith('/forms/preview/');
     const isFillPage = isFillFormPath(pathname) && !isPreview;
     if (
       isPreview ||
@@ -131,12 +128,18 @@ export default async function middleware(req: NextRequest) {
   }
 
   // Redirect to authentication if not logged in (except for root and auth page)
-  if (pathname !== '/' && pathname !== '/authentication' && pathname !== '/authentication/alternatif' && pathname !== '/auth-error' && !token) {
+  if (
+    pathname !== '/' &&
+    pathname !== '/authentication' &&
+    pathname !== '/authentication/alternatif' &&
+    pathname !== '/auth-error' &&
+    !token
+  ) {
     return NextResponse.redirect(new URL('/authentication', req.url));
   }
 
   // If authenticated, redirect from auth routes to role-based home
-  if (AUTH_ROUTES.includes(pathname) && token) {
+  if (AUTH_ROUTES.has(pathname) && token) {
     return NextResponse.redirect(new URL(`/${token.role}`, req.url));
   }
 
@@ -156,29 +159,35 @@ export default async function middleware(req: NextRequest) {
   const role = token?.role;
   if (role) {
     const rolePrefix = `/${role}`;
-    
+
     // If the path doesn't start with the role prefix
     if (!pathname.startsWith(rolePrefix)) {
       // Check if it's trying to access another role's route
-      const otherRoles = ['admin', 'lembaga', 'mahasiswa'].filter(r => r !== role);
-      const isAccessingOtherRole = otherRoles.some(r => pathname.startsWith(`/${r}`));
-      
+      const otherRoles = ['admin', 'lembaga', 'mahasiswa'].filter(
+        (r) => r !== role,
+      );
+      const isAccessingOtherRole = otherRoles.some((r) =>
+        pathname.startsWith(`/${r}`),
+      );
+
       if (isAccessingOtherRole) {
         // Redirect to their own role's home
         return NextResponse.redirect(new URL(`/${role}`, req.url));
       }
-      
+
       // Otherwise, prepend their role to the path
-      return NextResponse.redirect(new URL(`${rolePrefix}${pathname}`, req.url));
+      return NextResponse.redirect(
+        new URL(`${rolePrefix}${pathname}`, req.url),
+      );
     }
   }
 
   return NextResponse.next();
 }
 
-// Prefiks yang sama dengan STATIC di atas: request ke sana tidak perlu masuk middleware sama
+// Prefiks yang sama dengan STATIC di atas: request ke sana tidak perlu masuk proxy sama
 // sekali (route API mengecek sesinya sendiri). Tanpa matcher, setiap file JS/CSS, gambar, dan
-// panggilan tRPC tetap menjalankan middleware dulu sebelum dilewatkan.
+// panggilan tRPC tetap menjalankan proxy dulu sebelum dilewatkan.
 export const config = {
   matcher: [
     '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|msal-redirect).*)',

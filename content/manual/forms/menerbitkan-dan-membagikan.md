@@ -26,11 +26,11 @@ tanpa login, tetapi tidak bisa mengirim jawaban.
 
 ## Status form
 
-| Status      | Artinya                                              | Tombol yang tersedia                |
-| ----------- | ---------------------------------------------------- | ----------------------------------- |
-| **Draf**    | Form masih disusun. Tautan untuk mengisi belum aktif. | **Terbitkan**                       |
-| **Terbit**  | Form menerima jawaban.                               | **Kembali ke draf**, **Tutup form** |
-| **Ditutup** | Form tidak menerima jawaban lagi.                    | **Kembali ke draf**, **Buka kembali** |
+| Status      | Artinya                                               | Tombol yang tersedia                  |
+| ----------- | ----------------------------------------------------- | ------------------------------------- |
+| **Draf**    | Form masih disusun. Tautan untuk mengisi belum aktif. | **Terbitkan**                         |
+| **Terbit**  | Form menerima jawaban.                                | **Kembali ke draf**, **Tutup form**   |
+| **Ditutup** | Form tidak menerima jawaban lagi.                     | **Kembali ke draf**, **Buka kembali** |
 
 ## Mengatur form
 

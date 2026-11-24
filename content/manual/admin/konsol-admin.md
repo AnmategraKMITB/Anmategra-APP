@@ -12,16 +12,16 @@ memeriksa jejak tindakan.
 
 ## Menu admin
 
-| Menu        | Yang dilakukan                                                                 |
-| ----------- | ------------------------------------------------------------------------------ |
-| **Laporan** | Menindaklanjuti laporan masalah dari mahasiswa dan lembaga.                    |
-| **Akun**    | Mencari, membuat, dan mengubah akun mahasiswa atau lembaga.                    |
-| **Lembaga** | Mengelola profil lembaga, kegiatan, kepengurusan, dan organogramnya.           |
-| **Akses**   | Mengatur operator admin dan pengelola lembaga atau kegiatan.                   |
+| Menu                    | Yang dilakukan                                                              |
+| ----------------------- | --------------------------------------------------------------------------- |
+| **Laporan**             | Menindaklanjuti laporan masalah dari mahasiswa dan lembaga.                 |
+| **Akun**                | Mencari, membuat, dan mengubah akun mahasiswa atau lembaga.                 |
+| **Lembaga**             | Mengelola profil lembaga, kegiatan, kepengurusan, dan organogramnya.        |
+| **Akses**               | Mengatur operator admin dan pengelola lembaga atau kegiatan.                |
 | **Email terverifikasi** | Menambah atau menghapus email non-KM yang boleh masuk sebagai akun lembaga. |
-| **Alumni**  | Mengunggah CSV wisuda agar NIM terkait berstatus alumni.                       |
-| **Superadmin** | Menambah atau menurunkan Superadmin (khusus Superadmin).                    |
-| **Audit**   | Membaca jejak tindakan: akun, lembaga, pemberian akses, dan izin operator.     |
+| **Alumni**              | Mengunggah CSV wisuda agar NIM terkait berstatus alumni.                    |
+| **Superadmin**          | Menambah atau menurunkan Superadmin (khusus Superadmin).                    |
+| **Audit**               | Membaca jejak tindakan: akun, lembaga, pemberian akses, dan izin operator.  |
 
 ## Contoh kasus
 

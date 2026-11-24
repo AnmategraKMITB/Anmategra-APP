@@ -4,7 +4,6 @@ import { canManageEvent } from '~/server/api/access';
 import { placementReleased } from '~/server/api/oprec-release';
 import { resolveOrganogramAccess } from '~/server/api/organization-access';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
-import { type db as Db } from '~/server/db';
 import {
   CreateOrganogramInputSchema,
   CreateOrganogramOutputSchema,
@@ -15,6 +14,7 @@ import {
   SetOrganogramLockInputSchema,
   SetOrganogramLockOutputSchema,
 } from '~/server/api/types/organization.type';
+import { type db as Db } from '~/server/db';
 import {
   DEFAULT_ORGANIZATION_RANKS,
   events,
@@ -97,7 +97,10 @@ export const organizationStructureRouter = createTRPCRouter({
         columns: { id: true },
       });
       if (!period) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Periode tidak ditemukan.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Periode tidak ditemukan.',
+        });
       }
       const [structure] = await ctx.db
         .select()
@@ -115,7 +118,11 @@ export const organizationStructureRouter = createTRPCRouter({
           role: ctx.session.user.role,
           lembagaId: ctx.session.user.lembagaId,
         },
-        { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+        {
+          id: structure.id,
+          periodId: input.periodId,
+          editLocked: structure.editLocked,
+        },
         tree.units,
       );
 
@@ -131,8 +138,14 @@ export const organizationStructureRouter = createTRPCRouter({
         })
         .from(placement)
         .innerJoin(users, eq(placement.userId, users.id))
-        .innerJoin(organizationPosition, eq(placement.positionId, organizationPosition.id))
-        .innerJoin(organizationUnit, eq(organizationPosition.unitId, organizationUnit.id))
+        .innerJoin(
+          organizationPosition,
+          eq(placement.positionId, organizationPosition.id),
+        )
+        .innerJoin(
+          organizationUnit,
+          eq(organizationPosition.unitId, organizationUnit.id),
+        )
         // Hasil oprec yang belum dirilis hanya terlihat oleh pengelola.
         .where(
           and(
@@ -142,7 +155,10 @@ export const organizationStructureRouter = createTRPCRouter({
         );
       const byPosition = new Map<string, typeof placementRows>();
       for (const row of placementRows) {
-        byPosition.set(row.positionId, [...(byPosition.get(row.positionId) ?? []), row]);
+        byPosition.set(row.positionId, [
+          ...(byPosition.get(row.positionId) ?? []),
+          row,
+        ]);
       }
 
       return {
@@ -187,9 +203,19 @@ export const organizationStructureRouter = createTRPCRouter({
         columns: { id: true, name: true },
       });
       if (!period) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Periode tidak ditemukan.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Periode tidak ditemukan.',
+        });
       }
-      const access = await canManageEvent(ctx.db, user.id, user.role, user.lembagaId, input.periodId, 'organization');
+      const access = await canManageEvent(
+        ctx.db,
+        user.id,
+        user.role,
+        user.lembagaId,
+        input.periodId,
+        'organization',
+      );
       if (!access) throw new TRPCError({ code: 'FORBIDDEN' });
 
       const [existing] = await ctx.db
@@ -198,7 +224,10 @@ export const organizationStructureRouter = createTRPCRouter({
         .where(activeStructureOf(input.periodId))
         .limit(1);
       if (existing) {
-        throw new TRPCError({ code: 'CONFLICT', message: 'Periode ini sudah punya organogram.' });
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Periode ini sudah punya organogram.',
+        });
       }
 
       try {
@@ -206,8 +235,15 @@ export const organizationStructureRouter = createTRPCRouter({
         return await ctx.db.transaction(async (tx) => {
           const [row] = await tx
             .insert(organizationStructure)
-            .values({ eventId: input.periodId, name: input.name ?? period.name, is_active: true })
-            .returning({ id: organizationStructure.id, version: organizationStructure.version });
+            .values({
+              eventId: input.periodId,
+              name: input.name ?? period.name,
+              is_active: true,
+            })
+            .returning({
+              id: organizationStructure.id,
+              version: organizationStructure.version,
+            });
           await ensureRootUnit(tx, row!.id, input.periodId);
           return row!;
         });
@@ -242,14 +278,24 @@ export const organizationStructureRouter = createTRPCRouter({
             .limit(1)
             .for('update');
           if (!structure) {
-            throw new TRPCError({ code: 'NOT_FOUND', message: 'Organogram belum dibuat untuk periode ini.' });
+            throw new TRPCError({
+              code: 'NOT_FOUND',
+              message: 'Organogram belum dibuat untuk periode ini.',
+            });
           }
 
-          const { tree: current, storedLevels } = await loadTree(tx, structure.id);
+          const { tree: current, storedLevels } = await loadTree(
+            tx,
+            structure.id,
+          );
           const access = await resolveOrganogramAccess(
             tx as unknown as typeof ctx.db,
             { id: user.id, role: user.role, lembagaId: user.lembagaId },
-            { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+            {
+              id: structure.id,
+              periodId: input.periodId,
+              editLocked: structure.editLocked,
+            },
             current.units,
           );
           if (!access.canEdit) {
@@ -264,7 +310,8 @@ export const organizationStructureRouter = createTRPCRouter({
           if (input.expectedVersion !== structure.version) {
             throw new TRPCError({
               code: 'CONFLICT',
-              message: 'Organogram sudah diubah orang lain sejak Anda membukanya. Muat ulang dulu.',
+              message:
+                'Organogram sudah diubah orang lain sejak Anda membukanya. Muat ulang dulu.',
             });
           }
 
@@ -273,33 +320,55 @@ export const organizationStructureRouter = createTRPCRouter({
               id: u.id,
               parentId: u.parentId,
               name: u.name.trim(),
-              typeLabel: u.typeLabel === null || u.typeLabel.trim() === '' ? null : u.typeLabel.trim(),
-              description: u.description === undefined || u.description === null || u.description.trim() === '' ? null : u.description.trim(),
+              typeLabel:
+                u.typeLabel === null || u.typeLabel.trim() === ''
+                  ? null
+                  : u.typeLabel.trim(),
+              description:
+                u.description === undefined ||
+                u.description === null ||
+                u.description.trim() === ''
+                  ? null
+                  : u.description.trim(),
               sortOrder: u.sortOrder,
               layout: u.layout,
             })),
-            positions: input.positions.map((p) => ({ ...p, title: p.title.trim() })),
+            positions: input.positions.map((p) => ({
+              ...p,
+              title: p.title.trim(),
+            })),
           };
           const problems = validateTree(next);
           if (problems.length > 0) {
-            throw new TRPCError({ code: 'BAD_REQUEST', message: problems.slice(0, 5).join(' ') });
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: problems.slice(0, 5).join(' '),
+            });
           }
 
           const diff = diffTrees(current, next);
           const levels = computeLevels(next.units);
 
-          const nameChanged = input.name !== undefined && input.name !== structure.name;
+          const nameChanged =
+            input.name !== undefined && input.name !== structure.name;
           const levelLabelsChanged =
-            input.levelLabels !== undefined && !sameJson(input.levelLabels, structure.levelLabels);
+            input.levelLabels !== undefined &&
+            !sameJson(input.levelLabels, structure.levelLabels);
           const ranksChanged =
-            input.ranks !== undefined && !sameJson(input.ranks, structure.ranks);
-          const structureFieldsChanged = nameChanged || levelLabelsChanged || ranksChanged;
+            input.ranks !== undefined &&
+            !sameJson(input.ranks, structure.ranks);
+          const structureFieldsChanged =
+            nameChanged || levelLabelsChanged || ranksChanged;
 
           // Setiap jabatan harus memakai rank yang ada di daftar (yang baru atau yang sudah tersimpan).
           const effectiveRanks =
             input.ranks !== undefined ? input.ranks : structure.ranks;
-          const knownRanks = new Set((effectiveRanks ?? DEFAULT_ORGANIZATION_RANKS).map((r) => r.id));
-          const unknownRank = next.positions.find((p) => !knownRanks.has(p.rank));
+          const knownRanks = new Set(
+            (effectiveRanks ?? DEFAULT_ORGANIZATION_RANKS).map((r) => r.id),
+          );
+          const unknownRank = next.positions.find(
+            (p) => !knownRanks.has(p.rank),
+          );
           if (unknownRank) {
             throw new TRPCError({
               code: 'BAD_REQUEST',
@@ -311,37 +380,58 @@ export const organizationStructureRouter = createTRPCRouter({
             if (structureFieldsChanged) {
               throw new TRPCError({
                 code: 'FORBIDDEN',
-                message: 'Hanya pengelola yang boleh mengubah nama dan label organogram.',
+                message:
+                  'Hanya pengelola yang boleh mengubah nama dan label organogram.',
               });
             }
             const denied = checkMemberEdit(diff, next, access.memberUnitIds);
-            if (denied) throw new TRPCError({ code: 'FORBIDDEN', message: denied });
+            if (denied)
+              throw new TRPCError({ code: 'FORBIDDEN', message: denied });
           }
 
           // Level (kedalaman) bisa berubah pada turunan unit yang dipindah.
           const levelUpdates = next.units.filter(
-            (u) => storedLevels.has(u.id) && storedLevels.get(u.id) !== levels.get(u.id),
+            (u) =>
+              storedLevels.has(u.id) &&
+              storedLevels.get(u.id) !== levels.get(u.id),
           );
           const changedUnitIds = new Set([
             ...diff.unitsToUpdate.map((c) => c.after.id),
             ...levelUpdates.map((u) => u.id),
           ]);
 
-          if (isEmptyDiff(diff) && changedUnitIds.size === 0 && !structureFieldsChanged) {
+          if (
+            isEmptyDiff(diff) &&
+            changedUnitIds.size === 0 &&
+            !structureFieldsChanged
+          ) {
             return { version: structure.version, changed: false };
           }
 
           // Posisi yang akan dihapus tidak boleh masih berpenghuni.
           if (diff.positionsToDelete.length > 0) {
             const occupied = await tx
-              .select({ positionId: placement.positionId, n: sql<number>`count(*)::int` })
+              .select({
+                positionId: placement.positionId,
+                n: sql<number>`count(*)::int`,
+              })
               .from(placement)
-              .where(inArray(placement.positionId, diff.positionsToDelete.map((p) => p.id)))
+              .where(
+                inArray(
+                  placement.positionId,
+                  diff.positionsToDelete.map((p) => p.id),
+                ),
+              )
               .groupBy(placement.positionId);
             if (occupied.length > 0) {
-              const titleById = new Map(diff.positionsToDelete.map((p) => [p.id, p.title]));
+              const titleById = new Map(
+                diff.positionsToDelete.map((p) => [p.id, p.title]),
+              );
               const list = occupied
-                .map((o) => `"${titleById.get(o.positionId) ?? o.positionId}" (${o.n} orang)`)
+                .map(
+                  (o) =>
+                    `"${titleById.get(o.positionId) ?? o.positionId}" (${o.n} orang)`,
+                )
                 .join(', ');
               throw new TRPCError({
                 code: 'BAD_REQUEST',
@@ -381,7 +471,12 @@ export const organizationStructureRouter = createTRPCRouter({
                 level: levels.get(id)!,
                 updated_at: new Date(),
               })
-              .where(and(eq(organizationUnit.id, id), eq(organizationUnit.structure_id, structure.id)));
+              .where(
+                and(
+                  eq(organizationUnit.id, id),
+                  eq(organizationUnit.structure_id, structure.id),
+                ),
+              );
           }
           if (diff.positionsToInsert.length > 0) {
             await tx.insert(organizationPosition).values(
@@ -413,14 +508,20 @@ export const organizationStructureRouter = createTRPCRouter({
               .where(eq(organizationPosition.id, p.id));
           }
           if (diff.positionsToDelete.length > 0) {
-            await tx
-              .delete(organizationPosition)
-              .where(inArray(organizationPosition.id, diff.positionsToDelete.map((p) => p.id)));
+            await tx.delete(organizationPosition).where(
+              inArray(
+                organizationPosition.id,
+                diff.positionsToDelete.map((p) => p.id),
+              ),
+            );
           }
           if (diff.unitsToDelete.length > 0) {
-            await tx
-              .delete(organizationUnit)
-              .where(inArray(organizationUnit.id, diff.unitsToDelete.map((u) => u.id)));
+            await tx.delete(organizationUnit).where(
+              inArray(
+                organizationUnit.id,
+                diff.unitsToDelete.map((u) => u.id),
+              ),
+            );
           }
 
           const [updated] = await tx
@@ -441,13 +542,15 @@ export const organizationStructureRouter = createTRPCRouter({
         if (isUniqueViolation(error)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'Id unit atau posisi sudah dipakai di tempat lain. Gunakan id baru.',
+            message:
+              'Id unit atau posisi sudah dipakai di tempat lain. Gunakan id baru.',
           });
         }
         if (isForeignKeyViolation(error)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: 'Perubahan ditolak karena masih ada keterkaitan data (mis. posisi berpenghuni).',
+            message:
+              'Perubahan ditolak karena masih ada keterkaitan data (mis. posisi berpenghuni).',
           });
         }
         throw error;
@@ -466,19 +569,27 @@ export const organizationStructureRouter = createTRPCRouter({
         .where(activeStructureOf(input.periodId))
         .limit(1);
       if (!structure) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Organogram belum dibuat untuk periode ini.' });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Organogram belum dibuat untuk periode ini.',
+        });
       }
       const { tree } = await loadTree(ctx.db, structure.id);
       const access = await resolveOrganogramAccess(
         ctx.db,
         { id: user.id, role: user.role, lembagaId: user.lembagaId },
-        { id: structure.id, periodId: input.periodId, editLocked: structure.editLocked },
+        {
+          id: structure.id,
+          periodId: input.periodId,
+          editLocked: structure.editLocked,
+        },
         tree.units,
       );
       if (!access.canLock) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Hanya pengelola atau ketua (posisi head di unit akar) yang boleh mengunci organogram.',
+          message:
+            'Hanya pengelola atau ketua (posisi head di unit akar) yang boleh mengunci organogram.',
         });
       }
       await ctx.db

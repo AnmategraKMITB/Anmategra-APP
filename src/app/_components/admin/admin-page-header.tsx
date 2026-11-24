@@ -14,7 +14,9 @@ export function AdminPageHeader({
       <div>
         <h1 className="text-2xl font-semibold text-neutral-1000">{title}</h1>
         {description ? (
-          <p className="mt-1 max-w-3xl text-sm text-neutral-700">{description}</p>
+          <p className="mt-1 max-w-3xl text-sm text-neutral-700">
+            {description}
+          </p>
         ) : null}
       </div>
       {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}

@@ -6,10 +6,11 @@ await import('./src/env.js');
 
 /** @type {import("next").NextConfig} */
 const config = {
-  // Lint dijalankan terpisah (`npm run lint`, job "Lint" di CI). Lint bawaan
-  // `next build` di Next 14 tidak kompatibel dengan ESLint 9 / flat config.
-  eslint: {
-    ignoreDuringBuilds: true,
+  // Tipe dicek terpisah oleh `bun run check` (`bun check`, job "Typecheck" di
+  // CI), termasuk .next/types dari `next typegen`. Pengecekan bawaan `next
+  // build` hanya mengulang pekerjaan yang sama.
+  typescript: {
+    ignoreBuildErrors: true,
   },
   experimental: {
     optimizeCss: true,
@@ -22,8 +23,13 @@ const config = {
     // Kurangi jumlah varian lebar yang mungkin diminta browser.
     deviceSizes: [640, 828, 1080, 1280, 1920],
     imageSizes: [32, 64, 128, 256],
-    domains: ['lh3.googleusercontent.com', 'utfs.uploadthing.com'],
     remotePatterns: [
+      {
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        hostname: 'utfs.uploadthing.com',
+      },
       {
         hostname: 'utfs.io',
       },

@@ -1,6 +1,6 @@
 'use client';
 
-import { type ColumnDef, type SortingState } from '@tanstack/react-table';
+import { type SortingState } from '@tanstack/react-table';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useMemo, useState } from 'react';
@@ -8,7 +8,7 @@ import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
-import { AdminDataTable } from './admin-data-table';
+import { type AdminColumnDef, AdminDataTable } from './admin-data-table';
 import { AdminEditPanel } from './admin-edit-panel';
 import { AdminEntitySearch } from './admin-entity-search';
 import { AdminPageHeader } from './admin-page-header';
@@ -88,7 +88,8 @@ export function AkunPage() {
   const list = api.adminConsole.usersList.useQuery(
     {
       search: search.trim() || undefined,
-      role: (role || undefined) as 'admin' | 'lembaga' | 'mahasiswa' | undefined,
+      role: (role || undefined) as
+        'admin' | 'lembaga' | 'mahasiswa' | undefined,
       status,
       page,
       pageSize: PAGE_SIZE,
@@ -97,7 +98,9 @@ export function AkunPage() {
     },
     { enabled: canRead },
   );
-  const stats = api.adminConsole.stats.useQuery(undefined, { enabled: canRead });
+  const stats = api.adminConsole.stats.useQuery(undefined, {
+    enabled: canRead,
+  });
   const create = api.adminConsole.userCreate.useMutation({
     onSuccess: () => {
       setOpenCreate(false);
@@ -106,7 +109,7 @@ export function AkunPage() {
     },
   });
 
-  const columns = useMemo<ColumnDef<Row>[]>(
+  const columns = useMemo<AdminColumnDef<Row>[]>(
     () => [
       {
         id: 'name',
@@ -120,7 +123,9 @@ export function AkunPage() {
             >
               {row.original.name ?? 'Tanpa nama'}
             </Link>
-            <span className="block text-xs text-neutral-700">{row.original.email}</span>
+            <span className="block text-xs text-neutral-700">
+              {row.original.email}
+            </span>
           </div>
         ),
       },
@@ -128,7 +133,9 @@ export function AkunPage() {
         id: 'role',
         accessorKey: 'role',
         header: 'Tipe',
-        cell: ({ row }) => <span className="capitalize">{row.original.role}</span>,
+        cell: ({ row }) => (
+          <span className="capitalize">{row.original.role}</span>
+        ),
       },
       {
         id: 'profile',
@@ -175,7 +182,9 @@ export function AkunPage() {
   );
 
   if (!canRead) {
-    return <p className="text-sm text-danger-dark">Tidak punya izin melihat akun.</p>;
+    return (
+      <p className="text-sm text-danger-dark">Tidak punya izin melihat akun.</p>
+    );
   }
 
   return (
@@ -195,7 +204,10 @@ export function AkunPage() {
                 : `Akses alternatif${altPending.data?.count ? ` (${altPending.data.count} menunggu)` : ''}`}
             </Button>
             {canWrite ? (
-              <Button type="button" onClick={() => setOpenCreate((value) => !value)}>
+              <Button
+                type="button"
+                onClick={() => setOpenCreate((value) => !value)}
+              >
                 {openCreate ? 'Tutup form' : 'Tambah akun'}
               </Button>
             ) : null}
@@ -209,8 +221,8 @@ export function AkunPage() {
 
       {stats.data ? (
         <p className="text-sm text-neutral-700">
-          {stats.data.users} akun · {stats.data.lembaga} lembaga · {stats.data.demoUsers} demo ·{' '}
-          {stats.data.hiddenUsers} disembunyikan
+          {stats.data.users} akun · {stats.data.lembaga} lembaga ·{' '}
+          {stats.data.demoUsers} demo · {stats.data.hiddenUsers} disembunyikan
         </p>
       ) : null}
 
@@ -226,7 +238,9 @@ export function AkunPage() {
       <div className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4">
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_220px]">
           <div className="grid gap-2">
-            <span className="text-sm font-semibold text-neutral-700">Cari cepat akun</span>
+            <span className="text-sm font-semibold text-neutral-700">
+              Cari cepat akun
+            </span>
             <AdminEntitySearch
               kind="user"
               value=""
@@ -283,7 +297,7 @@ export function AkunPage() {
 
       <AdminDataTable
         columns={columns}
-        data={(list.data?.rows ?? []) as Row[]}
+        data={list.data?.rows ?? []}
         sorting={sorting}
         onSortingChange={(next) => {
           setSorting(next);
@@ -328,7 +342,8 @@ function CreateAkunPanel({
   const [jurusan, setJurusan] = useState('');
   const [angkatan, setAngkatan] = useState('');
   const [lembagaName, setLembagaName] = useState('');
-  const [lembagaType, setLembagaType] = useState<(typeof TYPES)[number]>('Himpunan');
+  const [lembagaType, setLembagaType] =
+    useState<(typeof TYPES)[number]>('Himpunan');
   const [acronym, setAcronym] = useState('');
   const [hidden, setHidden] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
@@ -339,7 +354,12 @@ function CreateAkunPanel({
       description="Akun lembaga baru otomatis memiliki profil lembaga."
       error={error}
       footer={
-        <Button type="submit" form="create-akun" variant="dark_blue" disabled={pending}>
+        <Button
+          type="submit"
+          form="create-akun"
+          variant="dark_blue"
+          disabled={pending}
+        >
           {pending ? 'Menyimpan…' : 'Buat akun'}
         </Button>
       }
@@ -355,7 +375,11 @@ function CreateAkunPanel({
             name,
             ...(kind === 'mahasiswa'
               ? { nim, jurusan, angkatan: Number(angkatan) }
-              : { lembagaName, lembagaType, acronym: acronym.trim() || undefined }),
+              : {
+                  lembagaName,
+                  lembagaType,
+                  acronym: acronym.trim() || undefined,
+                }),
             hidden,
             isDemo: canEditDemo ? isDemo : false,
           });
@@ -380,10 +404,19 @@ function CreateAkunPanel({
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Email">
-            <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Input
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
           </Field>
           <Field label="Nama">
-            <Input required value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </Field>
           {kind === 'mahasiswa' ? (
             <>
@@ -397,7 +430,11 @@ function CreateAkunPanel({
                 />
               </Field>
               <Field label="Program studi">
-                <Input required value={jurusan} onChange={(e) => setJurusan(e.target.value)} />
+                <Input
+                  required
+                  value={jurusan}
+                  onChange={(e) => setJurusan(e.target.value)}
+                />
               </Field>
               <Field label="Angkatan">
                 <Input
@@ -411,28 +448,43 @@ function CreateAkunPanel({
           ) : (
             <>
               <Field label="Nama lembaga">
-                <Input required value={lembagaName} onChange={(e) => setLembagaName(e.target.value)} />
+                <Input
+                  required
+                  value={lembagaName}
+                  onChange={(e) => setLembagaName(e.target.value)}
+                />
               </Field>
               <Field label="Jenis">
                 <select
                   className="h-10 rounded-md border border-neutral-400 bg-neutral-50 px-3 text-sm"
                   value={lembagaType}
-                  onChange={(e) => setLembagaType(e.target.value as (typeof TYPES)[number])}
+                  onChange={(e) =>
+                    setLembagaType(e.target.value as (typeof TYPES)[number])
+                  }
                 >
                   {TYPES.map((type) => (
-                    <option key={type} value={type}>{type}</option>
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
                   ))}
                 </select>
               </Field>
               <Field label="Singkatan">
-                <Input value={acronym} onChange={(e) => setAcronym(e.target.value)} />
+                <Input
+                  value={acronym}
+                  onChange={(e) => setAcronym(e.target.value)}
+                />
               </Field>
             </>
           )}
         </div>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
-            <input type="checkbox" checked={hidden} onChange={(e) => setHidden(e.target.checked)} />
+            <input
+              type="checkbox"
+              checked={hidden}
+              onChange={(e) => setHidden(e.target.checked)}
+            />
             Sembunyikan dari publik
           </label>
           {canEditDemo ? (
@@ -451,7 +503,13 @@ function CreateAkunPanel({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <label className="grid gap-1 text-sm font-semibold text-neutral-700">
       {label}

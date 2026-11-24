@@ -589,9 +589,9 @@ export function TypeEditor({
             />
           </div>
           <p className="text-sm text-neutral-700 sm:col-span-2">
-            Berkas disimpan di UploadThing. Tautan berkas bersifat publik:
-            siapa pun yang memiliki tautan dapat membukanya, jadi jangan minta
-            dokumen pribadi yang tidak boleh tersebar.
+            Berkas disimpan di UploadThing. Tautan berkas bersifat publik: siapa
+            pun yang memiliki tautan dapat membukanya, jadi jangan minta dokumen
+            pribadi yang tidak boleh tersebar.
           </p>
         </div>
       );

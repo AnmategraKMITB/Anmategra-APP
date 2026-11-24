@@ -22,9 +22,9 @@
  * touching existing ones.
  *
  * Usage:
- *   npm run db:seed-lembaga                   # insert new + update changed
- *   npm run db:seed-lembaga -- --dry-run      # print the plan, write nothing
- *   npm run db:seed-lembaga -- --insert-only  # insert new, never update
+ *   bun run db:seed-lembaga                   # insert new + update changed
+ *   bun run db:seed-lembaga --dry-run      # print the plan, write nothing
+ *   bun run db:seed-lembaga --insert-only  # insert new, never update
  *
  * CSV format: see data/README.md.
  */

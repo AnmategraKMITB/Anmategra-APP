@@ -1,7 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('~/env', () => ({ env: { SUPERADMIN_EMAILS: [] } }));
-
 import {
   adminProcedure,
   createCallerFactory,
@@ -9,6 +7,8 @@ import {
   mahasiswaProcedure,
   protectedProcedure,
 } from './trpc';
+
+await vi.mock('~/env', () => ({ env: { SUPERADMIN_EMAILS: [] } }));
 
 const router = createTRPCRouter({
   authenticated: protectedProcedure.query(() => 'ok'),
@@ -21,9 +21,13 @@ type Anyone = Role | 'anonim';
 
 // adminProcedure membaca peran dari basis data lewat satu query berantai.
 function fakeDb(role: Anyone) {
-  const rows = role === 'anonim' ? [] : [{ role, email: 'u@x.id', permissions: null, expiresAt: null }];
+  const rows =
+    role === 'anonim'
+      ? []
+      : [{ role, email: 'u@x.id', permissions: null, expiresAt: null }];
   const chain: Record<string, unknown> = {};
-  for (const name of ['select', 'from', 'leftJoin', 'where']) chain[name] = () => chain;
+  for (const name of ['select', 'from', 'leftJoin', 'where'])
+    chain[name] = () => chain;
   chain.limit = () => Promise.resolve(rows);
   return chain;
 }

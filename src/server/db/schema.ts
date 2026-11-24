@@ -248,7 +248,7 @@ export const mahasiswa = createTable('mahasiswa', {
     .references(() => users.id, { onDelete: 'cascade' }),
   nim: integer('nim').notNull(),
   nimTpb: integer('nim_tpb'),
-  nama: varchar('nama', { length: 255 }),               // redundant column for performance
+  nama: varchar('nama', { length: 255 }), // redundant column for performance
   jurusan: varchar('jurusan', { length: 255 }).notNull(),
   angkatan: integer('angkatan').notNull(),
   lineId: varchar('line_id', { length: 255 }),
@@ -599,31 +599,36 @@ export const supportReplies = createTable('support_reply', {
 });
 
 // Notification Table
-export const notifications = createTable('notification', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  user_id: varchar('user_id', { length: 255 }).references(() => users.id),
-  title: varchar('title', { length: 255 }).notNull(),
-  content: text('content').notNull(),
-  type: notificationTypeEnum('type').notNull(),
-  read: boolean('read').notNull().default(false),
-  // Pemberitahuan hasil oprec: satu per (pengguna, oprec, jenis).
-  recruitmentId: varchar('recruitment_id', { length: 255 }).references(
-    () => recruitment.id,
-    { onDelete: 'cascade' },
-  ),
-  /** `manual` = pesan bebas dari pengelola oprec; boleh dikirim berulang. */
-  kind: varchar('kind', { length: 32 }),
-  // Tautan relatif yang dibuka dari Inbox.
-  links: jsonb('links').$type<{ label: string; href: string }[]>(),
-  ...timestamps,
-},
-(table) => ({
-  recruitmentKindUnique: uniqueIndex('notification_user_recruitment_kind_unique')
-    .on(table.user_id, table.recruitmentId, table.kind)
-    .where(
-      sql`${table.recruitmentId} IS NOT NULL AND (${table.kind} IS NULL OR ${table.kind} <> 'manual')`,
+export const notifications = createTable(
+  'notification',
+  {
+    id: varchar('id', { length: 255 }).primaryKey(),
+    user_id: varchar('user_id', { length: 255 }).references(() => users.id),
+    title: varchar('title', { length: 255 }).notNull(),
+    content: text('content').notNull(),
+    type: notificationTypeEnum('type').notNull(),
+    read: boolean('read').notNull().default(false),
+    // Pemberitahuan hasil oprec: satu per (pengguna, oprec, jenis).
+    recruitmentId: varchar('recruitment_id', { length: 255 }).references(
+      () => recruitment.id,
+      { onDelete: 'cascade' },
     ),
-}));
+    /** `manual` = pesan bebas dari pengelola oprec; boleh dikirim berulang. */
+    kind: varchar('kind', { length: 32 }),
+    // Tautan relatif yang dibuka dari Inbox.
+    links: jsonb('links').$type<{ label: string; href: string }[]>(),
+    ...timestamps,
+  },
+  (table) => ({
+    recruitmentKindUnique: uniqueIndex(
+      'notification_user_recruitment_kind_unique',
+    )
+      .on(table.user_id, table.recruitmentId, table.kind)
+      .where(
+        sql`${table.recruitmentId} IS NOT NULL AND (${table.kind} IS NULL OR ${table.kind} <> 'manual')`,
+      ),
+  }),
+);
 
 // Relations for Support
 export const supportRelations = relations(support, ({ many, one }) => ({
@@ -1789,7 +1794,9 @@ export const formField = createTable(
     // Satu blok Pilihan (unit_choice) aktif per form.
     unitChoiceUnique: uniqueIndex('form_field_unit_choice_unique')
       .on(table.formId)
-      .where(sql`${table.type} = 'unit_choice' AND ${table.archivedAt} IS NULL`),
+      .where(
+        sql`${table.type} = 'unit_choice' AND ${table.archivedAt} IS NULL`,
+      ),
   }),
 );
 
@@ -2241,10 +2248,9 @@ export const recruitmentSetupDraft = createTable(
     ...timestamps,
   },
   (table) => ({
-    periodUserUnique: uniqueIndex('recruitment_setup_draft_period_user_unique').on(
-      table.periodId,
-      table.userId,
-    ),
+    periodUserUnique: uniqueIndex(
+      'recruitment_setup_draft_period_user_unique',
+    ).on(table.periodId, table.userId),
   }),
 );
 
@@ -2426,10 +2432,9 @@ export const application = createTable(
   (table) => ({
     userIdx: index('application_user_idx').on(table.userId),
     waveIdx: index('application_wave_idx').on(table.waveId),
-    recruitmentUserUnique: uniqueIndex('application_recruitment_user_unique').on(
-      table.recruitmentId,
-      table.userId,
-    ),
+    recruitmentUserUnique: uniqueIndex(
+      'application_recruitment_user_unique',
+    ).on(table.recruitmentId, table.userId),
     submissionUnique: uniqueIndex('application_form_submission_unique')
       .on(table.formSubmissionId)
       .where(sql`${table.formSubmissionId} IS NOT NULL`),
@@ -2465,7 +2470,9 @@ export const applicationChoice = createTable(
       'application_choice_application_division_unique',
     ).on(table.applicationId, table.divisionId),
     // Banyak baris dengan rank NULL boleh; yang berurutan harus unik.
-    applicationRankUnique: uniqueIndex('application_choice_application_rank_unique')
+    applicationRankUnique: uniqueIndex(
+      'application_choice_application_rank_unique',
+    )
       .on(table.applicationId, table.rank)
       .where(sql`${table.rank} IS NOT NULL`),
   }),
@@ -2721,9 +2728,7 @@ export const choiceStatusOverride = createTable(
     choiceId: varchar('choice_id', { length: 255 })
       .notNull()
       .references(() => applicationChoice.id, { onDelete: 'cascade' }),
-    status: varchar('status', { length: 16 })
-      .$type<OverrideStatus>()
-      .notNull(),
+    status: varchar('status', { length: 16 }).$type<OverrideStatus>().notNull(),
     reason: text('reason').notNull(),
     isSensitive: boolean('is_sensitive').notNull().default(false),
     setBy: varchar('set_by', { length: 255 })

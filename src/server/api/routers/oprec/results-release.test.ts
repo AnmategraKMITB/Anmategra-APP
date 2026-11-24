@@ -196,4 +196,30 @@ describe('gerbang tayang hasil oprec', () => {
     ).toMatchObject({ released: true, final: true });
     expect(await notes('hasil_oprec_final')).toHaveLength(1);
   });
+
+  it('ringkasan penempatan memberi tahu perpindahan yang terkunci', async () => {
+    const { fx, owner } = await finalWorld();
+    await db
+      .update(schema.recruitment)
+      .set({ placementState: 'masa_banding' })
+      .where(eq(schema.recruitment.id, fx.recruitmentId));
+    const overview = () =>
+      owner.oprec.placementOverview({ recruitmentId: fx.recruitmentId });
+
+    expect((await overview()).moves).toEqual([
+      { to: 'berjalan', enabled: true },
+      { to: 'final', enabled: true },
+    ]);
+
+    await owner.oprec.resultsRelease({ recruitmentId: fx.recruitmentId });
+    expect((await overview()).moves).toEqual([
+      {
+        to: 'berjalan',
+        enabled: false,
+        reason:
+          'Tarik rilis hasil dulu sebelum mengembalikan penempatan ke berjalan.',
+      },
+      { to: 'final', enabled: true },
+    ]);
+  });
 });

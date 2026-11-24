@@ -52,7 +52,7 @@ export default function customPagination({
               e.preventDefault();
               if (currentPage > 1) setCurrentPage(currentPage - 1);
             }}
-            className={`${BaseClass} hover:bg-[#00B7B7] hover:text-white hover:border-[#00B7B7]`}
+            className={`${BaseClass} hover:border-[#00B7B7] hover:bg-[#00B7B7] hover:text-white`}
           >
             <ChevronLeft size={24} className="text-current" />
           </PaginationLink>
@@ -61,7 +61,7 @@ export default function customPagination({
         {UniquePages.map((item, idx) =>
           typeof item === 'string' ? (
             <PaginationItem key={item + idx}>
-              <span className="flex h-[42px] w-[42px] items-center justify-center select-none">
+              <span className="flex h-[42px] w-[42px] select-none items-center justify-center">
                 ...
               </span>
             </PaginationItem>
@@ -76,8 +76,8 @@ export default function customPagination({
                 }}
                 className={`${BaseClass} ${
                   item === currentPage
-                    ? 'bg-[#00B7B7] text-white border-[#00B7B7]'
-                    : 'hover:bg-[#00B7B7] hover:text-white hover:border-[#00B7B7]'
+                    ? 'border-[#00B7B7] bg-[#00B7B7] text-white'
+                    : 'hover:border-[#00B7B7] hover:bg-[#00B7B7] hover:text-white'
                 }`}
               >
                 {item}
@@ -93,7 +93,7 @@ export default function customPagination({
               e.preventDefault();
               if (currentPage < totalPages) setCurrentPage(currentPage + 1);
             }}
-            className={`${BaseClass} hover:bg-[#00B7B7] hover:text-white hover:border-[#00B7B7]`}
+            className={`${BaseClass} hover:border-[#00B7B7] hover:bg-[#00B7B7] hover:text-white`}
           >
             <ChevronRight size={24} className="text-current" />
           </PaginationLink>

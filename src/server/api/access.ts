@@ -57,11 +57,17 @@ async function hasAdminOperatorScope(
     where: and(
       eq(adminPermission.userId, userId),
       isNull(adminPermission.revokedAt),
-      or(isNull(adminPermission.expiresAt), sql`${adminPermission.expiresAt} > now()`),
+      or(
+        isNull(adminPermission.expiresAt),
+        sql`${adminPermission.expiresAt} > now()`,
+      ),
     ),
     columns: { permissions: true },
   });
-  return row?.permissions.includes('*') === true || row?.permissions.includes(required) === true;
+  return (
+    row?.permissions.includes('*') === true ||
+    row?.permissions.includes(required) === true
+  );
 }
 
 export async function canManageLembaga(

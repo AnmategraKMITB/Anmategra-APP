@@ -12,6 +12,40 @@ import { DivisionSettingsView } from './settings/division-settings-view';
 import { SettingsView } from './settings/settings-view';
 import { type OprecBase } from './status';
 
+/** Pengaturan divisi untuk pengurus yang bukan pengelola oprec. */
+async function DivisionSettingsPage({
+  kegiatanId,
+  recruitmentId,
+  basePath,
+}: {
+  kegiatanId: string;
+  recruitmentId: string;
+  basePath: OprecBase;
+}) {
+  const scoped = await loadDivisionSettingsOprec(recruitmentId);
+  if (scoped?.periodId !== kegiatanId) notFound();
+  const found = await loadAssessableOprec(recruitmentId);
+  const event = await api.event.getByID({ id: kegiatanId });
+  const showHasil = await canOpenResults(recruitmentId);
+
+  return (
+    <DivisionSettingsView
+      recruitmentId={recruitmentId}
+      periodName={event?.name ?? ''}
+    >
+      <OprecTabs
+        basePath={basePath}
+        kegiatanId={kegiatanId}
+        recruitmentId={recruitmentId}
+        current="pengaturan"
+        showPendaftar={false}
+        showPenempatan={(found?.access.deciderDivisionIds.size ?? 0) > 0}
+        showHasil={showHasil}
+      />
+    </DivisionSettingsView>
+  );
+}
+
 /**
  * Halaman Pengaturan satu oprec: penuh untuk pengelola oprec, atau Pengaturan
  * divisi (kriteria dan penilai divisinya) untuk pengurus.
@@ -57,40 +91,6 @@ export async function PengaturanPage({
           showPenempatan
           showHasil={showHasil}
           manage={{ formId: managed.formId, status: managed.status }}
-        />
-      }
-    />
-  );
-}
-
-async function DivisionSettingsPage({
-  kegiatanId,
-  recruitmentId,
-  basePath,
-}: {
-  kegiatanId: string;
-  recruitmentId: string;
-  basePath: OprecBase;
-}) {
-  const scoped = await loadDivisionSettingsOprec(recruitmentId);
-  if (scoped?.periodId !== kegiatanId) notFound();
-  const found = await loadAssessableOprec(recruitmentId);
-  const event = await api.event.getByID({ id: kegiatanId });
-  const showHasil = await canOpenResults(recruitmentId);
-
-  return (
-    <DivisionSettingsView
-      recruitmentId={recruitmentId}
-      periodName={event?.name ?? ''}
-      tabs={
-        <OprecTabs
-          basePath={basePath}
-          kegiatanId={kegiatanId}
-          recruitmentId={recruitmentId}
-          current="pengaturan"
-          showPendaftar={false}
-          showPenempatan={(found?.access.deciderDivisionIds.size ?? 0) > 0}
-          showHasil={showHasil}
         />
       }
     />

@@ -89,7 +89,7 @@ export default function RaporVisibilitySwitch({
     <div className="flex items-center gap-3">
       <Label
         htmlFor="rapor-visibility"
-        className="text-sm font-medium cursor-pointer"
+        className="cursor-pointer text-sm font-medium"
       >
         Rapor Visible to Public
       </Label>

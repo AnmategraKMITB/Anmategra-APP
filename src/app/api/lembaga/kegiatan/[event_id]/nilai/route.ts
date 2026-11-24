@@ -1,8 +1,8 @@
 import { eq, inArray } from 'drizzle-orm';
 import ExcelJS from 'exceljs';
+import { periodMembersSq } from '~/server/api/routers/organization/membership';
 import { getServerAuthSession } from '~/server/auth';
 import { db } from '~/server/db';
-import { periodMembersSq } from '~/server/api/routers/organization/membership';
 import {
   mahasiswa,
   nilaiProfilKegiatan,
@@ -11,7 +11,10 @@ import {
 } from '~/server/db/schema';
 import { apiError } from '~/utils/api-error';
 
-export async function GET(request: Request, props: { params: Promise<{ event_id: string }> }) {
+export async function GET(
+  request: Request,
+  props: { params: Promise<{ event_id: string }> },
+) {
   const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
@@ -52,7 +55,11 @@ export async function GET(request: Request, props: { params: Promise<{ event_id:
   });
 
   if (profilKegiatanList.length === 0) {
-    return apiError(404, 'No profile criteria found for this event', 'NOT_FOUND');
+    return apiError(
+      404,
+      'No profile criteria found for this event',
+      'NOT_FOUND',
+    );
   }
 
   // --- Fetch panitia data ---
@@ -127,10 +134,7 @@ export async function GET(request: Request, props: { params: Promise<{ event_id:
   uniqueMembers.forEach((member) => {
     if (!member.user || !member.mahasiswa) return;
 
-    const rowData = [
-      member.user.name ?? '',
-      member.mahasiswa.nim ?? '',
-    ];
+    const rowData = [member.user.name ?? '', member.mahasiswa.nim ?? ''];
 
     // --- Add nilai for each profil ---
     profilKegiatanList.forEach((profil) => {
@@ -185,7 +189,10 @@ export async function GET(request: Request, props: { params: Promise<{ event_id:
   });
 }
 
-export async function POST(request: Request, props: { params: Promise<{ event_id: string }> }) {
+export async function POST(
+  request: Request,
+  props: { params: Promise<{ event_id: string }> },
+) {
   const params = await props.params;
   // --- Auth check ---
   const session = await getServerAuthSession();
@@ -255,7 +262,11 @@ export async function POST(request: Request, props: { params: Promise<{ event_id
     });
 
     if (profilKegiatanList.length === 0) {
-      return apiError(404, 'No profile criteria found for this event', 'NOT_FOUND');
+      return apiError(
+        404,
+        'No profile criteria found for this event',
+        'NOT_FOUND',
+      );
     }
 
     // --- Get header row to map profil columns ---
