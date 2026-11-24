@@ -27,7 +27,7 @@ const REST = path.join(process.cwd(), 'docs/api/rest-openapi.json');
 const BASE_PATH = '/api/trpc';
 
 // Dibaca langsung dari package.json, bukan dari npm_package_version, supaya
-// hasilnya sama baik lewat `bun run docs:api` maupun `bunx tsx` langsung.
+// hasilnya sama baik lewat `bun run docs:api` maupun `bun scripts/gen-openapi.cts` langsung.
 const pkg = JSON.parse(
   fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'),
 ) as { version?: string };
