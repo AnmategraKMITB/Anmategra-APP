@@ -97,7 +97,7 @@ Script lain:
 - `bun run start` — jalanin hasil build
 - `bun lint` — lint dengan `bun lint` (`.oxlintrc.json`: semua kategori aturan menyala, plus aturan bertipe). Pelanggaran lama dicatat di `oxlint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
 - `bun fmt` — format semua berkas (`.prettierrc.json`, termasuk urutan import dan urutan class Tailwind). CI menjalankan `bun fmt --check`.
-- `bun run check` — cek tipe dengan TypeScript 7 (`bun check`), setelah `next typegen` membuat tipe rute di `.next/types`. Paket `typescript` di `package.json` tetap versi 6 karena Next 15 dan `lifecycle-writes.test.ts` butuh API JavaScript-nya, yang tidak ada di TypeScript 7.
+- `bun run check` — cek tipe dengan TypeScript 7 (`bun check`), setelah `next typegen` membuat tipe rute di `.next/types`. Paket `typescript` di `package.json` juga versi 7; ia tidak punya API compiler JavaScript lama, jadi `lifecycle-writes.test.ts` membaca AST lewat `typescript/unstable/async` (proses tsgo).
 - `bun run test` — jalankan tes otomatis (`bun test`, paralel per core); lihat [Menjalankan Tes](#menjalankan-tes). `bun run test:watch` mengulang tes setiap berkas berubah.
 - `bun run docs` — regenerate dokumentasi API & database di `docs/api/`
 

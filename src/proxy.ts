@@ -2,7 +2,7 @@ import { getToken } from 'next-auth/jwt';
 import { type NextRequest, NextResponse } from 'next/server';
 import { decideFormsPath, isFillFormPath } from '~/lib/forms-path';
 
-const AUTH_ROUTES = ['/authentication', '/authentication/alternatif'];
+const AUTH_ROUTES = new Set(['/authentication', '/authentication/alternatif']);
 const STATIC = [
   '/_next',
   '/api',
@@ -30,9 +30,9 @@ const PUBLIC_SHARED_ROUTES = [
   '/ketentuan',
   '/terms',
 ];
-// Purwarupa internal: middleware hanya melewatkan. Gerbangnya ada di
+// Purwarupa internal: proxy hanya melewatkan. Gerbangnya ada di
 // src/app/prototype/layout.tsx (superadmin/operator atau kata sandi statis);
-// operator butuh DB sehingga tidak bisa diperiksa di middleware edge.
+// izin operator ada di DB, jadi diperiksa di layout, bukan di sini.
 const PROTOTYPE_ROUTES = ['/prototype'];
 // Authenticated-only routes shared by all roles. These stay unprefixed so the
 // same URL works for lembaga, mahasiswa, and admin users.
@@ -44,7 +44,7 @@ const AUTHENTICATED_SHARED_ROUTES = ['/manage', '/pengumuman'];
 const matchesRoute = (pathname: string, route: string) =>
   pathname === route || pathname.startsWith(`${route}/`);
 
-export default async function middleware(req: NextRequest) {
+export default async function proxy(req: NextRequest) {
   // Skip static files and API routes
   if (STATIC.some((route) => req.nextUrl.pathname.startsWith(route))) {
     return NextResponse.next();
@@ -139,7 +139,7 @@ export default async function middleware(req: NextRequest) {
   }
 
   // If authenticated, redirect from auth routes to role-based home
-  if (AUTH_ROUTES.includes(pathname) && token) {
+  if (AUTH_ROUTES.has(pathname) && token) {
     return NextResponse.redirect(new URL(`/${token.role}`, req.url));
   }
 
@@ -185,9 +185,9 @@ export default async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
-// Prefiks yang sama dengan STATIC di atas: request ke sana tidak perlu masuk middleware sama
+// Prefiks yang sama dengan STATIC di atas: request ke sana tidak perlu masuk proxy sama
 // sekali (route API mengecek sesinya sendiri). Tanpa matcher, setiap file JS/CSS, gambar, dan
-// panggilan tRPC tetap menjalankan middleware dulu sebelum dilewatkan.
+// panggilan tRPC tetap menjalankan proxy dulu sebelum dilewatkan.
 export const config = {
   matcher: [
     '/((?!api|_next|images|favicon\\.ico|manifest\\.json|robots\\.txt|sitemap\\.xml|msal-redirect).*)',

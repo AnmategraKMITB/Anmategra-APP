@@ -4002,16 +4002,11 @@
       "count": 2
     }
   },
-  "src/middleware.test.ts": {
+  "src/proxy.test.ts": {
     "vitest/hoisted-apis-on-top": {
       "count": 1
     },
     "vitest/require-mock-type-parameters": {
-      "count": 1
-    }
-  },
-  "src/middleware.ts": {
-    "unicorn/prefer-set-has": {
       "count": 1
     }
   },
