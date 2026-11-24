@@ -2,7 +2,7 @@
  * Melengkapi mock oprec: terima pilihan "lolos" sesuai kuota, tolak sisanya,
  * tetapkan final, aktifkan hasil ke pendaftar. Rilis TIDAK dilakukan (lakukan
  * lewat UI menu Hasil agar pemberitahuan dan jadwal bisa dicoba).
- *   MOCK_RECRUITMENT=<id> DATABASE_URL=... bunx vitest run --config scripts/oprec/vitest.seed.config.ts scripts/oprec/finalize-mock.seed.ts
+ *   MOCK_RECRUITMENT=<id> DATABASE_URL=... SKIP_ENV_VALIDATION=1 bun --config=scripts/oprec/bunfig.seed.toml test ./scripts/oprec/finalize-mock.seed.ts
  */
 import { asc, eq } from 'drizzle-orm';
 import { drizzle } from 'drizzle-orm/postgres-js';

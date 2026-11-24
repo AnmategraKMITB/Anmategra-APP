@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const getToken = vi.fn();
-vi.mock('next-auth/jwt', () => ({
+await vi.mock('next-auth/jwt', () => ({
   getToken: (...args: unknown[]) => getToken(...args) as unknown,
 }));
 

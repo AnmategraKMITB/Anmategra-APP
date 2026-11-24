@@ -85,22 +85,24 @@ Script lain:
 - `bun run start` — jalanin hasil build
 - `bun run lint` — cek lint (ESLint, `eslint.config.mjs`). Pelanggaran lama dicatat di `eslint-suppressions.json`; pelanggaran baru membuat CI gagal. Setelah memperbaiki pelanggaran lama, jalankan `bun run lint:prune` dan commit perubahan file itu.
 - `bun run typecheck` — cek tipe TypeScript (`tsc --noEmit`)
-- `bun run test` — jalankan tes otomatis (Vitest); lihat [Menjalankan Tes](#menjalankan-tes). `bun run test:watch` mengulang tes setiap berkas berubah.
+- `bun run test` — jalankan tes otomatis (`bun test`, paralel per core); lihat [Menjalankan Tes](#menjalankan-tes). `bun run test:watch` mengulang tes setiap berkas berubah.
 - `bun run docs` — regenerate dokumentasi API & database di `docs/api/`
 
 ### Menjalankan Tes
 
-Tes memakai Vitest dan **PostgreSQL asli**, bukan mock, supaya aturan akses diuji terhadap skema yang sama dengan produksi.
+Tes memakai `bun test` (berkas tes tetap mengimpor dari `vitest`; Bun memetakannya ke `bun:test`) dan **PostgreSQL asli**, bukan mock, supaya aturan akses diuji terhadap skema yang sama dengan produksi.
 
 ```
 bun run test
 ```
 
 - Database uji terpisah dari database pengembangan. Alamatnya dari `TEST_DATABASE_URL`; bawaannya `postgresql://postgres:password@localhost:5432/anmategra_test`. Nama database **wajib memuat kata `test`**; kalau tidak, tes menolak jalan karena tiap kasus mengosongkan tabel.
-- Sebelum tes pertama, `src/test/global-setup.ts` membuat database itu bila belum ada (dari `template0`) dan menerapkan semua migrasi di `drizzle/`. Run berikutnya melewati migrasi yang sudah diterapkan.
+- Tiap worker memakai database sendiri: nama dari `TEST_DATABASE_URL` ditambah `_w<nomor worker>` (mis. `anmategra_test_w1`). `src/test/preload.ts` (lewat `bunfig.toml`) membuatnya bila belum ada (dari `template0`) dan menerapkan semua migrasi di `drizzle/` sebelum tiap berkas; migrasi yang sudah diterapkan dilewati.
+- Tiap berkas dimuat dengan modul baru (`--isolate=modules`) dan sesudahnya database, timer, mock, dan env dikembalikan. Urutan tes diacak; seed dicetak di akhir run, ulangi dengan `bun run test --seed=<seed>`. `bun test` tanpa `--isolate` sengaja gagal.
+- Untuk Postgres lokal khusus tes, matikan durabilitas supaya TRUNCATE tidak menunggu disk (10x lebih cepat): `docker run -d -p 5432:5432 -e POSTGRES_PASSWORD=password --tmpfs /var/lib/postgresql/data postgres:15-alpine -c fsync=off -c synchronous_commit=off -c full_page_writes=off`.
 - Berkas tes diberi akhiran `.test.ts` dan diletakkan di samping kodenya. Helper database dan pabrik data ada di `src/test/test-db.ts`.
 - Tes tidak butuh `.env` lengkap: kode yang diuji tidak boleh memuat `~/env`. Prosedur yang butuh sesi atau NextAuth sebaiknya diuji lewat logika yang dipisah, seperti `src/server/api/access.ts`.
-- CI menjalankan `bun run test` pada job `Test` dengan layanan PostgreSQL 15.
+- CI menjalankan `bun run test` pada job `Test` dengan PostgreSQL 15 sekali pakai (tmpfs, tanpa fsync).
 
 ### Login Microsoft (SSO ITB)
 

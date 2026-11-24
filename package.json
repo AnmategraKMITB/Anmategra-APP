@@ -32,10 +32,10 @@
     "lint:fix": "eslint . --fix",
     "lint:prune": "eslint . --prune-suppressions",
     "typecheck": "tsc --noEmit",
-    "seed:oprec-mock": "vitest run --config scripts/oprec/vitest.seed.config.ts",
+    "seed:oprec-mock": "SKIP_ENV_VALIDATION=1 bun --config=scripts/oprec/bunfig.seed.toml test ./scripts/oprec/seed-mock.seed.ts",
     "akun:gabung-tpb": "tsx scripts/akun/gabung-akun-tpb.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
+    "test": "bun test --parallel --isolate=modules",
+    "test:watch": "bun test --isolate=modules --watch",
     "start": "next start",
     "prepare": "husky"
   },
@@ -111,6 +111,7 @@
     "@types/react-dom": "^19.2.0",
     "@typescript-eslint/eslint-plugin": "^8.73.0",
     "@typescript-eslint/parser": "^8.73.0",
+    "bun-types": "1.4.5-canary.20261123T141143",
     "drizzle-dbml-generator": "^0.10.0",
     "drizzle-kit": "^0.31.11",
     "eslint": "^9.0.0",
@@ -124,8 +125,7 @@
     "tailwindcss": "^3.4.3",
     "tsx": "^4.20.5",
     "typescript": "^5.5.3",
-    "typescript-eslint": "^8.73.0",
-    "vitest": "^4.1.12"
+    "typescript-eslint": "^8.73.0"
   },
   "ct3aMetadata": {
     "initVersion": "7.37.0"

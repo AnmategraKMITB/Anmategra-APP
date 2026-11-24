@@ -8,8 +8,6 @@ import { transition } from './lifecycle';
 
 const { db, close } = createTestDb();
 
-// Laporan uji tanpa user_id lolos dari TRUNCATE users; tiap kasus membaca
-// barisnya sendiri lewat id acak, jadi sisa kasus lain tidak mengganggu.
 beforeEach(async () => {
   await resetDb(db);
 });

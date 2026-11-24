@@ -37,9 +37,17 @@ export function createTestDb() {
   return { db, close: () => client.end() };
 }
 
-/** Mengosongkan semua tabel yang bergantung pada `users` (termasuk lembaga dan kegiatan). */
+/**
+ * Mengosongkan semua tabel aplikasi (awalan `anmategra_`), bukan hanya yang
+ * bergantung pada `users`: tabel tanpa FK ke users (mis. `profil_km`) dulu
+ * lolos dan sisanya terbawa ke kasus atau berkas berikutnya.
+ */
 export async function resetDb(db: TestDb) {
-  await db.execute(sql`TRUNCATE TABLE ${schema.users} CASCADE`);
+  const tables = await db.execute<{ name: string }>(sql`
+    select string_agg(quote_ident(tablename), ', ') as name from pg_tables
+    where schemaname = 'public' and tablename like 'anmategra\_%'
+  `);
+  await db.execute(sql.raw(`TRUNCATE TABLE ${tables[0]!.name} CASCADE`));
 }
 
 /**
@@ -67,7 +75,8 @@ export async function raceWithCommittedUpdate<T>(
 
     for (let i = 0; i < 100 && !settled; i++) {
       const [row] = await other<{ n: number }[]>`
-        select count(*)::int as n from pg_stat_activity where wait_event_type = 'Lock'
+        select count(*)::int as n from pg_stat_activity
+        where wait_event_type = 'Lock' and datname = current_database()
       `;
       if ((row?.n ?? 0) > 0) break;
       await new Promise((resolve) => setTimeout(resolve, 20));

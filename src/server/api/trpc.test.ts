@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('~/env', () => ({ env: { SUPERADMIN_EMAILS: [] } }));
+await vi.mock('~/env', () => ({ env: { SUPERADMIN_EMAILS: [] } }));
 
 import {
   adminProcedure,
