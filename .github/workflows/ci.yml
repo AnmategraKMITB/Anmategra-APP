@@ -13,10 +13,12 @@ on:
   push:
     branches: ['develop']
 
-# Push baru ke PR yang sama membatalkan run sebelumnya. Run di develop dan merge
-# queue tidak dibatalkan supaya setiap commit yang masuk tetap tercatat hasilnya.
+# Push baru ke PR yang sama membatalkan run sebelumnya. Push ke develop dan merge
+# queue mendapat grup per commit: dalam satu grup GitHub hanya menyimpan satu run
+# yang menunggu dan membuang yang lain, jadi tanpa ini commit yang di-merge
+# berdekatan tidak pernah diuji (dan durasi tesnya tidak tercatat).
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
