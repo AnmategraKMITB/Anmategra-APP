@@ -37,7 +37,7 @@ Isi `.env`, minimal `DATABASE_URL` bener, contoh:
 DATABASE_URL="postgresql://postgres:password@localhost:5432/anmategra"
 ```
 
-`husky` prepare hook otomatis jalan pas `bun install` (setup lint-staged pre-commit).
+`bun install` otomatis memasang hook git [hk](https://hk.jdx.dev) (`hk.pkl`, lewat `scripts/install-hk.sh`): pre-commit merapikan format dan lint berkas yang di-stage; pre-push menjalankan pengecekan yang sama dengan job "Checks" di CI (`scripts/ci/checks.sh`).
 
 ### Setup Database
 
