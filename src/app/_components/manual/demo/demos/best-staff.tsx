@@ -3,11 +3,10 @@
 // Library Import
 import { Award, Plus } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, Empty, Field, inputClass, Modal, ScreenTitle } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Empty, Field, Modal, ScreenTitle, inputClass } from '../ui';
 
 const STEPS: DemoStep[] = [
   { id: 'tambah', title: 'Klik **Tambah Best Staff**' },
@@ -73,7 +72,10 @@ function Body({ guide }: { guide: DemoGuide }) {
       ) : (
         <ul className="space-y-3">
           {periods.map((period, index) => (
-            <li key={index} className="rounded-lg border border-neutral-400 p-3">
+            <li
+              key={index}
+              className="rounded-lg border border-neutral-400 p-3"
+            >
               <p className="text-xs font-semibold text-neutral-700">
                 Periode {period.start} s.d. {period.end}
               </p>
@@ -81,7 +83,10 @@ function Body({ guide }: { guide: DemoGuide }) {
                 {Object.entries(period.winners)
                   .filter(([, person]) => person)
                   .map(([division, person]) => (
-                    <li key={division} className="rounded-lg bg-warning-light p-2">
+                    <li
+                      key={division}
+                      className="rounded-lg bg-warning-light p-2"
+                    >
                       <p className="flex items-center gap-1 text-xs font-semibold text-neutral-700">
                         <Award className="size-3.5" aria-hidden /> {division}
                       </p>
@@ -122,7 +127,12 @@ function Body({ guide }: { guide: DemoGuide }) {
             </>
           }
         >
-          <div className={cn('grid gap-3 rounded-lg sm:grid-cols-2', guide.spot('periode'))}>
+          <div
+            className={cn(
+              'grid gap-3 rounded-lg sm:grid-cols-2',
+              guide.spot('periode'),
+            )}
+          >
             <Field label="Tanggal mulai">
               {(id) => (
                 <input

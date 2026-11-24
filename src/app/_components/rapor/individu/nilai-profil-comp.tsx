@@ -13,12 +13,12 @@ export default function NilaiProfilComp({
   isLembaga,
 }: NilaiProfilCompProps) {
   return (
-    <div className="flex flex-col gap-3 sm:gap-[15px] w-full">
-      <div className="text-neutral-700 text-lg sm:text-xl md:text-[20px]">
+    <div className="flex w-full flex-col gap-3 sm:gap-[15px]">
+      <div className="text-lg text-neutral-700 sm:text-xl md:text-[20px]">
         {isLembaga ? 'Nilai Profil Lembaga' : 'Nilai Profil Kegiatan'}
       </div>
 
-      <div className="grid grid-cols-2 sm:flex sm:flex-row gap-3 sm:gap-4 md:gap-6">
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:gap-4 md:gap-6">
         {nilaiProfils?.map((profil, index) => (
           <NilaiProfilCard
             key={index}

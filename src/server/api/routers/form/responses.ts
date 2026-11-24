@@ -57,7 +57,9 @@ export async function loadResponseFields(db: Queryable, formId: string) {
   ];
 }
 
-export function toColumns(fields: Awaited<ReturnType<typeof loadResponseFields>>) {
+export function toColumns(
+  fields: Awaited<ReturnType<typeof loadResponseFields>>,
+) {
   return fields.map((f) => ({
     fieldId: f.id,
     type: f.type,

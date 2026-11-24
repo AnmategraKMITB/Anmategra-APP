@@ -47,7 +47,7 @@ export default function EditNilaiButton({
 
   return (
     <Button
-      className="mb-4 rounded-2xl bg-[#2B6282] text-white hover:bg-[#2B6282] hover:text-white w-full sm:w-auto"
+      className="mb-4 w-full rounded-2xl bg-[#2B6282] text-white hover:bg-[#2B6282] hover:text-white sm:w-auto"
       variant="ghost"
       onClick={handleClick}
       disabled={isSaving}

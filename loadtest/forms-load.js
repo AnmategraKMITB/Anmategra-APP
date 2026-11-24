@@ -227,7 +227,8 @@ function answerFor(field) {
       const value = {};
       (cfg.rows || []).forEach((row) => {
         const col = pick(cfg.columns || []);
-        if (row.id && col && col.id) value[row.id] = cfg.multiple ? [col.id] : col.id;
+        if (row.id && col && col.id)
+          value[row.id] = cfg.multiple ? [col.id] : col.id;
       });
       return value;
     }

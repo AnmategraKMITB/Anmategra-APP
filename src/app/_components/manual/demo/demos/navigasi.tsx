@@ -3,11 +3,10 @@
 // Library Import
 import { Search } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { inputClass, Pill } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Pill, inputClass } from '../ui';
 
 const STEPS: DemoStep[] = [
   {

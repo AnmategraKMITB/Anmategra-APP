@@ -1,11 +1,11 @@
 import { TRPCError } from '@trpc/server';
-import { LembagaScopeInput } from '~/server/api/types/scope';
 import { and, eq, inArray } from 'drizzle-orm';
 import {
-  createTRPCRouter,
+  createTRPCRouter,
   lembagaScopedProcedure,
   protectedProcedure,
 } from '~/server/api/trpc';
+import { LembagaScopeInput } from '~/server/api/types/scope';
 import {
   events,
   lembaga,
@@ -17,9 +17,7 @@ import {
   users,
 } from '~/server/db/schema';
 
-import { lembagaMembersSq, periodMembersSq } from './organization/membership';
-import { contactAccess, type ContactViewer } from '../contact';
-
+import { type ContactViewer, contactAccess } from '../contact';
 import {
   GetAllNilaiProfilKegiatanInputSchema,
   GetAllNilaiProfilKegiatanOutputSchema,
@@ -35,6 +33,7 @@ import {
   UpsertNilaiMahasiswaLembagaInputSchema,
   UpsertNilaiMahasiswaLembagaOutputSchema,
 } from '../types/rapor.type';
+import { lembagaMembersSq, periodMembersSq } from './organization/membership';
 
 /** Kontak yang boleh dilihat penonton; bidang yang disembunyikan menjadi string kosong. */
 async function visibleContactFields(
@@ -167,10 +166,7 @@ export const raporRouter = createTRPCRouter({
           });
         }
 
-        if (
-          !event.rapor_visible &&
-          event.org_id !== ctx.lembagaId
-        ) {
+        if (!event.rapor_visible && event.org_id !== ctx.lembagaId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Access denied to this event.',
@@ -235,7 +231,11 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
+          ...(await visibleContactFields(
+            ctx.db,
+            ctx.session.user,
+            dataMahasiswa,
+          )),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -453,7 +453,11 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
+          ...(await visibleContactFields(
+            ctx.db,
+            ctx.session.user,
+            dataMahasiswa,
+          )),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -588,7 +592,10 @@ export const raporRouter = createTRPCRouter({
 
         const dataMahasiswa = mhs[0]!;
 
-        if (input.mahasiswa_id !== ctx.session.user.id && !dataMahasiswa.raporVisible) {
+        if (
+          input.mahasiswa_id !== ctx.session.user.id &&
+          !dataMahasiswa.raporVisible
+        ) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Rapor mahasiswa tidak dapat diakses',
@@ -624,7 +631,11 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
+          ...(await visibleContactFields(
+            ctx.db,
+            ctx.session.user,
+            dataMahasiswa,
+          )),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,
@@ -694,7 +705,10 @@ export const raporRouter = createTRPCRouter({
 
         const dataMahasiswa = mhs[0]!;
 
-        if (input.mahasiswa_id !== ctx.session.user.id && !dataMahasiswa.raporVisible) {
+        if (
+          input.mahasiswa_id !== ctx.session.user.id &&
+          !dataMahasiswa.raporVisible
+        ) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'Rapor mahasiswa tidak dapat diakses',
@@ -730,7 +744,11 @@ export const raporRouter = createTRPCRouter({
           name: dataMahasiswa.name ?? '',
           nim: dataMahasiswa.nim.toString() ?? '',
           jurusan: dataMahasiswa.jurusan ?? '',
-          ...(await visibleContactFields(ctx.db, ctx.session.user, dataMahasiswa)),
+          ...(await visibleContactFields(
+            ctx.db,
+            ctx.session.user,
+            dataMahasiswa,
+          )),
           division: dataMahasiswa.division ?? '',
           position: dataMahasiswa.position ?? '',
           nilai: formattedNilaiList,

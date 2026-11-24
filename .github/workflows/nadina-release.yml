@@ -17,7 +17,7 @@ on:
         default: ed25519
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 permissions:
   contents: read

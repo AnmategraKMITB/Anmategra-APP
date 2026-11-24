@@ -74,22 +74,22 @@ export const MobileSearchOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="sm:hidden fixed top-0 left-0 right-0 z-50 bg-white shadow-lg">
+    <div className="fixed left-0 right-0 top-0 z-50 bg-white shadow-lg sm:hidden">
       {/* Search Header */}
-      <div className="flex items-center px-4 py-3 border-b border-neutral-50">
+      <div className="flex items-center border-b border-neutral-50 px-4 py-3">
         <Button
           onClick={handleClose}
           variant="ghost"
           size="icon"
-          className="w-8 h-8 mr-3"
+          className="mr-3 h-8 w-8"
         >
-          <X className="w-5 h-5" />
+          <X className="h-5 w-5" />
         </Button>
 
-        <div className="flex-1 relative">
+        <div className="relative flex-1">
           <Input
             placeholder="Cari lembaga, kegiatan, atau mahasiswa"
-            className="w-full pr-10 border-0 bg-gray-50 rounded-full placeholder:text-neutral-700 focus-visible:ring-1 focus-visible:ring-[#00B7B7]"
+            className="w-full rounded-full border-0 bg-gray-50 pr-10 placeholder:text-neutral-700 focus-visible:ring-1 focus-visible:ring-[#00B7B7]"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -99,9 +99,9 @@ export const MobileSearchOverlay = ({
             onClick={navigateToSearch}
             variant="ghost"
             size="icon"
-            className="absolute right-1 top-1/2 -translate-y-1/2 w-8 h-8"
+            className="absolute right-1 top-1/2 h-8 w-8 -translate-y-1/2"
           >
-            <MagnifyingGlassIcon className="w-4 h-4 text-gray-500" />
+            <MagnifyingGlassIcon className="h-4 w-4 text-gray-500" />
           </Button>
         </div>
       </div>
@@ -118,7 +118,7 @@ export const MobileSearchOverlay = ({
               {/* Mahasiswa Results */}
               {previewData.mahasiswa.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  <div className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
                     Mahasiswa
                   </div>
                   {previewData.mahasiswa.map((mahasiswa) => (
@@ -126,7 +126,7 @@ export const MobileSearchOverlay = ({
                       key={mahasiswa.userId}
                       href={`/profile-mahasiswa/${mahasiswa.userId}`}
                       onClick={handleLinkClick}
-                      className="block px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      className="block px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100"
                     >
                       <div className="flex items-center gap-3">
                         <div className="flex-1">
@@ -146,7 +146,7 @@ export const MobileSearchOverlay = ({
               {/* Lembaga Results */}
               {previewData.lembaga.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  <div className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
                     Lembaga
                   </div>
                   {previewData.lembaga.map((lembaga) => (
@@ -154,7 +154,7 @@ export const MobileSearchOverlay = ({
                       key={lembaga.lembagaId}
                       href={`/profile-lembaga/${lembaga.lembagaId}`}
                       onClick={handleLinkClick}
-                      className="block px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      className="block px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100"
                     >
                       <div className="font-medium text-gray-900">
                         {lembaga.name}
@@ -167,7 +167,7 @@ export const MobileSearchOverlay = ({
               {/* Kegiatan Results */}
               {previewData.kegiatan.length > 0 && (
                 <div className="mb-2">
-                  <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
+                  <div className="px-4 py-2 text-xs font-semibold uppercase text-gray-500">
                     Kegiatan
                   </div>
                   {previewData.kegiatan.map((kegiatan) => (
@@ -175,7 +175,7 @@ export const MobileSearchOverlay = ({
                       key={kegiatan.id}
                       href={`/profile-kegiatan/${kegiatan.id}`}
                       onClick={handleLinkClick}
-                      className="block px-4 py-3 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                      className="block px-4 py-3 transition-colors hover:bg-gray-50 active:bg-gray-100"
                     >
                       <div className="font-medium text-gray-900">
                         {kegiatan.name}
@@ -186,10 +186,10 @@ export const MobileSearchOverlay = ({
               )}
 
               {/* See All Results Link */}
-              <div className="border-t border-gray-200 mt-2">
+              <div className="mt-2 border-t border-gray-200">
                 <button
                   onClick={navigateToSearch}
-                  className="w-full px-4 py-3 text-center text-sm font-medium text-[#00B7B7] hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                  className="w-full px-4 py-3 text-center text-sm font-medium text-[#00B7B7] transition-colors hover:bg-gray-50 active:bg-gray-100"
                 >
                   Lihat Semua Hasil
                 </button>

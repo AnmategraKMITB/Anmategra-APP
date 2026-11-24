@@ -11,9 +11,9 @@ export default function ComingSoonContent({
   session?: Session | null;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 z-10">
-      <div className="w-full min-h-screen flex flex-col items-center justify-center">
-        <div className="relative w-full min-h-screen flex justify-center items-center text-center">
+    <div className="z-10 min-h-screen bg-gray-50">
+      <div className="flex min-h-screen w-full flex-col items-center justify-center">
+        <div className="relative flex min-h-screen w-full items-center justify-center text-center">
           <div className="absolute left-0 top-5 opacity-20">
             <Image
               src={ComingSoonLeft}
@@ -32,11 +32,11 @@ export default function ComingSoonContent({
               className="object-contain"
             />
           </div>
-          <div className="text-center relative z-10">
-            <h1 className="text-6xl font-bold text-[#2B6777] mb-6">
+          <div className="relative z-10 text-center">
+            <h1 className="mb-6 text-6xl font-bold text-[#2B6777]">
               Coming Soon
             </h1>
-            <p className="text-2xl text-gray-400 mb-12">
+            <p className="mb-12 text-2xl text-gray-400">
               Kami sedang membangun sesuatu yang menarik untuk Anda
             </p>
             {session?.user.role === 'lembaga' ? (

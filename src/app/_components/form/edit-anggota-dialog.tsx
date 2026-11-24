@@ -21,8 +21,8 @@ import {
   FormMessage,
 } from '~/components/ui/form';
 import { Input } from '~/components/ui/input';
-import { api } from '~/trpc/react';
 import { toast } from '~/hooks/use-toast';
+import { api } from '~/trpc/react';
 
 const EditAnggotaSchema = z.object({
   position: z.string().min(1, 'Posisi wajib diisi'),
@@ -48,21 +48,21 @@ export function EditAnggotaDialog({
 }) {
   const mutation = api.lembaga.editAnggota.useMutation({
     onError: (error) => {
-        toast({
-            title: 'Gagal mengedit anggota',
-            description: error.message,
-            variant: 'destructive',
-        })
+      toast({
+        title: 'Gagal mengedit anggota',
+        description: error.message,
+        variant: 'destructive',
+      });
     },
     onSuccess: () => {
-        setIsOpen(false);
-        mutation.reset();
-        window.location.reload();
-        toast({
-            title: 'Berhasil mengedit anggota',
-            description: 'Data anggota telah diperbarui.',
-        })
-    }
+      setIsOpen(false);
+      mutation.reset();
+      window.location.reload();
+      toast({
+        title: 'Berhasil mengedit anggota',
+        description: 'Data anggota telah diperbarui.',
+      });
+    },
   });
   const form = useForm<EditAnggotaSchemaType>({
     resolver: zodResolver(EditAnggotaSchema),
@@ -87,22 +87,20 @@ export function EditAnggotaDialog({
       console.error('lembagaId is required');
       return;
     }
-    
-    mutation.mutate(
-      {
-        lembagaId,
-        user_id: memberId,
-        position: values.position,
-        division: values.division,
-      },
-    );
+
+    mutation.mutate({
+      lembagaId,
+      user_id: memberId,
+      position: values.position,
+      division: values.division,
+    });
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent className="w-full max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-semibold text-center text-[#00B7B7]">
+          <DialogTitle className="text-center text-2xl font-semibold text-[#00B7B7]">
             Edit Anggota
           </DialogTitle>
           <DialogDescription className="text-center text-[#98A2B3]">
@@ -147,7 +145,7 @@ export function EditAnggotaDialog({
             />
             <Button
               type="submit"
-              className="w-full bg-[#00B7B7] hover:bg-[#00B7B7]/85 text-white"
+              className="w-full bg-[#00B7B7] text-white hover:bg-[#00B7B7]/85"
               disabled={mutation.isPending}
             >
               {mutation.isPending ? 'Menyimpan...' : 'Simpan Perubahan'}

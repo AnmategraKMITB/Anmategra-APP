@@ -64,8 +64,7 @@ export function AdminDataTable<T>({
     columns,
     state: { sorting },
     onSortingChange: (updater) => {
-      const next =
-        typeof updater === 'function' ? updater(sorting) : updater;
+      const next = typeof updater === 'function' ? updater(sorting) : updater;
       onSortingChange(next);
     },
     manualSorting: true,
@@ -121,13 +120,19 @@ export function AdminDataTable<T>({
           <TableBody>
             {loading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="py-6 text-center text-neutral-700">
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-6 text-center text-neutral-700"
+                >
                   Memuat…
                 </TableCell>
               </TableRow>
             ) : data.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="py-6 text-center text-neutral-700">
+                <TableCell
+                  colSpan={columns.length}
+                  className="py-6 text-center text-neutral-700"
+                >
                   {empty}
                 </TableCell>
               </TableRow>
@@ -136,7 +141,10 @@ export function AdminDataTable<T>({
                 <TableRow key={row.id}>
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>

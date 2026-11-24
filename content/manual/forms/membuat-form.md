@@ -53,22 +53,22 @@ membatalkan atau mengulang perubahan terakhir.
 4. Lengkapi pengaturan sesuai jenisnya, misalnya daftar pilihan.
 5. Nyalakan tanda wajib jika pertanyaan harus dijawab.
 
-| Jenis               | Dipakai untuk                                             |
-| ------------------- | --------------------------------------------------------- |
-| **Teks pendek**     | Jawaban satu baris. Bisa dibatasi format email, nomor HP, atau NIM. |
-| **Teks panjang**    | Jawaban beberapa baris, misalnya alasan.                  |
-| **Angka**           | Bilangan, dengan nilai minimal dan maksimal.              |
-| **Tanggal**         | Memilih satu tanggal.                                     |
-| **Pilihan tunggal** | Memilih satu dari beberapa pilihan.                       |
-| **Dropdown**        | Pilihan tunggal dalam daftar turun.                       |
-| **Pilihan ganda**   | Memilih beberapa pilihan, dengan batas minimal dan maksimal. |
-| **Kotak centang**   | Persetujuan ya atau tidak.                                |
-| **Matriks**         | Tabel pilihan untuk tiap baris.                           |
-| **Skala**           | Penilaian dalam rentang angka, tampil sebagai angka atau bintang. |
-| **Tautan**          | Alamat situs atau berkas.                                 |
+| Jenis               | Dipakai untuk                                                          |
+| ------------------- | ---------------------------------------------------------------------- |
+| **Teks pendek**     | Jawaban satu baris. Bisa dibatasi format email, nomor HP, atau NIM.    |
+| **Teks panjang**    | Jawaban beberapa baris, misalnya alasan.                               |
+| **Angka**           | Bilangan, dengan nilai minimal dan maksimal.                           |
+| **Tanggal**         | Memilih satu tanggal.                                                  |
+| **Pilihan tunggal** | Memilih satu dari beberapa pilihan.                                    |
+| **Dropdown**        | Pilihan tunggal dalam daftar turun.                                    |
+| **Pilihan ganda**   | Memilih beberapa pilihan, dengan batas minimal dan maksimal.           |
+| **Kotak centang**   | Persetujuan ya atau tidak.                                             |
+| **Matriks**         | Tabel pilihan untuk tiap baris.                                        |
+| **Skala**           | Penilaian dalam rentang angka, tampil sebagai angka atau bintang.      |
+| **Tautan**          | Alamat situs atau berkas.                                              |
 | **Unggah berkas**   | Pengisi mengunggah berkas. Atur jenis, jumlah, dan ukuran maksimalnya. |
-| **Blok teks**       | Penjelasan tanpa pertanyaan.                              |
-| **Pilihan tujuan**  | Memilih divisi secara berurutan. Khusus formulir oprec.   |
+| **Blok teks**       | Penjelasan tanpa pertanyaan.                                           |
+| **Pilihan tujuan**  | Memilih divisi secara berurutan. Khusus formulir oprec.                |
 
 ## Mengatur urutan
 

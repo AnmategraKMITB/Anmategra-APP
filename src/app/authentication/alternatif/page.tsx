@@ -1,5 +1,4 @@
 import { type Metadata } from 'next';
-
 import { AltLoginFlow } from '~/app/_components/auth/alt-login-flow';
 
 export const metadata: Metadata = {

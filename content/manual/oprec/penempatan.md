@@ -80,11 +80,11 @@ selama penempatan **Berjalan**. Tiap divisi mengurutkan pendaftar di bagian
 
 Penempatan bergerak melalui tiga keadaan:
 
-| Keadaan          | Yang bisa dilakukan                                                                        |
-| ---------------- | ------------------------------------------------------------------------------------------ |
-| **Berjalan**     | Keputusan masih bebas diubah.                                                              |
-| **Masa banding** | Pendaftar yang ditolak bisa diterima lewat banding, dan divisi bisa meminta pindah.        |
-| **Final**        | Semua perubahan dikunci.                                                                   |
+| Keadaan          | Yang bisa dilakukan                                                                 |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| **Berjalan**     | Keputusan masih bebas diubah.                                                       |
+| **Masa banding** | Pendaftar yang ditolak bisa diterima lewat banding, dan divisi bisa meminta pindah. |
+| **Final**        | Semua perubahan dikunci.                                                            |
 
 1. Klik **Masuk masa banding** setelah keputusan awal selesai.
 2. Tangani banding dan permintaan pindah.

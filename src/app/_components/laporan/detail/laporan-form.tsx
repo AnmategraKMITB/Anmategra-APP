@@ -1,5 +1,6 @@
 'use client';
 
+import { useWindowRect } from '@dnd-kit/core/dist/hooks/utilities';
 import {
   ChevronDown,
   ChevronRight,
@@ -12,14 +13,19 @@ import {
 import React, { useState } from 'react';
 import { z } from 'zod';
 import { Button } from '~/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from '~/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from '~/components/ui/dialog';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
+import { useToast } from '~/hooks/use-toast';
 import { api } from '~/trpc/react';
 import { useUploadThing } from '~/utils/uploadthing';
+
 import { type Report } from '../board/report-card';
-import { useToast } from '~/hooks/use-toast';
-import { useWindowRect } from '@dnd-kit/core/dist/hooks/utilities';
 
 const fileSchema = z
   .string()
@@ -37,7 +43,7 @@ const laporanSchema = z.object({
     .min(1, { message: 'Deskripsi laporan wajib diisi' })
     .min(10, { message: 'Deskripsi minimal 10 karakter' })
     .max(400, { message: 'Deskripsi maksimal 400 karakter' }),
-  file: fileSchema.optional(), 
+  file: fileSchema.optional(),
   prioritas: z.enum(['Low', 'Medium', 'High'], {
     error: 'Prioritas urgensi wajib dipilih',
   }),
@@ -56,14 +62,14 @@ const CustomFormField: React.FC<CustomFormFieldProps> = ({
   children,
   isPriority = false, // mengecek apakah bagian prioritas urgensi
 }) => (
-  <div className={isPriority ? "relative" : "space-y-2"}>
+  <div className={isPriority ? 'relative' : 'space-y-2'}>
     {children}
     {error && (
-        <p className={`
-           text-red-600 
-            ${isPriority ? 'absolute top-[45px] left-1/2 -translate-x-1/2 text-[13px] whitespace-nowrap' : 'text-[16px] ml-3 '}`}>
-          {error}
-        </p>
+      <p
+        className={`text-red-600 ${isPriority ? 'absolute left-1/2 top-[45px] -translate-x-1/2 whitespace-nowrap text-[13px]' : 'ml-3 text-[16px]'}`}
+      >
+        {error}
+      </p>
     )}
   </div>
 );
@@ -105,7 +111,12 @@ const CustomUploadButton: React.FC<CustomUploadButtonProps> = ({
     const files = e.target.files;
     if (files && files.length > 0) {
       const fileToUpload = files[0];
-      const validTypes = ['application/pdf', 'application/zip', "application/x-7z-compressed", "application/x-zip-compressed"];
+      const validTypes = [
+        'application/pdf',
+        'application/zip',
+        'application/x-7z-compressed',
+        'application/x-zip-compressed',
+      ];
       if (fileToUpload && !validTypes.includes(fileToUpload.type)) {
         onError('Tipe file tidak didukung. Hanya PDF dan ZIP yang diizinkan.');
         e.target.value = '';
@@ -116,7 +127,10 @@ const CustomUploadButton: React.FC<CustomUploadButtonProps> = ({
         return;
       }
 
-      const maxSize = fileToUpload.type === 'application/pdf' ? 16 * 1024 * 1024 : 32 * 1024 * 1024;
+      const maxSize =
+        fileToUpload.type === 'application/pdf'
+          ? 16 * 1024 * 1024
+          : 32 * 1024 * 1024;
       if (fileToUpload && fileToUpload.size > maxSize) {
         onError(
           `Ukuran file terlalu besar. Maksimal ${
@@ -140,7 +154,7 @@ const CustomUploadButton: React.FC<CustomUploadButtonProps> = ({
         ref={fileInputRef}
         className="hidden"
         onChange={handleFileChange}
-        accept=".pdf,.zip" 
+        accept=".pdf,.zip"
         disabled={isDisabled}
       />
 
@@ -148,14 +162,14 @@ const CustomUploadButton: React.FC<CustomUploadButtonProps> = ({
       <Button
         variant="ghost"
         size="sm"
-        className="p-2 h-auto"
+        className="h-auto p-2"
         onClick={handleClick}
         disabled={isDisabled}
       >
         {isUploading ? (
-          <div className="w-5 h-5 border-2 border-gray-600 border-t-transparent rounded-full animate-spin" />
+          <div className="h-5 w-5 animate-spin rounded-full border-2 border-gray-600 border-t-transparent" />
         ) : (
-          <Paperclip className="!w-6 !h-6 text-gray-600 rotate-45" />
+          <Paperclip className="!h-6 !w-6 rotate-45 text-gray-600" />
         )}
       </Button>
     </>
@@ -169,8 +183,8 @@ interface LaporanFormDialogProps {
   onEditComplete?: () => void;
 }
 
-const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({ 
-  isAdmin, 
+const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
+  isAdmin,
   editMode = false,
   reportToEdit,
   onEditComplete,
@@ -241,7 +255,8 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
       });
     },
   });
-  const isSubmitting = createDraftMutation.isPending || editDraftMutation.isPending;
+  const isSubmitting =
+    createDraftMutation.isPending || editDraftMutation.isPending;
 
   const getFieldError = (field: string): string | undefined => errors[field];
 
@@ -306,7 +321,7 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
           subject: formData.judul,
           urgent: formData.prioritas,
           description: formData.deskripsi,
-          attachment: formData.file, 
+          attachment: formData.file,
         });
       }
 
@@ -327,7 +342,9 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
     } catch (error) {
       console.error('Error submitting form:', error);
       setErrors({
-        general: editMode ? 'Gagal memperbarui draf laporan, coba lagi nanti.' : 'Gagal membuat draf laporan, coba lagi nanti.',
+        general: editMode
+          ? 'Gagal memperbarui draf laporan, coba lagi nanti.'
+          : 'Gagal membuat draf laporan, coba lagi nanti.',
       });
     }
   };
@@ -367,53 +384,41 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
           <DialogTrigger asChild>
             <Button
               variant="dark_blue"
-              className="
-                  flex h-[50px] items-center rounded-xl border 
-                  px-3 py-2 font-semibold gap-2
-                  gap-2 font-[600] text-[18px]
-                  leading-[26px]
-                  w-full
-                  lg:w-[201px]
-                "
+              className="flex h-[50px] w-full items-center gap-2 rounded-xl border px-3 py-2 text-[18px] font-[600] font-semibold leading-[26px] lg:w-[201px]"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               Buat laporan
             </Button>
           </DialogTrigger>
         )}
 
         <DialogContent
-          className={`
-            p-0 rounded-[20px] border bg-white max-h-[85vh] overflow-y-auto [&>button]:hidden
-            ${isMaximized
-              ? 'w-[95vw] h-[95vh] max-w-none left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2'
-              : 'w-[92vw] max-w-[460px] sm:w-[820px] sm:max-w-none left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2'
-            }
-          `}
+          className={`max-h-[85vh] overflow-y-auto rounded-[20px] border bg-white p-0 [&>button]:hidden ${
+            isMaximized
+              ? 'left-1/2 top-1/2 h-[95vh] w-[95vw] max-w-none -translate-x-1/2 -translate-y-1/2'
+              : 'left-1/2 top-1/2 w-[92vw] max-w-[460px] -translate-x-1/2 -translate-y-1/2 sm:w-[820px] sm:max-w-none'
+          } `}
           aria-describedby={undefined}
         >
           <DialogTitle className="sr-only">
             {editMode ? 'Edit Laporan' : 'Buat Laporan Baru'}
           </DialogTitle>
-          <div
-            className="flex flex-col pt-5 pr-4 pb-4 pl-4 sm:pt-6 sm:pr-5 sm:pb-4 sm:pl-5 gap-5 sm:gap-6"
-          >
+          <div className="flex flex-col gap-5 pb-4 pl-4 pr-4 pt-5 sm:gap-6 sm:pb-4 sm:pl-5 sm:pr-5 sm:pt-6">
             {/* Header */}
-            <div className="flex flex-col gap-4 w-full">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between w-full gap-3 sm:gap-4">
+            <div className="flex w-full flex-col gap-4">
+              <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
                 <div className="flex items-center gap-3">
-                  <ChevronRight className="w-5 h-5 text-[#000000]" />
-                  <span className="text-[#636A6D] font-bold text-[16px] leading-[24px]">
+                  <ChevronRight className="h-5 w-5 text-[#000000]" />
+                  <span className="text-[16px] font-bold leading-[24px] text-[#636A6D]">
                     {editMode ? 'Edit Laporan' : 'Laporan draft baru'}
                   </span>
                 </div>
 
                 {/* Header Right Controls */}
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 justify-end">
-                  
+                <div className="flex flex-wrap items-center justify-end gap-3 sm:gap-4">
                   {getFieldError('file') && (
-                    <p className="text-sm text-red-600 max-w-[250px] leading-4 order-2 sm:order-none">
-                        {getFieldError('file')}
+                    <p className="order-2 max-w-[250px] text-sm leading-4 text-red-600 sm:order-none">
+                      {getFieldError('file')}
                     </p>
                   )}
 
@@ -425,30 +430,33 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                       isFormSubmitting={isSubmitting}
                     />
                   ) : (
-                    <div className="flex items-center gap-2 text-sm text-gray-600 max-w-[200px] order-2 sm:order-none">
-                      <Paperclip className="!w-4 !h-4 text-gray-600 rotate-45" />
+                    <div className="order-2 flex max-w-[200px] items-center gap-2 text-sm text-gray-600 sm:order-none">
+                      <Paperclip className="!h-4 !w-4 rotate-45 text-gray-600" />
                       <span className="truncate">
                         {getFileNameFromUrl(formData.file) ?? 'File Terunggah'}
                       </span>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="p-1 h-auto"
+                        className="h-auto p-1"
                         onClick={() => handleInputChange('file', undefined)}
                         disabled={isAdmin}
                       >
-                        <X className="w-4 h-4 text-red-500" />
+                        <X className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
                   )}
 
                   {/* Prioritas */}
-                  <CustomFormField error={getFieldError('prioritas')} isPriority={true}>
-                    <div className="relative inline-block w-full sm:w-auto order-1 sm:order-none">
+                  <CustomFormField
+                    error={getFieldError('prioritas')}
+                    isPriority={true}
+                  >
+                    <div className="relative order-1 inline-block w-full sm:order-none sm:w-auto">
                       <Button
                         variant="outline"
                         onClick={() => setShowPrioritas(!showPrioritas)}
-                        className="items-center box-border px-3 py-2 w-full sm:w-[172px] h-auto text-[14px] font-bold border border-neutral-700 rounded-[12px] text-neutral-700 gap-[3px]"
+                        className="box-border h-auto w-full items-center gap-[3px] rounded-[12px] border border-neutral-700 px-3 py-2 text-[14px] font-bold text-neutral-700 sm:w-[172px]"
                         disabled={isAdmin}
                       >
                         {formData.prioritas
@@ -457,22 +465,35 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                               formData.prioritas.slice(1)
                             }`
                           : 'Prioritas Urgensi'}
-                        <ChevronDown className="!w-5 !h-6" />
+                        <ChevronDown className="!h-6 !w-5" />
                       </Button>
 
                       {showPrioritas && !isAdmin && (
-                        <div className="absolute left-0 top-full mt-1 w-full sm:w-[172px] bg-white border border-neutral-700 rounded-[12px] shadow-lg z-10">
+                        <div className="absolute left-0 top-full z-10 mt-1 w-full rounded-[12px] border border-neutral-700 bg-white shadow-lg sm:w-[172px]">
                           {[
-                            { label: 'Low', value: 'Low', color: 'bg-green-500' },
-                            { label: 'Medium', value: 'Medium', color: 'bg-yellow-400' },
-                            { label: 'High', value: 'High', color: 'bg-red-500' },
+                            {
+                              label: 'Low',
+                              value: 'Low',
+                              color: 'bg-green-500',
+                            },
+                            {
+                              label: 'Medium',
+                              value: 'Medium',
+                              color: 'bg-yellow-400',
+                            },
+                            {
+                              label: 'High',
+                              value: 'High',
+                              color: 'bg-red-500',
+                            },
                           ].map((option) => (
                             <div
                               key={option.value}
                               onClick={() => {
                                 setFormData((prev) => ({
                                   ...prev,
-                                  prioritas: option.value as LaporanSchema['prioritas'],
+                                  prioritas:
+                                    option.value as LaporanSchema['prioritas'],
                                 }));
                                 setShowPrioritas(false);
                                 setErrors((prev) => {
@@ -481,10 +502,10 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                                   return newErrors;
                                 });
                               }}
-                              className="flex items-center gap-3 px-4 py-2 cursor-pointer hover:bg-gray-100 hover:rounded-[12px]"
+                              className="flex cursor-pointer items-center gap-3 px-4 py-2 hover:rounded-[12px] hover:bg-gray-100"
                             >
                               <span
-                                className={`w-3 h-3 rounded-full ${option.color}`}
+                                className={`h-3 w-3 rounded-full ${option.color}`}
                               />
                               <span>{option.label}</span>
                             </div>
@@ -493,11 +514,11 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                       )}
                     </div>
                   </CustomFormField>
-                  
+
                   {/* Simpan Draf */}
                   <Button
                     variant="outline"
-                    className="flex items-center justify-center box-border px-3 py-2 h-auto text-[14px] font-bold border border-neutral-700 rounded-[12px] text-neutral-700 gap-[10px] w-full sm:w-auto"
+                    className="box-border flex h-auto w-full items-center justify-center gap-[10px] rounded-[12px] border border-neutral-700 px-3 py-2 text-[14px] font-bold text-neutral-700 sm:w-auto"
                     disabled={true}
                   >
                     Draf
@@ -508,12 +529,12 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => setIsMaximized(!isMaximized)}
-                    className="p-1 h-auto order-3 sm:order-none"
+                    className="order-3 h-auto p-1 sm:order-none"
                   >
                     {isMaximized ? (
-                      <Minimize2 className="!w-5 !h-5 text-gray-600" />
+                      <Minimize2 className="!h-5 !w-5 text-gray-600" />
                     ) : (
-                      <Maximize2 className="!w-5 !h-5 text-gray-600" />
+                      <Maximize2 className="!h-5 !w-5 text-gray-600" />
                     )}
                   </Button>
 
@@ -521,15 +542,15 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={handleClose}
-                    className="p-1 h-auto"
+                    className="h-auto p-1"
                   >
-                    <X className="!w-6 !h-6 text-gray-600" />
+                    <X className="!h-6 !w-6 text-gray-600" />
                   </Button>
                 </div>
               </div>
 
               {/* Form Content */}
-              <div className="w-full h-full flex flex-col justify-between">
+              <div className="flex h-full w-full flex-col justify-between">
                 <CustomFormField error={getFieldError('judul')}>
                   <Input
                     type="text"
@@ -538,8 +559,9 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                     placeholder="Judul Laporan"
                     maxLength={50}
                     disabled={isAdmin}
-                    className="w-full h-[52px] sm:h-[56px] text-[18px] sm:text-[28px] leading-[26px] sm:leading-[36px] text-gray-700 font-bold border-none shadow-none focus-visible:ring-0 p-[10px]"
-                  /> {/*text-[#9DA4A8] awalnya*/}
+                    className="h-[52px] w-full border-none p-[10px] text-[18px] font-bold leading-[26px] text-gray-700 shadow-none focus-visible:ring-0 sm:h-[56px] sm:text-[28px] sm:leading-[36px]"
+                  />{' '}
+                  {/*text-[#9DA4A8] awalnya*/}
                 </CustomFormField>
 
                 <CustomFormField error={getFieldError('deskripsi')}>
@@ -552,29 +574,29 @@ const LaporanFormDialog: React.FC<LaporanFormDialogProps> = ({
                     maxLength={400}
                     rows={isMaximized ? 12 : 6}
                     disabled={isAdmin}
-                    className={`w-full !font-[400] !text-[15px] sm:!text-[20px] !leading-[22px] sm:!leading-[28px] text-gray-600
-                      border-none shadow-none focus-visible:ring-0 p-[10px] resize-none
-                      ${isMaximized ? 'min-h-[180px]' : 'min-h-[120px]'}`}
+                    className={`w-full resize-none border-none p-[10px] !text-[15px] !font-[400] !leading-[22px] text-gray-600 shadow-none focus-visible:ring-0 sm:!text-[20px] sm:!leading-[28px] ${isMaximized ? 'min-h-[180px]' : 'min-h-[120px]'}`}
                   />
                 </CustomFormField>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="flex justify-end items-center w-full mt-2 sm:mt-0">
+            <div className="mt-2 flex w-full items-center justify-end sm:mt-0">
               <Button
                 onClick={handleSubmit}
                 variant="dark_blue"
                 disabled={isAdmin ?? isSubmitting}
-                className="px-6 py-3 rounded-[12px] font-bold w-full sm:w-[200px] h-[45px] text-[17px]"
+                className="h-[45px] w-full rounded-[12px] px-6 py-3 text-[17px] font-bold sm:w-[200px]"
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
                     Menyimpan...
                   </>
+                ) : editMode ? (
+                  'Update Draft'
                 ) : (
-                  editMode ? 'Update Draft' : 'Buat draft laporan'
+                  'Buat draft laporan'
                 )}
               </Button>
             </div>

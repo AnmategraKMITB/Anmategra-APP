@@ -1,6 +1,7 @@
 import React from 'react';
-import { api } from '~/trpc/server';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
+import { api } from '~/trpc/server';
+
 import ProfilTable from '../../../../_components/table/event-profil-table';
 
 interface ProfilEventProps {
@@ -36,34 +37,43 @@ const ProfilEvent = async (props: ProfilEventProps) => {
               profilKMDescription: profilKMMap.get(kmId) ?? 'Unknown',
               profilKegiatanName: kegiatan.name,
               description: kegiatan.description,
-            }))
+            })),
           )
         : [];
 
     return (
-      <div className="flex flex-col gap-y-6 pt-10 px-9 md:px-11">
+      <div className="flex flex-col gap-y-6 px-9 pt-10 md:px-11">
         <div className="gap-y-2">
-          <h1 className="text-neutral-1000 text-[32px] font-semibold">
+          <h1 className="text-[32px] font-semibold text-neutral-1000">
             Profil Kegiatan
           </h1>
           <RaporBreadcrumb
             items={[
-              { label: 'Kegiatan', href: `/lembaga/kegiatan/${params.kegiatanId}/panitia` },
-              { label: 'Rapor Komunal', href: `/lembaga/kegiatan/${params.kegiatanId}/rapor` },
-              { label: 'Profil Kegiatan', href: `/lembaga/kegiatan/${params.kegiatanId}/profil` },
+              {
+                label: 'Kegiatan',
+                href: `/lembaga/kegiatan/${params.kegiatanId}/panitia`,
+              },
+              {
+                label: 'Rapor Komunal',
+                href: `/lembaga/kegiatan/${params.kegiatanId}/rapor`,
+              },
+              {
+                label: 'Profil Kegiatan',
+                href: `/lembaga/kegiatan/${params.kegiatanId}/profil`,
+              },
             ]}
           />
         </div>
 
         <div className="flex flex-col gap-y-4">
-          <h2 className="text-neutral-700 text-[20px] font-normal">
+          <h2 className="text-[20px] font-normal text-neutral-700">
             Profil Kegiatan
           </h2>
           <ProfilTable profilData={profilKegiatanList} showMapping={false} />
         </div>
 
         <div className="flex flex-col gap-y-4">
-          <h2 className="text-neutral-700 text-[20px] font-normal">
+          <h2 className="text-[20px] font-normal text-neutral-700">
             Detail Pemetaan Profil Kegiatan
           </h2>
           <ProfilTable profilData={mappingData} showMapping={true} />
@@ -72,20 +82,26 @@ const ProfilEvent = async (props: ProfilEventProps) => {
     );
   } catch {
     return (
-      <div className="flex flex-col gap-y-6 pt-10 px-9 md:px-11">
+      <div className="flex flex-col gap-y-6 px-9 pt-10 md:px-11">
         <div className="gap-y-2">
-          <h1 className="text-neutral-1000 text-[32px] font-semibold">
+          <h1 className="text-[32px] font-semibold text-neutral-1000">
             Profil Kegiatan
           </h1>
           <RaporBreadcrumb
             items={[
               { label: 'Kegiatan', href: '/lembaga/kegiatan' },
-              { label: 'Rapor Komunal', href: `/lembaga/kegiatan/${params.kegiatanId}/rapor` },
-              { label: 'Profil Kegiatan', href: `/lembaga/kegiatan/${params.kegiatanId}/profil` },
+              {
+                label: 'Rapor Komunal',
+                href: `/lembaga/kegiatan/${params.kegiatanId}/rapor`,
+              },
+              {
+                label: 'Profil Kegiatan',
+                href: `/lembaga/kegiatan/${params.kegiatanId}/profil`,
+              },
             ]}
           />
         </div>
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-neutral-500">Gagal memuat data profil kegiatan</p>
         </div>
       </div>

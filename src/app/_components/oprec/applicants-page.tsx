@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation';
 import { api } from '~/trpc/server';
 
-import { loadManagedOprec, canOpenResults } from './access';
+import { canOpenResults, loadManagedOprec } from './access';
 import { ApplicantsView } from './applicants-view';
 import { OprecTabs } from './oprec-tabs';
 import { type OprecBase } from './status';

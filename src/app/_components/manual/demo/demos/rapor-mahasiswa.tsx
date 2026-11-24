@@ -2,11 +2,10 @@
 
 // Library Import
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, Pill, tdClass, thClass, Toggle } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Pill, Toggle, tdClass, thClass } from '../ui';
 
 const STEPS: DemoStep[] = [
   {
@@ -96,7 +95,9 @@ function Body({ guide }: { guide: DemoGuide }) {
       <div>
         <div className="rounded-lg border border-neutral-400 p-3">
           <p className="font-semibold">Aku Masuk ITB 2027</p>
-          <p className="text-xs text-neutral-700">Divisi Event Organizer · Staf</p>
+          <p className="text-xs text-neutral-700">
+            Divisi Event Organizer · Staf
+          </p>
           {visible ? (
             <Btn
               small

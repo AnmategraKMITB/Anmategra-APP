@@ -31,22 +31,22 @@ tidak ada yang tersimpan ke Anmategra.
 
 ## Panduan berdasarkan peran
 
-| Peran         | Fitur utama                                                                                                             |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| **Mahasiswa** | Menelusuri kegiatan, mendaftar oprec, mengisi form, mengajukan asosiasi, dan melihat profil serta rapor.                |
+| Peran         | Fitur utama                                                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| **Mahasiswa** | Menelusuri kegiatan, mendaftar oprec, mengisi form, mengajukan asosiasi, dan melihat profil serta rapor.                     |
 | **Lembaga**   | Mengelola kegiatan dan anggota, menyusun organogram, membuat form, menjalankan oprec, mengisi rapor, dan memilih Best Staff. |
-| **Admin**     | Menangani laporan, mengelola akun dan lembaga, memberi akses pengelola, dan membaca audit.                              |
+| **Admin**     | Menangani laporan, mengelola akun dan lembaga, memberi akses pengelola, dan membaca audit.                                   |
 
 ## Fitur menurut kebutuhan
 
-| Kebutuhan                                  | Fitur                                                      |
-| ------------------------------------------ | ---------------------------------------------------------- |
-| Menggambar struktur kepengurusan           | [Organogram](/manual/organogram/menyusun-organogram)       |
-| Mengumpulkan jawaban atau data             | [Forms](/manual/forms/membuat-form)                        |
-| Merekrut staf atau panitia                 | [Oprec](/manual/oprec/alur-oprec)                          |
-| Mencatat siapa saja anggota dan panitia    | [Anggota](/manual/anggota/mengelola-anggota)               |
-| Menilai kinerja anggota                    | [Rapor](/manual/lembaga/rapor)                             |
-| Memberi penghargaan                        | [Best Staff](/manual/lembaga/best-staff)                   |
+| Kebutuhan                               | Fitur                                                |
+| --------------------------------------- | ---------------------------------------------------- |
+| Menggambar struktur kepengurusan        | [Organogram](/manual/organogram/menyusun-organogram) |
+| Mengumpulkan jawaban atau data          | [Forms](/manual/forms/membuat-form)                  |
+| Merekrut staf atau panitia              | [Oprec](/manual/oprec/alur-oprec)                    |
+| Mencatat siapa saja anggota dan panitia | [Anggota](/manual/anggota/mengelola-anggota)         |
+| Menilai kinerja anggota                 | [Rapor](/manual/lembaga/rapor)                       |
+| Memberi penghargaan                     | [Best Staff](/manual/lembaga/best-staff)             |
 
 ## Istilah penting
 

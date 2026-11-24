@@ -2,11 +2,10 @@
 
 // Library Import
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, Field, inputClass, Pill } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Field, Pill, inputClass } from '../ui';
 
 const STEPS: DemoStep[] = [
   { id: 'edit', title: 'Klik **Edit Profile Lembaga**' },
@@ -19,11 +18,7 @@ const STEPS: DemoStep[] = [
 
 export default function ProfilLembagaDemo() {
   return (
-    <DemoFrame
-      title="Profil lembaga"
-      location="Lembaga › Profil"
-      steps={STEPS}
-    >
+    <DemoFrame title="Profil lembaga" location="Lembaga › Profil" steps={STEPS}>
       {(guide) => <Body guide={guide} />}
     </DemoFrame>
   );
@@ -33,7 +28,8 @@ function Body({ guide }: { guide: DemoGuide }) {
   const [saved, setSaved] = useState({
     name: 'Kabinet KM ITB',
     type: 'Himpunan',
-    description: 'Wadah mahasiswa program studi untuk berkarya dan berkegiatan.',
+    description:
+      'Wadah mahasiswa program studi untuk berkarya dan berkegiatan.',
   });
   const [draft, setDraft] = useState(saved);
   const [editing, setEditing] = useState(false);

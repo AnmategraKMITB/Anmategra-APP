@@ -2,7 +2,6 @@
 
 // Bagian kecil yang dipakai ulang oleh simulasi manual. Sengaja ringan dan
 // tanpa portal supaya semua yang tampil tetap berada di dalam jendela demo.
-
 // Library Import
 import { X } from 'lucide-react';
 import {
@@ -13,7 +12,6 @@ import {
   useRef,
   useState,
 } from 'react';
-
 import { cn } from '~/lib/utils';
 
 export const inputClass =
@@ -30,7 +28,8 @@ const BTN_TONE = {
     'border border-primary-400 bg-white text-primary-400 hover:bg-primary-100',
   ghost: 'text-neutral-800 hover:bg-neutral-200',
   danger: 'bg-tomato text-white hover:bg-danger-dark',
-  dangerOutline: 'border border-tomato bg-white text-danger-dark hover:bg-danger-light',
+  dangerOutline:
+    'border border-tomato bg-white text-danger-dark hover:bg-danger-light',
 } as const;
 
 export function Btn({
@@ -106,7 +105,10 @@ export function Field({
   const id = useId();
   return (
     <div className={cn('space-y-1', className)}>
-      <label htmlFor={id} className="block text-xs font-semibold text-neutral-800">
+      <label
+        htmlFor={id}
+        className="block text-xs font-semibold text-neutral-800"
+      >
         {label}
       </label>
       {children(id)}
@@ -239,7 +241,10 @@ export function Modal({
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             {/* Bukan heading: daftar isi manual membaca h2/h3 dari artikel. */}
-            <p id={titleId} className="text-base font-semibold text-neutral-1000">
+            <p
+              id={titleId}
+              className="text-base font-semibold text-neutral-1000"
+            >
               {title}
             </p>
             {description ? (

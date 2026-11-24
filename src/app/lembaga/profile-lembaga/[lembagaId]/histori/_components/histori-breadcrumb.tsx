@@ -29,7 +29,7 @@ export function HistoriBreadCrumb({ items }: HistoriBreadCrumbProps) {
                 <BreadcrumbLink asChild>
                   <Link
                     href={item.href}
-                    className="underline text-black text-[16px]"
+                    className="text-[16px] text-black underline"
                   >
                     {item.label}
                   </Link>

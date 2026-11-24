@@ -49,7 +49,8 @@ export const KepanitiaanCard = ({
       >
         <Image
           src={
-            kepanitiaan.image ?? '/images/placeholder/profile-lembaga-kegiatan.png'
+            kepanitiaan.image ??
+            '/images/placeholder/profile-lembaga-kegiatan.png'
           }
           alt={kepanitiaan.lembaga.name}
           className="object-cover object-top"
@@ -110,11 +111,13 @@ export const KepanitiaanCard = ({
         {showRaporLink && raporVisible && mahasiswaId && (
           <Button
             variant="link"
-            className="text-sm font-semibold text-emerald-600 hover:underline p-0 justify-start"
+            className="justify-start p-0 text-sm font-semibold text-emerald-600 hover:underline"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();
-              router.push(`/profile-kegiatan/${kepanitiaan.id}/rapor/${mahasiswaId}`);
+              router.push(
+                `/profile-kegiatan/${kepanitiaan.id}/rapor/${mahasiswaId}`,
+              );
             }}
           >
             Lihat Rapor →

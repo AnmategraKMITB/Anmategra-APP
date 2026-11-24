@@ -4,8 +4,8 @@ import { env } from '~/env';
 import type { FileAnswerItem } from '~/lib/forms/file-answer';
 import {
   FILE_PROVIDER_LABELS,
-  resolveFileProvider,
   type FileUploadContext,
+  resolveFileProvider,
 } from '~/lib/forms/file-provider';
 import {
   connectGoogleDrive,
@@ -23,10 +23,7 @@ import { useUploadThing } from '~/utils/uploadthing';
 export function useFormFileUpload(): {
   providerId: 'uploadthing' | 'google-drive' | 'onedrive';
   providerLabel: string;
-  upload: (
-    file: File,
-    context: FileUploadContext,
-  ) => Promise<FileAnswerItem>;
+  upload: (file: File, context: FileUploadContext) => Promise<FileAnswerItem>;
   remove: (item: FileAnswerItem) => Promise<void>;
   /**
    * Penyedia yang butuh izin lewat popup (Google Drive). `connect` harus

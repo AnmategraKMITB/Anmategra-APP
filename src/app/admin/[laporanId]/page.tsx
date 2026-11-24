@@ -1,9 +1,9 @@
+import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
 import {
   LaporanCard,
   type LaporanDetailProps,
-} from "~/app/_components/laporan/detail/laporan-card";
-import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
-import { api } from "~/trpc/server";
+} from '~/app/_components/laporan/detail/laporan-card';
+import { api } from '~/trpc/server';
 
 const formatDate = (dateString: string) =>
   new Date(dateString).toLocaleDateString('id-ID', {
@@ -14,11 +14,9 @@ const formatDate = (dateString: string) =>
     minute: '2-digit',
   });
 
-export default async function ReportDetail(
-  props: {
-    params: Promise<{ laporanId: string }>;
-  }
-) {
+export default async function ReportDetail(props: {
+  params: Promise<{ laporanId: string }>;
+}) {
   const params = await props.params;
   const laporanId = params.laporanId;
   const { reports } = await api.admin.getAllReportsAdmin({});

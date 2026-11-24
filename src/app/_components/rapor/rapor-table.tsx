@@ -674,11 +674,11 @@ export default function RaporTable({
         }}
       />
       <div className="mb-6" />
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-1 flex-col">
         <div className="flex-1">
           {/* Action buttons - responsive layout */}
-          <div className="flex flex-col sm:flex-row sm:justify-between gap-4 mb-4">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-x-5">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-x-5">
               <TambahProfilButton onClick={handleTambahProfil}>
                 Tambah Profil {type === 'event' ? 'Kegiatan' : 'Lembaga'}
               </TambahProfilButton>
@@ -686,7 +686,7 @@ export default function RaporTable({
                 Profil {type === 'event' ? 'Kegiatan' : 'Lembaga'}
               </LinkButton>
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-x-5">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-x-5">
               <ImportDialog
                 session={session}
                 lembagaId={lembaga_id}
@@ -710,7 +710,7 @@ export default function RaporTable({
           </div>
 
           {/* Desktop Table View - hidden on mobile */}
-          <div className="hidden md:block w-full overflow-x-auto">
+          <div className="hidden w-full overflow-x-auto md:block">
             <Table className="min-w-max">
               <RaporTableHeader
                 profilHeaders={profilHeaders}
@@ -722,9 +722,9 @@ export default function RaporTable({
               <TableBody>
                 {profilHeaders.length === 0 ? (
                   <tr>
-                    <td colSpan={100} className="text-center py-12">
+                    <td colSpan={100} className="py-12 text-center">
                       <div className="text-neutral-500">
-                        <p className="text-lg mb-2">
+                        <p className="mb-2 text-lg">
                           Belum ada profil{' '}
                           {type === 'lembaga' ? 'lembaga' : 'kegiatan'}
                         </p>
@@ -755,11 +755,11 @@ export default function RaporTable({
           </div>
 
           {/* Mobile Card View - shown only on mobile */}
-          <div className="md:hidden space-y-4">
+          <div className="space-y-4 md:hidden">
             {profilHeaders.length === 0 ? (
-              <div className="text-center py-12 bg-white rounded-lg border">
+              <div className="rounded-lg border bg-white py-12 text-center">
                 <div className="text-neutral-500">
-                  <p className="text-lg mb-2">
+                  <p className="mb-2 text-lg">
                     Belum ada profil{' '}
                     {type === 'lembaga' ? 'lembaga' : 'kegiatan'}
                   </p>
@@ -779,11 +779,11 @@ export default function RaporTable({
                 return (
                   <div
                     key={`card-${originalIdx}-${row.nama}`}
-                    className="bg-white rounded-lg border p-4 shadow-sm"
+                    className="rounded-lg border bg-white p-4 shadow-sm"
                   >
                     {/* Header - Name and NIM */}
-                    <div className="mb-4 pb-3 border-b">
-                      <h3 className="font-semibold text-lg text-neutral-700">
+                    <div className="mb-4 border-b pb-3">
+                      <h3 className="text-lg font-semibold text-neutral-700">
                         {displayData.nama}
                       </h3>
                       <p className="text-sm text-neutral-500">
@@ -798,10 +798,10 @@ export default function RaporTable({
                         return (
                           <div
                             key={`${originalIdx}-${colIdx}`}
-                            className="flex justify-between items-center py-2"
+                            className="flex items-center justify-between py-2"
                           >
-                            <div className="flex-1 mr-3">
-                              <span className="text-sm font-medium text-neutral-700 block">
+                            <div className="mr-3 flex-1">
+                              <span className="block text-sm font-medium text-neutral-700">
                                 {header.label}
                               </span>
                             </div>
@@ -811,7 +811,7 @@ export default function RaporTable({
                                   type="number"
                                   min={0}
                                   max={100}
-                                  className="w-20 px-2 py-1 border rounded text-center"
+                                  className="w-20 rounded border px-2 py-1 text-center"
                                   value={value}
                                   onChange={(e) => {
                                     const newValue = e.target.value;
@@ -833,7 +833,7 @@ export default function RaporTable({
                                   }}
                                 />
                               ) : (
-                                <span className="text-base font-semibold text-neutral-700 bg-neutral-100 px-3 py-1 rounded">
+                                <span className="rounded bg-neutral-100 px-3 py-1 text-base font-semibold text-neutral-700">
                                   {value}
                                 </span>
                               )}

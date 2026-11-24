@@ -12,11 +12,10 @@ import {
   Undo2,
 } from 'lucide-react';
 import { type ReactNode, useRef, useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, inputClass, Modal, Toggle, useFlash } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Modal, Toggle, inputClass, useFlash } from '../ui';
 
 const STEPS: DemoStep[] = [
   {
@@ -89,9 +88,17 @@ const CHIP_CLASS =
   'h-8 rounded-full border border-secondary-400 bg-white px-3 text-sm font-semibold text-secondary-800 transition-colors duration-150 hover:bg-secondary-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-white';
 
 const PREVIEW_TREE = [
-  { name: 'Operasional', person: 'Raka P.', children: ['Logistik', 'Akomtrans'] },
+  {
+    name: 'Operasional',
+    person: 'Raka P.',
+    children: ['Logistik', 'Akomtrans'],
+  },
   { name: 'Kreatif', person: 'Nadia K.', children: ['Grafis', 'Publikasi'] },
-  { name: 'ITB Day', person: 'Bima A.', children: ['Event Organizer', 'Exhibition'] },
+  {
+    name: 'ITB Day',
+    person: 'Bima A.',
+    children: ['Event Organizer', 'Exhibition'],
+  },
 ];
 
 export default function OrganogramPengaturanDemo() {
@@ -475,9 +482,7 @@ function Body({ guide }: { guide: DemoGuide }) {
       </section>
 
       <section className="py-5">
-        <h2 className="text-lg font-semibold text-neutral-1000">
-          Kunci edit
-        </h2>
+        <h2 className="text-lg font-semibold text-neutral-1000">Kunci edit</h2>
         <div className="mt-3 space-y-1">
           <Toggle
             checked={locked}
@@ -524,7 +529,9 @@ function Body({ guide }: { guide: DemoGuide }) {
               dirty ? 'font-semibold text-neutral-1000' : 'text-neutral-700',
             )}
           >
-            {dirty ? 'Ada perubahan belum disimpan' : 'Semua perubahan tersimpan'}
+            {dirty
+              ? 'Ada perubahan belum disimpan'
+              : 'Semua perubahan tersimpan'}
           </span>
           <Btn small tone="outline" disabled={!dirty} onClick={revertDraft}>
             Batal
@@ -555,8 +562,8 @@ function Body({ guide }: { guide: DemoGuide }) {
             <div className="grid min-h-[240px] place-items-center text-center">
               <div className="max-w-sm">
                 <p className="text-sm text-neutral-700">
-                  Tab {mode === 'bagan' ? 'Bagan' : 'Tabel'} tidak
-                  disimulasikan di jendela ini.
+                  Tab {mode === 'bagan' ? 'Bagan' : 'Tabel'} tidak disimulasikan
+                  di jendela ini.
                 </p>
                 <Btn
                   small

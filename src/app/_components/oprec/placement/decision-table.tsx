@@ -82,7 +82,9 @@ export function DecisionTable({
           <TableHeader>
             <TableRow>
               <TableHead className="min-w-52">Pendaftar</TableHead>
-              <TableHead className="whitespace-nowrap">Skor &amp; status</TableHead>
+              <TableHead className="whitespace-nowrap">
+                Skor &amp; status
+              </TableHead>
               <TableHead className="min-w-56">Pilihan</TableHead>
               <TableHead className="min-w-44">Keputusan</TableHead>
               <TableHead className="min-w-36">Tindakan</TableHead>
@@ -106,9 +108,7 @@ export function DecisionTable({
                 (target.decision === 'tolak' ||
                   target.stageReason === 'tidak_lolos');
               const canMove =
-                isAdmin &&
-                accepted !== undefined &&
-                state !== 'final';
+                isAdmin && accepted !== undefined && state !== 'final';
               const canRequest =
                 !isAdmin &&
                 state === 'masa_banding' &&
@@ -122,7 +122,9 @@ export function DecisionTable({
                     </span>
                     <span className="mt-0.5 block text-xs text-neutral-700">
                       {[row.nim, row.prodi, row.angkatan]
-                        .filter((value) => value !== null && value !== undefined)
+                        .filter(
+                          (value) => value !== null && value !== undefined,
+                        )
                         .join(' · ')}
                     </span>
                     <span className="mt-1 flex flex-wrap gap-1">
@@ -135,9 +137,7 @@ export function DecisionTable({
                         </Chip>
                       ) : null}
                       {row.acceptedElsewhere && accepted ? (
-                        <Chip tone="warning">
-                          diterima di {accepted.label}
-                        </Chip>
+                        <Chip tone="warning">diterima di {accepted.label}</Chip>
                       ) : null}
                     </span>
                     <RowHistory
@@ -155,7 +155,9 @@ export function DecisionTable({
                       {target.overridden ? (
                         <Chip
                           tone="muted"
-                          title={target.overrideReason ?? 'Status diubah manual'}
+                          title={
+                            target.overrideReason ?? 'Status diubah manual'
+                          }
                         >
                           diubah manual
                         </Chip>

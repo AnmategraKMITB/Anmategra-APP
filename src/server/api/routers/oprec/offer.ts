@@ -65,7 +65,10 @@ function assertAdmin(access: AssessAccess) {
 
 /** Alasan tawaran tidak bisa dipakai pada oprec ini; null = bisa. */
 export function offerProblem(
-  rec: Pick<Recruitment, 'placementMethod' | 'placementState' | 'allowRedirect'>,
+  rec: Pick<
+    Recruitment,
+    'placementMethod' | 'placementState' | 'allowRedirect'
+  >,
 ): string | null {
   if (rec.placementMethod !== 'prioritas') {
     return 'Tawaran hanya tersedia pada metode penempatan prioritas.';
@@ -209,7 +212,9 @@ export const offerProcedures = {
             .groupBy(applicationChoice.divisionId),
         ]);
       const closesAt = new Map(offers.map((o) => [o.id, o.closesAt]));
-      const acceptedBy = new Map(acceptedOffers.map((r) => [r.divisionId, r.n]));
+      const acceptedBy = new Map(
+        acceptedOffers.map((r) => [r.divisionId, r.n]),
+      );
       const filledBy = new Map(filled.map((r) => [r.divisionId, r.n]));
       const now = Date.now();
       return {
@@ -233,9 +238,7 @@ export const offerProcedures = {
 
   /** Buka (atau perpanjang) tawaran sebuah divisi dan beri tahu pendaftar tanpa divisi. */
   offerOpen: oprecAssessProcedure
-    .input(
-      z.object({ recruitmentId: id, divisionId: id, closesAt: z.date() }),
-    )
+    .input(z.object({ recruitmentId: id, divisionId: id, closesAt: z.date() }))
     .mutation(async ({ ctx, input }) => {
       assertAdmin(ctx.assess);
       const now = Date.now();

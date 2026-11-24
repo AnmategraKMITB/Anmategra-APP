@@ -5,7 +5,11 @@
  */
 function pgErrorCode(error: unknown): string | undefined {
   let cursor: unknown = error;
-  for (let depth = 0; depth < 5 && cursor && typeof cursor === 'object'; depth++) {
+  for (
+    let depth = 0;
+    depth < 5 && cursor && typeof cursor === 'object';
+    depth++
+  ) {
     const code = (cursor as { code?: unknown }).code;
     if (typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)) return code;
     cursor = (cursor as { cause?: unknown }).cause;

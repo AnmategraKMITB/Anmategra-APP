@@ -2,11 +2,10 @@
 
 // Library Import
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
-import { Btn, Field, inputClass, Toggle } from '../ui';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
+import { Btn, Field, Toggle, inputClass } from '../ui';
 
 const STEPS: DemoStep[] = [
   { id: 'edit', title: 'Klik **Edit Profile Info**' },
@@ -51,7 +50,12 @@ function Body({ guide }: { guide: DemoGuide }) {
             13524011 · Teknik Informatika · Angkatan 2024
           </p>
           {editing ? (
-            <div className={cn('mt-3 grid gap-3 rounded-lg sm:grid-cols-2', guide.spot('simpan'))}>
+            <div
+              className={cn(
+                'mt-3 grid gap-3 rounded-lg sm:grid-cols-2',
+                guide.spot('simpan'),
+              )}
+            >
               <Field label="ID Line">
                 {(id) => (
                   <input
@@ -139,7 +143,9 @@ function Body({ guide }: { guide: DemoGuide }) {
       </div>
       <div className="mt-4 rounded-lg border border-neutral-400 p-3">
         <p className="font-semibold">Aku Masuk ITB 2027</p>
-        <p className="text-xs text-neutral-700">Divisi Event Organizer · Staf</p>
+        <p className="text-xs text-neutral-700">
+          Divisi Event Organizer · Staf
+        </p>
         <p className="mt-1 text-xs">
           {visible
             ? 'Tautan Rapor tampil di kartu ini bila lembaga juga membuka rapornya.'

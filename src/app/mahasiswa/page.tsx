@@ -24,16 +24,16 @@ const LandingPage = async () => {
   const kegiatanTerbesar = await api.landing.getTopEvents();
   const kegiatanTerbaru = await api.landing.getRecentEvents();
 
-//   const jsonLd = {
-//     '@context': 'https://schema.org',
-//     '@type': 'WebSite',
-//     name: 'Anmategra',
-//     url: `${env.NEXT_PUBLIC_BASE_URL}/mahasiswa`,
-//     potentialAction: {
-//       '@type': 'SearchAction',
-//       target: `${env.NEXT_PUBLIC_BASE_URL}/mahasiswa/pencarian/{search_term_string}`,
-//     },
-//   };
+  //   const jsonLd = {
+  //     '@context': 'https://schema.org',
+  //     '@type': 'WebSite',
+  //     name: 'Anmategra',
+  //     url: `${env.NEXT_PUBLIC_BASE_URL}/mahasiswa`,
+  //     potentialAction: {
+  //       '@type': 'SearchAction',
+  //       target: `${env.NEXT_PUBLIC_BASE_URL}/mahasiswa/pencarian/{search_term_string}`,
+  //     },
+  //   };
 
   return (
     // <>

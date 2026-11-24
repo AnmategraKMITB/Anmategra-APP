@@ -16,10 +16,10 @@ on:
       version:
         description: Versi artefak
         type: string
-        default: "0.1.0"
+        default: '0.1.0'
   push:
     tags:
-      - "pipeline-test-v*"
+      - 'pipeline-test-v*'
 
 permissions:
   contents: read

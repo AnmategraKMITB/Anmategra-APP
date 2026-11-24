@@ -65,15 +65,15 @@ const ProfileAnggotaComp = ({
 
   return (
     <div>
-      <div className="mb-4 mt-4 sm:mt-8 flex items-center justify-between">
-        <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+      <div className="mb-4 mt-4 flex items-center justify-between sm:mt-8">
+        <h2 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
           Anggota
         </h2>
       </div>
       <div className="mb-4">
         <Input
           placeholder="Cari nama anggota"
-          className="rounded-2xl bg-white focus-visible:ring-transparent placeholder:text-neutral-700"
+          className="rounded-2xl bg-white placeholder:text-neutral-700 focus-visible:ring-transparent"
           startAdornment={
             <MagnifyingGlassIcon className="size-4 text-gray-500" />
           }
@@ -89,7 +89,7 @@ const ProfileAnggotaComp = ({
           visibleAnggota.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between py-3 border-b border-neutral-200"
+              className="flex items-center justify-between border-b border-neutral-200 py-3"
             >
               <Link
                 href={`/profile-mahasiswa/${item.id}`}
@@ -98,19 +98,19 @@ const ProfileAnggotaComp = ({
                 <Image
                   src={item.image ?? '/images/placeholder/profile-pic.png'}
                   alt="Profile Picture"
-                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full object-cover"
+                  className="h-12 w-12 rounded-full object-cover sm:h-14 sm:w-14"
                   width={56}
                   height={56}
                 />
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-sm sm:text-base font-semibold text-slate-900">
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-sm font-semibold text-slate-900 sm:text-base">
                     {item.nama}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-500">
+                  <p className="text-xs text-slate-500 sm:text-sm">
                     {item.nim} | {item.jurusan}
                   </p>
                   {(item.posisi || item.divisi) && (
-                    <p className="text-xs text-slate-400 mt-0.5">
+                    <p className="mt-0.5 text-xs text-slate-400">
                       {[item.posisi, item.divisi].filter(Boolean).join(' | ')}
                     </p>
                   )}
@@ -119,15 +119,15 @@ const ProfileAnggotaComp = ({
               {raporVisible && (
                 <Link
                   href={`/${isKegiatan ? 'profile-kegiatan' : 'profile-lembaga'}/${kegiatanLembagaId}/rapor/${item.id}`}
-                  className="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-medium underline-offset-4 hover:underline shrink-0 ml-4"
+                  className="ml-4 shrink-0 text-xs font-medium text-emerald-600 underline-offset-4 hover:text-emerald-700 hover:underline sm:text-sm"
                 >
-                  Rapor <ArrowRight className="inline size-4 ml-1" />
+                  Rapor <ArrowRight className="ml-1 inline size-4" />
                 </Link>
               )}
             </div>
           ))
         ) : (
-          <div className="w-full py-16 flex flex-col items-center gap-y-4">
+          <div className="flex w-full flex-col items-center gap-y-4 py-16">
             <Image
               src={NoAnggota}
               alt="Tidak Ada Anggota"
@@ -135,12 +135,12 @@ const ProfileAnggotaComp = ({
               height={128}
             />
             <div className="w-full text-center">
-              <h5 className="text-2xl font-semibold text-slate-600 text-center">
+              <h5 className="text-center text-2xl font-semibold text-slate-600">
                 {!!session
                   ? 'Tidak ada anggota'
                   : 'Anggota tidak dapat dilihat'}
               </h5>
-              <p className="text-slate-400 text-center">
+              <p className="text-center text-slate-400">
                 {!!session
                   ? 'Maaf, belum ada anggota yang tercatat untuk kegiatan ini'
                   : 'Silakan login untuk melihat anggota'}

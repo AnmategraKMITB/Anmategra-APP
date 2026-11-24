@@ -12,11 +12,11 @@ peran akun yang digunakan.
 
 ## Peran pengguna
 
-| Peran         | Akses utama                                                                                                                                                               |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Mahasiswa** | Menelusuri kegiatan, mendaftar oprec, mengisi form, mengajukan asosiasi, mengelola profil, melihat rapor yang dibuka, dan mengirim laporan masalah.                       |
-| **Lembaga**   | Mengelola profil lembaga, membuat kegiatan, mengelola anggota dan panitia, menyusun organogram, membuat form, menjalankan oprec, mengisi rapor, dan memilih Best Staff.   |
-| **Admin**     | Menangani laporan, mengelola akun dan lembaga, memberi akses pengelola, dan membaca audit.                                                                               |
+| Peran         | Akses utama                                                                                                                                                             |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Mahasiswa** | Menelusuri kegiatan, mendaftar oprec, mengisi form, mengajukan asosiasi, mengelola profil, melihat rapor yang dibuka, dan mengirim laporan masalah.                     |
+| **Lembaga**   | Mengelola profil lembaga, membuat kegiatan, mengelola anggota dan panitia, menyusun organogram, membuat form, menjalankan oprec, mengisi rapor, dan memilih Best Staff. |
+| **Admin**     | Menangani laporan, mengelola akun dan lembaga, memberi akses pengelola, dan membaca audit.                                                                              |
 
 Mahasiswa masuk dengan akun Microsoft ITB, sedangkan lembaga masuk dengan akun
 Google KM ITB. Lihat [Masuk ke Anmategra](/manual/getting-started/masuk) untuk

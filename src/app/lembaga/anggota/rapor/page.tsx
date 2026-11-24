@@ -10,9 +10,9 @@ export default async function RaporPage() {
 
   if (!session || !lembaga_id) {
     return (
-      <main className="flex flex-col p-8 min-h-screen">
-        <h1 className="text-[32px] font-semibold mb-2">Rapor Anggota</h1>
-        <div className="flex items-center justify-center h-64">
+      <main className="flex min-h-screen flex-col p-8">
+        <h1 className="mb-2 text-[32px] font-semibold">Rapor Anggota</h1>
+        <div className="flex h-64 items-center justify-center">
           <div className="text-lg">Loading...</div>
         </div>
       </main>
@@ -32,9 +32,9 @@ export default async function RaporPage() {
   });
 
   return (
-    <main className="flex flex-col p-4 sm:p-6 md:p-8 min-h-screen">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-2xl sm:text-3xl md:text-[32px] font-semibold">
+    <main className="flex min-h-screen flex-col p-4 sm:p-6 md:p-8">
+      <div className="mb-2 flex items-center justify-between">
+        <h1 className="text-2xl font-semibold sm:text-3xl md:text-[32px]">
           Rapor Anggota {lembaga?.nama ?? ''}
         </h1>
         <RaporVisibilitySwitch

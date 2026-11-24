@@ -11,7 +11,6 @@
  */
 import { eq } from 'drizzle-orm';
 import { type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
-
 import * as schema from '~/server/db/schema';
 
 export type DemoDb = PostgresJsDatabase<typeof schema>;
@@ -85,7 +84,12 @@ const mhsJurusan = [
 
 /** Akun inti yang dipakai skenario per peran; dua email nyata dipertahankan. */
 const coreAccounts: DemoAccount[] = [
-  { key: 'admin', email: `demo.admin@${DEMO_DOMAIN}`, name: 'Demo Admin', role: 'admin' },
+  {
+    key: 'admin',
+    email: `demo.admin@${DEMO_DOMAIN}`,
+    name: 'Demo Admin',
+    role: 'admin',
+  },
   {
     key: 'mahasiswa',
     email: `demo.mahasiswa@${DEMO_DOMAIN}`,
@@ -171,7 +175,12 @@ const ID = {
   oprecEvent: 'demo-event-oprec-2026',
 };
 
-type UnitSpec = { key: string; name: string; kind: 'Bidang'; positions: PositionSpec[] };
+type UnitSpec = {
+  key: string;
+  name: string;
+  kind: 'Bidang';
+  positions: PositionSpec[];
+};
 type PositionSpec = {
   key: string;
   title: string;
@@ -186,40 +195,51 @@ const ORGANOGRAM: UnitSpec[] = [
     name: 'Inti',
     kind: 'Bidang',
     positions: [
-      { key: 'ketua', title: 'Ketua', rank: 'head', kind: 'struktural', quota: 1 },
-      { key: 'wakil', title: 'Wakil Ketua', rank: 'vice', kind: 'struktural', quota: 1 },
+      {
+        key: 'ketua',
+        title: 'Ketua',
+        rank: 'head',
+        kind: 'struktural',
+        quota: 1,
+      },
+      {
+        key: 'wakil',
+        title: 'Wakil Ketua',
+        rank: 'vice',
+        kind: 'struktural',
+        quota: 1,
+      },
     ],
   },
   ...[
     ['acara', 'Acara', 4],
     ['humas', 'Humas', 3],
     ['perlengkapan', 'Perlengkapan', 3],
-  ].map(
-    ([key, name, staf]): UnitSpec => ({
-      key: key as string,
-      name: name as string,
-      kind: 'Bidang',
-      positions: [
-        {
-          key: 'koord',
-          title: `Koordinator ${name as string}`,
-          rank: 'coordinator',
-          kind: 'struktural',
-          quota: 1,
-        },
-        {
-          key: 'staf',
-          title: `Staf ${name as string}`,
-          rank: 'staff',
-          kind: 'nonstruktural',
-          quota: staf as number,
-        },
-      ],
-    }),
-  ),
+  ].map(([key, name, staf]): UnitSpec => ({
+    key: key as string,
+    name: name as string,
+    kind: 'Bidang',
+    positions: [
+      {
+        key: 'koord',
+        title: `Koordinator ${name as string}`,
+        rank: 'coordinator',
+        kind: 'struktural',
+        quota: 1,
+      },
+      {
+        key: 'staf',
+        title: `Staf ${name as string}`,
+        rank: 'staff',
+        kind: 'nonstruktural',
+        quota: staf as number,
+      },
+    ],
+  })),
 ];
 
-const unitId = (eventId: string, unitKey: string) => `${eventId}-unit-${unitKey}`;
+const unitId = (eventId: string, unitKey: string) =>
+  `${eventId}-unit-${unitKey}`;
 const positionId = (eventId: string, unitKey: string, posKey: string) =>
   `${eventId}-pos-${unitKey}-${posKey}`;
 
@@ -286,11 +306,7 @@ async function seedAccounts(db: DemoDb) {
   return userIds;
 }
 
-async function seedOrganogram(
-  db: DemoDb,
-  eventId: string,
-  name: string,
-) {
+async function seedOrganogram(db: DemoDb, eventId: string, name: string) {
   const structureId = `${eventId}-struct`;
   await db
     .insert(organizationStructure)
@@ -474,7 +490,8 @@ async function seedRecruitment(
       placementState: rec.final ? 'final' : 'berjalan',
       resultsReleasedAt: rec.final ? at('2026-03-20T00:00:00Z') : null,
       resultsVisibleToApplicants: rec.final === true,
-      setupCompletedAt: rec.status === 'draft' ? null : at('2026-02-01T00:00:00Z'),
+      setupCompletedAt:
+        rec.status === 'draft' ? null : at('2026-02-01T00:00:00Z'),
     })
     .onConflictDoNothing();
   if (rec.status !== 'draft') {
@@ -484,7 +501,9 @@ async function seedRecruitment(
         id: `${rec.id}-wave1`,
         recruitmentId: rec.id,
         label: 'Gelombang 1',
-        startsAt: at(rec.final ? '2026-02-01T00:00:00Z' : '2026-10-01T00:00:00Z'),
+        startsAt: at(
+          rec.final ? '2026-02-01T00:00:00Z' : '2026-10-01T00:00:00Z',
+        ),
         endsAt: at(rec.final ? '2026-02-28T00:00:00Z' : '2026-12-31T00:00:00Z'),
       })
       .onConflictDoNothing();
@@ -587,7 +606,16 @@ export async function seedDemo(db: DemoDb) {
   const lembagaId = hmd.id;
 
   // Keanggotaan lembaga (Owner, Admin, dan enam mahasiswa).
-  const memberKeys = ['m1', 'm2', 'm3', 'm4', 'm5', 'm6', 'admin-lembaga', 'admin-kegiatan'];
+  const memberKeys = [
+    'm1',
+    'm2',
+    'm3',
+    'm4',
+    'm5',
+    'm6',
+    'admin-lembaga',
+    'admin-kegiatan',
+  ];
   await db
     .insert(lembagaMembership)
     .values(
@@ -737,8 +765,12 @@ export async function seedDemo(db: DemoDb) {
     .values(placements.map((p) => ({ ...p, createdBy: owner })))
     .onConflictDoNothing();
 
-  const unitOf = new Map<string, { unit: string; pos: string; title: string }>();
-  for (const [k, unit, pos, title] of manual) unitOf.set(k, { unit, pos, title });
+  const unitOf = new Map<
+    string,
+    { unit: string; pos: string; title: string }
+  >();
+  for (const [k, unit, pos, title] of manual)
+    unitOf.set(k, { unit, pos, title });
   for (const [k, unit] of oprecPlaced) {
     const name = ORGANOGRAM.find((o) => o.key === unit)!.name;
     unitOf.set(k, { unit, pos: 'staf', title: `Staf ${name}` });
@@ -840,7 +872,13 @@ export async function seedDemo(db: DemoDb) {
     .values({
       id: 'demo-operator-perm',
       userId: id('operator'),
-      permissions: ['accounts.read', 'lembaga.read', 'audit.read', 'reports.read', 'reports.write'],
+      permissions: [
+        'accounts.read',
+        'lembaga.read',
+        'audit.read',
+        'reports.read',
+        'reports.write',
+      ],
       grantedBy: id('admin'),
     })
     .onConflictDoNothing();
@@ -877,7 +915,8 @@ export async function seedDemo(db: DemoDb) {
         id: 'demo-support-1',
         user_id: id('mahasiswa'),
         subject: 'Foto profil tidak tampil',
-        description: 'Setelah mengunggah foto, profil tetap menampilkan gambar bawaan.',
+        description:
+          'Setelah mengunggah foto, profil tetap menampilkan gambar bawaan.',
         urgent: 'Low',
         status: 'Open',
       },

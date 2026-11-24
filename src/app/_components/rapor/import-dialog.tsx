@@ -35,7 +35,7 @@ export function ImportDialog({
       <Button
         onClick={() => setIsOpen(true)}
         variant={'dark_blue_outline'}
-        className="flex items-center gap-2 cursor-pointer"
+        className="flex cursor-pointer items-center gap-2"
       >
         <Upload size={16} />
         Unggah Excel
@@ -44,7 +44,7 @@ export function ImportDialog({
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="w-full max-w-4xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold text-center text-[#00B7B7]">
+            <DialogTitle className="text-center text-2xl font-semibold text-[#00B7B7]">
               Upload Excel Rapor
             </DialogTitle>
             <DialogDescription className="sr-only">

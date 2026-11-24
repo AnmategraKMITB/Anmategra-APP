@@ -38,9 +38,9 @@ const ManageProfilKegiatanPage = async ({
   );
 
   return (
-    <div className="flex flex-col gap-y-6 pt-10 px-9 md:px-11">
+    <div className="flex flex-col gap-y-6 px-9 pt-10 md:px-11">
       <div className="gap-y-2">
-        <h1 className="text-neutral-1000 text-[32px] font-semibold">
+        <h1 className="text-[32px] font-semibold text-neutral-1000">
           Profil Kegiatan
         </h1>
         <RaporBreadcrumb
@@ -52,13 +52,13 @@ const ManageProfilKegiatanPage = async ({
         />
       </div>
       <div className="flex flex-col gap-y-4">
-        <h2 className="text-neutral-700 text-[20px] font-normal">
+        <h2 className="text-[20px] font-normal text-neutral-700">
           Profil Kegiatan
         </h2>
         <ProfilTable profilData={profilKegiatanList} showMapping={false} />
       </div>
       <div className="flex flex-col gap-y-4">
-        <h2 className="text-neutral-700 text-[20px] font-normal">
+        <h2 className="text-[20px] font-normal text-neutral-700">
           Detail Pemetaan Profil Kegiatan
         </h2>
         <ProfilTable profilData={mappingData} showMapping={true} />

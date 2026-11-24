@@ -3,18 +3,17 @@
 // Library Import
 import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_STUDENTS, type DemoStudent, matchesStudent } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Modal,
   ScreenTitle,
+  inputClass,
   tdClass,
   thClass,
 } from '../ui';
@@ -36,14 +35,19 @@ const STEPS: DemoStep[] = [
   { id: 'filter', title: 'Saring daftar dengan filter **Bidang**' },
   {
     id: 'edit',
-    title: 'Klik **Edit** pada satu anggota, ubah posisinya, lalu **Simpan Perubahan**',
+    title:
+      'Klik **Edit** pada satu anggota, ubah posisinya, lalu **Simpan Perubahan**',
   },
 ];
 
 type Member = { student: DemoStudent; division: string; position: string };
 
 const INITIAL: Member[] = [
-  { student: DEMO_STUDENTS[3]!, division: 'Event Organizer', position: 'Kepala Divisi' },
+  {
+    student: DEMO_STUDENTS[3]!,
+    division: 'Event Organizer',
+    position: 'Kepala Divisi',
+  },
   { student: DEMO_STUDENTS[5]!, division: 'Sponsorship', position: 'Staf' },
   { student: DEMO_STUDENTS[1]!, division: 'Publikasi', position: 'Staf' },
 ];
@@ -181,7 +185,10 @@ function Body({ guide }: { guide: DemoGuide }) {
                       onClick={() => {
                         setDivision(member.division);
                         setPosition(member.position);
-                        setDialog({ kind: 'edit', studentId: member.student.id });
+                        setDialog({
+                          kind: 'edit',
+                          studentId: member.student.id,
+                        });
                       }}
                     >
                       <Pencil aria-hidden /> Edit
@@ -274,7 +281,10 @@ function Body({ guide }: { guide: DemoGuide }) {
             </p>
           ) : (
             <>
-              <Field label="Cari mahasiswa" hint="Ketik minimal 2 huruf nama atau NIM.">
+              <Field
+                label="Cari mahasiswa"
+                hint="Ketik minimal 2 huruf nama atau NIM."
+              >
                 {(id) => (
                   <input
                     id={id}

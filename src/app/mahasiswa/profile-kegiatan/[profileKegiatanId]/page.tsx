@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import React, { cache } from 'react';
 import { RaporBreadcrumb } from '~/app/_components/breadcrumb';
-import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
+import KelolaAdminButton from '~/app/_components/kelola-admin/kelola-admin-button';
+import { PengumumanList } from '~/app/_components/oprec/pengumuman/pengumuman-list';
 // Components Import
 import { EventHeader } from '~/app/_components/placeholder/event-header';
 import { PenyelenggaraCard } from '~/app/_components/placeholder/penyelenggara-card';
-import { PengumumanList } from '~/app/_components/oprec/pengumuman/pengumuman-list';
 import { OrganogramDialog } from '~/app/_components/profile-kegiatan/organogram-dialog';
 import ProfileAnggotaComp from '~/app/_components/profile-kegiatan/profil-kegiatan-comp';
 import { Button } from '~/components/ui/button';
@@ -115,8 +115,8 @@ const ProfileKegiatan = async ({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="w-full flex min-h-screen flex-col items-center">
-            <div className="w-full max-w-6xl bg-slate-50 py-6 rounded-none sm:rounded-xl">
+          <div className="flex min-h-screen w-full flex-col items-center">
+            <div className="w-full max-w-6xl rounded-none bg-slate-50 py-6 sm:rounded-xl">
               <div className="mb-4 px-1 sm:px-2">
                 <h1 className="text-2xl font-semibold text-slate-600">
                   {kegiatan?.name}
@@ -149,11 +149,11 @@ const ProfileKegiatan = async ({
                 linkDaftar={daftarLink}
                 session={session}
               />
-              <article className="mt-6 sm:mt-8 mb-8">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+              <article className="mb-8 mt-6 sm:mt-8">
+                <h2 className="mb-3 text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                   Deskripsi Kegiatan
                 </h2>
-                <div className="rounded-xl bg-white border border-neutral-200 px-4 py-3 sm:px-6 sm:py-4 text-sm sm:text-base text-neutral-800 leading-relaxed">
+                <div className="rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm leading-relaxed text-neutral-800 sm:px-6 sm:py-4 sm:text-base">
                   {kegiatan?.description?.trim()
                     ? kegiatan.description
                     : 'Belum ada deskripsi untuk kegiatan ini.'}
@@ -162,8 +162,8 @@ const ProfileKegiatan = async ({
 
               {/* Organogram Section */}
               {kegiatan?.is_organogram && kegiatan?.organogram_image && (
-                <div className="mt-6 sm:mt-8 mb-8">
-                  <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600 mb-3">
+                <div className="mb-8 mt-6 sm:mt-8">
+                  <h2 className="mb-3 text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                     Organogram
                   </h2>
                   <OrganogramDialog
@@ -174,7 +174,7 @@ const ProfileKegiatan = async ({
               )}
 
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+                <h2 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                   Penyelenggara
                 </h2>
               </div>
@@ -193,10 +193,10 @@ const ProfileKegiatan = async ({
               </div>
               {/* Best Staff Section */}
               {latestBestStaff && (
-                <div className="flex flex-col gap-12 w-full mt-8 mb-8">
-                  <div className="flex flex-col gap-3 w-full">
-                    <div className="flex flex-row justify-between items-center">
-                      <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-600">
+                <div className="mb-8 mt-8 flex w-full flex-col gap-12">
+                  <div className="flex w-full flex-col gap-3">
+                    <div className="flex flex-row items-center justify-between">
+                      <h2 className="text-lg font-semibold text-slate-600 sm:text-xl md:text-2xl">
                         Best Staff Periode{' '}
                         {new Date(
                           latestBestStaff.start_date,
@@ -220,7 +220,7 @@ const ProfileKegiatan = async ({
                         >
                           <span>Lihat Histori</span>
                           <ChevronRight
-                            className="!w-4 !h-4 text-slate-600"
+                            className="!h-4 !w-4 text-slate-600"
                             aria-hidden
                           />
                         </Link>

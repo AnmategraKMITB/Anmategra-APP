@@ -1,11 +1,10 @@
 // Library Impoty
-import {api} from "~/trpc/server";
 // Icons Import
-import EventList from "~/app/lembaga/kegiatan/_components/kegiatan-container";
-import { getServerAuthSession } from "~/server/auth";
+import EventList from '~/app/lembaga/kegiatan/_components/kegiatan-container';
+import { getServerAuthSession } from '~/server/auth';
+import { api } from '~/trpc/server';
 
 export default async function Home() {
-
   // Get activities from API
   const events = await api.kegiatan.getAllByLembaga({
     lembagaId: (await getServerAuthSession())?.user.lembagaId ?? '',
@@ -33,8 +32,8 @@ export default async function Home() {
   const session = await getServerAuthSession();
 
   return (
-      <main className="flex flex-row bg-[#FAFAFA] w-full">
-        <EventList propEvents={formattedActivities} session={session}/>
-      </main>
+    <main className="flex w-full flex-row bg-[#FAFAFA]">
+      <EventList propEvents={formattedActivities} session={session} />
+    </main>
   );
 }

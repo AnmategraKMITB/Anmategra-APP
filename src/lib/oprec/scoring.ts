@@ -11,10 +11,7 @@ import { type Rule, evaluateRule } from '~/lib/forms/conditions';
 export type CriterionKind = 'skor' | 'gugur_otomatis' | 'gugur_manual';
 export type GateState = 'memenuhi' | 'ditinjau' | 'tidak';
 export type ComputedStatus =
-  | 'belum_lengkap'
-  | 'perlu_ditinjau'
-  | 'lolos'
-  | 'tidak_lolos';
+  'belum_lengkap' | 'perlu_ditinjau' | 'lolos' | 'tidak_lolos';
 export type OverrideStatus = 'lolos' | 'tidak_lolos';
 
 export type CriterionInput = {

@@ -3,25 +3,25 @@
 // Library Import
 import { Copy, Settings, Share2 } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Field,
-  inputClass,
   Modal,
   Pill,
   type PillTone,
   Toggle,
+  inputClass,
   useFlash,
 } from '../ui';
 
 const STEPS: DemoStep[] = [
   {
     id: 'pengaturan',
-    title: 'Buka **Pengaturan**, lalu nyalakan **Izinkan pengisi mengubah jawaban**',
+    title:
+      'Buka **Pengaturan**, lalu nyalakan **Izinkan pengisi mengubah jawaban**',
   },
   {
     id: 'batas',
@@ -35,7 +35,8 @@ const STEPS: DemoStep[] = [
   },
   {
     id: 'share',
-    title: 'Buka **Share**, isi **Slug kustom**, lalu salin **Tautan untuk mengisi**',
+    title:
+      'Buka **Share**, isi **Slug kustom**, lalu salin **Tautan untuk mengisi**',
   },
   { id: 'tutup', title: 'Klik **Tutup form** untuk berhenti menerima jawaban' },
 ];
@@ -52,7 +53,8 @@ const STATUS_TONE: Record<Status, PillTone> = {
   Closed: 'warning',
 };
 const RESPONDENT_VIEW: Record<Status, string> = {
-  Draft: 'Tautan untuk mengisi belum aktif. Pengisi belum bisa membuka form ini.',
+  Draft:
+    'Tautan untuk mengisi belum aktif. Pengisi belum bisa membuka form ini.',
   Published: 'Form menerima jawaban dari mahasiswa aktif yang sudah login.',
   Closed: 'Form ini sudah ditutup dan tidak menerima jawaban lagi.',
 };
@@ -154,7 +156,9 @@ function Body({ guide }: { guide: DemoGuide }) {
           </p>
           <ul className="mt-2 space-y-1 text-xs">
             <li>Satu respons per akun: {onePerAccount ? 'ya' : 'tidak'}</li>
-            <li>Pengisi boleh mengubah jawaban: {allowEdit ? 'ya' : 'tidak'}</li>
+            <li>
+              Pengisi boleh mengubah jawaban: {allowEdit ? 'ya' : 'tidak'}
+            </li>
             <li>Batas jumlah respons: {limit || 'tanpa batas'}</li>
             <li>Tenggat: {deadline || 'tidak ada'}</li>
             <li>Tautan pratinjau publik: {preview ? 'aktif' : 'mati'}</li>
@@ -189,7 +193,10 @@ function Body({ guide }: { guide: DemoGuide }) {
             </Btn>
           }
         >
-          <Field label="Tenggat (opsional)" hint="Setelah tenggat, form tidak menerima jawaban lagi.">
+          <Field
+            label="Tenggat (opsional)"
+            hint="Setelah tenggat, form tidak menerima jawaban lagi."
+          >
             {(id) => (
               <input
                 id={id}
@@ -224,7 +231,10 @@ function Body({ guide }: { guide: DemoGuide }) {
               jawaban.
             </p>
           </div>
-          <Field label="Batas jumlah respons (opsional)" hint="Kosongkan untuk tanpa batas.">
+          <Field
+            label="Batas jumlah respons (opsional)"
+            hint="Kosongkan untuk tanpa batas."
+          >
             {(id) => (
               <input
                 id={id}
@@ -261,7 +271,10 @@ function Body({ guide }: { guide: DemoGuide }) {
               tetapi tidak bisa mengirim jawaban.
             </p>
           </div>
-          <Field label="Slug kustom (opsional)" hint="Huruf kecil, angka, dan tanda hubung. Kosongkan untuk memakai id formulir.">
+          <Field
+            label="Slug kustom (opsional)"
+            hint="Huruf kecil, angka, dan tanda hubung. Kosongkan untuk memakai id formulir."
+          >
             {(id) => (
               <input
                 id={id}

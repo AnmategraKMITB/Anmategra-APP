@@ -2,9 +2,9 @@
 import { redirect } from 'next/navigation';
 import { type ReactNode } from 'react';
 import { getServerAuthSession } from '~/server/auth';
-import { WidthWrapper } from '../_components/layout/width-wrapper';
 
 import Navbar from '../_components/layout/navbar';
+import { WidthWrapper } from '../_components/layout/width-wrapper';
 
 // Metadata
 // export const metadata: Metadata = {

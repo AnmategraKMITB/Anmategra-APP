@@ -41,8 +41,7 @@ function without<T>(record: Record<string, T>, key: string): Record<string, T> {
 }
 
 export type SectionResolution =
-  | { type: 'move'; toSectionId: string }
-  | { type: 'delete' };
+  { type: 'move'; toSectionId: string } | { type: 'delete' };
 
 /**
  * State dan aksi builder. Server adalah sumber kebenaran: sesudah tiap

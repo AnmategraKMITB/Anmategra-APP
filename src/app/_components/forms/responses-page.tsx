@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
+import { type AppBase } from '~/lib/app-base';
 
 import { loadManagedForm } from './access';
 import { ResponsesView } from './responses-view';
-import { type AppBase } from '~/lib/app-base';
 
 /** Halaman respons satu form; dipakai rute lembaga dan mahasiswa-admin. */
 export async function ResponsesPage({

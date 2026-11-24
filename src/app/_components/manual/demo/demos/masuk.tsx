@@ -3,10 +3,9 @@
 // Library Import
 import { LogOut } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import { Btn, Pill } from '../ui';
 
 const STEPS: DemoStep[] = [
@@ -124,8 +123,7 @@ function Body({ guide }: { guide: DemoGuide }) {
           {role === 'mahasiswa' ? 'Halaman mahasiswa' : 'Halaman lembaga'}
         </Pill>
         <p className="mt-2 text-lg font-semibold">
-          Selamat datang,{' '}
-          {role === 'mahasiswa' ? 'Raka' : 'Kabinet KM ITB'}
+          Selamat datang, {role === 'mahasiswa' ? 'Raka' : 'Kabinet KM ITB'}
         </p>
         <p className="mt-1 text-neutral-700">
           {role === 'mahasiswa'

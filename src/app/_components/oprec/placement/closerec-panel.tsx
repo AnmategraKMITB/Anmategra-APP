@@ -8,10 +8,10 @@ import {
   Chip,
   ErrorNote,
   Field,
-  inputClass,
   Loading,
   Modal,
   Notice,
+  inputClass,
   selectClass,
   textareaClass,
   when,
@@ -40,9 +40,10 @@ export function CloserecPanel({
   const [identifier, setIdentifier] = useState('');
   const [divisionId, setDivisionId] = useState('');
   const [note, setNote] = useState('');
-  const [revoke, setRevoke] = useState<{ choiceId: string; name: string } | null>(
-    null,
-  );
+  const [revoke, setRevoke] = useState<{
+    choiceId: string;
+    name: string;
+  } | null>(null);
 
   const add = api.oprec.closerecAdd.useMutation({
     onSuccess: () => {
@@ -70,11 +71,7 @@ export function CloserecPanel({
         <p className="text-sm text-neutral-700">
           Penempatan closerec tidak dihitung ke kuota.
         </p>
-        <Button
-          size="sm"
-          disabled={lock}
-          onClick={() => setOpen(true)}
-        >
+        <Button size="sm" disabled={lock} onClick={() => setOpen(true)}>
           Tambah closerec
         </Button>
       </div>
@@ -199,9 +196,7 @@ export function CloserecPanel({
         }}
         title="Cabut closerec?"
         description={
-          revoke
-            ? `${revoke.name} akan dilepas dari divisinya.`
-            : undefined
+          revoke ? `${revoke.name} akan dilepas dari divisinya.` : undefined
         }
         footer={
           <>

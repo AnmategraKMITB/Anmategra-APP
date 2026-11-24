@@ -1,12 +1,11 @@
-import { eq, type SQL } from 'drizzle-orm';
-
+import { type SQL, eq } from 'drizzle-orm';
 import { type db } from '~/server/db';
 import { mahasiswa, users } from '~/server/db/schema';
 
 import {
+  type ContactViewer,
   canViewHiddenAccount,
   contactAccess,
-  type ContactViewer,
 } from './contact';
 
 type Database = typeof db;

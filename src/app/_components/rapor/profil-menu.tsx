@@ -24,22 +24,22 @@ export default function ProfilMenu({
         <MoreVertical size={16} />
       </Button>
       {menu && menu.row === -1 && menu.col === colIdx && (
-        <div className="absolute left-0 top-full bg-white border rounded-2xl shadow z-10">
+        <div className="absolute left-0 top-full z-10 rounded-2xl border bg-white shadow">
           <Button
-            className="block px-4 py-2 w-full text-left hover:bg-gray-100"
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100"
             variant="ghost"
             onClick={() => handleEditProfil(colIdx)}
           >
-            <Pencil size={16} className="inline mr-2 text-[#00B7B7]" />
+            <Pencil size={16} className="mr-2 inline text-[#00B7B7]" />
             Edit Profil
           </Button>
           <hr className="border-t border-gray-200" />
           <Button
-            className="block px-4 py-2 w-full text-left hover:bg-gray-100"
+            className="block w-full px-4 py-2 text-left hover:bg-gray-100"
             variant="ghost"
             onClick={() => handleDeleteProfil(colIdx)}
           >
-            <Trash size={16} className="inline mr-2 text-[#F16350]" />
+            <Trash size={16} className="mr-2 inline text-[#F16350]" />
             Delete Profil
           </Button>
         </div>

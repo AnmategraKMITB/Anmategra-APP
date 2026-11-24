@@ -1,7 +1,6 @@
-import path from 'node:path';
-
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { migrate } from 'drizzle-orm/postgres-js/migrator';
+import path from 'node:path';
 import postgres from 'postgres';
 
 import {
@@ -29,7 +28,8 @@ export default async function setup() {
     // preload `bun test` yang berjalan sebelum tiap berkas), jadi pembuatan
     // dan migrasi diserialkan dengan advisory lock di database `postgres`.
     await admin`select pg_advisory_lock(hashtext(${name}))`;
-    const exists = await admin`select 1 from pg_database where datname = ${name}`;
+    const exists =
+      await admin`select 1 from pg_database where datname = ${name}`;
     if (exists.length === 0) {
       // `template0` menghindari galat versi collation pada `template1` lokal.
       await admin.unsafe(`create database "${name}" template template0`);

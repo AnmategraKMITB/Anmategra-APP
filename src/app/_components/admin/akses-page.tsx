@@ -79,10 +79,12 @@ export function AksesPage() {
         description="Atur operator admin console dan pengelola lembaga/kegiatan secara spesifik."
       />
       <div className="flex gap-2">
-        {([
-          ['operator', 'Operator admin'],
-          ['scoped', 'Pengelola lembaga/kegiatan'],
-        ] as const).map(([value, label]) => (
+        {(
+          [
+            ['operator', 'Operator admin'],
+            ['scoped', 'Pengelola lembaga/kegiatan'],
+          ] as const
+        ).map(([value, label]) => (
           <button
             key={value}
             type="button"
@@ -99,7 +101,11 @@ export function AksesPage() {
         ))}
       </div>
 
-      {tab === 'operator' ? <OperatorPanel canWrite={canWrite} /> : <ScopedPanel canWrite={canWrite} />}
+      {tab === 'operator' ? (
+        <OperatorPanel canWrite={canWrite} />
+      ) : (
+        <ScopedPanel canWrite={canWrite} />
+      )}
     </div>
   );
 
@@ -147,49 +153,72 @@ export function AksesPage() {
             </div>
             <label className="grid gap-1 text-sm font-semibold text-neutral-700">
               Berlaku sampai (opsional)
-              <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} disabled={!canWrite} />
+              <Input
+                type="date"
+                value={expiresAt}
+                onChange={(e) => setExpiresAt(e.target.value)}
+                disabled={!canWrite}
+              />
             </label>
           </div>
           <div className="grid gap-3 md:grid-cols-2">
             {PERMISSION_GROUPS.map((group) => (
-              <fieldset key={group.label} className="rounded-lg border border-neutral-300 bg-white p-3">
-                <legend className="px-1 text-sm font-semibold text-neutral-1000">{group.label}</legend>
+              <fieldset
+                key={group.label}
+                className="rounded-lg border border-neutral-300 bg-white p-3"
+              >
+                <legend className="px-1 text-sm font-semibold text-neutral-1000">
+                  {group.label}
+                </legend>
                 <div className="mt-2 grid gap-1">
                   {group.permissions.map((entry) => {
                     const value = entry[0];
                     const label = entry[1];
                     return (
-                    <label key={value} className="flex items-center gap-2 text-sm">
-                      <input
-                        type="checkbox"
-                        checked={selected.includes(value)}
-                        disabled={!canWrite}
-                        onChange={(event) =>
-                          setSelected((current) =>
-                            event.target.checked
-                              ? [...new Set([...current, value])]
-                              : current.filter((item) => item !== value),
-                          )
-                        }
-                      />
-                      {label}
-                    </label>
+                      <label
+                        key={value}
+                        className="flex items-center gap-2 text-sm"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(value)}
+                          disabled={!canWrite}
+                          onChange={(event) =>
+                            setSelected((current) =>
+                              event.target.checked
+                                ? [...new Set([...current, value])]
+                                : current.filter((item) => item !== value),
+                            )
+                          }
+                        />
+                        {label}
+                      </label>
                     );
                   })}
                 </div>
               </fieldset>
             ))}
           </div>
-          {setPermissions.isError ? <p role="alert" className="text-sm text-danger-dark">{setPermissions.error.message}</p> : null}
+          {setPermissions.isError ? (
+            <p role="alert" className="text-sm text-danger-dark">
+              {setPermissions.error.message}
+            </p>
+          ) : null}
           <div>
-            <Button type="submit" variant="dark_blue" disabled={!canWrite || !userId || setPermissions.isPending}>
+            <Button
+              type="submit"
+              variant="dark_blue"
+              disabled={!canWrite || !userId || setPermissions.isPending}
+            >
               {setPermissions.isPending ? 'Menyimpan…' : 'Simpan izin operator'}
             </Button>
           </div>
         </form>
 
         <section>
-          <h2 className="text-lg font-semibold text-neutral-1000">Operator terdaftar</h2>
+          <h2 className="text-lg font-semibold text-neutral-1000">
+            Operator terdaftar
+          </h2>
           <div className="mt-2 overflow-x-auto rounded-[20px] border border-neutral-400 bg-neutral-50">
             <table className="w-full min-w-[800px] text-left text-sm">
               <thead className="border-b border-neutral-400 text-xs uppercase tracking-wide text-neutral-700">
@@ -202,16 +231,34 @@ export function AksesPage() {
               </thead>
               <tbody>
                 {(list.data ?? []).map((row) => (
-                  <tr key={row.id} className="border-b border-neutral-200 align-top">
+                  <tr
+                    key={row.id}
+                    className="border-b border-neutral-200 align-top"
+                  >
                     <td className="px-3 py-2">
-                      <span className="font-semibold">{row.userName ?? row.userEmail}</span>
-                      <span className="block text-xs text-neutral-700">{row.userEmail}</span>
+                      <span className="font-semibold">
+                        {row.userName ?? row.userEmail}
+                      </span>
+                      <span className="block text-xs text-neutral-700">
+                        {row.userEmail}
+                      </span>
                     </td>
-                    <td className="px-3 py-2 text-xs">{row.permissions.join(', ') || '—'}</td>
-                    <td className="px-3 py-2">{row.expiresAt ? row.expiresAt.toLocaleDateString('id-ID') : '—'}</td>
+                    <td className="px-3 py-2 text-xs">
+                      {row.permissions.join(', ') || '—'}
+                    </td>
+                    <td className="px-3 py-2">
+                      {row.expiresAt
+                        ? row.expiresAt.toLocaleDateString('id-ID')
+                        : '—'}
+                    </td>
                     <td className="px-3 py-2">
                       {canWrite ? (
-                        <Button size="sm" variant="ghost" disabled={revoke.isPending} onClick={() => revoke.mutate({ userId: row.userId })}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={revoke.isPending}
+                          onClick={() => revoke.mutate({ userId: row.userId })}
+                        >
                           Cabut
                         </Button>
                       ) : null}
@@ -219,7 +266,14 @@ export function AksesPage() {
                   </tr>
                 ))}
                 {(list.data ?? []).length === 0 ? (
-                  <tr><td colSpan={4} className="px-3 py-6 text-center text-neutral-700">Belum ada operator.</td></tr>
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-3 py-6 text-center text-neutral-700"
+                    >
+                      Belum ada operator.
+                    </td>
+                  </tr>
                 ) : null}
               </tbody>
             </table>
@@ -257,7 +311,14 @@ export function AksesPage() {
           className="grid gap-3 rounded-[20px] border border-neutral-400 bg-neutral-50 p-4"
           onSubmit={(event) => {
             event.preventDefault();
-            grant.mutate({ kind, targetId, identifier: userId, features, propagate, revoke: false });
+            grant.mutate({
+              kind,
+              targetId,
+              identifier: userId,
+              features,
+              propagate,
+              revoke: false,
+            });
           }}
         >
           <div className="flex flex-wrap gap-2">
@@ -266,7 +327,10 @@ export function AksesPage() {
                 key={value}
                 type="button"
                 aria-pressed={kind === value}
-                onClick={() => { setKind(value); setTargetId(''); }}
+                onClick={() => {
+                  setKind(value);
+                  setTargetId('');
+                }}
                 className={
                   kind === value
                     ? 'rounded-full bg-primary-200 px-3 py-1 text-sm font-semibold text-primary-400'
@@ -280,12 +344,24 @@ export function AksesPage() {
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="grid gap-1 text-sm font-semibold text-neutral-700">
               Penerima
-              <AdminEntitySearch kind="user" value={userId} placeholder="Cari nama, email, atau NIM…" onSelect={(id) => setUserId(id)} disabled={!canWrite} />
+              <AdminEntitySearch
+                kind="user"
+                value={userId}
+                placeholder="Cari nama, email, atau NIM…"
+                onSelect={(id) => setUserId(id)}
+                disabled={!canWrite}
+              />
             </div>
             <div className="grid gap-1 text-sm font-semibold text-neutral-700">
               {kind === 'lembaga' ? 'Lembaga' : 'Kegiatan'}
               {kind === 'lembaga' ? (
-                <AdminEntitySearch kind="lembaga" value={targetId} placeholder="Cari lembaga…" onSelect={(id) => setTargetId(id)} disabled={!canWrite} />
+                <AdminEntitySearch
+                  kind="lembaga"
+                  value={targetId}
+                  placeholder="Cari lembaga…"
+                  onSelect={(id) => setTargetId(id)}
+                  disabled={!canWrite}
+                />
               ) : (
                 <AdminEntitySearch
                   kind="event"
@@ -318,21 +394,46 @@ export function AksesPage() {
           </div>
           {kind === 'lembaga' ? (
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" checked={propagate} disabled={!canWrite} onChange={(e) => setPropagate(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={propagate}
+                disabled={!canWrite}
+                onChange={(e) => setPropagate(e.target.checked)}
+              />
               Berlaku juga untuk lembaga turunan
             </label>
           ) : null}
-          {grant.isError ? <p role="alert" className="text-sm text-danger-dark">{grant.error.message}</p> : null}
+          {grant.isError ? (
+            <p role="alert" className="text-sm text-danger-dark">
+              {grant.error.message}
+            </p>
+          ) : null}
           <div>
-            <Button type="submit" variant="dark_blue" disabled={!canWrite || !userId || !targetId || features.length === 0 || grant.isPending}>
+            <Button
+              type="submit"
+              variant="dark_blue"
+              disabled={
+                !canWrite ||
+                !userId ||
+                !targetId ||
+                features.length === 0 ||
+                grant.isPending
+              }
+            >
               {grant.isPending ? 'Menyimpan…' : 'Beri akses'}
             </Button>
           </div>
         </form>
 
         <section className="grid gap-2">
-          <h2 className="text-lg font-semibold text-neutral-1000">Akses aktif</h2>
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Cari penerima, lembaga, atau kegiatan" />
+          <h2 className="text-lg font-semibold text-neutral-1000">
+            Akses aktif
+          </h2>
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Cari penerima, lembaga, atau kegiatan"
+          />
           <div className="overflow-x-auto rounded-[20px] border border-neutral-400 bg-neutral-50">
             <table className="w-full min-w-[800px] text-left text-sm">
               <thead className="border-b border-neutral-400 text-xs uppercase tracking-wide text-neutral-700">
@@ -347,17 +448,28 @@ export function AksesPage() {
                 {(grants.data?.rows ?? []).map((row) => (
                   <tr key={row.id} className="border-b border-neutral-200">
                     <td className="px-3 py-2">
-                      <span className="font-semibold">{row.userName ?? row.userEmail}</span>
-                      <span className="block text-xs text-neutral-700">{row.userEmail}</span>
+                      <span className="font-semibold">
+                        {row.userName ?? row.userEmail}
+                      </span>
+                      <span className="block text-xs text-neutral-700">
+                        {row.userEmail}
+                      </span>
                     </td>
                     <td className="px-3 py-2">
-                      {row.lembagaName ? `Lembaga · ${row.lembagaName}` : `Kegiatan · ${row.periodName ?? ''}`}
+                      {row.lembagaName
+                        ? `Lembaga · ${row.lembagaName}`
+                        : `Kegiatan · ${row.periodName ?? ''}`}
                       {row.propagate ? ' · turunan' : ''}
                     </td>
                     <td className="px-3 py-2">{row.features.join(', ')}</td>
                     <td className="px-3 py-2">
                       {canWrite ? (
-                        <Button size="sm" variant="ghost" disabled={revoke.isPending} onClick={() => revoke.mutate({ grantId: row.id })}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={revoke.isPending}
+                          onClick={() => revoke.mutate({ grantId: row.id })}
+                        >
                           Cabut
                         </Button>
                       ) : null}
@@ -365,7 +477,14 @@ export function AksesPage() {
                   </tr>
                 ))}
                 {(grants.data?.rows ?? []).length === 0 ? (
-                  <tr><td colSpan={4} className="px-3 py-6 text-center text-neutral-700">Belum ada akses aktif.</td></tr>
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-3 py-6 text-center text-neutral-700"
+                    >
+                      Belum ada akses aktif.
+                    </td>
+                  </tr>
                 ) : null}
               </tbody>
             </table>

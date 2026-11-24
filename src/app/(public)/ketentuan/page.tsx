@@ -1,5 +1,4 @@
 import { type Metadata } from 'next';
-
 import {
   TERMS_OF_SERVICE,
   TermsOfServicePage,

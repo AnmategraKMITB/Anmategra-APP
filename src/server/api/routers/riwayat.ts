@@ -1,7 +1,11 @@
 import { TRPCError } from '@trpc/server';
 import { desc, eq } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure } from '~/server/api/trpc';
-import { mahasiswa, riwayatKepanitiaan, riwayatOrganisasi } from '~/server/db/schema';
+import {
+  mahasiswa,
+  riwayatKepanitiaan,
+  riwayatOrganisasi,
+} from '~/server/db/schema';
 
 import {
   GetRiwayatKepanitiaanInputSchema,

@@ -3,26 +3,26 @@
 // Library Import
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Modal,
   Pill,
   type PillTone,
   ScreenTitle,
+  inputClass,
 } from '../ui';
 
 const STEPS: DemoStep[] = [
   { id: 'buat', title: 'Klik **Buat laporan**' },
   {
     id: 'isi',
-    title: 'Isi **Judul Laporan**, **Deskripsi**, dan pilih **Prioritas Urgensi**',
+    title:
+      'Isi **Judul Laporan**, **Deskripsi**, dan pilih **Prioritas Urgensi**',
     hint: 'Tulis langkah untuk mengulang masalahnya dan di halaman mana itu terjadi.',
   },
   { id: 'draft', title: 'Klik **Buat draft laporan**' },
@@ -100,12 +100,17 @@ function Body({ guide }: { guide: DemoGuide }) {
       {reports.length === 0 ? <Empty>Belum ada laporan.</Empty> : null}
       <ul className="grid gap-3 sm:grid-cols-2">
         {reports.map((report) => (
-          <li key={report.id} className="rounded-lg border border-neutral-400 p-3">
+          <li
+            key={report.id}
+            className="rounded-lg border border-neutral-400 p-3"
+          >
             <div className="flex items-start gap-2">
               <p className="min-w-0 flex-1 font-semibold">{report.title}</p>
               <Pill tone={TONE[report.status]}>{report.status}</Pill>
             </div>
-            <p className="mt-1 text-xs text-neutral-700">{report.description}</p>
+            <p className="mt-1 text-xs text-neutral-700">
+              {report.description}
+            </p>
             <p className="mt-2 text-xs">Urgensi: {report.urgency}</p>
             {report.status === 'Draft' ? (
               <div className="mt-2 flex gap-2">

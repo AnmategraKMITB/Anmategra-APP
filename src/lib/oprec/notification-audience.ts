@@ -42,10 +42,7 @@ export type AudienceTally = {
   recipients: string[];
 };
 
-function hasPending(
-  choices: AudienceChoice[],
-  staged: boolean,
-): boolean {
+function hasPending(choices: AudienceChoice[], staged: boolean): boolean {
   if (choices.length === 0) return false;
   const stages = deriveChoiceStage(
     choices.map((choice) => ({

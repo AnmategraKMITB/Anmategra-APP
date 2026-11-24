@@ -1,8 +1,8 @@
 // "use server"
-
 // import React from 'react';
 // import LandingContent from "~/app/lembaga/landing-content";
-import {api} from "~/trpc/server";
+import { api } from '~/trpc/server';
+
 // import {getServerAuthSession} from "~/server/auth";
 import HeroSection from '../_components/landing/hero';
 import { KegiatanSection } from '../_components/landing/kegiatan-section';

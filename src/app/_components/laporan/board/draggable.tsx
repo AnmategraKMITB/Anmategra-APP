@@ -1,5 +1,5 @@
-import React from "react";
-import { useDraggable } from "@dnd-kit/core";
+import { useDraggable } from '@dnd-kit/core';
+import React from 'react';
 
 interface Props {
   id: string;

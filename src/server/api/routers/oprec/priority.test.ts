@@ -331,7 +331,9 @@ describe('prioritas: menyimpan daftar dan keterangan', () => {
   it('mode gabungan: status tidak dipotong kuota dan nilai minimum tidak berlaku', async () => {
     const s = await setup();
     await setQuota(s.logistik.positionId, 1);
-    await db.delete(criterion).where(eq(criterion.recruitmentId, s.recruitmentId));
+    await db
+      .delete(criterion)
+      .where(eq(criterion.recruitmentId, s.recruitmentId));
     const [interview] = await db
       .insert(criterion)
       .values({

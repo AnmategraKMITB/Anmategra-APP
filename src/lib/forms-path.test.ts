@@ -56,7 +56,9 @@ describe('pickFormsCallback', () => {
 
   it('mengabaikan callbackUrl di luar /forms', () => {
     expect(pickFormsCallback('?callbackUrl=%2Fadmin')).toBeUndefined();
-    expect(pickFormsCallback('?callbackUrl=https%3A%2F%2Fevil.example')).toBeUndefined();
+    expect(
+      pickFormsCallback('?callbackUrl=https%3A%2F%2Fevil.example'),
+    ).toBeUndefined();
   });
 
   it('undefined bila tidak ada callbackUrl', () => {

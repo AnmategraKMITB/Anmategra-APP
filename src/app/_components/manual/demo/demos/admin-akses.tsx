@@ -2,19 +2,18 @@
 
 // Library Import
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_STUDENTS, matchesStudent } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Pill,
   ScreenTitle,
   TabBar,
+  inputClass,
   tdClass,
   thClass,
 } from '../ui';
@@ -71,7 +70,10 @@ function Body({ guide }: { guide: DemoGuide }) {
 
   const candidates =
     query.trim().length >= 2 && !person
-      ? DEMO_STUDENTS.filter((student) => matchesStudent(student, query)).slice(0, 3)
+      ? DEMO_STUDENTS.filter((student) => matchesStudent(student, query)).slice(
+          0,
+          3,
+        )
       : [];
 
   const log = (action: string, summary: string) =>
@@ -155,7 +157,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                           className="flex w-full justify-between gap-2 px-3 py-1.5 text-left text-xs hover:bg-primary-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                         >
                           <span className="font-semibold">{student.name}</span>
-                          <span className="text-neutral-700">{student.nim}</span>
+                          <span className="text-neutral-700">
+                            {student.nim}
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -178,7 +182,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                 )}
               </Field>
             </div>
-            <fieldset className={cn('mt-3 rounded-lg', event && guide.spot('fitur'))}>
+            <fieldset
+              className={cn('mt-3 rounded-lg', event && guide.spot('fitur'))}
+            >
               <legend className="text-xs font-semibold text-neutral-800">
                 Fitur
               </legend>
@@ -215,7 +221,10 @@ function Body({ guide }: { guide: DemoGuide }) {
                   { id: counter, person, event, features },
                 ]);
                 setCounter((value) => value + 1);
-                log('grant.create', `${person} · ${event} · ${features.join(', ')}`);
+                log(
+                  'grant.create',
+                  `${person} · ${event} · ${features.join(', ')}`,
+                );
                 setPerson(null);
                 setEvent('');
                 setFeatures([]);
@@ -228,7 +237,9 @@ function Body({ guide }: { guide: DemoGuide }) {
           </section>
 
           <section>
-            <p className="text-xs font-semibold text-neutral-700">Akses aktif</p>
+            <p className="text-xs font-semibold text-neutral-700">
+              Akses aktif
+            </p>
             {grants.length === 0 ? (
               <div className="mt-2">
                 <Empty>Belum ada akses aktif.</Empty>
@@ -269,7 +280,10 @@ function Body({ guide }: { guide: DemoGuide }) {
                               setGrants((prev) =>
                                 prev.filter((item) => item.id !== grant.id),
                               );
-                              log('grant.revoke', `${grant.person} · ${grant.event}`);
+                              log(
+                                'grant.revoke',
+                                `${grant.person} · ${grant.event}`,
+                              );
                               guide.complete('cabut');
                             }}
                           >

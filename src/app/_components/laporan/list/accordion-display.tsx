@@ -1,4 +1,6 @@
+import { getToken } from 'next-auth/jwt';
 import Image, { type StaticImageData } from 'next/image';
+import Link from 'next/link';
 import { Accordion, AccordionItem } from '~/components/ui/accordion';
 import { Button } from '~/components/ui/button';
 import {
@@ -7,14 +9,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu';
+import { useToast } from '~/hooks/use-toast';
+import { api } from '~/trpc/react';
 
 import { type Report } from '../board/report-card';
 import { type ColumnType } from '../board/report-column';
-import Link from 'next/link';
-import { api } from '~/trpc/react';
-import { useToast } from '~/hooks/use-toast';
-import { getToken } from 'next-auth/jwt';
-
 
 interface AccordionProps {
   title: ColumnType;
@@ -45,8 +44,8 @@ export const ListDisplayItem = ({
   column,
   isAdminView,
 }: DataItem) => {
-  const showMenu = column === "Draft" && !isAdminView;
-  const showSubmit = column === "Draft" && !isAdminView;
+  const showMenu = column === 'Draft' && !isAdminView;
+  const showSubmit = column === 'Draft' && !isAdminView;
 
   return (
     <li className="relative flex flex-col gap-3 rounded-xl border-b p-4 text-[17px] text-[#636A6D] shadow-sm">
@@ -73,7 +72,7 @@ export const ListDisplayItem = ({
           {showMenu && (
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger
-                className="text-2xl select-none"
+                className="select-none text-2xl"
                 onClick={(e) => e.stopPropagation()}
               >
                 ...
@@ -111,7 +110,7 @@ export const ListDisplayItem = ({
         className="flex w-full flex-wrap items-center gap-3 sm:flex-nowrap sm:gap-6"
       >
         <h2 className="text-sm text-[#768085]">{date}</h2>
-        <span className="border-[#636A6D] rounded-full border px-4 py-2 text-sm">
+        <span className="rounded-full border border-[#636A6D] px-4 py-2 text-sm">
           {category}
         </span>
       </Link>
@@ -217,7 +216,9 @@ export const AccordionDisplay = ({
               isAdminView={isAdminView}
               onEdit={() => onEditReport?.(report)}
               onDelete={() => handleDelete(report.id)}
-              onSubmit={title === 'Draft' ? () => handleSubmit(report.id) : undefined}
+              onSubmit={
+                title === 'Draft' ? () => handleSubmit(report.id) : undefined
+              }
             />
           ))}
         </ul>

@@ -3,22 +3,21 @@
 // Library Import
 import { Pin, Plus } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Empty,
   Field,
-  inputClass,
   Modal,
   Pill,
   type PillTone,
   ScreenTitle,
+  Toggle,
+  inputClass,
   tdClass,
   thClass,
-  Toggle,
 } from '../ui';
 
 const STEPS: DemoStep[] = [
@@ -58,9 +57,30 @@ type Event = {
 };
 
 const INITIAL: Event[] = [
-  { id: 1, name: 'Aku Masuk ITB 2027', date: '2026-12-05', status: 'Coming Soon', committee: 24, pinned: false },
-  { id: 2, name: 'Kelas Desain Dasar', date: '2026-10-20', status: 'On going', committee: 8, pinned: false },
-  { id: 3, name: 'Malam Keakraban 2026', date: '2026-08-30', status: 'Ended', committee: 31, pinned: false },
+  {
+    id: 1,
+    name: 'Aku Masuk ITB 2027',
+    date: '2026-12-05',
+    status: 'Coming Soon',
+    committee: 24,
+    pinned: false,
+  },
+  {
+    id: 2,
+    name: 'Kelas Desain Dasar',
+    date: '2026-10-20',
+    status: 'On going',
+    committee: 8,
+    pinned: false,
+  },
+  {
+    id: 3,
+    name: 'Malam Keakraban 2026',
+    date: '2026-08-30',
+    status: 'Ended',
+    committee: 31,
+    pinned: false,
+  },
 ];
 
 export default function KegiatanDemo() {
@@ -269,7 +289,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                   <select
                     id={id}
                     value={status}
-                    onChange={(event) => setStatus(event.target.value as Status)}
+                    onChange={(event) =>
+                      setStatus(event.target.value as Status)
+                    }
                     className={inputClass}
                   >
                     {Object.entries(STATUS_LABEL).map(([value, label]) => (
@@ -282,8 +304,18 @@ function Body({ guide }: { guide: DemoGuide }) {
               </Field>
             </div>
           </div>
-          <Field label="Link Pendaftaran" hint="Opsional. Dipakai tombol Daftar menjadi Panitia.">
-            {(id) => <input id={id} type="url" placeholder="https://" className={inputClass} />}
+          <Field
+            label="Link Pendaftaran"
+            hint="Opsional. Dipakai tombol Daftar menjadi Panitia."
+          >
+            {(id) => (
+              <input
+                id={id}
+                type="url"
+                placeholder="https://"
+                className={inputClass}
+              />
+            )}
           </Field>
           <Toggle
             label="Rapor Terlihat Publik"

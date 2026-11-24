@@ -2,21 +2,21 @@
 
 // Library Import
 import { MagnifyingGlassIcon } from '@radix-ui/react-icons';
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { signOut } from 'next-auth/react';
-import { Input } from '~/components/ui/input';
+import { useRouter } from 'next/navigation';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '~/components/ui/button';
+import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
+import { formatTanggal } from '~/utils/utils';
 
 // Components Import
 import { KanbanBoard } from './board/kanban-board';
-import { type ColumnProps, type ColumnType } from './board/report-column';
 import { type Report } from './board/report-card';
+import { type ColumnProps, type ColumnType } from './board/report-column';
 import LaporanFormDialog from './detail/laporan-form';
 import { type CurrentDisplay, LaporanHeader } from './laporan-header';
 import { ListDisplay } from './list/list-display';
-import { formatTanggal } from '~/utils/utils';
 
 interface LaporanProps {
   data: ColumnProps[];
@@ -61,15 +61,15 @@ export const LaporanMainContainer = (Laporan: LaporanProps) => {
     if (debouncedSearch.length === 0) {
       return Laporan.data;
     }
-    if (!searchData){
+    if (!searchData) {
       return [];
     }
 
     const reportsByStatus: Record<Status, Report[]> = {
-      'Draft': [],
-      'Reported': [],
+      Draft: [],
+      Reported: [],
       'In Progress': [],
-      'Resolved': [],
+      Resolved: [],
     };
 
     (searchData.reports || []).forEach((report) => {
@@ -89,7 +89,10 @@ export const LaporanMainContainer = (Laporan: LaporanProps) => {
     return [
       { title: 'Draft' as const, reports: reportsByStatus.Draft },
       { title: 'Reported' as const, reports: reportsByStatus.Reported },
-      { title: 'In Progress' as const, reports: reportsByStatus['In Progress'] },
+      {
+        title: 'In Progress' as const,
+        reports: reportsByStatus['In Progress'],
+      },
       { title: 'Resolved' as const, reports: reportsByStatus.Resolved },
     ];
   }, [debouncedSearch, searchData, Laporan.data]);
@@ -109,15 +112,15 @@ export const LaporanMainContainer = (Laporan: LaporanProps) => {
   }, [display, isMounted]);
 
   const [status, setStatus] = useState<ColumnType[]>(() => {
-    const all: ColumnType[] = ["Draft", "Reported", "In Progress", "Resolved"];
+    const all: ColumnType[] = ['Draft', 'Reported', 'In Progress', 'Resolved'];
 
     if (Laporan.isAdminView) {
-      return all.filter((col) => col !== "Draft");
+      return all.filter((col) => col !== 'Draft');
     }
 
     return all;
   });
-  
+
   const toggleStatus = (column: ColumnType) => {
     setStatus(
       (prev) =>
@@ -146,14 +149,19 @@ export const LaporanMainContainer = (Laporan: LaporanProps) => {
     router.refresh();
   };
 
-  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  }, []);
+  const handleSearchChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSearchQuery(e.target.value);
+    },
+    [],
+  );
 
-  const isLaporanEmpty = displayData.length === 0 || displayData.every(col => col.reports.length === 0);
+  const isLaporanEmpty =
+    displayData.length === 0 ||
+    displayData.every((col) => col.reports.length === 0);
 
   return (
-    <div className="flex w-full flex-col gap-4 pt-[68px] pl-[42px] pr-[36px]">
+    <div className="flex w-full flex-col gap-4 pl-[42px] pr-[36px] pt-[68px]">
       {Laporan.isAdminView && (
         <div className="flex justify-end">
           <Button
@@ -179,7 +187,7 @@ export const LaporanMainContainer = (Laporan: LaporanProps) => {
         placeholder="Cari laporan"
         value={searchQuery}
         onChange={handleSearchChange}
-        className="rounded-3xl py-5 h-[60px] text-[18px] bg-white placeholder:text-neutral-700 focus-visible:ring-transparent"
+        className="h-[60px] rounded-3xl bg-white py-5 text-[18px] placeholder:text-neutral-700 focus-visible:ring-transparent"
         startAdornment={
           <MagnifyingGlassIcon className="size-5 text-gray-500" />
         }
@@ -211,12 +219,12 @@ export const LaporanMainContainer = (Laporan: LaporanProps) => {
       {isLaporanEmpty && (
         <div className="flex h-4/5 flex-col items-center justify-center gap-3">
           <h1 className="text-2xl font-semibold text-neutral-300">
-            {searchQuery ? 'Tidak ada laporan yang ditemukan' : 'Buat laporan baru!'}
+            {searchQuery
+              ? 'Tidak ada laporan yang ditemukan'
+              : 'Buat laporan baru!'}
           </h1>
           {!searchQuery && (
-            <LaporanFormDialog 
-              isAdmin={Laporan.isAdminView ?? false}
-            />
+            <LaporanFormDialog isAdmin={Laporan.isAdminView ?? false} />
           )}
         </div>
       )}

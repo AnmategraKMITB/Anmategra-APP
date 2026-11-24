@@ -18,9 +18,7 @@
     "react-perf",
     "vitest"
   ],
-  "jsPlugins": [
-    "./lint/drizzle.js"
-  ],
+  "jsPlugins": ["./lint/drizzle.js"],
   "categories": {
     "correctness": "error",
     "suspicious": "error",
@@ -75,9 +73,7 @@
     "import/no-unassigned-import": [
       "error",
       {
-        "allow": [
-          "**/*.css"
-        ]
+        "allow": ["**/*.css"]
       }
     ],
     // Mati: bug bun canary: paths tsconfig hanya ter-resolve bila satu berkas di-lint (2718 positif palsu); impor yang tidak ada tetap gagal di bun check (TS2307).
@@ -85,12 +81,8 @@
     "jsx-a11y/alt-text": [
       "error",
       {
-        "elements": [
-          "img"
-        ],
-        "img": [
-          "Image"
-        ]
+        "elements": ["img"],
+        "img": ["Image"]
       }
     ],
     "jsx-a11y/aria-props": "error",
@@ -165,16 +157,11 @@
   },
   "overrides": [
     {
-      "files": [
-        "**/*.ts",
-        "**/*.tsx",
-        "**/*.mts",
-        "**/*.cts"
-      ],
+      "files": ["**/*.ts", "**/*.tsx", "**/*.mts", "**/*.cts"],
       "rules": {
-      // Mati untuk TypeScript: kompilernya sudah menolak nama yang tidak ada, dan
-      // aturan ini salah menandai global dari tipe (console, process). Sama dengan ESLint lama.
-      "no-undef": "off",
+        // Mati untuk TypeScript: kompilernya sudah menolak nama yang tidak ada, dan
+        // aturan ini salah menandai global dari tipe (console, process). Sama dengan ESLint lama.
+        "no-undef": "off",
         "no-var": "error",
         "prefer-const": [
           "error",
@@ -286,19 +273,13 @@
         "drizzle/enforce-delete-with-where": [
           "error",
           {
-            "drizzleObjectName": [
-              "db",
-              "ctx.db"
-            ]
+            "drizzleObjectName": ["db", "ctx.db"]
           }
         ],
         "drizzle/enforce-update-with-where": [
           "error",
           {
-            "drizzleObjectName": [
-              "db",
-              "ctx.db"
-            ]
+            "drizzleObjectName": ["db", "ctx.db"]
           }
         ]
       }

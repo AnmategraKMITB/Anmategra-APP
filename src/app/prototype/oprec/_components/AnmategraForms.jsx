@@ -1,62 +1,95 @@
 // @ts-nocheck -- purwarupa satu-file dalam JS biasa, tidak ikut type-check.
-"use client";
+'use client';
 /* =====================================================================
    Anmategra Forms — purwarupa (Typeform-style)
    Satu komponen React, tanpa library eksternal.
    Bagian: core (model, logika alur, ikon) · editor Konten · Alur · Pratinjau · Respons · Daftar
    ===================================================================== */
-import React, { useState, useEffect, useRef, useMemo, useCallback, useLayoutEffect, memo } from "react";
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 /* ---------- util ---------- */
 let __id = 0;
-const uid = (p = "b") => `${p}_${Date.now().toString(36)}${(++__id).toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+const uid = (p = 'b') =>
+  `${p}_${Date.now().toString(36)}${(++__id).toString(36)}${Math.random().toString(36).slice(2, 5)}`;
 const clone = (o) => JSON.parse(JSON.stringify(o));
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const stripHtml = (h) => {
-  if (!h) return "";
-  const d = typeof document !== "undefined" ? document.createElement("div") : null;
-  if (!d) return String(h).replace(/<[^>]*>/g, "");
+  if (!h) return '';
+  const d =
+    typeof document !== 'undefined' ? document.createElement('div') : null;
+  if (!d) return String(h).replace(/<[^>]*>/g, '');
   d.innerHTML = h;
-  return (d.textContent || "").trim();
+  return (d.textContent || '').trim();
 };
 const fmtDate = (iso) => {
-  if (!iso) return "-";
+  if (!iso) return '-';
   const d = new Date(iso);
-  return `${String(d.getDate()).padStart(2, "0")}/${String(d.getMonth() + 1).padStart(2, "0")}/${d.getFullYear()}`;
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
 };
-const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+const BULAN = [
+  'Januari',
+  'Februari',
+  'Maret',
+  'April',
+  'Mei',
+  'Juni',
+  'Juli',
+  'Agustus',
+  'September',
+  'Oktober',
+  'November',
+  'Desember',
+];
 const fmtDeadline = (iso) => {
-  if (!iso) return "Tanpa tenggat";
+  if (!iso) return 'Tanpa tenggat';
   const d = new Date(iso);
-  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, "0")}.${String(d.getMinutes()).padStart(2, "0")} WIB`;
+  return `${d.getDate()} ${BULAN[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2, '0')}.${String(d.getMinutes()).padStart(2, '0')} WIB`;
 };
 const toLocalInput = (iso) => {
-  if (!iso) return "";
+  if (!iso) return '';
   const d = new Date(iso);
-  const p = (n) => String(n).padStart(2, "0");
+  const p = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
 };
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 /* Sanitasi HTML rich-text: hanya b/strong/i/em/u/a/br yang lolos */
 const ALLOWED = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, A: 1, BR: 1 };
 function sanitize(html) {
-  if (!html) return "";
-  if (typeof DOMParser === "undefined") return String(html).replace(/<[^>]*>/g, "");
-  const doc = new DOMParser().parseFromString(`<div>${html}</div>`, "text/html");
+  if (!html) return '';
+  if (typeof DOMParser === 'undefined')
+    return String(html).replace(/<[^>]*>/g, '');
+  const doc = new DOMParser().parseFromString(
+    `<div>${html}</div>`,
+    'text/html',
+  );
   const walk = (node) => {
-    let out = "";
+    let out = '';
     node.childNodes.forEach((n) => {
-      if (n.nodeType === 3) out += n.textContent.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+      if (n.nodeType === 3)
+        out += n.textContent.replace(
+          /[&<>]/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c],
+        );
       else if (n.nodeType === 1) {
         const tag = n.tagName;
         const inner = walk(n);
-        if (tag === "DIV" || tag === "P") out += (out ? "<br>" : "") + inner;
+        if (tag === 'DIV' || tag === 'P') out += (out ? '<br>' : '') + inner;
         else if (!ALLOWED[tag]) out += inner;
-        else if (tag === "BR") out += "<br>";
-        else if (tag === "A") {
-          const href = n.getAttribute("href") || "";
-          out += /^(https?:|mailto:)/i.test(href) ? `<a href="${href.replace(/"/g, "&quot;")}" target="_blank" rel="noopener noreferrer">${inner}</a>` : inner;
+        else if (tag === 'BR') out += '<br>';
+        else if (tag === 'A') {
+          const href = n.getAttribute('href') || '';
+          out += /^(https?:|mailto:)/i.test(href)
+            ? `<a href="${href.replace(/"/g, '&quot;')}" target="_blank" rel="noopener noreferrer">${inner}</a>`
+            : inner;
         } else out += `<${tag.toLowerCase()}>${inner}</${tag.toLowerCase()}>`;
       }
     });
@@ -64,86 +97,115 @@ function sanitize(html) {
   };
   return walk(doc.body.firstChild);
 }
-const Rich = ({ html, className, as: Tag = "span" }) => <Tag className={className} dangerouslySetInnerHTML={{ __html: sanitize(html) }} />;
+const Rich = ({ html, className, as: Tag = 'span' }) => (
+  <Tag
+    className={className}
+    dangerouslySetInnerHTML={{ __html: sanitize(html) }}
+  />
+);
 
 /* ---------- ikon (dibuat manual, 24x24 stroke) ---------- */
 const P = {
-  home: "M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z",
-  calendar: "M4 6h16v15H4zM4 10h16M8 3v4M16 3v4",
-  users: "M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6",
-  inbox: "M3 13h5l1.5 3h5L16 13h5M5 4h14l2 9v7H3v-7z",
-  alert: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16v.5",
-  list: "M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01",
-  logout: "M15 4h4v16h-4M10 17l5-5-5-5M15 12H3",
-  search: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5",
-  filter: "M4 6h16M7 12h10M10 18h4",
-  tag: "M3 12V3h9l9 9-9 9zM7.5 7.5h.01",
-  display: "M3 4h18v12H3zM8 20h8M12 16v4M7 8h6M7 11h10",
-  pin: "M9 3h6l-1 6 4 4H6l4-4zM12 13v8",
-  external: "M7 17 17 7M9 7h8v8",
-  more: "M12 5h.01M12 12h.01M12 19h.01",
-  plus: "M12 5v14M5 12h14",
-  palette: "M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 22 9.8C22 6 17.5 3 12 3zM7.5 12h.01M9.5 7.5h.01M14.5 7.5h.01",
-  laptop: "M4 5h16v11H4zM2 19h20",
-  phone: "M7 2h10v20H7zM11 18h2",
-  play: "M7 4v16l13-8z",
-  image: "M3 4h18v16H3zM3 16l5-5 5 5 3-3 5 5M15.5 8.5h.01",
-  bold: "M7 4h6a4 4 0 0 1 0 8H7zM7 12h7a4 4 0 0 1 0 8H7z",
-  italic: "M10 4h9M5 20h9M15 4 9 20",
-  underline: "M7 4v6a5 5 0 0 0 10 0V4M5 21h14",
-  link: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1",
-  clearfmt: "M5 5h12M11 5 7 19M4 20 20 4",
-  copy: "M8 8h12v12H8zM4 16V4h12",
-  trash: "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
-  grip: "M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01",
-  chevDown: "M6 9l6 6 6-6",
-  chevUp: "M6 15l6-6 6 6",
-  chevLeft: "M15 6l-6 6 6 6",
-  chevRight: "M9 6l6 6-6 6",
-  check: "M5 12.5l4.5 4.5L19 7",
-  x: "M6 6l12 12M18 6 6 18",
-  star: "M12 3l2.8 5.8 6.2.9-4.5 4.4 1 6.3L12 17.5l-5.5 2.9 1-6.3L3 9.7l6.2-.9z",
-  upload: "M12 16V4M7 9l5-5 5 5M4 16v4h16v-4",
-  hash: "M5 9h15M4 15h15M10 3 8 21M16 3l-2 18",
-  short: "M4 8h16M4 12h10M4 16h6",
-  long: "M4 6h16M4 10h16M4 14h16M4 18h10",
-  choice: "M10 6h10M10 12h10M10 18h10M4.5 4.5h2v3h-2zM5.5 10.5v3M4.5 16.5h2v3h-2z",
-  checkbox: "M4 4h16v16H4zM8 12l3 3 5-6",
-  matrix: "M4 4h16v16H4zM9 9h.01M15 9h.01M9 15h.01M15 15h.01M12 12h.01",
-  scale: "M5 12h.01M12 12h.01M19 12h.01M3 12h18",
-  dropdown: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 10.5l4 4 4-4",
-  date: "M4 6h16v15H4zM4 10h16M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01",
-  file: "M3 6h7l2 2h9v12H3zM12 17v-6M9.5 13.5 12 11l2.5 2.5",
-  welcome: "M3 4h18v16H3zM3 16l5-5 5 5 3-3 5 5M15.5 8.5h.01",
-  ending: "M3 5h18v14H3zM13 13h5v3h-5z",
-  flow: "M6 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM18 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM18 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM8 5h8M6 7v6a6 6 0 0 0 6 6h4",
-  eye: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
-  undo: "M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3",
-  redo: "M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3",
-  zoomIn: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5M11 8v6M8 11h6",
-  zoomOut: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5M8 11h6",
-  fit: "M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5",
-  branch: "M6 4v8a4 4 0 0 0 4 4h8M14 12l4 4-4 4M6 4h.01",
-  arrowLeft: "M19 12H5M11 6l-6 6 6 6",
-  arrowRight: "M5 12h14M13 6l6 6-6 6",
-  share: "M14 4h6v6M20 4l-9 9M18 14v6H4V6h6",
-  menu: "M4 6h16M4 12h16M4 18h16",
-  edit: "M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4",
-  grid: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
-  clock: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2",
-  refresh: "M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5",
-  checkCircle: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12.5l3 3 5-6",
-  save: "M5 3h11l4 4v14H5zM8 3v5h7M8 14h8v7H8z",
-  table: "M3 5h18v14H3zM3 10h18M3 15h18M9 5v14",
-  download: "M12 4v12M7 11l5 5 5-5M4 20h16",
-  gear: "M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z",
-  cond: "M4 5h16l-6 7v6l-4 2v-8z",
-  eyeOff: "M3 3l18 18M10.6 6.1A10 10 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3 3.6M6.6 6.6A17 17 0 0 0 2 12s4 6 10 6a9.7 9.7 0 0 0 4.4-1M9.9 9.9a3 3 0 0 0 4.2 4.2",
-  lock: "M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4",
-  sparkle: "M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6",
+  home: 'M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z',
+  calendar: 'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4',
+  users:
+    'M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM2 21v-1a6 6 0 0 1 6-6h2a6 6 0 0 1 6 6v1M16 3.5a4 4 0 0 1 0 7.5M22 21v-1a6 6 0 0 0-4-5.6',
+  inbox: 'M3 13h5l1.5 3h5L16 13h5M5 4h14l2 9v7H3v-7z',
+  alert: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 8v5M12 16v.5',
+  list: 'M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01',
+  logout: 'M15 4h4v16h-4M10 17l5-5-5-5M15 12H3',
+  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5',
+  filter: 'M4 6h16M7 12h10M10 18h4',
+  tag: 'M3 12V3h9l9 9-9 9zM7.5 7.5h.01',
+  display: 'M3 4h18v12H3zM8 20h8M12 16v4M7 8h6M7 11h10',
+  pin: 'M9 3h6l-1 6 4 4H6l4-4zM12 13v8',
+  external: 'M7 17 17 7M9 7h8v8',
+  more: 'M12 5h.01M12 12h.01M12 19h.01',
+  plus: 'M12 5v14M5 12h14',
+  palette:
+    'M12 3a9 9 0 1 0 0 18c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.3 0-1.1.9-2 2-2h2.4A4.6 4.6 0 0 0 22 9.8C22 6 17.5 3 12 3zM7.5 12h.01M9.5 7.5h.01M14.5 7.5h.01',
+  laptop: 'M4 5h16v11H4zM2 19h20',
+  phone: 'M7 2h10v20H7zM11 18h2',
+  play: 'M7 4v16l13-8z',
+  image: 'M3 4h18v16H3zM3 16l5-5 5 5 3-3 5 5M15.5 8.5h.01',
+  bold: 'M7 4h6a4 4 0 0 1 0 8H7zM7 12h7a4 4 0 0 1 0 8H7z',
+  italic: 'M10 4h9M5 20h9M15 4 9 20',
+  underline: 'M7 4v6a5 5 0 0 0 10 0V4M5 21h14',
+  link: 'M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1',
+  clearfmt: 'M5 5h12M11 5 7 19M4 20 20 4',
+  copy: 'M8 8h12v12H8zM4 16V4h12',
+  trash: 'M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  grip: 'M9 6h.01M15 6h.01M9 12h.01M15 12h.01M9 18h.01M15 18h.01',
+  chevDown: 'M6 9l6 6 6-6',
+  chevUp: 'M6 15l6-6 6 6',
+  chevLeft: 'M15 6l-6 6 6 6',
+  chevRight: 'M9 6l6 6-6 6',
+  check: 'M5 12.5l4.5 4.5L19 7',
+  x: 'M6 6l12 12M18 6 6 18',
+  star: 'M12 3l2.8 5.8 6.2.9-4.5 4.4 1 6.3L12 17.5l-5.5 2.9 1-6.3L3 9.7l6.2-.9z',
+  upload: 'M12 16V4M7 9l5-5 5 5M4 16v4h16v-4',
+  hash: 'M5 9h15M4 15h15M10 3 8 21M16 3l-2 18',
+  short: 'M4 8h16M4 12h10M4 16h6',
+  long: 'M4 6h16M4 10h16M4 14h16M4 18h10',
+  choice:
+    'M10 6h10M10 12h10M10 18h10M4.5 4.5h2v3h-2zM5.5 10.5v3M4.5 16.5h2v3h-2z',
+  checkbox: 'M4 4h16v16H4zM8 12l3 3 5-6',
+  matrix: 'M4 4h16v16H4zM9 9h.01M15 9h.01M9 15h.01M15 15h.01M12 12h.01',
+  scale: 'M5 12h.01M12 12h.01M19 12h.01M3 12h18',
+  dropdown: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 10.5l4 4 4-4',
+  date: 'M4 6h16v15H4zM4 10h16M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17h.01M12 17h.01',
+  file: 'M3 6h7l2 2h9v12H3zM12 17v-6M9.5 13.5 12 11l2.5 2.5',
+  welcome: 'M3 4h18v16H3zM3 16l5-5 5 5 3-3 5 5M15.5 8.5h.01',
+  ending: 'M3 5h18v14H3zM13 13h5v3h-5z',
+  flow: 'M6 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM18 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM18 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM8 5h8M6 7v6a6 6 0 0 0 6 6h4',
+  eye: 'M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z',
+  undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
+  redo: 'M15 14l5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',
+  zoomIn: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5M11 8v6M8 11h6',
+  zoomOut: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5M8 11h6',
+  fit: 'M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5',
+  branch: 'M6 4v8a4 4 0 0 0 4 4h8M14 12l4 4-4 4M6 4h.01',
+  arrowLeft: 'M19 12H5M11 6l-6 6 6 6',
+  arrowRight: 'M5 12h14M13 6l6 6-6 6',
+  share: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
+  menu: 'M4 6h16M4 12h16M4 18h16',
+  edit: 'M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4',
+  grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  clock: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7v5l3 2',
+  refresh: 'M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5',
+  checkCircle: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM8 12.5l3 3 5-6',
+  save: 'M5 3h11l4 4v14H5zM8 3v5h7M8 14h8v7H8z',
+  table: 'M3 5h18v14H3zM3 10h18M3 15h18M9 5v14',
+  download: 'M12 4v12M7 11l5 5 5-5M4 20h16',
+  gear: 'M12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z',
+  cond: 'M4 5h16l-6 7v6l-4 2v-8z',
+  eyeOff:
+    'M3 3l18 18M10.6 6.1A10 10 0 0 1 12 6c6 0 10 6 10 6a17 17 0 0 1-3 3.6M6.6 6.6A17 17 0 0 0 2 12s4 6 10 6a9.7 9.7 0 0 0 4.4-1M9.9 9.9a3 3 0 0 0 4.2 4.2',
+  lock: 'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',
+  sparkle:
+    'M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6',
 };
-const Icon = ({ name, size = 18, fill = "none", sw = 1.8, className, style }) => (
-  <svg className={className} style={style} width={size} height={size} viewBox="0 0 24 24" fill={fill} stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+const Icon = ({
+  name,
+  size = 18,
+  fill = 'none',
+  sw = 1.8,
+  className,
+  style,
+}) => (
+  <svg
+    className={className}
+    style={style}
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill={fill}
+    stroke="currentColor"
+    strokeWidth={sw}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
     <path d={P[name] || P.x} />
   </svg>
 );
@@ -153,60 +215,114 @@ const Logo = ({ size = 34 }) => (
     <g fill="var(--accent)">
       {[0, 60, 120, 180, 240, 300].map((a) => {
         const r = (a * Math.PI) / 180;
-        return <circle key={a} cx={20 + 15 * Math.cos(r)} cy={20 + 15 * Math.sin(r)} r="3.6" />;
+        return (
+          <circle
+            key={a}
+            cx={20 + 15 * Math.cos(r)}
+            cy={20 + 15 * Math.sin(r)}
+            r="3.6"
+          />
+        );
       })}
     </g>
-    <circle cx="20" cy="20" r="10" fill="none" stroke="var(--navy)" strokeWidth="4" />
+    <circle
+      cx="20"
+      cy="20"
+      r="10"
+      fill="none"
+      stroke="var(--navy)"
+      strokeWidth="4"
+    />
     <path d="M14.5 22.5 20 15.5l5.5 7z" fill="var(--navy)" />
   </svg>
 );
 
 /* ---------- tipe blok ---------- */
 const TYPES = {
-  welcome: { label: "Welcome Screen", icon: "welcome", screen: true },
-  short: { label: "Teks Pendek", icon: "short" },
-  long: { label: "Teks Panjang", icon: "long" },
-  number: { label: "Angka", icon: "hash" },
-  choice: { label: "Pilihan Ganda", icon: "choice", options: true },
-  checkbox: { label: "Check Box", icon: "checkbox", options: true },
-  matrix: { label: "Matriks", icon: "matrix" },
-  scale: { label: "Skala", icon: "scale" },
-  dropdown: { label: "Dropdown", icon: "dropdown", options: true },
-  date: { label: "Tanggal", icon: "date" },
-  file: { label: "Unggah Dokumen", icon: "file" },
-  ending: { label: "Ending Screen", icon: "ending", screen: true },
+  welcome: { label: 'Welcome Screen', icon: 'welcome', screen: true },
+  short: { label: 'Teks Pendek', icon: 'short' },
+  long: { label: 'Teks Panjang', icon: 'long' },
+  number: { label: 'Angka', icon: 'hash' },
+  choice: { label: 'Pilihan Ganda', icon: 'choice', options: true },
+  checkbox: { label: 'Check Box', icon: 'checkbox', options: true },
+  matrix: { label: 'Matriks', icon: 'matrix' },
+  scale: { label: 'Skala', icon: 'scale' },
+  dropdown: { label: 'Dropdown', icon: 'dropdown', options: true },
+  date: { label: 'Tanggal', icon: 'date' },
+  file: { label: 'Unggah Dokumen', icon: 'file' },
+  ending: { label: 'Ending Screen', icon: 'ending', screen: true },
 };
-const TYPE_ORDER = ["welcome", "short", "long", "number", "choice", "checkbox", "matrix", "scale", "dropdown", "date", "file", "ending"];
+const TYPE_ORDER = [
+  'welcome',
+  'short',
+  'long',
+  'number',
+  'choice',
+  'checkbox',
+  'matrix',
+  'scale',
+  'dropdown',
+  'date',
+  'file',
+  'ending',
+];
 const QTYPES = TYPE_ORDER.filter((t) => !TYPES[t].screen);
 const isQuestion = (b) => b && !TYPES[b.type].screen;
 
-const opt = (label) => ({ id: uid("o"), label });
+const opt = (label) => ({ id: uid('o'), label });
 function defaultProps(type) {
   switch (type) {
-    case "welcome": return { button: "Mulai", subtitle: "" };
-    case "ending": return { button: "", url: "" };
-    case "short": return { placeholder: "", maxLen: "" };
-    case "long": return { placeholder: "", maxLen: "" };
-    case "number": return { min: "", max: "" };
-    case "choice": case "dropdown": return { options: [opt("Pilihan 1"), opt("Pilihan 2")] };
-    case "checkbox": return { options: [opt("Pilihan 1"), opt("Pilihan 2")], minSel: "", maxSel: "" };
-    case "matrix": return { rows: [opt("Baris 1")], cols: [opt("Pilihan 1")], multi: false };
-    case "scale": return { min: 1, max: 5, minLabel: "", maxLabel: "", style: "number" };
-    case "date": return { mode: "date" };
-    case "file": return { accept: "", maxFiles: 1, maxSizeMB: 10 };
-    default: return {};
+    case 'welcome':
+      return { button: 'Mulai', subtitle: '' };
+    case 'ending':
+      return { button: '', url: '' };
+    case 'short':
+      return { placeholder: '', maxLen: '' };
+    case 'long':
+      return { placeholder: '', maxLen: '' };
+    case 'number':
+      return { min: '', max: '' };
+    case 'choice':
+    case 'dropdown':
+      return { options: [opt('Pilihan 1'), opt('Pilihan 2')] };
+    case 'checkbox':
+      return {
+        options: [opt('Pilihan 1'), opt('Pilihan 2')],
+        minSel: '',
+        maxSel: '',
+      };
+    case 'matrix':
+      return { rows: [opt('Baris 1')], cols: [opt('Pilihan 1')], multi: false };
+    case 'scale':
+      return { min: 1, max: 5, minLabel: '', maxLabel: '', style: 'number' };
+    case 'date':
+      return { mode: 'date' };
+    case 'file':
+      return { accept: '', maxFiles: 1, maxSizeMB: 10 };
+    default:
+      return {};
   }
 }
-const emptyCond = () => ({ match: "all", rules: [] });
+const emptyCond = () => ({ match: 'all', rules: [] });
 function newBlock(type, extra = {}) {
-  return { id: uid("b"), type, title: "", desc: "", required: false, image: null, props: defaultProps(type), cond: emptyCond(), ...extra };
+  return {
+    id: uid('b'),
+    type,
+    title: '',
+    desc: '',
+    required: false,
+    image: null,
+    props: defaultProps(type),
+    cond: emptyCond(),
+    ...extra,
+  };
 }
 
 /* Urutan kanonik: welcome selalu di atas, ending selalu di bawah */
 function normalizeOrder(blocks) {
-  const w = blocks.filter((b) => b.type === "welcome");
+  const w = blocks.filter((b) => b.type === 'welcome');
   const q = blocks.filter((b) => isQuestion(b));
-  const e = blocks.filter((b) => b.type === "ending");
+  const e = blocks.filter((b) => b.type === 'ending');
   return [...w.slice(0, 1), ...q, ...e];
 }
 
@@ -223,14 +339,23 @@ const DEFAULT_SETTINGS = {
   oneResponsePerAccount: true,
   allowEditAfterSubmit: false,
   notifyOnResponse: false,
-  closedMessage: "Form ini sudah ditutup. Terima kasih atas minatmu!",
+  closedMessage: 'Form ini sudah ditutup. Terima kasih atas minatmu!',
 };
 function withDefaults(f) {
   return {
     ...f,
     settings: { ...DEFAULT_SETTINGS, ...(f.settings || {}) },
-    theme: { accent: "#00AEB3", font: "jakarta", bg: "soft", banner: null, ...(f.theme || {}) },
-    blocks: (f.blocks || []).map((b) => ({ ...b, cond: b.cond || emptyCond() })),
+    theme: {
+      accent: '#00AEB3',
+      font: 'jakarta',
+      bg: 'soft',
+      banner: null,
+      ...(f.theme || {}),
+    },
+    blocks: (f.blocks || []).map((b) => ({
+      ...b,
+      cond: b.cond || emptyCond(),
+    })),
   };
 }
 
@@ -240,82 +365,177 @@ function withDefaults(f) {
    pertanyaan SEBELUMNYA, digabung Semua (AND) / Salah satu (OR).
    ===================================================================== */
 // [kunci, label, arity]  arity: 0 tanpa nilai · 1 satu nilai · 2 rentang · "multi" daftar opsi · "cell" baris+kolom
-const A0 = [["answered", "diisi", 0], ["unanswered", "kosong", 0]];
-const NUM_OPS = [["eq", "=", 1], ["neq", "≠", 1], ["gt", ">", 1], ["gte", "≥", 1], ["lt", "<", 1], ["lte", "≤", 1], ["between", "di antara", 2], ["not_between", "di luar rentang", 2], ...A0];
+const A0 = [
+  ['answered', 'diisi', 0],
+  ['unanswered', 'kosong', 0],
+];
+const NUM_OPS = [
+  ['eq', '=', 1],
+  ['neq', '≠', 1],
+  ['gt', '>', 1],
+  ['gte', '≥', 1],
+  ['lt', '<', 1],
+  ['lte', '≤', 1],
+  ['between', 'di antara', 2],
+  ['not_between', 'di luar rentang', 2],
+  ...A0,
+];
 const OPS = {
   number: NUM_OPS,
   scale: NUM_OPS,
-  short: [["eq", "sama dengan", 1], ["neq", "tidak sama dengan", 1], ["contains", "mengandung", 1], ["not_contains", "tidak mengandung", 1], ["starts", "diawali", 1], ["ends", "diakhiri", 1], ["len_gt", "panjang lebih dari", 1], ["len_lt", "panjang kurang dari", 1], ...A0],
-  long: [["contains", "mengandung", 1], ["not_contains", "tidak mengandung", 1], ["len_gt", "panjang lebih dari", 1], ["len_lt", "panjang kurang dari", 1], ...A0],
-  choice: [["is", "adalah", 1], ["is_not", "bukan", 1], ["in", "salah satu dari", "multi"], ["not_in", "bukan salah satu dari", "multi"], ...A0],
-  dropdown: [["is", "adalah", 1], ["is_not", "bukan", 1], ["in", "salah satu dari", "multi"], ["not_in", "bukan salah satu dari", "multi"], ...A0],
-  checkbox: [["includes", "mencakup", 1], ["excludes", "tidak mencakup", 1], ["includes_all", "mencakup semua", "multi"], ["includes_any", "mencakup salah satu", "multi"], ["count_gte", "jumlah dipilih ≥", 1], ["count_lte", "jumlah dipilih ≤", 1], ...A0],
-  date: [["on", "tepat pada", 1], ["before", "sebelum", 1], ["after", "setelah", 1], ["between", "di antara", 2], ...A0],
-  matrix: [["cell", "pada baris … memilih", "cell"], ...A0],
+  short: [
+    ['eq', 'sama dengan', 1],
+    ['neq', 'tidak sama dengan', 1],
+    ['contains', 'mengandung', 1],
+    ['not_contains', 'tidak mengandung', 1],
+    ['starts', 'diawali', 1],
+    ['ends', 'diakhiri', 1],
+    ['len_gt', 'panjang lebih dari', 1],
+    ['len_lt', 'panjang kurang dari', 1],
+    ...A0,
+  ],
+  long: [
+    ['contains', 'mengandung', 1],
+    ['not_contains', 'tidak mengandung', 1],
+    ['len_gt', 'panjang lebih dari', 1],
+    ['len_lt', 'panjang kurang dari', 1],
+    ...A0,
+  ],
+  choice: [
+    ['is', 'adalah', 1],
+    ['is_not', 'bukan', 1],
+    ['in', 'salah satu dari', 'multi'],
+    ['not_in', 'bukan salah satu dari', 'multi'],
+    ...A0,
+  ],
+  dropdown: [
+    ['is', 'adalah', 1],
+    ['is_not', 'bukan', 1],
+    ['in', 'salah satu dari', 'multi'],
+    ['not_in', 'bukan salah satu dari', 'multi'],
+    ...A0,
+  ],
+  checkbox: [
+    ['includes', 'mencakup', 1],
+    ['excludes', 'tidak mencakup', 1],
+    ['includes_all', 'mencakup semua', 'multi'],
+    ['includes_any', 'mencakup salah satu', 'multi'],
+    ['count_gte', 'jumlah dipilih ≥', 1],
+    ['count_lte', 'jumlah dipilih ≤', 1],
+    ...A0,
+  ],
+  date: [
+    ['on', 'tepat pada', 1],
+    ['before', 'sebelum', 1],
+    ['after', 'setelah', 1],
+    ['between', 'di antara', 2],
+    ...A0,
+  ],
+  matrix: [['cell', 'pada baris … memilih', 'cell'], ...A0],
   file: A0,
 };
 const opsFor = (type) => OPS[type] || A0;
 const opDef = (type, op) => opsFor(type).find((o) => o[0] === op);
-const newRule = (src, srcType) => ({ id: uid("c"), src, op: opsFor(srcType)[0][0], value: null, value2: null });
+const newRule = (src, srcType) => ({
+  id: uid('c'),
+  src,
+  op: opsFor(srcType)[0][0],
+  value: null,
+  value2: null,
+});
 
 function isEmptyAnswer(v) {
-  if (v === undefined || v === null || v === "") return true;
+  if (v === undefined || v === null || v === '') return true;
   if (Array.isArray(v)) return v.length === 0;
-  if (typeof v === "object") return Object.keys(v).every((k) => isEmptyAnswer(v[k]));
+  if (typeof v === 'object')
+    return Object.keys(v).every((k) => isEmptyAnswer(v[k]));
   return false;
 }
-const numOrNull = (x) => (x === "" || x === null || x === undefined || isNaN(Number(x)) ? null : Number(x));
+const numOrNull = (x) =>
+  x === '' || x === null || x === undefined || isNaN(Number(x))
+    ? null
+    : Number(x);
 /* Nilai mentah kosong pada kondisi yang butuh nilai = kondisi belum lengkap → dianggap tidak terpenuhi */
 function evalCond(src, c, v) {
   const op = c.op;
-  if (op === "answered") return !isEmptyAnswer(v);
-  if (op === "unanswered") return isEmptyAnswer(v);
+  if (op === 'answered') return !isEmptyAnswer(v);
+  if (op === 'unanswered') return isEmptyAnswer(v);
   if (isEmptyAnswer(v)) return false;
-  const a = c.value, b = c.value2;
-  const s = String(v).toLowerCase(), sa = String(a ?? "").toLowerCase();
+  const a = c.value,
+    b = c.value2;
+  const s = String(v).toLowerCase(),
+    sa = String(a ?? '').toLowerCase();
   switch (op) {
-    case "is": return a != null && v === a;
-    case "is_not": return a != null && v !== a;
-    case "in": return Array.isArray(a) && a.includes(v);
-    case "not_in": return Array.isArray(a) && a.length > 0 && !a.includes(v);
-    case "includes": return a != null && v.includes(a);
-    case "excludes": return a != null && !v.includes(a);
-    case "includes_all": return Array.isArray(a) && a.length > 0 && a.every((x) => v.includes(x));
-    case "includes_any": return Array.isArray(a) && a.some((x) => v.includes(x));
-    case "count_gte": return numOrNull(a) != null && v.length >= Number(a);
-    case "count_lte": return numOrNull(a) != null && v.length <= Number(a);
-    case "contains": return sa !== "" && s.includes(sa);
-    case "not_contains": return sa !== "" && !s.includes(sa);
-    case "starts": return sa !== "" && s.startsWith(sa);
-    case "ends": return sa !== "" && s.endsWith(sa);
-    case "len_gt": return numOrNull(a) != null && String(v).length > Number(a);
-    case "len_lt": return numOrNull(a) != null && String(v).length < Number(a);
-    case "cell": return a != null && b != null && (v[a] || []).includes(b);
+    case 'is':
+      return a != null && v === a;
+    case 'is_not':
+      return a != null && v !== a;
+    case 'in':
+      return Array.isArray(a) && a.includes(v);
+    case 'not_in':
+      return Array.isArray(a) && a.length > 0 && !a.includes(v);
+    case 'includes':
+      return a != null && v.includes(a);
+    case 'excludes':
+      return a != null && !v.includes(a);
+    case 'includes_all':
+      return Array.isArray(a) && a.length > 0 && a.every((x) => v.includes(x));
+    case 'includes_any':
+      return Array.isArray(a) && a.some((x) => v.includes(x));
+    case 'count_gte':
+      return numOrNull(a) != null && v.length >= Number(a);
+    case 'count_lte':
+      return numOrNull(a) != null && v.length <= Number(a);
+    case 'contains':
+      return sa !== '' && s.includes(sa);
+    case 'not_contains':
+      return sa !== '' && !s.includes(sa);
+    case 'starts':
+      return sa !== '' && s.startsWith(sa);
+    case 'ends':
+      return sa !== '' && s.endsWith(sa);
+    case 'len_gt':
+      return numOrNull(a) != null && String(v).length > Number(a);
+    case 'len_lt':
+      return numOrNull(a) != null && String(v).length < Number(a);
+    case 'cell':
+      return a != null && b != null && (v[a] || []).includes(b);
   }
-  if (src.type === "date") {
-    const d = String(v).slice(0, src.props.mode === "time" ? 5 : 10);
+  if (src.type === 'date') {
+    const d = String(v).slice(0, src.props.mode === 'time' ? 5 : 10);
     if (!a) return false;
-    if (op === "on") return d === a;
-    if (op === "before") return d < a;
-    if (op === "after") return d > a;
-    if (op === "between") return b ? d >= a && d <= b : false;
+    if (op === 'on') return d === a;
+    if (op === 'before') return d < a;
+    if (op === 'after') return d > a;
+    if (op === 'between') return b ? d >= a && d <= b : false;
   }
-  if (src.type === "short") {
-    if (op === "eq") return sa !== "" && s.trim() === sa.trim();
-    if (op === "neq") return sa !== "" && s.trim() !== sa.trim();
+  if (src.type === 'short') {
+    if (op === 'eq') return sa !== '' && s.trim() === sa.trim();
+    if (op === 'neq') return sa !== '' && s.trim() !== sa.trim();
   }
-  const n = Number(v), x = numOrNull(a), y = numOrNull(b);
+  const n = Number(v),
+    x = numOrNull(a),
+    y = numOrNull(b);
   if (x === null) return false;
   switch (op) {
-    case "eq": return n === x;
-    case "neq": return n !== x;
-    case "gt": return n > x;
-    case "gte": return n >= x;
-    case "lt": return n < x;
-    case "lte": return n <= x;
-    case "between": return y !== null && n >= Math.min(x, y) && n <= Math.max(x, y);
-    case "not_between": return y !== null && (n < Math.min(x, y) || n > Math.max(x, y));
-    default: return false;
+    case 'eq':
+      return n === x;
+    case 'neq':
+      return n !== x;
+    case 'gt':
+      return n > x;
+    case 'gte':
+      return n >= x;
+    case 'lt':
+      return n < x;
+    case 'lte':
+      return n <= x;
+    case 'between':
+      return y !== null && n >= Math.min(x, y) && n <= Math.max(x, y);
+    case 'not_between':
+      return y !== null && (n < Math.min(x, y) || n > Math.max(x, y));
+    default:
+      return false;
   }
 }
 
@@ -335,16 +555,27 @@ function computeVisibility(form, answers) {
   const vis = {};
   form.blocks.forEach((b) => {
     const rules = validRules(form, b);
-    if (!rules.length) { vis[b.id] = true; return; }
-    const res = rules.map((r) => !!vis[r.src] && evalCond(form.blocks.find((x) => x.id === r.src), r, answers[r.src]));
-    vis[b.id] = b.cond.match === "any" ? res.some(Boolean) : res.every(Boolean);
+    if (!rules.length) {
+      vis[b.id] = true;
+      return;
+    }
+    const res = rules.map(
+      (r) =>
+        !!vis[r.src] &&
+        evalCond(
+          form.blocks.find((x) => x.id === r.src),
+          r,
+          answers[r.src],
+        ),
+    );
+    vis[b.id] = b.cond.match === 'any' ? res.some(Boolean) : res.every(Boolean);
   });
   return vis;
 }
-const END = "__end";
+const END = '__end';
 /* ending yang dipakai: ending bersyarat pertama yang terpenuhi, lalu ending tanpa syarat pertama */
 function chooseEnding(form, vis) {
-  const ends = form.blocks.filter((b) => b.type === "ending");
+  const ends = form.blocks.filter((b) => b.type === 'ending');
   const c = ends.find((b) => isConditional(form, b) && vis[b.id]);
   if (c) return c.id;
   const u = ends.find((b) => !isConditional(form, b));
@@ -360,115 +591,285 @@ function questionNumber(form, id) {
   return null;
 }
 const blockLabel = (form, id, max = 60) => {
-  if (id === END) return "Selesai (bawaan)";
+  if (id === END) return 'Selesai (bawaan)';
   const b = form.blocks.find((x) => x.id === id);
-  if (!b) return "(blok dihapus)";
+  if (!b) return '(blok dihapus)';
   const n = questionNumber(form, b.id);
   let t = stripHtml(b.title) || TYPES[b.type].label;
-  if (t.length > max) t = t.slice(0, max - 1) + "…";
-  return `${n ? n + ". " : b.type === "ending" ? "Ending: " : ""}${t}`;
+  if (t.length > max) t = t.slice(0, max - 1) + '…';
+  return `${n ? n + '. ' : b.type === 'ending' ? 'Ending: ' : ''}${t}`;
 };
 function valueText(src, c) {
   const p = src.props || {};
-  const lab = (id, list = p.options) => list?.find((o) => o.id === id)?.label ?? "?";
+  const lab = (id, list = p.options) =>
+    list?.find((o) => o.id === id)?.label ?? '?';
   const d = opDef(src.type, c.op);
-  if (!d || d[2] === 0) return "";
-  if (d[2] === "multi") return (c.value || []).map((x) => `“${lab(x)}”`).join(", ") || "…";
-  if (d[2] === "cell") return `“${lab(c.value, p.rows)}” → “${lab(c.value2, p.cols)}”`;
+  if (!d || d[2] === 0) return '';
+  if (d[2] === 'multi')
+    return (c.value || []).map((x) => `“${lab(x)}”`).join(', ') || '…';
+  if (d[2] === 'cell')
+    return `“${lab(c.value, p.rows)}” → “${lab(c.value2, p.cols)}”`;
   if (TYPES[src.type].options) return `“${lab(c.value)}”`;
-  if (d[2] === 2) return `${c.value ?? "…"} dan ${c.value2 ?? "…"}`;
-  return c.value === null || c.value === "" ? "…" : src.type === "short" || src.type === "long" ? `“${c.value}”` : String(c.value);
+  if (d[2] === 2) return `${c.value ?? '…'} dan ${c.value2 ?? '…'}`;
+  return c.value === null || c.value === ''
+    ? '…'
+    : src.type === 'short' || src.type === 'long'
+      ? `“${c.value}”`
+      : String(c.value);
 }
 /* teks ringkas: "3. Jalur … adalah “Staf Ahli”" */
 function condText(form, c, withSrc = true) {
   const src = form.blocks.find((x) => x.id === c.src);
-  if (!src) return "(pertanyaan sumber dihapus)";
+  if (!src) return '(pertanyaan sumber dihapus)';
   const d = opDef(src.type, c.op);
-  const head = withSrc ? `${blockLabel(form, src.id, 28)} ` : "Jawaban ";
-  if (d?.[2] === "cell") return `${head}baris ${valueText(src, c)}`;
+  const head = withSrc ? `${blockLabel(form, src.id, 28)} ` : 'Jawaban ';
+  if (d?.[2] === 'cell') return `${head}baris ${valueText(src, c)}`;
   return `${head}${d ? d[1] : c.op} ${valueText(src, c)}`.trim();
 }
 function condSummary(form, b) {
   const rules = validRules(form, b);
-  if (!rules.length) return "";
-  return rules.map((r) => condText(form, r)).join(b.cond.match === "any" ? " ATAU " : " DAN ");
+  if (!rules.length) return '';
+  return rules
+    .map((r) => condText(form, r))
+    .join(b.cond.match === 'any' ? ' ATAU ' : ' DAN ');
 }
 
 /* Validasi jawaban satu blok */
 function validateAnswer(b, v) {
   const p = b.props || {};
-  if (b.required && isEmptyAnswer(v)) return "Pertanyaan ini wajib diisi.";
+  if (b.required && isEmptyAnswer(v)) return 'Pertanyaan ini wajib diisi.';
   if (isEmptyAnswer(v)) return null;
-  if (b.type === "number") {
-    if (isNaN(Number(v))) return "Masukkan angka yang valid.";
-    if (p.min !== "" && p.min != null && Number(v) < Number(p.min)) return `Nilai minimal ${p.min}.`;
-    if (p.max !== "" && p.max != null && Number(v) > Number(p.max)) return `Nilai maksimal ${p.max}.`;
+  if (b.type === 'number') {
+    if (isNaN(Number(v))) return 'Masukkan angka yang valid.';
+    if (p.min !== '' && p.min != null && Number(v) < Number(p.min))
+      return `Nilai minimal ${p.min}.`;
+    if (p.max !== '' && p.max != null && Number(v) > Number(p.max))
+      return `Nilai maksimal ${p.max}.`;
   }
-  if ((b.type === "short" || b.type === "long") && p.maxLen && String(v).length > Number(p.maxLen)) return `Maksimal ${p.maxLen} karakter.`;
-  if (b.type === "checkbox") {
-    if (p.minSel && v.length < Number(p.minSel)) return `Pilih minimal ${p.minSel}.`;
-    if (p.maxSel && v.length > Number(p.maxSel)) return `Pilih maksimal ${p.maxSel}.`;
+  if (
+    (b.type === 'short' || b.type === 'long') &&
+    p.maxLen &&
+    String(v).length > Number(p.maxLen)
+  )
+    return `Maksimal ${p.maxLen} karakter.`;
+  if (b.type === 'checkbox') {
+    if (p.minSel && v.length < Number(p.minSel))
+      return `Pilih minimal ${p.minSel}.`;
+    if (p.maxSel && v.length > Number(p.maxSel))
+      return `Pilih maksimal ${p.maxSel}.`;
   }
-  if (b.type === "matrix" && b.required) {
+  if (b.type === 'matrix' && b.required) {
     const missing = p.rows.filter((r) => isEmptyAnswer(v[r.id]));
-    if (missing.length) return `Lengkapi baris: ${missing.map((r) => r.label).join(", ")}.`;
+    if (missing.length)
+      return `Lengkapi baris: ${missing.map((r) => r.label).join(', ')}.`;
   }
   return null;
 }
 
 /* ---------- data contoh (proyeksi tabel form/blok/kondisi; lihat skema DBML terlampir) ---------- */
-const when = (src, op, value = null, value2 = null) => ({ id: uid("c"), src: src.id, op, value, value2 });
-const condAll = (...rules) => ({ match: "all", rules });
+const when = (src, op, value = null, value2 = null) => ({
+  id: uid('c'),
+  src: src.id,
+  op,
+  value,
+  value2,
+});
+const condAll = (...rules) => ({ match: 'all', rules });
 
 /* Oprec kepanitiaan besar (OSKM ITB 2027): tiga pilihan divisi, pertanyaan divisi muncul
    kalau divisi itu dipilih di pilihan 1, 2, atau 3. Dulu di Google Form butuh satu section
    per divisi per pilihan; di sini cukup satu blok per pertanyaan dengan kondisi "salah satu". */
 const OSKM_DIV = [
-  ["Mentor", ["Apa yang kamu ketahui tentang mentor OSKM?", "Ceritakan pengalamanmu membimbing atau mendampingi orang lain"]],
-  ["Medik", ["Apakah kamu punya pengalaman pertolongan pertama? Ceritakan singkat"]],
-  ["Keamanan", ["Bagaimana kamu menangani peserta yang tidak mengikuti arahan?"]],
-  ["Seremonial", ["Acara seremonial apa yang paling berkesan buatmu, dan kenapa?"]],
-  ["Event Organizer", ["Ceritakan acara yang pernah kamu urus dari awal sampai akhir"]],
-  ["Logistik", ["Bagaimana caramu memastikan barang tidak tertinggal saat acara besar?"]],
-  ["Akomtrans", ["Pernah mengatur transportasi atau akomodasi rombongan? Ceritakan"]],
-  ["Publikasi", ["Tautan portofolio desain atau konten media sosialmu"]],
-  ["Dokumentasi", ["Tautan portofolio foto atau videomu", "Kamera apa yang kamu punya atau biasa pakai?"]],
-  ["Business Unit", ["Produk apa yang menurutmu paling laku dijual saat OSKM, dan kenapa?"]],
-  ["Kesekjenan", ["Seberapa terbiasa kamu menyusun notulensi dan administrasi rapat?"]],
+  [
+    'Mentor',
+    [
+      'Apa yang kamu ketahui tentang mentor OSKM?',
+      'Ceritakan pengalamanmu membimbing atau mendampingi orang lain',
+    ],
+  ],
+  [
+    'Medik',
+    ['Apakah kamu punya pengalaman pertolongan pertama? Ceritakan singkat'],
+  ],
+  [
+    'Keamanan',
+    ['Bagaimana kamu menangani peserta yang tidak mengikuti arahan?'],
+  ],
+  [
+    'Seremonial',
+    ['Acara seremonial apa yang paling berkesan buatmu, dan kenapa?'],
+  ],
+  [
+    'Event Organizer',
+    ['Ceritakan acara yang pernah kamu urus dari awal sampai akhir'],
+  ],
+  [
+    'Logistik',
+    ['Bagaimana caramu memastikan barang tidak tertinggal saat acara besar?'],
+  ],
+  [
+    'Akomtrans',
+    ['Pernah mengatur transportasi atau akomodasi rombongan? Ceritakan'],
+  ],
+  ['Publikasi', ['Tautan portofolio desain atau konten media sosialmu']],
+  [
+    'Dokumentasi',
+    [
+      'Tautan portofolio foto atau videomu',
+      'Kamera apa yang kamu punya atau biasa pakai?',
+    ],
+  ],
+  [
+    'Business Unit',
+    ['Produk apa yang menurutmu paling laku dijual saat OSKM, dan kenapa?'],
+  ],
+  [
+    'Kesekjenan',
+    ['Seberapa terbiasa kamu menyusun notulensi dan administrasi rapat?'],
+  ],
 ];
-const OSKM_FAK = ["FMIPA", "SITH", "SF", "FITB", "FTTM", "STEI", "FTSL", "FTI", "FTMD", "SAPPK", "FSRD", "SBM"];
-const OSKM_KODE = { FMIPA: "101", SITH: "106", SF: "107", FITB: "120", FTTM: "121", STEI: "135", FTSL: "150", FTI: "134", FTMD: "131", SAPPK: "152", FSRD: "174", SBM: "190" };
-const OSKM_FIRST = ["Alya", "Bagas", "Cinta", "Daffa", "Elang", "Fira", "Galih", "Hanum", "Iqbal", "Jihan", "Kenzo", "Laila", "Malik", "Nabila", "Oki", "Puti", "Rafi", "Syifa", "Tegar", "Ulfa", "Vino", "Wulan", "Yusuf", "Zahra"];
-const OSKM_LAST = ["Pratama", "Lestari", "Nugraha", "Saputri", "Wibowo", "Rahmawati", "Siregar", "Hasibuan", "Kusuma", "Maharani", "Santoso", "Permata"];
+const OSKM_FAK = [
+  'FMIPA',
+  'SITH',
+  'SF',
+  'FITB',
+  'FTTM',
+  'STEI',
+  'FTSL',
+  'FTI',
+  'FTMD',
+  'SAPPK',
+  'FSRD',
+  'SBM',
+];
+const OSKM_KODE = {
+  FMIPA: '101',
+  SITH: '106',
+  SF: '107',
+  FITB: '120',
+  FTTM: '121',
+  STEI: '135',
+  FTSL: '150',
+  FTI: '134',
+  FTMD: '131',
+  SAPPK: '152',
+  FSRD: '174',
+  SBM: '190',
+};
+const OSKM_FIRST = [
+  'Alya',
+  'Bagas',
+  'Cinta',
+  'Daffa',
+  'Elang',
+  'Fira',
+  'Galih',
+  'Hanum',
+  'Iqbal',
+  'Jihan',
+  'Kenzo',
+  'Laila',
+  'Malik',
+  'Nabila',
+  'Oki',
+  'Puti',
+  'Rafi',
+  'Syifa',
+  'Tegar',
+  'Ulfa',
+  'Vino',
+  'Wulan',
+  'Yusuf',
+  'Zahra',
+];
+const OSKM_LAST = [
+  'Pratama',
+  'Lestari',
+  'Nugraha',
+  'Saputri',
+  'Wibowo',
+  'Rahmawati',
+  'Siregar',
+  'Hasibuan',
+  'Kusuma',
+  'Maharani',
+  'Santoso',
+  'Permata',
+];
 const OSKM_ANS = [
-  "Aku pernah jadi panitia acara angkatan waktu SMA dan senang mengurus hal teknis di balik layar.",
-  "Belum banyak pengalaman, tapi aku cepat belajar dan siap ikut pelatihan dari awal.",
-  "Pernah memegang divisi serupa di OSIS selama satu tahun, jadi cukup paham ritme kerjanya.",
-  "Aku ingin mencoba hal baru dan merasa divisi ini paling cocok dengan kebiasaanku sehari-hari.",
-  "Sering membantu acara komunitas di kampung, terutama saat hari-H yang serba cepat.",
-  "https://drive.google.com/portofolio-contoh",
+  'Aku pernah jadi panitia acara angkatan waktu SMA dan senang mengurus hal teknis di balik layar.',
+  'Belum banyak pengalaman, tapi aku cepat belajar dan siap ikut pelatihan dari awal.',
+  'Pernah memegang divisi serupa di OSIS selama satu tahun, jadi cukup paham ritme kerjanya.',
+  'Aku ingin mencoba hal baru dan merasa divisi ini paling cocok dengan kebiasaanku sehari-hari.',
+  'Sering membantu acara komunitas di kampung, terutama saat hari-H yang serba cepat.',
+  'https://drive.google.com/portofolio-contoh',
 ];
 
 function oskmForm(days) {
   const divOpts = () => OSKM_DIV.map(([d]) => opt(d));
-  const W = newBlock("welcome", { title: "<b>Open Recruitment Panitia OSKM ITB 2027</b>", desc: "Pilih sampai tiga divisi. Pertanyaan divisi hanya muncul untuk divisi yang kamu pilih. NIM, nama, dan fakultas terisi otomatis dari akun ITB-mu.", props: { button: "Mulai", subtitle: "Periode 3.1 – 3.3" } });
-  const qTw = newBlock("short", { title: "Tautan unggahan twibbon", desc: "Pastikan akunnya tidak dikunci supaya bisa dicek panitia.", required: true, props: { placeholder: "https://instagram.com/p/…", maxLen: "" } });
-  const qMot = newBlock("long", { title: "Kenapa kamu ingin jadi panitia OSKM?", required: true, props: { placeholder: "", maxLen: 600 } });
-  const P = [1, 2, 3].map((n) => newBlock("dropdown", { title: `Pilihan divisi <b>${n}</b>`, required: n === 1, props: { options: divOpts() } }));
-  const qPindah = newBlock("choice", { title: "Bersedia dipindahkan ke divisi lain kalau pilihanmu penuh?", required: true, props: { options: ["Bersedia", "Tidak bersedia"].map(opt) } });
-  const qKom = newBlock("choice", { title: "Sanggup mengikuti seluruh rangkaian kepanitiaan?", required: true, props: { options: ["Sanggup", "Ada jadwal yang bentrok"].map(opt) } });
+  const W = newBlock('welcome', {
+    title: '<b>Open Recruitment Panitia OSKM ITB 2027</b>',
+    desc: 'Pilih sampai tiga divisi. Pertanyaan divisi hanya muncul untuk divisi yang kamu pilih. NIM, nama, dan fakultas terisi otomatis dari akun ITB-mu.',
+    props: { button: 'Mulai', subtitle: 'Periode 3.1 – 3.3' },
+  });
+  const qTw = newBlock('short', {
+    title: 'Tautan unggahan twibbon',
+    desc: 'Pastikan akunnya tidak dikunci supaya bisa dicek panitia.',
+    required: true,
+    props: { placeholder: 'https://instagram.com/p/…', maxLen: '' },
+  });
+  const qMot = newBlock('long', {
+    title: 'Kenapa kamu ingin jadi panitia OSKM?',
+    required: true,
+    props: { placeholder: '', maxLen: 600 },
+  });
+  const P = [1, 2, 3].map((n) =>
+    newBlock('dropdown', {
+      title: `Pilihan divisi <b>${n}</b>`,
+      required: n === 1,
+      props: { options: divOpts() },
+    }),
+  );
+  const qPindah = newBlock('choice', {
+    title: 'Bersedia dipindahkan ke divisi lain kalau pilihanmu penuh?',
+    required: true,
+    props: { options: ['Bersedia', 'Tidak bersedia'].map(opt) },
+  });
+  const qKom = newBlock('choice', {
+    title: 'Sanggup mengikuti seluruh rangkaian kepanitiaan?',
+    required: true,
+    props: { options: ['Sanggup', 'Ada jadwal yang bentrok'].map(opt) },
+  });
   const divBlocks = [];
-  OSKM_DIV.forEach(([d, qs], di) => qs.forEach((t) => {
-    divBlocks.push(newBlock(t.startsWith("Tautan") ? "short" : "long", {
-      title: `<b>${d}</b> · ${t}`, required: true, divIdx: di,
-      cond: { match: "any", rules: P.map((pb) => when(pb, "is", pb.props.options[di].id)) },
-    }));
-  }));
-  const E = newBlock("ending", { title: "Pendaftaranmu sudah masuk!", desc: "Hasil seleksi dikirim lewat Inbox Anmategra. Pantau juga pengumuman periode berikutnya.", props: { button: "", url: "" } });
-  const blocks = [W, qTw, qMot, ...P, qPindah, qKom, ...divBlocks, E].map(({ divIdx, ...b }) => b);
+  OSKM_DIV.forEach(([d, qs], di) =>
+    qs.forEach((t) => {
+      divBlocks.push(
+        newBlock(t.startsWith('Tautan') ? 'short' : 'long', {
+          title: `<b>${d}</b> · ${t}`,
+          required: true,
+          divIdx: di,
+          cond: {
+            match: 'any',
+            rules: P.map((pb) => when(pb, 'is', pb.props.options[di].id)),
+          },
+        }),
+      );
+    }),
+  );
+  const E = newBlock('ending', {
+    title: 'Pendaftaranmu sudah masuk!',
+    desc: 'Hasil seleksi dikirim lewat Inbox Anmategra. Pantau juga pengumuman periode berikutnya.',
+    props: { button: '', url: '' },
+  });
+  const blocks = [W, qTw, qMot, ...P, qPindah, qKom, ...divBlocks, E].map(
+    ({ divIdx, ...b }) => b,
+  );
 
   let seed = 7;
-  const R = () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+  const R = () => {
+    seed = (seed * 16807) % 2147483647;
+    return (seed - 1) / 2147483646;
+  };
   const pick = (a) => a[Math.floor(R() * a.length)];
   const weights = [10, 4, 3, 3, 5, 3, 2, 4, 3, 3, 2];
   const wPick = (taken) => {
@@ -480,21 +881,53 @@ function oskmForm(days) {
     const n = R() < 0.15 ? 1 : R() < 0.3 ? 2 : 3;
     const picks = [];
     while (picks.length < n) picks.push(wPick(picks));
-    const a = { [qTw.id]: `https://instagram.com/p/oskm27-${(i + 1).toString(36)}`, [qMot.id]: pick(OSKM_ANS), [qPindah.id]: qPindah.props.options[R() < 0.62 ? 0 : 1].id, [qKom.id]: qKom.props.options[R() < 0.88 ? 0 : 1].id };
-    picks.forEach((di, k) => { a[P[k].id] = P[k].props.options[di].id; });
+    const a = {
+      [qTw.id]: `https://instagram.com/p/oskm27-${(i + 1).toString(36)}`,
+      [qMot.id]: pick(OSKM_ANS),
+      [qPindah.id]: qPindah.props.options[R() < 0.62 ? 0 : 1].id,
+      [qKom.id]: qKom.props.options[R() < 0.88 ? 0 : 1].id,
+    };
+    picks.forEach((di, k) => {
+      a[P[k].id] = P[k].props.options[di].id;
+    });
     const fak = pick(OSKM_FAK);
-    const r = { id: uid("s"), at: days(-9 + i * 0.17), answers: a, sample: true, who: { nim: `${OSKM_KODE[fak]}26${String(101 + ((i * 37) % 800))}`, name: `${pick(OSKM_FIRST)} ${pick(OSKM_LAST)}`, fak } };
+    const r = {
+      id: uid('s'),
+      at: days(-9 + i * 0.17),
+      answers: a,
+      sample: true,
+      who: {
+        nim: `${OSKM_KODE[fak]}26${String(101 + ((i * 37) % 800))}`,
+        name: `${pick(OSKM_FIRST)} ${pick(OSKM_LAST)}`,
+        fak,
+      },
+    };
     return r;
   });
   const f = {
-    id: "f_oskm", title: "Oprec Panitia OSKM ITB 2027", desc: "Tiga pilihan divisi, pertanyaan per divisi bersyarat.", tags: ["Oprec", "OSKM"], status: "published",
-    pinned: true, createdAt: days(-12), closesAt: days(18), maxResponses: "",
-    theme: { accent: "#2D5F7A", font: "jakarta", banner: null, bg: "soft" }, blocks, responses,
+    id: 'f_oskm',
+    title: 'Oprec Panitia OSKM ITB 2027',
+    desc: 'Tiga pilihan divisi, pertanyaan per divisi bersyarat.',
+    tags: ['Oprec', 'OSKM'],
+    status: 'published',
+    pinned: true,
+    createdAt: days(-12),
+    closesAt: days(18),
+    maxResponses: '',
+    theme: { accent: '#2D5F7A', font: 'jakarta', banner: null, bg: 'soft' },
+    blocks,
+    responses,
   };
   const vis0 = (r) => computeVisibility(f, r.answers);
   responses.forEach((r) => {
     const vis = vis0(r);
-    divBlocks.forEach((b) => { if (vis[b.id]) r.answers[b.id] = b.type === "short" ? "https://drive.google.com/portofolio-contoh" : pick(OSKM_ANS); });
+    divBlocks.forEach((b) => {
+      if (vis[b.id])
+        r.answers[b.id] =
+          b.type === 'short'
+            ? 'https://drive.google.com/portofolio-contoh'
+            : pick(OSKM_ANS);
+    });
     r.end = chooseEnding(f, computeVisibility(f, r.answers));
   });
   return f;
@@ -505,125 +938,471 @@ function sampleForms() {
   const days = (n) => new Date(now + n * 864e5).toISOString();
 
   /* 1. Oprec — contoh kondisi bercabang + kondisi numerik */
-  const DIV = ["Produk", "Desain", "Engineering", "Data", "Hubungan Lembaga"];
-  const W = newBlock("welcome", { title: "<b>Open Recruitment Anmategra 2026</b>", desc: "Bantu kami membangun sistem informasi lembaga KM ITB. Pengisian sekitar 5 menit. Data diri terisi otomatis dari akun ITB-mu.", props: { button: "Mulai", subtitle: "Periode 2026/2027" } });
-  const q1 = newBlock("short", { title: "Siapa nama panggilan kamu?", required: true, props: { placeholder: "Contoh: Raka", maxLen: 30 } });
-  const q2 = newBlock("dropdown", { title: "Fakultas", required: true, props: { options: ["FSRD", "STEI", "FTI", "FMIPA", "SAPPK", "SBM", "FTSL", "FTTM", "SITH", "SF", "FITB", "FTMD"].map(opt) } });
-  const qIpk = newBlock("number", { title: "Berapa IPK terakhirmu?", desc: "Skala 0–4. Tidak menentukan kelulusan.", required: true, props: { min: 0, max: 4 } });
-  const qKendala = newBlock("long", { title: "Ceritakan singkat kendala akademik yang sedang kamu hadapi", desc: "Muncul bila IPK < 2,75 — supaya beban kerja bisa kami sesuaikan.", required: false, props: { placeholder: "", maxLen: 400 } });
-  const jalurDiv = opt("Staf Divisi"), jalurAhli = opt("Staf Ahli (Tech Lead / Designer)");
-  const q3 = newBlock("choice", { title: "Jalur mana yang ingin kamu daftar?", desc: "Pertanyaan berikutnya menyesuaikan jalur yang kamu pilih.", required: true, props: { options: [jalurDiv, jalurAhli] } });
-  const q4 = newBlock("choice", { title: "Pilihan divisi <b>pertama</b>", required: true, props: { options: DIV.map(opt) } });
-  const q5 = newBlock("dropdown", { title: "Pilihan divisi kedua", props: { options: DIV.map(opt) } });
-  const q6 = newBlock("long", { title: "Kenapa kamu tertarik bergabung?", required: true, props: { placeholder: "Ceritakan singkat saja", maxLen: 600 } });
-  const q7 = newBlock("file", { title: "Unggah portofolio kamu", desc: "PDF, maksimal 10 MB.", required: true, props: { accept: "pdf", maxFiles: 1, maxSizeMB: 10 } });
-  const q8 = newBlock("short", { title: "Tautan GitHub / Behance", props: { placeholder: "https://", maxLen: "" } });
-  const tools = ["Figma", "React", "SQL", "Notion", "Python"].map(opt);
-  const q9 = newBlock("checkbox", { title: "Tools yang pernah kamu pakai", required: false, props: { options: tools, minSel: "", maxSel: "" } });
-  const q10 = newBlock("scale", { title: "Seberapa siap kamu berkomitmen 6 jam per minggu?", required: true, props: { min: 1, max: 5, minLabel: "Belum siap", maxLabel: "Sangat siap", style: "star" } });
-  const q11 = newBlock("date", { title: "Kapan kamu bisa mulai?", required: true, props: { mode: "date" } });
-  const days5 = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat"].map(opt);
-  const slots = ["Pagi", "Siang", "Malam"].map(opt);
-  const q12 = newBlock("matrix", { title: "Kapan kamu bisa diwawancara?", desc: "Pilih semua yang memungkinkan.", props: { rows: days5, cols: slots, multi: true } });
-  const eA = newBlock("ending", { title: "Pendaftaranmu sudah kami terima", desc: "Pengumuman tahap wawancara dikirim lewat Inbox Anmategra.", props: { button: "", url: "" } });
-  const eB = newBlock("ending", { title: "Terima kasih sudah jujur", desc: "Komitmen waktu jadi syarat utama. Kami akan menghubungimu bila ada peran yang lebih ringan.", props: { button: "", url: "" } });
-  qKendala.cond = condAll(when(qIpk, "lt", "2.75"));
-  [q4, q5, q6].forEach((b) => (b.cond = condAll(when(q3, "is", jalurDiv.id))));
-  [q7, q8].forEach((b) => (b.cond = condAll(when(q3, "is", jalurAhli.id))));
-  [q11, q12].forEach((b) => (b.cond = condAll(when(q10, "gte", "3"))));
-  eB.cond = condAll(when(q10, "lt", "3"));
+  const DIV = ['Produk', 'Desain', 'Engineering', 'Data', 'Hubungan Lembaga'];
+  const W = newBlock('welcome', {
+    title: '<b>Open Recruitment Anmategra 2026</b>',
+    desc: 'Bantu kami membangun sistem informasi lembaga KM ITB. Pengisian sekitar 5 menit. Data diri terisi otomatis dari akun ITB-mu.',
+    props: { button: 'Mulai', subtitle: 'Periode 2026/2027' },
+  });
+  const q1 = newBlock('short', {
+    title: 'Siapa nama panggilan kamu?',
+    required: true,
+    props: { placeholder: 'Contoh: Raka', maxLen: 30 },
+  });
+  const q2 = newBlock('dropdown', {
+    title: 'Fakultas',
+    required: true,
+    props: {
+      options: [
+        'FSRD',
+        'STEI',
+        'FTI',
+        'FMIPA',
+        'SAPPK',
+        'SBM',
+        'FTSL',
+        'FTTM',
+        'SITH',
+        'SF',
+        'FITB',
+        'FTMD',
+      ].map(opt),
+    },
+  });
+  const qIpk = newBlock('number', {
+    title: 'Berapa IPK terakhirmu?',
+    desc: 'Skala 0–4. Tidak menentukan kelulusan.',
+    required: true,
+    props: { min: 0, max: 4 },
+  });
+  const qKendala = newBlock('long', {
+    title: 'Ceritakan singkat kendala akademik yang sedang kamu hadapi',
+    desc: 'Muncul bila IPK < 2,75 — supaya beban kerja bisa kami sesuaikan.',
+    required: false,
+    props: { placeholder: '', maxLen: 400 },
+  });
+  const jalurDiv = opt('Staf Divisi'),
+    jalurAhli = opt('Staf Ahli (Tech Lead / Designer)');
+  const q3 = newBlock('choice', {
+    title: 'Jalur mana yang ingin kamu daftar?',
+    desc: 'Pertanyaan berikutnya menyesuaikan jalur yang kamu pilih.',
+    required: true,
+    props: { options: [jalurDiv, jalurAhli] },
+  });
+  const q4 = newBlock('choice', {
+    title: 'Pilihan divisi <b>pertama</b>',
+    required: true,
+    props: { options: DIV.map(opt) },
+  });
+  const q5 = newBlock('dropdown', {
+    title: 'Pilihan divisi kedua',
+    props: { options: DIV.map(opt) },
+  });
+  const q6 = newBlock('long', {
+    title: 'Kenapa kamu tertarik bergabung?',
+    required: true,
+    props: { placeholder: 'Ceritakan singkat saja', maxLen: 600 },
+  });
+  const q7 = newBlock('file', {
+    title: 'Unggah portofolio kamu',
+    desc: 'PDF, maksimal 10 MB.',
+    required: true,
+    props: { accept: 'pdf', maxFiles: 1, maxSizeMB: 10 },
+  });
+  const q8 = newBlock('short', {
+    title: 'Tautan GitHub / Behance',
+    props: { placeholder: 'https://', maxLen: '' },
+  });
+  const tools = ['Figma', 'React', 'SQL', 'Notion', 'Python'].map(opt);
+  const q9 = newBlock('checkbox', {
+    title: 'Tools yang pernah kamu pakai',
+    required: false,
+    props: { options: tools, minSel: '', maxSel: '' },
+  });
+  const q10 = newBlock('scale', {
+    title: 'Seberapa siap kamu berkomitmen 6 jam per minggu?',
+    required: true,
+    props: {
+      min: 1,
+      max: 5,
+      minLabel: 'Belum siap',
+      maxLabel: 'Sangat siap',
+      style: 'star',
+    },
+  });
+  const q11 = newBlock('date', {
+    title: 'Kapan kamu bisa mulai?',
+    required: true,
+    props: { mode: 'date' },
+  });
+  const days5 = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'].map(opt);
+  const slots = ['Pagi', 'Siang', 'Malam'].map(opt);
+  const q12 = newBlock('matrix', {
+    title: 'Kapan kamu bisa diwawancara?',
+    desc: 'Pilih semua yang memungkinkan.',
+    props: { rows: days5, cols: slots, multi: true },
+  });
+  const eA = newBlock('ending', {
+    title: 'Pendaftaranmu sudah kami terima',
+    desc: 'Pengumuman tahap wawancara dikirim lewat Inbox Anmategra.',
+    props: { button: '', url: '' },
+  });
+  const eB = newBlock('ending', {
+    title: 'Terima kasih sudah jujur',
+    desc: 'Komitmen waktu jadi syarat utama. Kami akan menghubungimu bila ada peran yang lebih ringan.',
+    props: { button: '', url: '' },
+  });
+  qKendala.cond = condAll(when(qIpk, 'lt', '2.75'));
+  [q4, q5, q6].forEach((b) => (b.cond = condAll(when(q3, 'is', jalurDiv.id))));
+  [q7, q8].forEach((b) => (b.cond = condAll(when(q3, 'is', jalurAhli.id))));
+  [q11, q12].forEach((b) => (b.cond = condAll(when(q10, 'gte', '3'))));
+  eB.cond = condAll(when(q10, 'lt', '3'));
 
   const oprec = {
-    id: "f_oprec", title: "Oprec Anmategra 2026", desc: "Rekrutmen staf periode 2026/2027.", tags: ["Oprec", "Internal"], status: "published",
-    pinned: true, createdAt: days(-14), closesAt: days(20), maxResponses: 300,
-    theme: { accent: "#00AEB3", font: "jakarta", banner: null, bg: "soft" },
-    blocks: [W, q1, q2, qIpk, qKendala, q3, q4, q5, q6, q7, q8, q9, q10, q11, q12, eA, eB],
+    id: 'f_oprec',
+    title: 'Oprec Anmategra 2026',
+    desc: 'Rekrutmen staf periode 2026/2027.',
+    tags: ['Oprec', 'Internal'],
+    status: 'published',
+    pinned: true,
+    createdAt: days(-14),
+    closesAt: days(20),
+    maxResponses: 300,
+    theme: { accent: '#00AEB3', font: 'jakarta', banner: null, bg: 'soft' },
+    blocks: [
+      W,
+      q1,
+      q2,
+      qIpk,
+      qKendala,
+      q3,
+      q4,
+      q5,
+      q6,
+      q7,
+      q8,
+      q9,
+      q10,
+      q11,
+      q12,
+      eA,
+      eB,
+    ],
   };
 
   /* respons contoh (ditandai sebagai contoh) */
-  const names = ["Raka", "Nadia", "Bima", "Salsa", "Dimas", "Kirana", "Fikri"];
+  const names = ['Raka', 'Nadia', 'Bima', 'Salsa', 'Dimas', 'Kirana', 'Fikri'];
   const fak = q2.props.options;
   oprec.responses = names.map((n, i) => {
     const ahli = i % 3 === 1;
-    const a = { [q1.id]: n, [q2.id]: fak[(i * 5) % fak.length].id, [qIpk.id]: [3.61, 3.2, 2.6, 3.85, 3.02, 2.9, 3.44][i], [q3.id]: ahli ? jalurAhli.id : jalurDiv.id };
-    if (a[qIpk.id] < 2.75) a[qKendala.id] = "Sedang mengulang dua mata kuliah semester ini.";
-    if (ahli) { a[q7.id] = [{ name: `portofolio-${n.toLowerCase()}.pdf`, size: 2_400_000 }]; a[q8.id] = `https://github.com/${n.toLowerCase()}`; }
-    else { a[q4.id] = q4.props.options[i % 5].id; a[q5.id] = q5.props.options[(i + 2) % 5].id; a[q6.id] = "Ingin belajar membangun produk yang dipakai lembaga sungguhan."; }
+    const a = {
+      [q1.id]: n,
+      [q2.id]: fak[(i * 5) % fak.length].id,
+      [qIpk.id]: [3.61, 3.2, 2.6, 3.85, 3.02, 2.9, 3.44][i],
+      [q3.id]: ahli ? jalurAhli.id : jalurDiv.id,
+    };
+    if (a[qIpk.id] < 2.75)
+      a[qKendala.id] = 'Sedang mengulang dua mata kuliah semester ini.';
+    if (ahli) {
+      a[q7.id] = [
+        { name: `portofolio-${n.toLowerCase()}.pdf`, size: 2_400_000 },
+      ];
+      a[q8.id] = `https://github.com/${n.toLowerCase()}`;
+    } else {
+      a[q4.id] = q4.props.options[i % 5].id;
+      a[q5.id] = q5.props.options[(i + 2) % 5].id;
+      a[q6.id] =
+        'Ingin belajar membangun produk yang dipakai lembaga sungguhan.';
+    }
     a[q9.id] = tools.filter((_, k) => (i + k) % 2 === 0).map((t) => t.id);
     a[q10.id] = [5, 4, 2, 5, 3, 4, 5][i];
-    if (a[q10.id] >= 3) { a[q11.id] = days(7 + i).slice(0, 10); a[q12.id] = { [days5[i % 5].id]: [slots[i % 3].id] }; }
-    return { id: uid("s"), at: days(-10 + i), answers: a, sample: true };
+    if (a[q10.id] >= 3) {
+      a[q11.id] = days(7 + i).slice(0, 10);
+      a[q12.id] = { [days5[i % 5].id]: [slots[i % 3].id] };
+    }
+    return { id: uid('s'), at: days(-10 + i), answers: a, sample: true };
   });
-  oprec.responses.forEach((r) => { r.end = chooseEnding(oprec, computeVisibility(oprec, r.answers)); });
+  oprec.responses.forEach((r) => {
+    r.end = chooseEnding(oprec, computeVisibility(oprec, r.answers));
+  });
 
   /* 2. WELL FORM — dari mockup Pratinjau */
-  const g = ["Drama", "Comedy", "Horror", "Action", "Psychological", "Documentary", "Romance", "Sci-Fi"].map(opt);
-  const wq2 = newBlock("choice", { title: "Kalau hidup kamu saat ini adalah sebuah genre film, pilih yang paling cocok.", required: true, props: { options: g } });
-  const wHorror = newBlock("short", { title: "Wah. Apa film horor yang paling menggambarkan minggu ini?", required: false, cond: condAll(when(wq2, "is", g[2].id)) });
-  const wYakin = newBlock("scale", { title: "Seberapa yakin kamu dengan keputusan hidupmu saat ini?", required: true, props: { min: 1, max: 5, minLabel: "bingung..", maxLabel: "YAKIN BANGET", style: "number" } });
+  const g = [
+    'Drama',
+    'Comedy',
+    'Horror',
+    'Action',
+    'Psychological',
+    'Documentary',
+    'Romance',
+    'Sci-Fi',
+  ].map(opt);
+  const wq2 = newBlock('choice', {
+    title:
+      'Kalau hidup kamu saat ini adalah sebuah genre film, pilih yang paling cocok.',
+    required: true,
+    props: { options: g },
+  });
+  const wHorror = newBlock('short', {
+    title: 'Wah. Apa film horor yang paling menggambarkan minggu ini?',
+    required: false,
+    cond: condAll(when(wq2, 'is', g[2].id)),
+  });
+  const wYakin = newBlock('scale', {
+    title: 'Seberapa yakin kamu dengan keputusan hidupmu saat ini?',
+    required: true,
+    props: {
+      min: 1,
+      max: 5,
+      minLabel: 'bingung..',
+      maxLabel: 'YAKIN BANGET',
+      style: 'number',
+    },
+  });
   const well = {
-    id: "f_well", title: "WELL FORM “Seberapa Manusiawi Kamu Hari Ini?”", desc: "Form ini dibuat untuk mengetahui hal-hal yang sebenarnya tidak perlu diketahui siapa pun. Jawablah dengan jujur, atau tidak juga gapapa.",
-    tags: ["Wellbeing"], status: "draft", pinned: false, createdAt: days(-3), closesAt: days(30), maxResponses: "",
-    theme: { accent: "#0E8FA3", font: "jakarta", banner: null, bg: "soft" },
+    id: 'f_well',
+    title: 'WELL FORM “Seberapa Manusiawi Kamu Hari Ini?”',
+    desc: 'Form ini dibuat untuk mengetahui hal-hal yang sebenarnya tidak perlu diketahui siapa pun. Jawablah dengan jujur, atau tidak juga gapapa.',
+    tags: ['Wellbeing'],
+    status: 'draft',
+    pinned: false,
+    createdAt: days(-3),
+    closesAt: days(30),
+    maxResponses: '',
+    theme: { accent: '#0E8FA3', font: 'jakarta', banner: null, bg: 'soft' },
     responses: [],
     blocks: [
-      newBlock("short", { title: "Siapa nama panggilan kamu?", required: true }),
-      wq2, wHorror,
-      newBlock("checkbox", { title: "Apa saja yang biasanya kamu lakukan ketika deadline sudah di depan mata?", props: { options: ["Bikin to-do list", "Buka TikTok “sebentar”", "Tiba-tiba menjadi sangat religius", "Mengandalkan kekuatan AI", "“Ah masih sempet ini mah”", "Santai aja gasih"].map(opt), minSel: "", maxSel: "" } }),
-      newBlock("dropdown", { title: "Pilih makanan yang paling menggambarkan kepribadianmu.", props: { options: ["Indomie", "Pizza", "Nasi Padang", "Sushi", "Burger", "Salad", "Kopi"].map(opt) } }),
-      newBlock("long", { title: "Ceritakan satu keputusan paling random yang pernah kamu buat." }),
+      newBlock('short', {
+        title: 'Siapa nama panggilan kamu?',
+        required: true,
+      }),
+      wq2,
+      wHorror,
+      newBlock('checkbox', {
+        title:
+          'Apa saja yang biasanya kamu lakukan ketika deadline sudah di depan mata?',
+        props: {
+          options: [
+            'Bikin to-do list',
+            'Buka TikTok “sebentar”',
+            'Tiba-tiba menjadi sangat religius',
+            'Mengandalkan kekuatan AI',
+            '“Ah masih sempet ini mah”',
+            'Santai aja gasih',
+          ].map(opt),
+          minSel: '',
+          maxSel: '',
+        },
+      }),
+      newBlock('dropdown', {
+        title: 'Pilih makanan yang paling menggambarkan kepribadianmu.',
+        props: {
+          options: [
+            'Indomie',
+            'Pizza',
+            'Nasi Padang',
+            'Sushi',
+            'Burger',
+            'Salad',
+            'Kopi',
+          ].map(opt),
+        },
+      }),
+      newBlock('long', {
+        title: 'Ceritakan satu keputusan paling random yang pernah kamu buat.',
+      }),
       wYakin,
-      newBlock("long", { title: "Apa yang bikin kamu ragu?", desc: "Muncul kalau keyakinanmu 1–2.", cond: condAll(when(wYakin, "lte", "2")) }),
-      newBlock("scale", { title: "Seberapa tangguh diri kamu sendiri dalam menghadapi setiap rintangan yang ada?", props: { min: 1, max: 5, minLabel: "yaudah gitu", maxLabel: "TANGGUH BANGET", style: "star" } }),
-      newBlock("date", { title: "Jam berapa biasanya kamu merasa paling produktif?", props: { mode: "time" } }),
-      newBlock("date", { title: "Kapan terakhir kali kamu merasa benar-benar puas dengan hasil kerja sendiri?", props: { mode: "date" } }),
-      newBlock("file", { title: "Upload foto terakhir yang ada di galeri kamu.", props: { accept: "jpg,png,heic", maxFiles: 1, maxSizeMB: 10 } }),
-      newBlock("matrix", { title: "Seberapa sering kamu melakukan aktivitas berikut dalam satu minggu?", props: { rows: ["Olahraga", "Memasak Sendiri", "Nongkrong bersama teman", "Belajar di luar rumah", "Begadang"].map(opt), cols: ["Tidak Pernah", "Jarang", "Sering", "Setiap Hari"].map(opt), multi: false } }),
-      newBlock("matrix", { title: "Dalam situasi berikut, hal apa saja yang biasanya kamu lakukan?", props: { rows: ["Saat Bosan", "Saat stres", "Saat menunggu", "Saat Deadline"].map(opt), cols: ["Buka HP", "Makan", "Tidur", "Musik", "Chattingan"].map(opt), multi: true } }),
-      newBlock("ending", { title: "Makasih udah jujur hari ini", desc: "Jangan lupa minum air." }),
+      newBlock('long', {
+        title: 'Apa yang bikin kamu ragu?',
+        desc: 'Muncul kalau keyakinanmu 1–2.',
+        cond: condAll(when(wYakin, 'lte', '2')),
+      }),
+      newBlock('scale', {
+        title:
+          'Seberapa tangguh diri kamu sendiri dalam menghadapi setiap rintangan yang ada?',
+        props: {
+          min: 1,
+          max: 5,
+          minLabel: 'yaudah gitu',
+          maxLabel: 'TANGGUH BANGET',
+          style: 'star',
+        },
+      }),
+      newBlock('date', {
+        title: 'Jam berapa biasanya kamu merasa paling produktif?',
+        props: { mode: 'time' },
+      }),
+      newBlock('date', {
+        title:
+          'Kapan terakhir kali kamu merasa benar-benar puas dengan hasil kerja sendiri?',
+        props: { mode: 'date' },
+      }),
+      newBlock('file', {
+        title: 'Upload foto terakhir yang ada di galeri kamu.',
+        props: { accept: 'jpg,png,heic', maxFiles: 1, maxSizeMB: 10 },
+      }),
+      newBlock('matrix', {
+        title:
+          'Seberapa sering kamu melakukan aktivitas berikut dalam satu minggu?',
+        props: {
+          rows: [
+            'Olahraga',
+            'Memasak Sendiri',
+            'Nongkrong bersama teman',
+            'Belajar di luar rumah',
+            'Begadang',
+          ].map(opt),
+          cols: ['Tidak Pernah', 'Jarang', 'Sering', 'Setiap Hari'].map(opt),
+          multi: false,
+        },
+      }),
+      newBlock('matrix', {
+        title:
+          'Dalam situasi berikut, hal apa saja yang biasanya kamu lakukan?',
+        props: {
+          rows: [
+            'Saat Bosan',
+            'Saat stres',
+            'Saat menunggu',
+            'Saat Deadline',
+          ].map(opt),
+          cols: ['Buka HP', 'Makan', 'Tidur', 'Musik', 'Chattingan'].map(opt),
+          multi: true,
+        },
+      }),
+      newBlock('ending', {
+        title: 'Makasih udah jujur hari ini',
+        desc: 'Jangan lupa minum air.',
+      }),
     ],
   };
 
   const kader = {
-    id: "f_kader", title: "Evaluasi Kaderisasi Awal PSDM", desc: "Umpan balik peserta setelah rangkaian kaderisasi awal.", tags: ["PSDM", "Evaluasi"], status: "closed",
-    pinned: false, createdAt: days(-40), closesAt: days(-5), maxResponses: "", theme: { accent: "#2D5F7A", font: "jakarta", banner: null, bg: "soft" }, responses: [],
+    id: 'f_kader',
+    title: 'Evaluasi Kaderisasi Awal PSDM',
+    desc: 'Umpan balik peserta setelah rangkaian kaderisasi awal.',
+    tags: ['PSDM', 'Evaluasi'],
+    status: 'closed',
+    pinned: false,
+    createdAt: days(-40),
+    closesAt: days(-5),
+    maxResponses: '',
+    theme: { accent: '#2D5F7A', font: 'jakarta', banner: null, bg: 'soft' },
+    responses: [],
     settings: { collectIdentity: false },
     blocks: [
-      newBlock("welcome", { title: "Evaluasi Kaderisasi Awal", desc: "Jawabanmu anonim.", props: { button: "Mulai", subtitle: "" } }),
-      newBlock("scale", { title: "Secara keseluruhan, seberapa bermanfaat rangkaian kaderisasi?", required: true, props: { min: 1, max: 10, minLabel: "Tidak", maxLabel: "Sangat", style: "number" } }),
-      newBlock("long", { title: "Apa yang perlu dipertahankan?" }),
-      newBlock("long", { title: "Apa yang perlu diubah?" }),
-      newBlock("ending", { title: "Terima kasih!", desc: "" }),
+      newBlock('welcome', {
+        title: 'Evaluasi Kaderisasi Awal',
+        desc: 'Jawabanmu anonim.',
+        props: { button: 'Mulai', subtitle: '' },
+      }),
+      newBlock('scale', {
+        title: 'Secara keseluruhan, seberapa bermanfaat rangkaian kaderisasi?',
+        required: true,
+        props: {
+          min: 1,
+          max: 10,
+          minLabel: 'Tidak',
+          maxLabel: 'Sangat',
+          style: 'number',
+        },
+      }),
+      newBlock('long', { title: 'Apa yang perlu dipertahankan?' }),
+      newBlock('long', { title: 'Apa yang perlu diubah?' }),
+      newBlock('ending', { title: 'Terima kasih!', desc: '' }),
     ],
   };
   const inbox = {
-    id: "f_inbox", title: "Survei Kepuasan Inbox Lembaga", desc: "", tags: ["Internal"], status: "draft", pinned: false, createdAt: days(-1), closesAt: null, maxResponses: "",
-    theme: { accent: "#00AEB3", font: "jakarta", banner: null, bg: "soft" }, responses: [],
-    blocks: [newBlock("number", { title: "Berapa pesan yang kamu terima per minggu?", required: true, props: { min: 0, max: "" } }), newBlock("choice", { title: "Fitur yang paling sering kamu pakai?", required: true, props: { options: ["Arsip", "Penanda", "Balas cepat"].map(opt) } })],
+    id: 'f_inbox',
+    title: 'Survei Kepuasan Inbox Lembaga',
+    desc: '',
+    tags: ['Internal'],
+    status: 'draft',
+    pinned: false,
+    createdAt: days(-1),
+    closesAt: null,
+    maxResponses: '',
+    theme: { accent: '#00AEB3', font: 'jakarta', banner: null, bg: 'soft' },
+    responses: [],
+    blocks: [
+      newBlock('number', {
+        title: 'Berapa pesan yang kamu terima per minggu?',
+        required: true,
+        props: { min: 0, max: '' },
+      }),
+      newBlock('choice', {
+        title: 'Fitur yang paling sering kamu pakai?',
+        required: true,
+        props: { options: ['Arsip', 'Penanda', 'Balas cepat'].map(opt) },
+      }),
+    ],
   };
   return [oskmForm(days), oprec, well, kader, inbox].map(withDefaults);
 }
 function blankForm() {
   return withDefaults({
-    id: uid("f"), title: "Form Baru", desc: "", tags: [], status: "draft", pinned: false, createdAt: new Date().toISOString(),
-    closesAt: null, maxResponses: "", theme: { accent: "#00AEB3", font: "jakarta", banner: null, bg: "soft" },
+    id: uid('f'),
+    title: 'Form Baru',
+    desc: '',
+    tags: [],
+    status: 'draft',
+    pinned: false,
+    createdAt: new Date().toISOString(),
+    closesAt: null,
+    maxResponses: '',
+    theme: { accent: '#00AEB3', font: 'jakarta', banner: null, bg: 'soft' },
     responses: [],
-    blocks: [newBlock("welcome", { title: "Judul", desc: "", props: { button: "Mulai", subtitle: "" } }), newBlock("short", { title: "", required: true }), newBlock("ending", { title: "Terima kasih!", desc: "Jawabanmu sudah tersimpan." })],
+    blocks: [
+      newBlock('welcome', {
+        title: 'Judul',
+        desc: '',
+        props: { button: 'Mulai', subtitle: '' },
+      }),
+      newBlock('short', { title: '', required: true }),
+      newBlock('ending', {
+        title: 'Terima kasih!',
+        desc: 'Jawabanmu sudah tersimpan.',
+      }),
+    ],
   });
 }
-const STATUS = { draft: { label: "Draf", tone: "warn" }, published: { label: "Dirilis", tone: "ok" }, closed: { label: "Ditutup", tone: "muted" } };
-const ACCENTS = ["#00AEB3", "#0E8FA3", "#2D5F7A", "#5B5BD6", "#C2185B", "#D9622B", "#3E7D3A", "#3A3F44"];
+const STATUS = {
+  draft: { label: 'Draf', tone: 'warn' },
+  published: { label: 'Dirilis', tone: 'ok' },
+  closed: { label: 'Ditutup', tone: 'muted' },
+};
+const ACCENTS = [
+  '#00AEB3',
+  '#0E8FA3',
+  '#2D5F7A',
+  '#5B5BD6',
+  '#C2185B',
+  '#D9622B',
+  '#3E7D3A',
+  '#3A3F44',
+];
 const FONTS = {
-  jakarta: { label: "Jakarta Sans", css: "'Plus Jakarta Sans', system-ui, sans-serif" },
-  fraunces: { label: "Fraunces (serif)", css: "'Fraunces', Georgia, serif" },
-  mono: { label: "IBM Plex Mono", css: "'IBM Plex Mono', ui-monospace, monospace" },
+  jakarta: {
+    label: 'Jakarta Sans',
+    css: "'Plus Jakarta Sans', system-ui, sans-serif",
+  },
+  fraunces: { label: 'Fraunces (serif)', css: "'Fraunces', Georgia, serif" },
+  mono: {
+    label: 'IBM Plex Mono',
+    css: "'IBM Plex Mono', ui-monospace, monospace",
+  },
 };
 
 /* ---------- UI dasar ---------- */
 const Toggle = ({ on, onChange, label, id }) => (
   <label className="tgl" htmlFor={id}>
     {label && <span>{label}</span>}
-    <input id={id} type="checkbox" checked={!!on} onChange={(e) => onChange(e.target.checked)} />
+    <input
+      id={id}
+      type="checkbox"
+      checked={!!on}
+      onChange={(e) => onChange(e.target.checked)}
+    />
     <i aria-hidden="true" />
   </label>
 );
@@ -631,14 +1410,22 @@ const Toggle = ({ on, onChange, label, id }) => (
 function Modal({ open, title, children, onClose, actions, wide }) {
   useEffect(() => {
     if (!open) return;
-    const k = (e) => e.key === "Escape" && onClose?.();
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
+    const k = (e) => e.key === 'Escape' && onClose?.();
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
   }, [open, onClose]);
   if (!open) return null;
   return (
-    <div className="modal-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose?.()}>
-      <div className={"modal" + (wide ? " wide" : "")} role="dialog" aria-modal="true" aria-label={title}>
+    <div
+      className="modal-scrim"
+      onPointerDown={(e) => e.target === e.currentTarget && onClose?.()}
+    >
+      <div
+        className={'modal' + (wide ? ' wide' : '')}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+      >
         <h3>{title}</h3>
         <div className="modal-body">{children}</div>
         {actions && <div className="modal-actions">{actions}</div>}
@@ -648,47 +1435,94 @@ function Modal({ open, title, children, onClose, actions, wide }) {
 }
 
 /* Popover yang menutup saat klik di luar */
-function Popover({ open, onClose, children, className = "", anchorRef }) {
+function Popover({ open, onClose, children, className = '', anchorRef }) {
   const ref = useRef(null);
   useEffect(() => {
     if (!open) return;
     const h = (e) => {
-      if (ref.current?.contains(e.target) || anchorRef?.current?.contains(e.target) || e.target.closest?.('[aria-expanded="true"]')) return;
+      if (
+        ref.current?.contains(e.target) ||
+        anchorRef?.current?.contains(e.target) ||
+        e.target.closest?.('[aria-expanded="true"]')
+      )
+        return;
       onClose();
     };
-    const k = (e) => e.key === "Escape" && onClose();
-    document.addEventListener("pointerdown", h);
-    window.addEventListener("keydown", k);
-    return () => { document.removeEventListener("pointerdown", h); window.removeEventListener("keydown", k); };
+    const k = (e) => e.key === 'Escape' && onClose();
+    document.addEventListener('pointerdown', h);
+    window.addEventListener('keydown', k);
+    return () => {
+      document.removeEventListener('pointerdown', h);
+      window.removeEventListener('keydown', k);
+    };
   }, [open, onClose, anchorRef]);
   if (!open) return null;
-  return <div ref={ref} className={"pop " + className}>{children}</div>;
+  return (
+    <div ref={ref} className={'pop ' + className}>
+      {children}
+    </div>
+  );
 }
 
 function Toast({ msg }) {
-  return <div className={"toast" + (msg ? " show" : "")} role="status" aria-live="polite">{msg}</div>;
+  return (
+    <div
+      className={'toast' + (msg ? ' show' : '')}
+      role="status"
+      aria-live="polite"
+    >
+      {msg}
+    </div>
+  );
 }
 function useToast() {
-  const [msg, setMsg] = useState("");
+  const [msg, setMsg] = useState('');
   const t = useRef();
-  const show = useCallback((m) => { setMsg(m); clearTimeout(t.current); t.current = setTimeout(() => setMsg(""), 2200); }, []);
+  const show = useCallback((m) => {
+    setMsg(m);
+    clearTimeout(t.current);
+    t.current = setTimeout(() => setMsg(''), 2200);
+  }, []);
   return [msg, show];
 }
 
-const readImage = (file) => new Promise((res, rej) => {
-  if (!file) return rej();
-  if (file.size > 3 * 1024 * 1024) return rej(new Error("Gambar maksimal 3 MB untuk purwarupa."));
-  const r = new FileReader();
-  r.onload = () => res(r.result);
-  r.onerror = rej;
-  r.readAsDataURL(file);
-});
+const readImage = (file) =>
+  new Promise((res, rej) => {
+    if (!file) return rej();
+    if (file.size > 3 * 1024 * 1024)
+      return rej(new Error('Gambar maksimal 3 MB untuk purwarupa.'));
+    const r = new FileReader();
+    r.onload = () => res(r.result);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
 function ImagePick({ onPick, children, className, title }) {
   const inp = useRef(null);
   return (
     <>
-      <button type="button" className={className} title={title} aria-label={title} onClick={() => inp.current?.click()}>{children}</button>
-      <input ref={inp} type="file" accept="image/*" hidden onChange={async (e) => { try { onPick(await readImage(e.target.files[0])); } catch (err) { err && onPick(null, err.message); } e.target.value = ""; }} />
+      <button
+        type="button"
+        className={className}
+        title={title}
+        aria-label={title}
+        onClick={() => inp.current?.click()}
+      >
+        {children}
+      </button>
+      <input
+        ref={inp}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={async (e) => {
+          try {
+            onPick(await readImage(e.target.files[0]));
+          } catch (err) {
+            err && onPick(null, err.message);
+          }
+          e.target.value = '';
+        }}
+      />
     </>
   );
 }
@@ -698,20 +1532,29 @@ function ImagePick({ onPick, children, className, title }) {
    ===================================================================== */
 
 /* contentEditable tak-terkontrol: DOM hanya ditimpa jika nilai datang dari luar (undo, ganti blok) */
-function RichInput({ value, onChange, placeholder, className = "", single, id, onFocus }) {
+function RichInput({
+  value,
+  onChange,
+  placeholder,
+  className = '',
+  single,
+  id,
+  onFocus,
+}) {
   const ref = useRef(null);
   const last = useRef(null);
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (value !== last.current && el.innerHTML !== (value || "")) el.innerHTML = value || "";
+    if (value !== last.current && el.innerHTML !== (value || ''))
+      el.innerHTML = value || '';
     last.current = value;
   }, [value]);
   return (
     <div
       id={id}
       ref={ref}
-      className={"rich " + className}
+      className={'rich ' + className}
       contentEditable
       suppressContentEditableWarning
       role="textbox"
@@ -721,21 +1564,33 @@ function RichInput({ value, onChange, placeholder, className = "", single, id, o
       onInput={(e) => {
         const el = e.currentTarget;
         let html = el.innerHTML;
-        if (!el.textContent.trim() && !el.querySelector("img")) { html = ""; if (el.innerHTML !== "") el.innerHTML = ""; }
+        if (!el.textContent.trim() && !el.querySelector('img')) {
+          html = '';
+          if (el.innerHTML !== '') el.innerHTML = '';
+        }
         last.current = html;
         onChange(html);
       }}
       onKeyDown={(e) => {
-        if (single && e.key === "Enter") e.preventDefault();
-        if ((e.metaKey || e.ctrlKey) && ["b", "i", "u"].includes(e.key.toLowerCase())) {
+        if (single && e.key === 'Enter') e.preventDefault();
+        if (
+          (e.metaKey || e.ctrlKey) &&
+          ['b', 'i', 'u'].includes(e.key.toLowerCase())
+        ) {
           e.preventDefault();
-          document.execCommand({ b: "bold", i: "italic", u: "underline" }[e.key.toLowerCase()]);
+          document.execCommand(
+            { b: 'bold', i: 'italic', u: 'underline' }[e.key.toLowerCase()],
+          );
         }
       }}
       onPaste={(e) => {
         e.preventDefault();
-        const t = e.clipboardData.getData("text/plain");
-        document.execCommand("insertText", false, single ? t.replace(/\s*\n\s*/g, " ") : t);
+        const t = e.clipboardData.getData('text/plain');
+        document.execCommand(
+          'insertText',
+          false,
+          single ? t.replace(/\s*\n\s*/g, ' ') : t,
+        );
       }}
     />
   );
@@ -743,13 +1598,19 @@ function RichInput({ value, onChange, placeholder, className = "", single, id, o
 
 function FormatBar() {
   const [linking, setLinking] = useState(false);
-  const [url, setUrl] = useState("https://");
+  const [url, setUrl] = useState('https://');
   const range = useRef(null);
-  const cmd = (c) => (e) => { e.preventDefault(); document.execCommand(c); };
+  const cmd = (c) => (e) => {
+    e.preventDefault();
+    document.execCommand(c);
+  };
   const startLink = (e) => {
     e.preventDefault();
     const s = window.getSelection();
-    if (!s.rangeCount || s.isCollapsed) { setLinking("empty"); return; }
+    if (!s.rangeCount || s.isCollapsed) {
+      setLinking('empty');
+      return;
+    }
     range.current = s.getRangeAt(0).cloneRange();
     setLinking(true);
   };
@@ -758,23 +1619,84 @@ function FormatBar() {
       const s = window.getSelection();
       s.removeAllRanges();
       s.addRange(range.current);
-      document.execCommand("createLink", false, url);
+      document.execCommand('createLink', false, url);
     }
     setLinking(false);
-    setUrl("https://");
+    setUrl('https://');
   };
   return (
     <div className="fmt" role="toolbar" aria-label="Format teks">
-      <button type="button" title="Tebal (Ctrl+B)" aria-label="Tebal" onMouseDown={cmd("bold")}><Icon name="bold" size={15} sw={2.2} /></button>
-      <button type="button" title="Miring (Ctrl+I)" aria-label="Miring" onMouseDown={cmd("italic")}><Icon name="italic" size={15} sw={2.2} /></button>
-      <button type="button" title="Garis bawah (Ctrl+U)" aria-label="Garis bawah" onMouseDown={cmd("underline")}><Icon name="underline" size={15} sw={2.2} /></button>
-      <button type="button" title="Tautan" aria-label="Tautan" onMouseDown={startLink}><Icon name="link" size={15} sw={2.2} /></button>
-      <button type="button" title="Hapus format" aria-label="Hapus format" onMouseDown={(e) => { e.preventDefault(); document.execCommand("removeFormat"); document.execCommand("unlink"); }}><Icon name="clearfmt" size={15} sw={2.2} /></button>
-      {linking === "empty" && <span className="fmt-hint">Blok teksnya dulu, lalu klik tautan. <button type="button" className="lnk" onClick={() => setLinking(false)}>Tutup</button></span>}
+      <button
+        type="button"
+        title="Tebal (Ctrl+B)"
+        aria-label="Tebal"
+        onMouseDown={cmd('bold')}
+      >
+        <Icon name="bold" size={15} sw={2.2} />
+      </button>
+      <button
+        type="button"
+        title="Miring (Ctrl+I)"
+        aria-label="Miring"
+        onMouseDown={cmd('italic')}
+      >
+        <Icon name="italic" size={15} sw={2.2} />
+      </button>
+      <button
+        type="button"
+        title="Garis bawah (Ctrl+U)"
+        aria-label="Garis bawah"
+        onMouseDown={cmd('underline')}
+      >
+        <Icon name="underline" size={15} sw={2.2} />
+      </button>
+      <button
+        type="button"
+        title="Tautan"
+        aria-label="Tautan"
+        onMouseDown={startLink}
+      >
+        <Icon name="link" size={15} sw={2.2} />
+      </button>
+      <button
+        type="button"
+        title="Hapus format"
+        aria-label="Hapus format"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          document.execCommand('removeFormat');
+          document.execCommand('unlink');
+        }}
+      >
+        <Icon name="clearfmt" size={15} sw={2.2} />
+      </button>
+      {linking === 'empty' && (
+        <span className="fmt-hint">
+          Blok teksnya dulu, lalu klik tautan.{' '}
+          <button
+            type="button"
+            className="lnk"
+            onClick={() => setLinking(false)}
+          >
+            Tutup
+          </button>
+        </span>
+      )}
       {linking === true && (
         <span className="fmt-link">
-          <input autoFocus value={url} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") apply(); if (e.key === "Escape") setLinking(false); }} aria-label="URL tautan" />
-          <button type="button" className="btn sm accent" onClick={apply}>Pasang</button>
+          <input
+            autoFocus
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') apply();
+              if (e.key === 'Escape') setLinking(false);
+            }}
+            aria-label="URL tautan"
+          />
+          <button type="button" className="btn sm accent" onClick={apply}>
+            Pasang
+          </button>
         </span>
       )}
     </div>
@@ -787,7 +1709,11 @@ function OptionsEditor({ block, api }) {
   const refs = useRef({});
   const focusNext = useRef(null);
   useEffect(() => {
-    if (focusNext.current && refs.current[focusNext.current]) { refs.current[focusNext.current].focus(); refs.current[focusNext.current].select(); focusNext.current = null; }
+    if (focusNext.current && refs.current[focusNext.current]) {
+      refs.current[focusNext.current].focus();
+      refs.current[focusNext.current].select();
+      focusNext.current = null;
+    }
   });
   const set = (options, key) => api.updateProps(block.id, { options }, key);
   const add = (at = opts.length, label) => {
@@ -797,24 +1723,46 @@ function OptionsEditor({ block, api }) {
     focusNext.current = o.id;
     set(n);
   };
-  const marker = (i) => block.type === "choice" ? LETTERS[i] : block.type === "dropdown" ? i + 1 : <Icon name="check" size={12} sw={2.4} />;
+  const marker = (i) =>
+    block.type === 'choice' ? (
+      LETTERS[i]
+    ) : block.type === 'dropdown' ? (
+      i + 1
+    ) : (
+      <Icon name="check" size={12} sw={2.4} />
+    );
   return (
     <div className="opts">
       {opts.map((o, i) => (
         <div className="opt-row" key={o.id}>
-          <span className={"opt-mark " + block.type}>{marker(i)}</span>
+          <span className={'opt-mark ' + block.type}>{marker(i)}</span>
           <input
             ref={(el) => (refs.current[o.id] = el)}
             className="opt-in"
             value={o.label}
             aria-label={`Pilihan ${i + 1}`}
-            onChange={(e) => set(opts.map((x) => (x.id === o.id ? { ...x, label: e.target.value } : x)), `opt:${o.id}`)}
+            onChange={(e) =>
+              set(
+                opts.map((x) =>
+                  x.id === o.id ? { ...x, label: e.target.value } : x,
+                ),
+                `opt:${o.id}`,
+              )
+            }
             onKeyDown={(e) => {
-              if (e.key === "Enter") { e.preventDefault(); add(i + 1, ""); }
-              if (e.key === "Backspace" && !o.label && opts.length > 1) { e.preventDefault(); const prev = opts[i - 1] || opts[i + 1]; focusNext.current = prev.id; set(opts.filter((x) => x.id !== o.id)); }
-              if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+              if (e.key === 'Enter') {
                 e.preventDefault();
-                const j = i + (e.key === "ArrowUp" ? -1 : 1);
+                add(i + 1, '');
+              }
+              if (e.key === 'Backspace' && !o.label && opts.length > 1) {
+                e.preventDefault();
+                const prev = opts[i - 1] || opts[i + 1];
+                focusNext.current = prev.id;
+                set(opts.filter((x) => x.id !== o.id));
+              }
+              if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+                e.preventDefault();
+                const j = i + (e.key === 'ArrowUp' ? -1 : 1);
                 if (j < 0 || j >= opts.length) return;
                 const n = [...opts];
                 [n[i], n[j]] = [n[j], n[i]];
@@ -823,27 +1771,77 @@ function OptionsEditor({ block, api }) {
               }
             }}
             onPaste={(e) => {
-              const t = e.clipboardData.getData("text/plain");
-              if (!t.includes("\n")) return;
+              const t = e.clipboardData.getData('text/plain');
+              if (!t.includes('\n')) return;
               e.preventDefault();
-              const lines = t.split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+              const lines = t
+                .split(/\r?\n/)
+                .map((s) => s.trim())
+                .filter(Boolean);
               const n = [...opts];
-              n.splice(i, 1, { ...o, label: lines[0] }, ...lines.slice(1).map(opt));
+              n.splice(
+                i,
+                1,
+                { ...o, label: lines[0] },
+                ...lines.slice(1).map(opt),
+              );
               set(n);
               api.toast(`${lines.length} pilihan ditempel`);
             }}
           />
-          {opts.length > 1 && <button type="button" className="icon-btn ghost" aria-label="Hapus pilihan" title="Hapus pilihan" onClick={() => set(opts.filter((x) => x.id !== o.id))}><Icon name="x" size={14} /></button>}
+          {opts.length > 1 && (
+            <button
+              type="button"
+              className="icon-btn ghost"
+              aria-label="Hapus pilihan"
+              title="Hapus pilihan"
+              onClick={() => set(opts.filter((x) => x.id !== o.id))}
+            >
+              <Icon name="x" size={14} />
+            </button>
+          )}
         </div>
       ))}
       <div className="opt-foot">
-        <button type="button" className="lnk" onClick={() => add()}>Tambah pilihan</button>
-        <span className="hint">Enter = pilihan baru · tempel daftar multi-baris · Alt+↑↓ geser</span>
+        <button type="button" className="lnk" onClick={() => add()}>
+          Tambah pilihan
+        </button>
+        <span className="hint">
+          Enter = pilihan baru · tempel daftar multi-baris · Alt+↑↓ geser
+        </span>
       </div>
-      {block.type === "checkbox" && (
+      {block.type === 'checkbox' && (
         <div className="settings-row">
-          <label>Minimal dipilih <input type="number" min="0" value={block.props.minSel} onChange={(e) => api.updateProps(block.id, { minSel: e.target.value }, `min:${block.id}`)} /></label>
-          <label>Maksimal dipilih <input type="number" min="0" value={block.props.maxSel} onChange={(e) => api.updateProps(block.id, { maxSel: e.target.value }, `max:${block.id}`)} /></label>
+          <label>
+            Minimal dipilih{' '}
+            <input
+              type="number"
+              min="0"
+              value={block.props.minSel}
+              onChange={(e) =>
+                api.updateProps(
+                  block.id,
+                  { minSel: e.target.value },
+                  `min:${block.id}`,
+                )
+              }
+            />
+          </label>
+          <label>
+            Maksimal dipilih{' '}
+            <input
+              type="number"
+              min="0"
+              value={block.props.maxSel}
+              onChange={(e) =>
+                api.updateProps(
+                  block.id,
+                  { maxSel: e.target.value },
+                  `max:${block.id}`,
+                )
+              }
+            />
+          </label>
         </div>
       )}
     </div>
@@ -863,8 +1861,34 @@ function MatrixEditor({ block, api }) {
               {cols.map((c) => (
                 <th key={c.id}>
                   <div className="mx-hd">
-                    <input value={c.label} aria-label="Nama kolom" onChange={(e) => up({ cols: cols.map((x) => (x.id === c.id ? { ...x, label: e.target.value } : x)) }, `c:${c.id}`)} />
-                    {cols.length > 1 && <button type="button" className="icon-btn ghost xs" aria-label="Hapus kolom" onClick={() => up({ cols: cols.filter((x) => x.id !== c.id) })}><Icon name="x" size={12} /></button>}
+                    <input
+                      value={c.label}
+                      aria-label="Nama kolom"
+                      onChange={(e) =>
+                        up(
+                          {
+                            cols: cols.map((x) =>
+                              x.id === c.id
+                                ? { ...x, label: e.target.value }
+                                : x,
+                            ),
+                          },
+                          `c:${c.id}`,
+                        )
+                      }
+                    />
+                    {cols.length > 1 && (
+                      <button
+                        type="button"
+                        className="icon-btn ghost xs"
+                        aria-label="Hapus kolom"
+                        onClick={() =>
+                          up({ cols: cols.filter((x) => x.id !== c.id) })
+                        }
+                      >
+                        <Icon name="x" size={12} />
+                      </button>
+                    )}
                   </div>
                 </th>
               ))}
@@ -875,20 +1899,71 @@ function MatrixEditor({ block, api }) {
               <tr key={r.id}>
                 <th>
                   <div className="mx-hd row">
-                    <input value={r.label} aria-label="Nama baris" onChange={(e) => up({ rows: rows.map((x) => (x.id === r.id ? { ...x, label: e.target.value } : x)) }, `r:${r.id}`)} />
-                    {rows.length > 1 && <button type="button" className="icon-btn ghost xs" aria-label="Hapus baris" onClick={() => up({ rows: rows.filter((x) => x.id !== r.id) })}><Icon name="x" size={12} /></button>}
+                    <input
+                      value={r.label}
+                      aria-label="Nama baris"
+                      onChange={(e) =>
+                        up(
+                          {
+                            rows: rows.map((x) =>
+                              x.id === r.id
+                                ? { ...x, label: e.target.value }
+                                : x,
+                            ),
+                          },
+                          `r:${r.id}`,
+                        )
+                      }
+                    />
+                    {rows.length > 1 && (
+                      <button
+                        type="button"
+                        className="icon-btn ghost xs"
+                        aria-label="Hapus baris"
+                        onClick={() =>
+                          up({ rows: rows.filter((x) => x.id !== r.id) })
+                        }
+                      >
+                        <Icon name="x" size={12} />
+                      </button>
+                    )}
                   </div>
                 </th>
-                {cols.map((c) => <td key={c.id}><span className={multi ? "fake-cb" : "fake-rd"} /></td>)}
+                {cols.map((c) => (
+                  <td key={c.id}>
+                    <span className={multi ? 'fake-cb' : 'fake-rd'} />
+                  </td>
+                ))}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       <div className="opt-foot">
-        <button type="button" className="lnk" onClick={() => up({ rows: [...rows, opt(`Baris ${rows.length + 1}`)] })}>Tambah Baris</button>
-        <button type="button" className="lnk" onClick={() => up({ cols: [...cols, opt(`Pilihan ${cols.length + 1}`)] })}>Tambah Kolom</button>
-        <Toggle id={`mx-${block.id}`} label="Boleh lebih dari satu per baris" on={multi} onChange={(v) => up({ multi: v })} />
+        <button
+          type="button"
+          className="lnk"
+          onClick={() =>
+            up({ rows: [...rows, opt(`Baris ${rows.length + 1}`)] })
+          }
+        >
+          Tambah Baris
+        </button>
+        <button
+          type="button"
+          className="lnk"
+          onClick={() =>
+            up({ cols: [...cols, opt(`Pilihan ${cols.length + 1}`)] })
+          }
+        >
+          Tambah Kolom
+        </button>
+        <Toggle
+          id={`mx-${block.id}`}
+          label="Boleh lebih dari satu per baris"
+          on={multi}
+          onChange={(v) => up({ multi: v })}
+        />
       </div>
     </div>
   );
@@ -902,17 +1977,65 @@ function ScaleEditor({ block, api }) {
   return (
     <div className="scale-edit">
       <div className="settings-row">
-        <select aria-label="Nilai awal" value={p.min} onChange={(e) => up({ min: Number(e.target.value) })}>{[0, 1].map((v) => <option key={v}>{v}</option>)}</select>
+        <select
+          aria-label="Nilai awal"
+          value={p.min}
+          onChange={(e) => up({ min: Number(e.target.value) })}
+        >
+          {[0, 1].map((v) => (
+            <option key={v}>{v}</option>
+          ))}
+        </select>
         <span className="muted">sampai</span>
-        <select aria-label="Nilai akhir" value={p.max} onChange={(e) => up({ max: Number(e.target.value) })}>{[2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => <option key={v}>{v}</option>)}</select>
+        <select
+          aria-label="Nilai akhir"
+          value={p.max}
+          onChange={(e) => up({ max: Number(e.target.value) })}
+        >
+          {[2, 3, 4, 5, 6, 7, 8, 9, 10].map((v) => (
+            <option key={v}>{v}</option>
+          ))}
+        </select>
         <div className="seg" role="radiogroup" aria-label="Gaya skala">
-          {[["number", "Angka"], ["star", "Bintang"]].map(([k, l]) => <button type="button" key={k} role="radio" aria-checked={p.style === k} className={p.style === k ? "on" : ""} onClick={() => up({ style: k })}>{l}</button>)}
+          {[
+            ['number', 'Angka'],
+            ['star', 'Bintang'],
+          ].map(([k, l]) => (
+            <button
+              type="button"
+              key={k}
+              role="radio"
+              aria-checked={p.style === k}
+              className={p.style === k ? 'on' : ''}
+              onClick={() => up({ style: k })}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </div>
-      <div className="lbl-row"><span className="num">{p.min}</span><input placeholder="Label (opsional)" value={p.minLabel} onChange={(e) => up({ minLabel: e.target.value }, `ml:${block.id}`)} /></div>
-      <div className="lbl-row"><span className="num">{p.max}</span><input placeholder="Label (opsional)" value={p.maxLabel} onChange={(e) => up({ maxLabel: e.target.value }, `xl:${block.id}`)} /></div>
+      <div className="lbl-row">
+        <span className="num">{p.min}</span>
+        <input
+          placeholder="Label (opsional)"
+          value={p.minLabel}
+          onChange={(e) => up({ minLabel: e.target.value }, `ml:${block.id}`)}
+        />
+      </div>
+      <div className="lbl-row">
+        <span className="num">{p.max}</span>
+        <input
+          placeholder="Label (opsional)"
+          value={p.maxLabel}
+          onChange={(e) => up({ maxLabel: e.target.value }, `xl:${block.id}`)}
+        />
+      </div>
       <div className="scale-prev" aria-hidden="true">
-        {n.map((i) => <span key={i} className={p.style === "star" ? "st" : "nb"}>{p.style === "star" ? <Icon name="star" size={18} /> : i}</span>)}
+        {n.map((i) => (
+          <span key={i} className={p.style === 'star' ? 'st' : 'nb'}>
+            {p.style === 'star' ? <Icon name="star" size={18} /> : i}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -922,50 +2045,141 @@ function TypeBody({ block, api }) {
   const p = block.props;
   const up = (patch, key) => api.updateProps(block.id, patch, key);
   switch (block.type) {
-    case "short":
-    case "long":
+    case 'short':
+    case 'long':
       return (
         <div>
-          <div className={"ans-line" + (block.type === "long" ? " tall" : "")}>{p.placeholder || "Masukan jawaban..."}</div>
+          <div className={'ans-line' + (block.type === 'long' ? ' tall' : '')}>
+            {p.placeholder || 'Masukan jawaban...'}
+          </div>
           <div className="settings-row">
-            <label>Placeholder <input value={p.placeholder} onChange={(e) => up({ placeholder: e.target.value }, `ph:${block.id}`)} /></label>
-            <label>Maks. karakter <input type="number" min="1" value={p.maxLen} onChange={(e) => up({ maxLen: e.target.value }, `ml:${block.id}`)} /></label>
+            <label>
+              Placeholder{' '}
+              <input
+                value={p.placeholder}
+                onChange={(e) =>
+                  up({ placeholder: e.target.value }, `ph:${block.id}`)
+                }
+              />
+            </label>
+            <label>
+              Maks. karakter{' '}
+              <input
+                type="number"
+                min="1"
+                value={p.maxLen}
+                onChange={(e) =>
+                  up({ maxLen: e.target.value }, `ml:${block.id}`)
+                }
+              />
+            </label>
           </div>
         </div>
       );
-    case "number":
+    case 'number':
       return (
         <div>
           <div className="ans-line">0</div>
           <div className="settings-row">
-            <label>Minimum <input type="number" value={p.min} onChange={(e) => up({ min: e.target.value }, `mn:${block.id}`)} /></label>
-            <label>Maksimum <input type="number" value={p.max} onChange={(e) => up({ max: e.target.value }, `mx:${block.id}`)} /></label>
+            <label>
+              Minimum{' '}
+              <input
+                type="number"
+                value={p.min}
+                onChange={(e) => up({ min: e.target.value }, `mn:${block.id}`)}
+              />
+            </label>
+            <label>
+              Maksimum{' '}
+              <input
+                type="number"
+                value={p.max}
+                onChange={(e) => up({ max: e.target.value }, `mx:${block.id}`)}
+              />
+            </label>
           </div>
         </div>
       );
-    case "choice":
-    case "checkbox":
-    case "dropdown":
+    case 'choice':
+    case 'checkbox':
+    case 'dropdown':
       return <OptionsEditor block={block} api={api} />;
-    case "matrix":
+    case 'matrix':
       return <MatrixEditor block={block} api={api} />;
-    case "scale":
+    case 'scale':
       return <ScaleEditor block={block} api={api} />;
-    case "date":
+    case 'date':
       return (
         <div className="date-edit">
-          <div className="ans-line inline">{p.mode === "time" ? "HH : MM" : p.mode === "datetime" ? "DD / MM / YYYY  HH : MM" : "DD / MM / YYYY"}<Icon name={p.mode === "time" ? "clock" : "date"} size={18} /></div>
+          <div className="ans-line inline">
+            {p.mode === 'time'
+              ? 'HH : MM'
+              : p.mode === 'datetime'
+                ? 'DD / MM / YYYY  HH : MM'
+                : 'DD / MM / YYYY'}
+            <Icon name={p.mode === 'time' ? 'clock' : 'date'} size={18} />
+          </div>
           <div className="seg" role="radiogroup" aria-label="Jenis isian">
-            {[["date", "Tanggal"], ["time", "Waktu"], ["datetime", "Tanggal & waktu"]].map(([k, l]) => <button type="button" key={k} role="radio" aria-checked={p.mode === k} className={p.mode === k ? "on" : ""} onClick={() => up({ mode: k })}>{l}</button>)}
+            {[
+              ['date', 'Tanggal'],
+              ['time', 'Waktu'],
+              ['datetime', 'Tanggal & waktu'],
+            ].map(([k, l]) => (
+              <button
+                type="button"
+                key={k}
+                role="radio"
+                aria-checked={p.mode === k}
+                className={p.mode === k ? 'on' : ''}
+                onClick={() => up({ mode: k })}
+              >
+                {l}
+              </button>
+            ))}
           </div>
         </div>
       );
-    case "file":
+    case 'file':
       return (
         <div className="file-edit">
-          <label className="pill-in"><span>Hanya izinkan jenis file tertentu</span><input placeholder="mis. pdf, jpg (kosong = semua)" value={p.accept} onChange={(e) => up({ accept: e.target.value }, `ac:${block.id}`)} /></label>
-          <label className="pill-in"><span>Jumlah maksimum file</span><input type="number" min="1" max="10" value={p.maxFiles} onChange={(e) => up({ maxFiles: clamp(Number(e.target.value) || 1, 1, 10) }, `mf:${block.id}`)} /></label>
-          <label className="pill-in"><span>Ukuran file maksimum (MB)</span><input type="number" min="1" max="100" value={p.maxSizeMB} onChange={(e) => up({ maxSizeMB: clamp(Number(e.target.value) || 1, 1, 100) }, `ms:${block.id}`)} /></label>
+          <label className="pill-in">
+            <span>Hanya izinkan jenis file tertentu</span>
+            <input
+              placeholder="mis. pdf, jpg (kosong = semua)"
+              value={p.accept}
+              onChange={(e) => up({ accept: e.target.value }, `ac:${block.id}`)}
+            />
+          </label>
+          <label className="pill-in">
+            <span>Jumlah maksimum file</span>
+            <input
+              type="number"
+              min="1"
+              max="10"
+              value={p.maxFiles}
+              onChange={(e) =>
+                up(
+                  { maxFiles: clamp(Number(e.target.value) || 1, 1, 10) },
+                  `mf:${block.id}`,
+                )
+              }
+            />
+          </label>
+          <label className="pill-in">
+            <span>Ukuran file maksimum (MB)</span>
+            <input
+              type="number"
+              min="1"
+              max="100"
+              value={p.maxSizeMB}
+              onChange={(e) =>
+                up(
+                  { maxSizeMB: clamp(Number(e.target.value) || 1, 1, 100) },
+                  `ms:${block.id}`,
+                )
+              }
+            />
+          </label>
         </div>
       );
     default:
@@ -974,76 +2188,277 @@ function TypeBody({ block, api }) {
 }
 
 /* ---------- kartu blok ---------- */
-const BlockCard = memo(function BlockCard({ block, number, selected, api, condSum, deps, condOpen, form }) {
+const BlockCard = memo(function BlockCard({
+  block,
+  number,
+  selected,
+  api,
+  condSum,
+  deps,
+  condOpen,
+  form,
+}) {
   const T = TYPES[block.type];
   const sel = () => !selected && api.select(block.id);
-  if (block.type === "welcome") {
+  if (block.type === 'welcome') {
     return (
-      <section id={`card-${block.id}`} className={"card welcome" + (selected ? " sel" : "")} onPointerDownCapture={sel} onFocusCapture={sel} aria-label="Welcome screen">
-        <div className="card-tag"><Icon name={T.icon} size={14} />Welcome screen</div>
+      <section
+        id={`card-${block.id}`}
+        className={'card welcome' + (selected ? ' sel' : '')}
+        onPointerDownCapture={sel}
+        onFocusCapture={sel}
+        aria-label="Welcome screen"
+      >
+        <div className="card-tag">
+          <Icon name={T.icon} size={14} />
+          Welcome screen
+        </div>
         <div className="wel-top">
-          <ImagePick className={"img-circle" + (block.image ? " has" : "")} title="Pilih gambar" onPick={(img, err) => (err ? api.toast(err) : api.update(block.id, { image: img }))}>
-            {block.image ? <img src={block.image} alt="" /> : <><Icon name="image" size={22} /><small>Pilih gambar</small></>}
+          <ImagePick
+            className={'img-circle' + (block.image ? ' has' : '')}
+            title="Pilih gambar"
+            onPick={(img, err) =>
+              err ? api.toast(err) : api.update(block.id, { image: img })
+            }
+          >
+            {block.image ? (
+              <img src={block.image} alt="" />
+            ) : (
+              <>
+                <Icon name="image" size={22} />
+                <small>Pilih gambar</small>
+              </>
+            )}
           </ImagePick>
           <div className="wel-titles">
-            <RichInput className="h-judul" value={block.title} single placeholder="JUDUL" onChange={(v) => api.update(block.id, { title: v }, `t:${block.id}`)} />
-            <input className="h-sub" placeholder="SUB JUDUL" value={block.props.subtitle || ""} onChange={(e) => api.updateProps(block.id, { subtitle: e.target.value }, `st:${block.id}`)} />
+            <RichInput
+              className="h-judul"
+              value={block.title}
+              single
+              placeholder="JUDUL"
+              onChange={(v) =>
+                api.update(block.id, { title: v }, `t:${block.id}`)
+              }
+            />
+            <input
+              className="h-sub"
+              placeholder="SUB JUDUL"
+              value={block.props.subtitle || ''}
+              onChange={(e) =>
+                api.updateProps(
+                  block.id,
+                  { subtitle: e.target.value },
+                  `st:${block.id}`,
+                )
+              }
+            />
           </div>
         </div>
         <FormatBar />
-        <label className="fld"><span>Deskripsi</span>
-          <textarea rows="3" placeholder="Masukkan deskripsi..." value={block.desc} onChange={(e) => api.update(block.id, { desc: e.target.value }, `d:${block.id}`)} />
+        <label className="fld">
+          <span>Deskripsi</span>
+          <textarea
+            rows="3"
+            placeholder="Masukkan deskripsi..."
+            value={block.desc}
+            onChange={(e) =>
+              api.update(block.id, { desc: e.target.value }, `d:${block.id}`)
+            }
+          />
         </label>
-        <div className="wel-btn"><input aria-label="Label tombol mulai" className="btn-edit" value={block.props.button} onChange={(e) => api.updateProps(block.id, { button: e.target.value }, `bt:${block.id}`)} /></div>
-        <small className="muted center-note">Di tampilan responden, welcome screen jadi kepala halaman form.</small>
+        <div className="wel-btn">
+          <input
+            aria-label="Label tombol mulai"
+            className="btn-edit"
+            value={block.props.button}
+            onChange={(e) =>
+              api.updateProps(
+                block.id,
+                { button: e.target.value },
+                `bt:${block.id}`,
+              )
+            }
+          />
+        </div>
+        <small className="muted center-note">
+          Di tampilan responden, welcome screen jadi kepala halaman form.
+        </small>
         <CardFoot block={block} api={api} />
       </section>
     );
   }
-  const isEnd = block.type === "ending";
+  const isEnd = block.type === 'ending';
   return (
-    <section id={`card-${block.id}`} className={"card" + (selected ? " sel" : "") + (isEnd ? " ending" : "") + (condSum ? " is-cond" : "")} onPointerDownCapture={sel} onFocusCapture={sel} aria-label={`${T.label} ${number || ""}`}>
+    <section
+      id={`card-${block.id}`}
+      className={
+        'card' +
+        (selected ? ' sel' : '') +
+        (isEnd ? ' ending' : '') +
+        (condSum ? ' is-cond' : '')
+      }
+      onPointerDownCapture={sel}
+      onFocusCapture={sel}
+      aria-label={`${T.label} ${number || ''}`}
+    >
       <div className="card-head">
-        <span className={"qnum" + (isEnd ? " end" : "")}>{isEnd ? <Icon name="ending" size={14} /> : number}</span>
+        <span className={'qnum' + (isEnd ? ' end' : '')}>
+          {isEnd ? <Icon name="ending" size={14} /> : number}
+        </span>
         <div className="q-main">
-          <RichInput className="q-title" value={block.title} single placeholder={isEnd ? "Masukan Judul" : "Masukan pertanyaan"} onChange={(v) => api.update(block.id, { title: v }, `t:${block.id}`)} />
+          <RichInput
+            className="q-title"
+            value={block.title}
+            single
+            placeholder={isEnd ? 'Masukan Judul' : 'Masukan pertanyaan'}
+            onChange={(v) =>
+              api.update(block.id, { title: v }, `t:${block.id}`)
+            }
+          />
           <FormatBar />
-          <input className="q-desc" placeholder={isEnd ? "Pesan penutup (opsional)" : "Deskripsi (opsional)"} value={block.desc} onChange={(e) => api.update(block.id, { desc: e.target.value }, `d:${block.id}`)} />
+          <input
+            className="q-desc"
+            placeholder={
+              isEnd ? 'Pesan penutup (opsional)' : 'Deskripsi (opsional)'
+            }
+            value={block.desc}
+            onChange={(e) =>
+              api.update(block.id, { desc: e.target.value }, `d:${block.id}`)
+            }
+          />
         </div>
-        <ImagePick className={"img-btn" + (block.image ? " has" : "")} title={block.image ? "Ganti gambar" : "Tambah gambar"} onPick={(img, err) => (err ? api.toast(err) : api.update(block.id, { image: img }))}>
-          {block.image ? <img src={block.image} alt="" /> : <Icon name="image" size={26} sw={1.6} />}
+        <ImagePick
+          className={'img-btn' + (block.image ? ' has' : '')}
+          title={block.image ? 'Ganti gambar' : 'Tambah gambar'}
+          onPick={(img, err) =>
+            err ? api.toast(err) : api.update(block.id, { image: img })
+          }
+        >
+          {block.image ? (
+            <img src={block.image} alt="" />
+          ) : (
+            <Icon name="image" size={26} sw={1.6} />
+          )}
         </ImagePick>
       </div>
-      {block.image && <div className="img-row"><img src={block.image} alt="" /><button type="button" className="lnk danger" onClick={() => api.update(block.id, { image: null })}>Hapus gambar</button></div>}
+      {block.image && (
+        <div className="img-row">
+          <img src={block.image} alt="" />
+          <button
+            type="button"
+            className="lnk danger"
+            onClick={() => api.update(block.id, { image: null })}
+          >
+            Hapus gambar
+          </button>
+        </div>
+      )}
       <div className="card-body">
         {isEnd ? (
           <div className="settings-row">
-            <label>Label tombol <input placeholder="mis. Kunjungi situs" value={block.props.button} onChange={(e) => api.updateProps(block.id, { button: e.target.value }, `eb:${block.id}`)} /></label>
-            <label className="grow">Tautan tombol <input placeholder="https://" value={block.props.url} onChange={(e) => api.updateProps(block.id, { url: e.target.value }, `eu:${block.id}`)} /></label>
+            <label>
+              Label tombol{' '}
+              <input
+                placeholder="mis. Kunjungi situs"
+                value={block.props.button}
+                onChange={(e) =>
+                  api.updateProps(
+                    block.id,
+                    { button: e.target.value },
+                    `eb:${block.id}`,
+                  )
+                }
+              />
+            </label>
+            <label className="grow">
+              Tautan tombol{' '}
+              <input
+                placeholder="https://"
+                value={block.props.url}
+                onChange={(e) =>
+                  api.updateProps(
+                    block.id,
+                    { url: e.target.value },
+                    `eu:${block.id}`,
+                  )
+                }
+              />
+            </label>
           </div>
         ) : (
           <TypeBody block={block} api={api} />
         )}
       </div>
-      <CondArea block={block} api={api} condSum={condSum} deps={deps} condOpen={condOpen} form={form} />
-      <CardFoot block={block} api={api} condOpen={condOpen} hasCond={!!condSum} />
+      <CondArea
+        block={block}
+        api={api}
+        condSum={condSum}
+        deps={deps}
+        condOpen={condOpen}
+        form={form}
+      />
+      <CardFoot
+        block={block}
+        api={api}
+        condOpen={condOpen}
+        hasCond={!!condSum}
+      />
     </section>
   );
 });
 
 function CondArea({ block, api, condSum, deps, condOpen, form }) {
-  if (block.type === "welcome") return null;
+  if (block.type === 'welcome') return null;
   return (
     <>
       {(condSum || deps > 0) && !condOpen && (
         <div className="cond-chips">
-          {condSum && <button type="button" className="cond-chip" onClick={() => api.toggleCond(block.id)} title="Ubah kondisi"><Icon name="cond" size={13} /><span>Tampil jika {condSum}</span></button>}
-          {deps > 0 && <button type="button" className="cond-chip alt" onClick={() => api.openFlow(block.id)}><Icon name="branch" size={13} />Memunculkan {deps} blok</button>}
+          {condSum && (
+            <button
+              type="button"
+              className="cond-chip"
+              onClick={() => api.toggleCond(block.id)}
+              title="Ubah kondisi"
+            >
+              <Icon name="cond" size={13} />
+              <span>Tampil jika {condSum}</span>
+            </button>
+          )}
+          {deps > 0 && (
+            <button
+              type="button"
+              className="cond-chip alt"
+              onClick={() => api.openFlow(block.id)}
+            >
+              <Icon name="branch" size={13} />
+              Memunculkan {deps} blok
+            </button>
+          )}
         </div>
       )}
       {condOpen && form && (
         <div className="cond-box">
-          <div className="cond-box-hd"><b><Icon name="cond" size={14} />Tampilkan blok ini jika</b><button type="button" className="lnk" onClick={() => api.openFlow(block.id)}>Lihat di Alur</button><button type="button" className="icon-btn xs ghost" aria-label="Tutup kondisi" onClick={() => api.toggleCond(block.id)}><Icon name="x" size={14} /></button></div>
+          <div className="cond-box-hd">
+            <b>
+              <Icon name="cond" size={14} />
+              Tampilkan blok ini jika
+            </b>
+            <button
+              type="button"
+              className="lnk"
+              onClick={() => api.openFlow(block.id)}
+            >
+              Lihat di Alur
+            </button>
+            <button
+              type="button"
+              className="icon-btn xs ghost"
+              aria-label="Tutup kondisi"
+              onClick={() => api.toggleCond(block.id)}
+            >
+              <Icon name="x" size={14} />
+            </button>
+          </div>
           <ConditionBuilder form={form} block={block} api={api} />
         </div>
       )}
@@ -1056,15 +2471,63 @@ function CardFoot({ block, api, condOpen, hasCond }) {
   return (
     <div className="card-foot">
       {q && (
-        <select className="type-sw" aria-label="Ubah tipe" value={block.type} onChange={(e) => api.changeType(block.id, e.target.value)}>
-          {TYPE_ORDER.filter((t) => !TYPES[t].screen).map((t) => <option key={t} value={t}>{TYPES[t].label}</option>)}
+        <select
+          className="type-sw"
+          aria-label="Ubah tipe"
+          value={block.type}
+          onChange={(e) => api.changeType(block.id, e.target.value)}
+        >
+          {TYPE_ORDER.filter((t) => !TYPES[t].screen).map((t) => (
+            <option key={t} value={t}>
+              {TYPES[t].label}
+            </option>
+          ))}
         </select>
       )}
       <span className="sp" />
-      {block.type !== "welcome" && <button type="button" className={"btn sm ghost cond-btn" + (condOpen || hasCond ? " on" : "")} aria-pressed={!!condOpen} onClick={() => api.toggleCond(block.id)}><Icon name="cond" size={14} />Kondisi{hasCond ? " ✓" : ""}</button>}
-      <button type="button" className="icon-btn" title="Duplikat" aria-label="Duplikat" onClick={() => api.duplicate(block.id)} disabled={block.type === "welcome"}><Icon name="copy" /></button>
-      <button type="button" className="icon-btn" title="Hapus" aria-label="Hapus" onClick={() => api.askDelete(block.id)}><Icon name="trash" /></button>
-      {q && <><span className="vr" /><Toggle id={`req-${block.id}`} label="Wajib" on={block.required} onChange={(v) => api.update(block.id, { required: v })} /></>}
+      {block.type !== 'welcome' && (
+        <button
+          type="button"
+          className={
+            'btn sm ghost cond-btn' + (condOpen || hasCond ? ' on' : '')
+          }
+          aria-pressed={!!condOpen}
+          onClick={() => api.toggleCond(block.id)}
+        >
+          <Icon name="cond" size={14} />
+          Kondisi{hasCond ? ' ✓' : ''}
+        </button>
+      )}
+      <button
+        type="button"
+        className="icon-btn"
+        title="Duplikat"
+        aria-label="Duplikat"
+        onClick={() => api.duplicate(block.id)}
+        disabled={block.type === 'welcome'}
+      >
+        <Icon name="copy" />
+      </button>
+      <button
+        type="button"
+        className="icon-btn"
+        title="Hapus"
+        aria-label="Hapus"
+        onClick={() => api.askDelete(block.id)}
+      >
+        <Icon name="trash" />
+      </button>
+      {q && (
+        <>
+          <span className="vr" />
+          <Toggle
+            id={`req-${block.id}`}
+            label="Wajib"
+            on={block.required}
+            onChange={(v) => api.update(block.id, { required: v })}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -1078,7 +2541,13 @@ function PageList({ form, selected, api }) {
 
   const onDown = (e, b) => {
     if (e.button !== 0 || !isQuestion(b)) return;
-    drag.current = { id: b.id, y0: e.clientY, started: false, el: e.currentTarget, pid: e.pointerId };
+    drag.current = {
+      id: b.id,
+      y0: e.clientY,
+      started: false,
+      el: e.currentTarget,
+      pid: e.pointerId,
+    };
   };
   const onMove = (e) => {
     const d = drag.current;
@@ -1087,15 +2556,20 @@ function PageList({ form, selected, api }) {
     if (!d.started) {
       if (Math.abs(dy) < 5) return;
       d.started = true;
-      try { d.el.setPointerCapture(d.pid); } catch {}
+      try {
+        d.el.setPointerCapture(d.pid);
+      } catch {}
       setDragId(d.id);
     }
     d.el.style.transform = `translateY(${dy}px)`;
-    const items = [...listRef.current.querySelectorAll("[data-q]")];
+    const items = [...listRef.current.querySelectorAll('[data-q]')];
     let at = items.length;
     for (let i = 0; i < items.length; i++) {
       const r = items[i].getBoundingClientRect();
-      if (e.clientY < r.top + r.height / 2) { at = i; break; }
+      if (e.clientY < r.top + r.height / 2) {
+        at = i;
+        break;
+      }
     }
     setDropAt(at);
   };
@@ -1103,7 +2577,7 @@ function PageList({ form, selected, api }) {
     const d = drag.current;
     drag.current = null;
     if (!d) return;
-    d.el.style.transform = "";
+    d.el.style.transform = '';
     if (d.started) {
       const qs = form.blocks.filter(isQuestion);
       const from = qs.findIndex((x) => x.id === d.id);
@@ -1121,7 +2595,13 @@ function PageList({ form, selected, api }) {
   };
   let qi = 0;
   return (
-    <div className="pages" ref={listRef} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+    <div
+      className="pages"
+      ref={listRef}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+    >
       {form.blocks.map((b) => {
         const q = isQuestion(b);
         const n = q ? ++qi : null;
@@ -1131,25 +2611,50 @@ function PageList({ form, selected, api }) {
           <React.Fragment key={b.id}>
             {q && dropAt === idx && dragId && <div className="drop-line" />}
             <div
-              data-q={q ? "1" : undefined}
-              className={"page-item" + (selected === b.id ? " sel" : "") + (dragId === b.id ? " dragging" : "") + (isConditional(form, b) ? " cnd" : "")}
+              data-q={q ? '1' : undefined}
+              className={
+                'page-item' +
+                (selected === b.id ? ' sel' : '') +
+                (dragId === b.id ? ' dragging' : '') +
+                (isConditional(form, b) ? ' cnd' : '')
+              }
               onPointerDown={(e) => (q ? onDown(e, b) : null)}
               onClick={() => !q && api.select(b.id, true)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); api.select(b.id, true); } }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  api.select(b.id, true);
+                }
+              }}
               role="button"
               tabIndex={0}
-              title={isConditional(form, b) ? "Tampil jika " + condSummary(form, b) : undefined}
+              title={
+                isConditional(form, b)
+                  ? 'Tampil jika ' + condSummary(form, b)
+                  : undefined
+              }
             >
               {q && <Icon name="grip" size={14} className="grip" />}
               <Icon name={T.icon} size={16} />
-              <span className="pi-text"><b>{q ? `${n}. ` : ""}{T.label}:</b> {stripHtml(b.title) || (q ? (b.required ? "Wajib" : "Optional") : "Optional")}</span>
+              <span className="pi-text">
+                <b>
+                  {q ? `${n}. ` : ''}
+                  {T.label}:
+                </b>{' '}
+                {stripHtml(b.title) ||
+                  (q ? (b.required ? 'Wajib' : 'Optional') : 'Optional')}
+              </span>
               {q && b.required && <span className="req-dot" title="Wajib" />}
-              {isConditional(form, b) && <Icon name="cond" size={13} className="pi-branch" />}
+              {isConditional(form, b) && (
+                <Icon name="cond" size={13} className="pi-branch" />
+              )}
             </div>
           </React.Fragment>
         );
       })}
-      {dragId && dropAt === form.blocks.filter(isQuestion).length && <div className="drop-line" />}
+      {dragId && dropAt === form.blocks.filter(isQuestion).length && (
+        <div className="drop-line" />
+      )}
     </div>
   );
 }
@@ -1161,33 +2666,107 @@ function FormMeta({ form, api }) {
     <div className="meta">
       <div className="meta-name">
         <Icon name="menu" size={24} sw={1.6} className="muted" />
-        <input aria-label="Nama form" value={form.title} onChange={(e) => api.setMeta({ title: e.target.value }, "title")} />
+        <input
+          aria-label="Nama form"
+          value={form.title}
+          onChange={(e) => api.setMeta({ title: e.target.value }, 'title')}
+        />
         <Icon name="edit" size={15} className="muted" />
       </div>
       <div className="tags">
         {form.tags.map((t) => (
-          <span key={t} className="tag">{t}<button type="button" aria-label={`Hapus tag ${t}`} onClick={() => api.setMeta({ tags: form.tags.filter((x) => x !== t) })}><Icon name="x" size={11} sw={2.4} /></button></span>
+          <span key={t} className="tag">
+            {t}
+            <button
+              type="button"
+              aria-label={`Hapus tag ${t}`}
+              onClick={() =>
+                api.setMeta({ tags: form.tags.filter((x) => x !== t) })
+              }
+            >
+              <Icon name="x" size={11} sw={2.4} />
+            </button>
+          </span>
         ))}
         {tagDraft === null ? (
-          <button type="button" className="tag add" aria-label="Tambah tag" onClick={() => setTagDraft("")}><Icon name="plus" size={12} sw={2.4} /></button>
+          <button
+            type="button"
+            className="tag add"
+            aria-label="Tambah tag"
+            onClick={() => setTagDraft('')}
+          >
+            <Icon name="plus" size={12} sw={2.4} />
+          </button>
         ) : (
-          <input className="tag-in" autoFocus value={tagDraft} placeholder="Tag baru" onChange={(e) => setTagDraft(e.target.value)}
-            onBlur={() => { const t = tagDraft.trim(); if (t && !form.tags.includes(t)) api.setMeta({ tags: [...form.tags, t] }); setTagDraft(null); }}
-            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); if (e.key === "Escape") setTagDraft(null); }} />
+          <input
+            className="tag-in"
+            autoFocus
+            value={tagDraft}
+            placeholder="Tag baru"
+            onChange={(e) => setTagDraft(e.target.value)}
+            onBlur={() => {
+              const t = tagDraft.trim();
+              if (t && !form.tags.includes(t))
+                api.setMeta({ tags: [...form.tags, t] });
+              setTagDraft(null);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') e.currentTarget.blur();
+              if (e.key === 'Escape') setTagDraft(null);
+            }}
+          />
         )}
       </div>
       <div className="meta-row">
         <label className="meta-cell">
           <span className="meta-lbl">Tenggat Penutupan Form</span>
-          <span className="meta-val"><Icon name="calendar" size={22} sw={1.6} /><input type="datetime-local" value={toLocalInput(form.closesAt)} onChange={(e) => api.setMeta({ closesAt: e.target.value ? new Date(e.target.value).toISOString() : null }, "closes")} aria-label="Tenggat penutupan" /></span>
+          <span className="meta-val">
+            <Icon name="calendar" size={22} sw={1.6} />
+            <input
+              type="datetime-local"
+              value={toLocalInput(form.closesAt)}
+              onChange={(e) =>
+                api.setMeta(
+                  {
+                    closesAt: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : null,
+                  },
+                  'closes',
+                )
+              }
+              aria-label="Tenggat penutupan"
+            />
+          </span>
         </label>
         <label className="meta-cell">
           <span className="meta-lbl">Kuota responden</span>
-          <span className="meta-val"><Icon name="users" size={22} sw={1.6} /><input type="number" min="1" placeholder="∞" value={form.maxResponses} onChange={(e) => api.setMeta({ maxResponses: e.target.value }, "max")} aria-label="Kuota responden" /></span>
+          <span className="meta-val">
+            <Icon name="users" size={22} sw={1.6} />
+            <input
+              type="number"
+              min="1"
+              placeholder="∞"
+              value={form.maxResponses}
+              onChange={(e) =>
+                api.setMeta({ maxResponses: e.target.value }, 'max')
+              }
+              aria-label="Kuota responden"
+            />
+          </span>
         </label>
       </div>
-      <div className="meta-count">{responses} respons masuk{form.maxResponses ? ` dari ${form.maxResponses}` : ""}</div>
-      <textarea className="meta-desc" rows="2" placeholder="Deskripsi Form (Opsional)..." value={form.desc} onChange={(e) => api.setMeta({ desc: e.target.value }, "desc")} />
+      <div className="meta-count">
+        {responses} respons masuk
+        {form.maxResponses ? ` dari ${form.maxResponses}` : ''}
+      </div>
+      <textarea
+        className="meta-desc"
+        rows="2"
+        placeholder="Deskripsi Form (Opsional)..."
+        value={form.desc}
+        onChange={(e) => api.setMeta({ desc: e.target.value }, 'desc')}
+      />
     </div>
   );
 }
@@ -1198,30 +2777,90 @@ function DesignPanel({ form, api }) {
   return (
     <div className="design">
       <h4>Desain</h4>
-      <small className="muted">Perubahan langsung terlihat di editor dan pratinjau.</small>
+      <small className="muted">
+        Perubahan langsung terlihat di editor dan pratinjau.
+      </small>
       <div className="d-sec">
         <span className="d-lbl">Warna aksen</span>
         <div className="swatches">
-          {ACCENTS.map((c) => <button type="button" key={c} className={"sw" + (t.accent === c ? " on" : "")} style={{ background: c }} aria-label={`Aksen ${c}`} onClick={() => set({ accent: c })} />)}
-          <label className="sw custom" title="Warna lain"><input type="color" value={t.accent} onChange={(e) => set({ accent: e.target.value })} aria-label="Warna lain" /><Icon name="plus" size={12} /></label>
+          {ACCENTS.map((c) => (
+            <button
+              type="button"
+              key={c}
+              className={'sw' + (t.accent === c ? ' on' : '')}
+              style={{ background: c }}
+              aria-label={`Aksen ${c}`}
+              onClick={() => set({ accent: c })}
+            />
+          ))}
+          <label className="sw custom" title="Warna lain">
+            <input
+              type="color"
+              value={t.accent}
+              onChange={(e) => set({ accent: e.target.value })}
+              aria-label="Warna lain"
+            />
+            <Icon name="plus" size={12} />
+          </label>
         </div>
       </div>
       <div className="d-sec">
         <span className="d-lbl">Huruf</span>
-        <select value={t.font} onChange={(e) => set({ font: e.target.value })} aria-label="Huruf">{Object.entries(FONTS).map(([k, f]) => <option key={k} value={k}>{f.label}</option>)}</select>
+        <select
+          value={t.font}
+          onChange={(e) => set({ font: e.target.value })}
+          aria-label="Huruf"
+        >
+          {Object.entries(FONTS).map(([k, f]) => (
+            <option key={k} value={k}>
+              {f.label}
+            </option>
+          ))}
+        </select>
       </div>
       <div className="d-sec">
         <span className="d-lbl">Latar</span>
         <div className="seg full" role="radiogroup" aria-label="Latar">
-          {[["soft", "Lembut"], ["plain", "Polos"], ["tint", "Warna aksen"]].map(([k, l]) => <button type="button" key={k} role="radio" aria-checked={t.bg === k} className={t.bg === k ? "on" : ""} onClick={() => set({ bg: k })}>{l}</button>)}
+          {[
+            ['soft', 'Lembut'],
+            ['plain', 'Polos'],
+            ['tint', 'Warna aksen'],
+          ].map(([k, l]) => (
+            <button
+              type="button"
+              key={k}
+              role="radio"
+              aria-checked={t.bg === k}
+              className={t.bg === k ? 'on' : ''}
+              onClick={() => set({ bg: k })}
+            >
+              {l}
+            </button>
+          ))}
         </div>
       </div>
       <div className="d-sec">
         <span className="d-lbl">Banner</span>
         {t.banner ? (
-          <div className="banner-prev"><img src={t.banner} alt="" /><button type="button" className="lnk danger" onClick={() => set({ banner: null })}>Hapus banner</button></div>
+          <div className="banner-prev">
+            <img src={t.banner} alt="" />
+            <button
+              type="button"
+              className="lnk danger"
+              onClick={() => set({ banner: null })}
+            >
+              Hapus banner
+            </button>
+          </div>
         ) : (
-          <ImagePick className="btn ghost full" title="Unggah banner" onPick={(img, err) => (err ? api.toast(err) : set({ banner: img }))}><Icon name="upload" size={16} />Unggah banner</ImagePick>
+          <ImagePick
+            className="btn ghost full"
+            title="Unggah banner"
+            onPick={(img, err) => (err ? api.toast(err) : set({ banner: img }))}
+          >
+            <Icon name="upload" size={16} />
+            Unggah banner
+          </ImagePick>
         )}
       </div>
     </div>
@@ -1235,18 +2874,21 @@ function KontenView({ form, selected, api, panelOpen, condOpen }) {
   const addRef = useRef(null);
   const desRef = useRef(null);
   const condInfo = useMemo(() => {
-    const sum = {}, deps = {};
+    const sum = {},
+      deps = {};
     form.blocks.forEach((b) => {
       sum[b.id] = condSummary(form, b);
-      validRules(form, b).forEach((r) => (deps[r.src] = (deps[r.src] || 0) + 1));
+      validRules(form, b).forEach(
+        (r) => (deps[r.src] = (deps[r.src] || 0) + 1),
+      );
     });
     return { sum, deps };
   }, [form]);
   const th = form.theme;
   let n = 0;
-  const hasWelcome = form.blocks.some((b) => b.type === "welcome");
+  const hasWelcome = form.blocks.some((b) => b.type === 'welcome');
   return (
-    <div className={"konten" + (panelOpen ? " panel-open" : "")}>
+    <div className={'konten' + (panelOpen ? ' panel-open' : '')}>
       <aside className="side">
         <FormMeta form={form} api={api} />
         <div className="pages-box">
@@ -1254,84 +2896,301 @@ function KontenView({ form, selected, api, panelOpen, condOpen }) {
           <PageList form={form} selected={selected} api={api} />
         </div>
       </aside>
-      <div className={"main canvas-" + (th.bg || "soft")} id="konten-main" style={{ "--accent": th.accent, "--fa": th.accent, "--ffont": (FONTS[th.font] || FONTS.jakarta).css }}>
+      <div
+        className={'main canvas-' + (th.bg || 'soft')}
+        id="konten-main"
+        style={{
+          '--accent': th.accent,
+          '--fa': th.accent,
+          '--ffont': (FONTS[th.font] || FONTS.jakarta).css,
+        }}
+      >
         <div className="toolbar">
           <div className="tb-group">
-            <button ref={addRef} type="button" className={"btn tb" + (addOpen ? " on" : "")} aria-expanded={addOpen} onClick={() => setAddOpen((v) => !v)}><Icon name="plus" size={16} />Tambah Konten</button>
-            <Popover open={addOpen} onClose={() => setAddOpen(false)} anchorRef={addRef} className="add-menu">
+            <button
+              ref={addRef}
+              type="button"
+              className={'btn tb' + (addOpen ? ' on' : '')}
+              aria-expanded={addOpen}
+              onClick={() => setAddOpen((v) => !v)}
+            >
+              <Icon name="plus" size={16} />
+              Tambah Konten
+            </button>
+            <Popover
+              open={addOpen}
+              onClose={() => setAddOpen(false)}
+              anchorRef={addRef}
+              className="add-menu"
+            >
               {TYPE_ORDER.map((t) => (
-                <button type="button" key={t} disabled={t === "welcome" && hasWelcome} onClick={() => { api.add(t); setAddOpen(false); }}>
-                  <Icon name={TYPES[t].icon} size={17} />{TYPES[t].label}{t === "welcome" && hasWelcome && <small>sudah ada</small>}
+                <button
+                  type="button"
+                  key={t}
+                  disabled={t === 'welcome' && hasWelcome}
+                  onClick={() => {
+                    api.add(t);
+                    setAddOpen(false);
+                  }}
+                >
+                  <Icon name={TYPES[t].icon} size={17} />
+                  {TYPES[t].label}
+                  {t === 'welcome' && hasWelcome && <small>sudah ada</small>}
                 </button>
               ))}
             </Popover>
           </div>
           <span className="vr" />
           <div className="tb-group">
-            <button ref={desRef} type="button" className={"btn tb" + (designOpen ? " on" : "")} aria-expanded={designOpen} onClick={() => setDesignOpen((v) => !v)}><Icon name="palette" size={16} />Desain</button>
-            <Popover open={designOpen} onClose={() => setDesignOpen(false)} anchorRef={desRef} className="design-pop"><DesignPanel form={form} api={api} /></Popover>
+            <button
+              ref={desRef}
+              type="button"
+              className={'btn tb' + (designOpen ? ' on' : '')}
+              aria-expanded={designOpen}
+              onClick={() => setDesignOpen((v) => !v)}
+            >
+              <Icon name="palette" size={16} />
+              Desain
+            </button>
+            <Popover
+              open={designOpen}
+              onClose={() => setDesignOpen(false)}
+              anchorRef={desRef}
+              className="design-pop"
+            >
+              <DesignPanel form={form} api={api} />
+            </Popover>
           </div>
-          <button type="button" className={"btn tb sm-tb" + (settingsOpen ? " on" : "")} aria-expanded={settingsOpen} onClick={() => setSettingsOpen(true)}><Icon name="gear" size={16} />Pengaturan</button>
+          <button
+            type="button"
+            className={'btn tb sm-tb' + (settingsOpen ? ' on' : '')}
+            aria-expanded={settingsOpen}
+            onClick={() => setSettingsOpen(true)}
+          >
+            <Icon name="gear" size={16} />
+            Pengaturan
+          </button>
           <span className="sp" />
-          <button type="button" className="icon-btn lg" title="Pratinjau desktop" aria-label="Pratinjau desktop" onClick={() => api.preview(null, "desktop")}><Icon name="laptop" size={22} /></button>
-          <button type="button" className="icon-btn lg" title="Pratinjau di blok terpilih" aria-label="Pratinjau di blok terpilih" onClick={() => api.preview(selected)}><Icon name="play" size={20} fill="currentColor" /></button>
+          <button
+            type="button"
+            className="icon-btn lg"
+            title="Pratinjau desktop"
+            aria-label="Pratinjau desktop"
+            onClick={() => api.preview(null, 'desktop')}
+          >
+            <Icon name="laptop" size={22} />
+          </button>
+          <button
+            type="button"
+            className="icon-btn lg"
+            title="Pratinjau di blok terpilih"
+            aria-label="Pratinjau di blok terpilih"
+            onClick={() => api.preview(selected)}
+          >
+            <Icon name="play" size={20} fill="currentColor" />
+          </button>
         </div>
         <div className="cards">
-          {th.banner && <div className="ed-banner"><img src={th.banner} alt="" /></div>}
+          {th.banner && (
+            <div className="ed-banner">
+              <img src={th.banner} alt="" />
+            </div>
+          )}
           {form.blocks.map((b) => (
-            <BlockCard key={b.id} block={b} number={isQuestion(b) ? ++n : null} selected={selected === b.id} api={api} condSum={condInfo.sum[b.id]} deps={condInfo.deps[b.id] || 0} condOpen={condOpen === b.id} form={condOpen === b.id ? form : null} />
+            <BlockCard
+              key={b.id}
+              block={b}
+              number={isQuestion(b) ? ++n : null}
+              selected={selected === b.id}
+              api={api}
+              condSum={condInfo.sum[b.id]}
+              deps={condInfo.deps[b.id] || 0}
+              condOpen={condOpen === b.id}
+              form={condOpen === b.id ? form : null}
+            />
           ))}
-          <button type="button" className="add-tail" onClick={() => setAddOpen(true) || document.getElementById("konten-main")?.scrollTo({ top: 0, behavior: "smooth" })}><Icon name="plus" size={16} />Tambah konten</button>
+          <button
+            type="button"
+            className="add-tail"
+            onClick={() =>
+              setAddOpen(true) ||
+              document
+                .getElementById('konten-main')
+                ?.scrollTo({ top: 0, behavior: 'smooth' })
+            }
+          >
+            <Icon name="plus" size={16} />
+            Tambah konten
+          </button>
         </div>
       </div>
-      {settingsOpen && <SettingsDrawer form={form} api={api} onClose={() => setSettingsOpen(false)} />}
+      {settingsOpen && (
+        <SettingsDrawer
+          form={form}
+          api={api}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
     </div>
   );
 }
 
 /* ---------- pengaturan form (drawer kanan) ---------- */
 const SETTING_GROUPS = [
-  ["Saat menyusun", [
-    ["requiredByDefault", "Pertanyaan baru otomatis wajib", "Lebih aman: pengurus jarang lupa mewajibkan, tapi sering lupa melepas. Ubah per pertanyaan lewat toggle Wajib."],
-  ]],
-  ["Tampilan responden", [
-    ["showNumbers", "Tampilkan nomor pertanyaan", "Nomor dihitung ulang dari pertanyaan yang sedang tampil, jadi tidak ada nomor yang loncat."],
-    ["showProgress", "Tampilkan progres pengisian", "Bilah tipis di atas: berapa pertanyaan tampil yang sudah terjawab."],
-    ["shuffleOptions", "Acak urutan pilihan jawaban", "Mengurangi bias urutan (pilihan pertama cenderung dipilih). Jangan dipakai untuk opsi yang berurutan logis, seperti skala atau angkatan."],
-    ["reviewBeforeSubmit", "Tampilkan ringkasan sebelum kirim", "Responden memeriksa semua jawaban dulu. Disarankan untuk form panjang seperti oprec."],
-  ]],
-  ["Keamanan data responden", [
-    ["autosaveDraft", "Simpan draf otomatis", "Jawaban tidak hilang saat tab tertutup atau sinyal putus; dipulihkan saat form dibuka lagi."],
-    ["confirmOnLeave", "Peringatkan saat meninggalkan halaman", "Muncul hanya bila ada jawaban yang belum terkirim."],
-  ]],
-  ["Akses & pengumpulan", [
-    ["collectIdentity", "Catat identitas dari akun ITB", "Nama dan NIM terisi otomatis. Matikan untuk survei anonim seperti evaluasi."],
-    ["oneResponsePerAccount", "Batasi satu respons per akun", "Mencegah pendaftaran ganda."],
-    ["allowEditAfterSubmit", "Izinkan mengedit setelah mengirim", "Responden bisa memperbaiki jawaban sampai form ditutup."],
-    ["notifyOnResponse", "Kirim notifikasi ke Inbox pengurus", "Satu notifikasi per respons masuk."],
-  ]],
+  [
+    'Saat menyusun',
+    [
+      [
+        'requiredByDefault',
+        'Pertanyaan baru otomatis wajib',
+        'Lebih aman: pengurus jarang lupa mewajibkan, tapi sering lupa melepas. Ubah per pertanyaan lewat toggle Wajib.',
+      ],
+    ],
+  ],
+  [
+    'Tampilan responden',
+    [
+      [
+        'showNumbers',
+        'Tampilkan nomor pertanyaan',
+        'Nomor dihitung ulang dari pertanyaan yang sedang tampil, jadi tidak ada nomor yang loncat.',
+      ],
+      [
+        'showProgress',
+        'Tampilkan progres pengisian',
+        'Bilah tipis di atas: berapa pertanyaan tampil yang sudah terjawab.',
+      ],
+      [
+        'shuffleOptions',
+        'Acak urutan pilihan jawaban',
+        'Mengurangi bias urutan (pilihan pertama cenderung dipilih). Jangan dipakai untuk opsi yang berurutan logis, seperti skala atau angkatan.',
+      ],
+      [
+        'reviewBeforeSubmit',
+        'Tampilkan ringkasan sebelum kirim',
+        'Responden memeriksa semua jawaban dulu. Disarankan untuk form panjang seperti oprec.',
+      ],
+    ],
+  ],
+  [
+    'Keamanan data responden',
+    [
+      [
+        'autosaveDraft',
+        'Simpan draf otomatis',
+        'Jawaban tidak hilang saat tab tertutup atau sinyal putus; dipulihkan saat form dibuka lagi.',
+      ],
+      [
+        'confirmOnLeave',
+        'Peringatkan saat meninggalkan halaman',
+        'Muncul hanya bila ada jawaban yang belum terkirim.',
+      ],
+    ],
+  ],
+  [
+    'Akses & pengumpulan',
+    [
+      [
+        'collectIdentity',
+        'Catat identitas dari akun ITB',
+        'Nama dan NIM terisi otomatis. Matikan untuk survei anonim seperti evaluasi.',
+      ],
+      [
+        'oneResponsePerAccount',
+        'Batasi satu respons per akun',
+        'Mencegah pendaftaran ganda.',
+      ],
+      [
+        'allowEditAfterSubmit',
+        'Izinkan mengedit setelah mengirim',
+        'Responden bisa memperbaiki jawaban sampai form ditutup.',
+      ],
+      [
+        'notifyOnResponse',
+        'Kirim notifikasi ke Inbox pengurus',
+        'Satu notifikasi per respons masuk.',
+      ],
+    ],
+  ],
 ];
 function SettingsDrawer({ form, api, onClose }) {
   const S = form.settings;
-  const set = (patch, key) => api.setMeta({ settings: { ...S, ...patch } }, key);
+  const set = (patch, key) =>
+    api.setMeta({ settings: { ...S, ...patch } }, key);
   const qs = form.blocks.filter(isQuestion);
   const optionalCount = qs.filter((b) => !b.required).length;
-  useEffect(() => { const k = (e) => e.key === "Escape" && onClose(); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, [onClose]);
+  useEffect(() => {
+    const k = (e) => e.key === 'Escape' && onClose();
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
+  }, [onClose]);
   return (
-    <div className="drawer-scrim" onPointerDown={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className="drawer" role="dialog" aria-modal="true" aria-label="Pengaturan form">
-        <div className="drawer-hd"><h3><Icon name="gear" size={18} />Pengaturan form</h3><button type="button" className="icon-btn" aria-label="Tutup" onClick={onClose}><Icon name="x" /></button></div>
+    <div
+      className="drawer-scrim"
+      onPointerDown={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <aside
+        className="drawer"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Pengaturan form"
+      >
+        <div className="drawer-hd">
+          <h3>
+            <Icon name="gear" size={18} />
+            Pengaturan form
+          </h3>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Tutup"
+            onClick={onClose}
+          >
+            <Icon name="x" />
+          </button>
+        </div>
         <div className="drawer-body">
           {SETTING_GROUPS.map(([g, items]) => (
             <section key={g} className="set-group">
               <h4>{g}</h4>
               {items.map(([k, label, help]) => (
                 <div key={k} className="set-row">
-                  <div className="set-txt"><label htmlFor={`set-${k}`}>{label}</label><small>{help}</small>
-                    {k === "requiredByDefault" && optionalCount > 0 && <button type="button" className="lnk" onClick={() => { api.mutateBlocks((bs) => bs.map((b) => (isQuestion(b) ? { ...b, required: true } : b))); api.toast(`${optionalCount} pertanyaan dijadikan wajib`); }}>Jadikan {optionalCount} pertanyaan opsional yang ada sebagai wajib</button>}
-                    {k === "oneResponsePerAccount" && !S.collectIdentity && S.oneResponsePerAccount && <small className="warn-txt">Form anonim: pembatasan tetap berjalan lewat sidik akun, tapi identitas tidak disimpan.</small>}
+                  <div className="set-txt">
+                    <label htmlFor={`set-${k}`}>{label}</label>
+                    <small>{help}</small>
+                    {k === 'requiredByDefault' && optionalCount > 0 && (
+                      <button
+                        type="button"
+                        className="lnk"
+                        onClick={() => {
+                          api.mutateBlocks((bs) =>
+                            bs.map((b) =>
+                              isQuestion(b) ? { ...b, required: true } : b,
+                            ),
+                          );
+                          api.toast(
+                            `${optionalCount} pertanyaan dijadikan wajib`,
+                          );
+                        }}
+                      >
+                        Jadikan {optionalCount} pertanyaan opsional yang ada
+                        sebagai wajib
+                      </button>
+                    )}
+                    {k === 'oneResponsePerAccount' &&
+                      !S.collectIdentity &&
+                      S.oneResponsePerAccount && (
+                        <small className="warn-txt">
+                          Form anonim: pembatasan tetap berjalan lewat sidik
+                          akun, tapi identitas tidak disimpan.
+                        </small>
+                      )}
                   </div>
-                  <Toggle id={`set-${k}`} on={S[k]} onChange={(v) => set({ [k]: v })} />
+                  <Toggle
+                    id={`set-${k}`}
+                    on={S[k]}
+                    onChange={(v) => set({ [k]: v })}
+                  />
                 </div>
               ))}
             </section>
@@ -1340,8 +3199,18 @@ function SettingsDrawer({ form, api, onClose }) {
             <h4>Penutupan</h4>
             <div className="set-row col">
               <label htmlFor="set-closed">Pesan saat form ditutup</label>
-              <small>Tampil saat tenggat lewat ({fmtDeadline(form.closesAt)}) atau kuota {form.maxResponses || "∞"} responden terpenuhi.</small>
-              <textarea id="set-closed" rows="2" value={S.closedMessage} onChange={(e) => set({ closedMessage: e.target.value }, "closedMsg")} />
+              <small>
+                Tampil saat tenggat lewat ({fmtDeadline(form.closesAt)}) atau
+                kuota {form.maxResponses || '∞'} responden terpenuhi.
+              </small>
+              <textarea
+                id="set-closed"
+                rows="2"
+                value={S.closedMessage}
+                onChange={(e) =>
+                  set({ closedMessage: e.target.value }, 'closedMsg')
+                }
+              />
             </div>
           </section>
         </div>
@@ -1357,53 +3226,196 @@ function RuleValueInput({ src, rule, onChange }) {
   const d = opDef(src.type, rule.op);
   if (!d || d[2] === 0) return null;
   const p = src.props || {};
-  if (d[2] === "multi") {
+  if (d[2] === 'multi') {
     const cur = rule.value || [];
     return (
       <div className="cv-multi" role="group" aria-label="Pilih opsi">
         {p.options.map((o) => {
           const on = cur.includes(o.id);
-          return <button type="button" key={o.id} aria-pressed={on} className={"cv-chip" + (on ? " on" : "")} onClick={() => onChange({ value: on ? cur.filter((x) => x !== o.id) : [...cur, o.id] })}>{on && <Icon name="check" size={12} sw={2.6} />}{o.label || "(kosong)"}</button>;
+          return (
+            <button
+              type="button"
+              key={o.id}
+              aria-pressed={on}
+              className={'cv-chip' + (on ? ' on' : '')}
+              onClick={() =>
+                onChange({
+                  value: on ? cur.filter((x) => x !== o.id) : [...cur, o.id],
+                })
+              }
+            >
+              {on && <Icon name="check" size={12} sw={2.6} />}
+              {o.label || '(kosong)'}
+            </button>
+          );
         })}
       </div>
     );
   }
-  if (d[2] === "cell") {
+  if (d[2] === 'cell') {
     return (
       <>
-        <select aria-label="Baris" value={rule.value || ""} onChange={(e) => onChange({ value: e.target.value })}><option value="" disabled>Baris…</option>{p.rows.map((r) => <option key={r.id} value={r.id}>{r.label}</option>)}</select>
-        <select aria-label="Kolom" value={rule.value2 || ""} onChange={(e) => onChange({ value2: e.target.value })}><option value="" disabled>Kolom…</option>{p.cols.map((c) => <option key={c.id} value={c.id}>{c.label}</option>)}</select>
+        <select
+          aria-label="Baris"
+          value={rule.value || ''}
+          onChange={(e) => onChange({ value: e.target.value })}
+        >
+          <option value="" disabled>
+            Baris…
+          </option>
+          {p.rows.map((r) => (
+            <option key={r.id} value={r.id}>
+              {r.label}
+            </option>
+          ))}
+        </select>
+        <select
+          aria-label="Kolom"
+          value={rule.value2 || ''}
+          onChange={(e) => onChange({ value2: e.target.value })}
+        >
+          <option value="" disabled>
+            Kolom…
+          </option>
+          {p.cols.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.label}
+            </option>
+          ))}
+        </select>
       </>
     );
   }
-  if (TYPES[src.type].options && !["count_gte", "count_lte"].includes(rule.op)) {
-    return <select aria-label="Nilai" value={rule.value || ""} onChange={(e) => onChange({ value: e.target.value })}><option value="" disabled>Pilih opsi…</option>{p.options.map((o) => <option key={o.id} value={o.id}>{o.label || "(kosong)"}</option>)}</select>;
+  if (
+    TYPES[src.type].options &&
+    !['count_gte', 'count_lte'].includes(rule.op)
+  ) {
+    return (
+      <select
+        aria-label="Nilai"
+        value={rule.value || ''}
+        onChange={(e) => onChange({ value: e.target.value })}
+      >
+        <option value="" disabled>
+          Pilih opsi…
+        </option>
+        {p.options.map((o) => (
+          <option key={o.id} value={o.id}>
+            {o.label || '(kosong)'}
+          </option>
+        ))}
+      </select>
+    );
   }
-  let type = "text", ph = "teks";
-  if (src.type === "number" || src.type === "scale" || /^(count|len)_/.test(rule.op)) { type = "number"; ph = "0"; }
-  if (src.type === "date") type = p.mode === "time" ? "time" : "date";
-  const one = (k) => <input aria-label={k === "value" ? "Nilai" : "Nilai akhir"} type={type} step="any" placeholder={ph} value={rule[k] ?? ""} onChange={(e) => onChange({ [k]: e.target.value })} />;
-  return d[2] === 2 ? <>{one("value")}<span className="cv-and">dan</span>{one("value2")}</> : one("value");
+  let type = 'text',
+    ph = 'teks';
+  if (
+    src.type === 'number' ||
+    src.type === 'scale' ||
+    /^(count|len)_/.test(rule.op)
+  ) {
+    type = 'number';
+    ph = '0';
+  }
+  if (src.type === 'date') type = p.mode === 'time' ? 'time' : 'date';
+  const one = (k) => (
+    <input
+      aria-label={k === 'value' ? 'Nilai' : 'Nilai akhir'}
+      type={type}
+      step="any"
+      placeholder={ph}
+      value={rule[k] ?? ''}
+      onChange={(e) => onChange({ [k]: e.target.value })}
+    />
+  );
+  return d[2] === 2 ? (
+    <>
+      {one('value')}
+      <span className="cv-and">dan</span>
+      {one('value2')}
+    </>
+  ) : (
+    one('value')
+  );
 }
 
-function ConditionRow({ form, sources, rule, onChange, onRemove, fixedSrc, invalid }) {
+function ConditionRow({
+  form,
+  sources,
+  rule,
+  onChange,
+  onRemove,
+  fixedSrc,
+  invalid,
+}) {
   const src = form.blocks.find((b) => b.id === rule.src);
   return (
-    <div className={"cv-row" + (invalid ? " bad" : "")}>
+    <div className={'cv-row' + (invalid ? ' bad' : '')}>
       {!fixedSrc && (
-        <select className="cv-src" aria-label="Pertanyaan sumber" value={src ? rule.src : ""} onChange={(e) => { const s = form.blocks.find((b) => b.id === e.target.value); onChange({ src: s.id, op: opsFor(s.type)[0][0], value: null, value2: null }); }}>
-          {!src && <option value="" disabled>(sumber dihapus)</option>}
-          {invalid && src && <option value={src.id}>⚠ {blockLabel(form, src.id, 34)} (ada di bawah)</option>}
-          {sources.map((s) => <option key={s.id} value={s.id}>{blockLabel(form, s.id, 40)}</option>)}
+        <select
+          className="cv-src"
+          aria-label="Pertanyaan sumber"
+          value={src ? rule.src : ''}
+          onChange={(e) => {
+            const s = form.blocks.find((b) => b.id === e.target.value);
+            onChange({
+              src: s.id,
+              op: opsFor(s.type)[0][0],
+              value: null,
+              value2: null,
+            });
+          }}
+        >
+          {!src && (
+            <option value="" disabled>
+              (sumber dihapus)
+            </option>
+          )}
+          {invalid && src && (
+            <option value={src.id}>
+              ⚠ {blockLabel(form, src.id, 34)} (ada di bawah)
+            </option>
+          )}
+          {sources.map((s) => (
+            <option key={s.id} value={s.id}>
+              {blockLabel(form, s.id, 40)}
+            </option>
+          ))}
         </select>
       )}
       {src && (
-        <select className="cv-op" aria-label="Operator" value={rule.op} onChange={(e) => onChange({ op: e.target.value, value: opDef(src.type, e.target.value)?.[2] === "multi" ? [] : null, value2: null })}>
-          {opsFor(src.type).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+        <select
+          className="cv-op"
+          aria-label="Operator"
+          value={rule.op}
+          onChange={(e) =>
+            onChange({
+              op: e.target.value,
+              value:
+                opDef(src.type, e.target.value)?.[2] === 'multi' ? [] : null,
+              value2: null,
+            })
+          }
+        >
+          {opsFor(src.type).map(([k, l]) => (
+            <option key={k} value={k}>
+              {l}
+            </option>
+          ))}
         </select>
       )}
       {src && <RuleValueInput src={src} rule={rule} onChange={onChange} />}
-      {onRemove && <button type="button" className="icon-btn ghost xs cv-x" aria-label="Hapus kondisi" title="Hapus kondisi" onClick={onRemove}><Icon name="x" size={14} /></button>}
+      {onRemove && (
+        <button
+          type="button"
+          className="icon-btn ghost xs cv-x"
+          aria-label="Hapus kondisi"
+          title="Hapus kondisi"
+          onClick={onRemove}
+        >
+          <Icon name="x" size={14} />
+        </button>
+      )}
     </div>
   );
 }
@@ -1413,18 +3425,38 @@ function ConditionBuilder({ form, block, api }) {
   const sources = form.blocks.slice(0, idx).filter(isQuestion);
   const cond = block.cond || emptyCond();
   const set = (c, key) => api.update(block.id, { cond: c }, key);
-  const upd = (rid, patch, key) => set({ ...cond, rules: cond.rules.map((r) => (r.id === rid ? { ...r, ...patch } : r)) }, key);
-  if (!sources.length) return <p className="muted small">Belum ada pertanyaan sebelum blok ini yang bisa dijadikan syarat. Pindahkan blok ini ke bawah atau tambah pertanyaan di atasnya.</p>;
+  const upd = (rid, patch, key) =>
+    set(
+      {
+        ...cond,
+        rules: cond.rules.map((r) => (r.id === rid ? { ...r, ...patch } : r)),
+      },
+      key,
+    );
+  if (!sources.length)
+    return (
+      <p className="muted small">
+        Belum ada pertanyaan sebelum blok ini yang bisa dijadikan syarat.
+        Pindahkan blok ini ke bawah atau tambah pertanyaan di atasnya.
+      </p>
+    );
   return (
     <div className="cv">
       {cond.rules.length === 0 ? (
-        <p className="muted small">Selalu tampil. Tambah kondisi agar blok ini hanya muncul setelah prasyaratnya terjawab sesuai aturan.</p>
+        <p className="muted small">
+          Selalu tampil. Tambah kondisi agar blok ini hanya muncul setelah
+          prasyaratnya terjawab sesuai aturan.
+        </p>
       ) : (
         <>
           {cond.rules.length > 1 && (
             <div className="cv-match">
               Tampilkan bila
-              <select aria-label="Cara menggabungkan kondisi" value={cond.match} onChange={(e) => set({ ...cond, match: e.target.value })}>
+              <select
+                aria-label="Cara menggabungkan kondisi"
+                value={cond.match}
+                onChange={(e) => set({ ...cond, match: e.target.value })}
+              >
                 <option value="all">SEMUA kondisi terpenuhi</option>
                 <option value="any">SALAH SATU kondisi terpenuhi</option>
               </select>
@@ -1432,13 +3464,38 @@ function ConditionBuilder({ form, block, api }) {
           )}
           {cond.rules.map((r, i) => (
             <React.Fragment key={r.id}>
-              {i > 0 && <span className="cv-join">{cond.match === "any" ? "ATAU" : "DAN"}</span>}
-              <ConditionRow form={form} sources={sources} rule={r} invalid={!ruleValid(form, idx, r)} onChange={(patch) => upd(r.id, patch, `cv:${r.id}`)} onRemove={() => set({ ...cond, rules: cond.rules.filter((x) => x.id !== r.id) })} />
+              {i > 0 && (
+                <span className="cv-join">
+                  {cond.match === 'any' ? 'ATAU' : 'DAN'}
+                </span>
+              )}
+              <ConditionRow
+                form={form}
+                sources={sources}
+                rule={r}
+                invalid={!ruleValid(form, idx, r)}
+                onChange={(patch) => upd(r.id, patch, `cv:${r.id}`)}
+                onRemove={() =>
+                  set({
+                    ...cond,
+                    rules: cond.rules.filter((x) => x.id !== r.id),
+                  })
+                }
+              />
             </React.Fragment>
           ))}
         </>
       )}
-      <button type="button" className="lnk" onClick={() => { const s = sources[sources.length - 1]; set({ ...cond, rules: [...cond.rules, newRule(s.id, s.type)] }); }}><Icon name="plus" size={13} /> Tambah kondisi</button>
+      <button
+        type="button"
+        className="lnk"
+        onClick={() => {
+          const s = sources[sources.length - 1];
+          set({ ...cond, rules: [...cond.rules, newRule(s.id, s.type)] });
+        }}
+      >
+        <Icon name="plus" size={13} /> Tambah kondisi
+      </button>
     </div>
   );
 }
@@ -1448,64 +3505,125 @@ function ConditionBuilder({ form, block, api }) {
    Jalur utama = blok tanpa syarat. Cabang = blok bersyarat, digantung di
    bawah/atas sumbernya; blok berurutan dengan syarat identik jadi satu cabang.
    ===================================================================== */
-const NW = 210, NH = 86, COLX = 300, ROWY = 132;
-const condKey = (form, b) => JSON.stringify([b.cond.match, validRules(form, b).map((r) => [r.src, r.op, r.value, r.value2])]);
+const NW = 210,
+  NH = 86,
+  COLX = 300,
+  ROWY = 132;
+const condKey = (form, b) =>
+  JSON.stringify([
+    b.cond.match,
+    validRules(form, b).map((r) => [r.src, r.op, r.value, r.value2]),
+  ]);
 
 function layoutFlow(form) {
   const blocks = form.blocks;
-  const pos = {}, col = {}, row = {}, edges = [];
+  const pos = {},
+    col = {},
+    row = {},
+    edges = [];
   const rowLast = { 0: -1 };
-  let maxCol = -1, prevSpine = null, prev = null;
-  const nonEnd = blocks.filter((b) => b.type !== "ending");
+  let maxCol = -1,
+    prevSpine = null,
+    prev = null;
+  const nonEnd = blocks.filter((b) => b.type !== 'ending');
   nonEnd.forEach((b) => {
     const cnd = isConditional(form, b);
     if (!cnd) {
-      col[b.id] = maxCol + 1; row[b.id] = 0;
-      if (prevSpine) edges.push({ id: `s-${b.id}`, from: prevSpine, to: b.id, kind: "seq" });
+      col[b.id] = maxCol + 1;
+      row[b.id] = 0;
+      if (prevSpine)
+        edges.push({ id: `s-${b.id}`, from: prevSpine, to: b.id, kind: 'seq' });
       prevSpine = b.id;
-    } else if (prev && isConditional(form, prev) && condKey(form, prev) === condKey(form, b)) {
-      col[b.id] = col[prev.id] + 1; row[b.id] = row[prev.id];
-      edges.push({ id: `c-${b.id}`, from: prev.id, to: b.id, kind: "seq" });
+    } else if (
+      prev &&
+      isConditional(form, prev) &&
+      condKey(form, prev) === condKey(form, b)
+    ) {
+      col[b.id] = col[prev.id] + 1;
+      row[b.id] = row[prev.id];
+      edges.push({ id: `c-${b.id}`, from: prev.id, to: b.id, kind: 'seq' });
     } else {
       const rules = validRules(form, b);
-      const anchor = rules.map((r) => r.src).sort((x, y) => blocks.findIndex((q) => q.id === y) - blocks.findIndex((q) => q.id === x))[0];
+      const anchor = rules
+        .map((r) => r.src)
+        .sort(
+          (x, y) =>
+            blocks.findIndex((q) => q.id === y) -
+            blocks.findIndex((q) => q.id === x),
+        )[0];
       const c = col[anchor] + 1;
       let r = null;
-      if (row[anchor] !== 0 && (rowLast[row[anchor]] ?? -1) < c) r = row[anchor];
-      for (const cand of [1, -1, 2, -2, 3, -3, 4, -4, 5, -5]) { if (r !== null) break; if ((rowLast[cand] ?? -1) < c) r = cand; }
-      col[b.id] = c; row[b.id] = r ?? 6;
-      rules.forEach((rl) => edges.push({ id: `k-${b.id}-${rl.id}`, from: rl.src, to: b.id, kind: "cond", rule: rl, match: b.cond.match, multi: rules.length > 1 }));
+      if (row[anchor] !== 0 && (rowLast[row[anchor]] ?? -1) < c)
+        r = row[anchor];
+      for (const cand of [1, -1, 2, -2, 3, -3, 4, -4, 5, -5]) {
+        if (r !== null) break;
+        if ((rowLast[cand] ?? -1) < c) r = cand;
+      }
+      col[b.id] = c;
+      row[b.id] = r ?? 6;
+      rules.forEach((rl) =>
+        edges.push({
+          id: `k-${b.id}-${rl.id}`,
+          from: rl.src,
+          to: b.id,
+          kind: 'cond',
+          rule: rl,
+          match: b.cond.match,
+          multi: rules.length > 1,
+        }),
+      );
     }
     rowLast[row[b.id]] = Math.max(rowLast[row[b.id]] ?? -1, col[b.id]);
     maxCol = Math.max(maxCol, col[b.id]);
     prev = b;
   });
   /* cabang kembali ke jalur utama: dari ujung tiap cabang ke blok tanpa syarat berikutnya */
-  const ends = blocks.filter((b) => b.type === "ending");
+  const ends = blocks.filter((b) => b.type === 'ending');
   const uncondEnd = ends.find((e) => !isConditional(form, e));
   const endCol = maxCol + 1;
   nonEnd.forEach((b, i) => {
     if (!isConditional(form, b)) return;
     const nx = nonEnd[i + 1];
-    if (nx && isConditional(form, nx) && condKey(form, nx) === condKey(form, b)) return;
+    if (nx && isConditional(form, nx) && condKey(form, nx) === condKey(form, b))
+      return;
     const target = nonEnd.slice(i + 1).find((x) => !isConditional(form, x));
     const to = target ? target.id : uncondEnd ? uncondEnd.id : END;
-    edges.push({ id: `j-${b.id}`, from: b.id, to, kind: "rejoin" });
+    edges.push({ id: `j-${b.id}`, from: b.id, to, kind: 'rejoin' });
     if (target) col[target.id] = Math.max(col[target.id], col[b.id] + 1);
   });
   /* rapikan ulang kolom jalur utama setelah rejoin mendorong ke kanan */
-  let shift = 0, last = -1;
-  nonEnd.forEach((b) => { if (!isConditional(form, b)) { col[b.id] = Math.max(col[b.id], last + 1); last = col[b.id]; } else last = Math.max(last, col[b.id]); });
+  let shift = 0,
+    last = -1;
+  nonEnd.forEach((b) => {
+    if (!isConditional(form, b)) {
+      col[b.id] = Math.max(col[b.id], last + 1);
+      last = col[b.id];
+    } else last = Math.max(last, col[b.id]);
+  });
   maxCol = Math.max(-1, ...nonEnd.map((b) => col[b.id]));
   /* ending di kolom terakhir */
   const ids = nonEnd.map((b) => b.id);
   const endRows = [0, 1, -1, 2, -2, 3, -3];
   const endList = ends.length ? ends : [{ id: END }];
   endList.forEach((e, i) => {
-    col[e.id] = maxCol + 1; row[e.id] = endRows[i] ?? i;
+    col[e.id] = maxCol + 1;
+    row[e.id] = endRows[i] ?? i;
     ids.push(e.id);
-    if (e.id === END || !isConditional(form, e)) { if (prevSpine) edges.push({ id: `e-${e.id}`, from: prevSpine, to: e.id, kind: "seq" }); }
-    else validRules(form, e).forEach((rl) => edges.push({ id: `k-${e.id}-${rl.id}`, from: rl.src, to: e.id, kind: "cond", rule: rl, match: e.cond.match, multi: validRules(form, e).length > 1 }));
+    if (e.id === END || !isConditional(form, e)) {
+      if (prevSpine)
+        edges.push({ id: `e-${e.id}`, from: prevSpine, to: e.id, kind: 'seq' });
+    } else
+      validRules(form, e).forEach((rl) =>
+        edges.push({
+          id: `k-${e.id}-${rl.id}`,
+          from: rl.src,
+          to: e.id,
+          kind: 'cond',
+          rule: rl,
+          match: e.cond.match,
+          multi: validRules(form, e).length > 1,
+        }),
+      );
   });
   ids.forEach((id) => (pos[id] = { x: col[id] * COLX, y: row[id] * ROWY }));
   void shift;
@@ -1518,32 +3636,65 @@ function FlowView({ form, api, focusId }) {
   const worldRef = useRef(null);
   const view = useRef({ x: 40, y: 0, k: 1 });
   const { pos, edges, ids } = useMemo(() => layoutFlow(form), [form]);
-  const invalidCount = useMemo(() => form.blocks.reduce((n, b, i) => n + (b.cond?.rules || []).filter((r) => !ruleValid(form, i, r)).length, 0), [form]);
+  const invalidCount = useMemo(
+    () =>
+      form.blocks.reduce(
+        (n, b, i) =>
+          n +
+          (b.cond?.rules || []).filter((r) => !ruleValid(form, i, r)).length,
+        0,
+      ),
+    [form],
+  );
   const condCount = form.blocks.filter((b) => isConditional(form, b)).length;
 
-  const apply = () => { const v = view.current; if (worldRef.current) worldRef.current.style.transform = `translate(${v.x}px,${v.y}px) scale(${v.k})`; };
+  const apply = () => {
+    const v = view.current;
+    if (worldRef.current)
+      worldRef.current.style.transform = `translate(${v.x}px,${v.y}px) scale(${v.k})`;
+  };
   const fit = useCallback(() => {
     const w = wrapRef.current;
     if (!w) return;
     const xs = Object.values(pos);
     if (!xs.length) return;
-    const minX = Math.min(...xs.map((p) => p.x)), maxX = Math.max(...xs.map((p) => p.x)) + NW;
-    const minY = Math.min(...xs.map((p) => p.y)) - NH / 2 - 20, maxY = Math.max(...xs.map((p) => p.y)) + NH / 2 + 20;
-    const W = w.clientWidth, H = w.clientHeight;
-    const k = clamp(Math.min((W - 80) / (maxX - minX), (H - 80) / (maxY - minY)), 0.62, 1.1);
+    const minX = Math.min(...xs.map((p) => p.x)),
+      maxX = Math.max(...xs.map((p) => p.x)) + NW;
+    const minY = Math.min(...xs.map((p) => p.y)) - NH / 2 - 20,
+      maxY = Math.max(...xs.map((p) => p.y)) + NH / 2 + 20;
+    const W = w.clientWidth,
+      H = w.clientHeight;
+    const k = clamp(
+      Math.min((W - 80) / (maxX - minX), (H - 80) / (maxY - minY)),
+      0.62,
+      1.1,
+    );
     const fitsX = (maxX - minX) * k <= W - 80;
-    view.current = { k, x: fitsX ? (W - (maxX - minX) * k) / 2 - minX * k : 40 - minX * k, y: (H - (maxY - minY) * k) / 2 - minY * k };
+    view.current = {
+      k,
+      x: fitsX ? (W - (maxX - minX) * k) / 2 - minX * k : 40 - minX * k,
+      y: (H - (maxY - minY) * k) / 2 - minY * k,
+    };
     apply();
   }, [pos]);
-  useLayoutEffect(() => { fit(); }, [form.id]); // eslint-disable-line
-  useEffect(() => { const r = () => fit(); window.addEventListener("resize", r); return () => window.removeEventListener("resize", r); }, [fit]);
+  useLayoutEffect(() => {
+    fit();
+  }, [form.id]); // eslint-disable-line
+  useEffect(() => {
+    const r = () => fit();
+    window.addEventListener('resize', r);
+    return () => window.removeEventListener('resize', r);
+  }, [fit]);
 
   const zoomAt = (factor, cx, cy) => {
     const v = view.current;
     const k = clamp(v.k * factor, 0.3, 2);
     const r = wrapRef.current.getBoundingClientRect();
-    const px = cx ?? r.width / 2, py = cy ?? r.height / 2;
-    v.x = px - ((px - v.x) * k) / v.k; v.y = py - ((py - v.y) * k) / v.k; v.k = k;
+    const px = cx ?? r.width / 2,
+      py = cy ?? r.height / 2;
+    v.x = px - ((px - v.x) * k) / v.k;
+    v.y = py - ((py - v.y) * k) / v.k;
+    v.k = k;
     apply();
   };
   useEffect(() => {
@@ -1552,11 +3703,20 @@ function FlowView({ form, api, focusId }) {
     const onWheel = (e) => {
       e.preventDefault();
       const r = w.getBoundingClientRect();
-      if (e.ctrlKey || e.metaKey) zoomAt(Math.exp(-e.deltaY * 0.01), e.clientX - r.left, e.clientY - r.top);
-      else { view.current.x -= e.deltaX; view.current.y -= e.deltaY; apply(); }
+      if (e.ctrlKey || e.metaKey)
+        zoomAt(
+          Math.exp(-e.deltaY * 0.01),
+          e.clientX - r.left,
+          e.clientY - r.top,
+        );
+      else {
+        view.current.x -= e.deltaX;
+        view.current.y -= e.deltaY;
+        apply();
+      }
     };
-    w.addEventListener("wheel", onWheel, { passive: false });
-    return () => w.removeEventListener("wheel", onWheel);
+    w.addEventListener('wheel', onWheel, { passive: false });
+    return () => w.removeEventListener('wheel', onWheel);
   });
 
   /* pan: rAF + transform langsung; seleksi di pointerdown (pointer capture menelan click) */
@@ -1564,94 +3724,258 @@ function FlowView({ form, api, focusId }) {
   const raf = useRef(0);
   const onDown = (e) => {
     if (e.button !== 0) return;
-    const node = e.target.closest("[data-node]");
-    pan.current = { x0: e.clientX, y0: e.clientY, vx: view.current.x, vy: view.current.y, node: node?.dataset.node, moved: false };
+    const node = e.target.closest('[data-node]');
+    pan.current = {
+      x0: e.clientX,
+      y0: e.clientY,
+      vx: view.current.x,
+      vy: view.current.y,
+      node: node?.dataset.node,
+      moved: false,
+    };
     if (node && node.dataset.node !== END) setSel(node.dataset.node);
-    try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {}
   };
   const onMove = (e) => {
     const p = pan.current;
     if (!p) return;
-    const dx = e.clientX - p.x0, dy = e.clientY - p.y0;
+    const dx = e.clientX - p.x0,
+      dy = e.clientY - p.y0;
     if (!p.moved && Math.hypot(dx, dy) < 3) return;
     p.moved = true;
-    view.current.x = p.vx + dx; view.current.y = p.vy + dy;
+    view.current.x = p.vx + dx;
+    view.current.y = p.vy + dy;
     cancelAnimationFrame(raf.current);
     raf.current = requestAnimationFrame(apply);
-    wrapRef.current.classList.add("panning");
+    wrapRef.current.classList.add('panning');
   };
   const onUp = () => {
     const p = pan.current;
     pan.current = null;
-    wrapRef.current?.classList.remove("panning");
+    wrapRef.current?.classList.remove('panning');
     if (p && !p.moved && !p.node) setSel(null);
   };
 
   const selBlock = form.blocks.find((b) => b.id === sel);
   const bounds = useMemo(() => {
     const xs = Object.values(pos);
-    return { w: Math.max(...xs.map((p) => p.x)) + NW + 400, minY: Math.min(...xs.map((p) => p.y)) - 400, maxY: Math.max(...xs.map((p) => p.y)) + 400 };
+    return {
+      w: Math.max(...xs.map((p) => p.x)) + NW + 400,
+      minY: Math.min(...xs.map((p) => p.y)) - 400,
+      maxY: Math.max(...xs.map((p) => p.y)) + 400,
+    };
   }, [pos]);
 
   return (
     <div className="flow">
       <div className="flow-bar">
-        <span className="legend"><i className="lg-def" />Jalur utama</span>
-        <span className="legend"><i className="lg-rule" />Kondisi tampil</span>
-        <span className="legend"><i className="lg-else" />Kembali ke jalur utama</span>
+        <span className="legend">
+          <i className="lg-def" />
+          Jalur utama
+        </span>
+        <span className="legend">
+          <i className="lg-rule" />
+          Kondisi tampil
+        </span>
+        <span className="legend">
+          <i className="lg-else" />
+          Kembali ke jalur utama
+        </span>
         <span className="sp" />
         <span className="muted small">{condCount} blok bersyarat</span>
-        {invalidCount > 0 && <span className="warn-chip danger"><Icon name="alert" size={14} />{invalidCount} kondisi merujuk pertanyaan di bawahnya, diabaikan</span>}
+        {invalidCount > 0 && (
+          <span className="warn-chip danger">
+            <Icon name="alert" size={14} />
+            {invalidCount} kondisi merujuk pertanyaan di bawahnya, diabaikan
+          </span>
+        )}
       </div>
       <div className="flow-body">
-        <div className="flow-canvas" ref={wrapRef} onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp}>
+        <div
+          className="flow-canvas"
+          ref={wrapRef}
+          onPointerDown={onDown}
+          onPointerMove={onMove}
+          onPointerUp={onUp}
+          onPointerCancel={onUp}
+        >
           <div className="world" ref={worldRef}>
-            <svg className="edges" width={bounds.w} height={bounds.maxY - bounds.minY} style={{ top: bounds.minY }} viewBox={`0 ${bounds.minY} ${bounds.w} ${bounds.maxY - bounds.minY}`} aria-hidden="true">
+            <svg
+              className="edges"
+              width={bounds.w}
+              height={bounds.maxY - bounds.minY}
+              style={{ top: bounds.minY }}
+              viewBox={`0 ${bounds.minY} ${bounds.w} ${bounds.maxY - bounds.minY}`}
+              aria-hidden="true"
+            >
               <defs>
-                <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--edge)" /></marker>
-                <marker id="ahr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 10 5 0 10z" fill="var(--accent)" /></marker>
+                <marker
+                  id="ah"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0 0 10 5 0 10z" fill="var(--edge)" />
+                </marker>
+                <marker
+                  id="ahr"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="7"
+                  markerHeight="7"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M0 0 10 5 0 10z" fill="var(--accent)" />
+                </marker>
               </defs>
               {edges.map((e) => {
-                const a = pos[e.from], b = pos[e.to];
+                const a = pos[e.from],
+                  b = pos[e.to];
                 if (!a || !b) return null;
-                const x1 = a.x + NW, y1 = a.y, x2 = b.x - 4, y2 = b.y;
+                const x1 = a.x + NW,
+                  y1 = a.y,
+                  x2 = b.x - 4,
+                  y2 = b.y;
                 const mx = (x1 + x2) / 2;
                 const d = `M${x1} ${y1} C${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`;
                 const hl = sel && (e.from === sel || e.to === sel);
-                return <path key={e.id} d={d} className={`edge ${e.kind}${hl ? " hl" : ""}`} markerEnd={e.kind === "cond" ? "url(#ahr)" : "url(#ah)"} />;
+                return (
+                  <path
+                    key={e.id}
+                    d={d}
+                    className={`edge ${e.kind}${hl ? ' hl' : ''}`}
+                    markerEnd={e.kind === 'cond' ? 'url(#ahr)' : 'url(#ah)'}
+                  />
+                );
               })}
             </svg>
-            {edges.filter((e) => e.kind === "cond").map((e) => {
-              const a = pos[e.from], b = pos[e.to];
-              if (!a || !b) return null;
-              const txt = (e.multi ? (e.match === "any" ? "atau " : "dan ") : "") + condText(form, e.rule, false).replace(/^Jawaban /, "");
-              const x = b.x - 70, y = b.y - NH / 2 - 14;
-              return <div key={e.id + "l"} className="edge-lbl rule" style={{ left: x, top: y }} title={condText(form, e.rule)}>{txt}</div>;
-            })}
+            {edges
+              .filter((e) => e.kind === 'cond')
+              .map((e) => {
+                const a = pos[e.from],
+                  b = pos[e.to];
+                if (!a || !b) return null;
+                const txt =
+                  (e.multi ? (e.match === 'any' ? 'atau ' : 'dan ') : '') +
+                  condText(form, e.rule, false).replace(/^Jawaban /, '');
+                const x = b.x - 70,
+                  y = b.y - NH / 2 - 14;
+                return (
+                  <div
+                    key={e.id + 'l'}
+                    className="edge-lbl rule"
+                    style={{ left: x, top: y }}
+                    title={condText(form, e.rule)}
+                  >
+                    {txt}
+                  </div>
+                );
+              })}
             {ids.map((id) => {
               const p = pos[id];
-              if (id === END) return <div key={id} data-node={id} className="node end-node" style={{ left: p.x, top: p.y - NH / 2 }}><div className="node-hd"><Icon name="checkCircle" size={14} />Selesai (bawaan)</div><div className="node-tx">Belum ada ending screen</div></div>;
+              if (id === END)
+                return (
+                  <div
+                    key={id}
+                    data-node={id}
+                    className="node end-node"
+                    style={{ left: p.x, top: p.y - NH / 2 }}
+                  >
+                    <div className="node-hd">
+                      <Icon name="checkCircle" size={14} />
+                      Selesai (bawaan)
+                    </div>
+                    <div className="node-tx">Belum ada ending screen</div>
+                  </div>
+                );
               const b = form.blocks.find((x) => x.id === id);
               const num = questionNumber(form, id);
               const cnd = isConditional(form, b);
-              const deps = form.blocks.filter((x) => validRules(form, x).some((r) => r.src === id)).length;
+              const deps = form.blocks.filter((x) =>
+                validRules(form, x).some((r) => r.src === id),
+              ).length;
               return (
-                <div key={id} data-node={id} className={"node t-" + b.type + (sel === id ? " sel" : "") + (cnd ? " cnd" : "")} style={{ left: p.x, top: p.y - NH / 2 }}>
-                  <div className="node-hd"><Icon name={cnd ? "cond" : TYPES[b.type].icon} size={14} />{num ? `${num} · ` : ""}{TYPES[b.type].label}{b.required && isQuestion(b) && <span className="req-dot" />}</div>
-                  <div className="node-tx">{stripHtml(b.title) || <i className="muted">Tanpa judul</i>}</div>
-                  {deps > 0 && <span className="node-branch" title={`Memicu ${deps} blok`}>{deps}</span>}
+                <div
+                  key={id}
+                  data-node={id}
+                  className={
+                    'node t-' +
+                    b.type +
+                    (sel === id ? ' sel' : '') +
+                    (cnd ? ' cnd' : '')
+                  }
+                  style={{ left: p.x, top: p.y - NH / 2 }}
+                >
+                  <div className="node-hd">
+                    <Icon name={cnd ? 'cond' : TYPES[b.type].icon} size={14} />
+                    {num ? `${num} · ` : ''}
+                    {TYPES[b.type].label}
+                    {b.required && isQuestion(b) && (
+                      <span className="req-dot" />
+                    )}
+                  </div>
+                  <div className="node-tx">
+                    {stripHtml(b.title) || <i className="muted">Tanpa judul</i>}
+                  </div>
+                  {deps > 0 && (
+                    <span className="node-branch" title={`Memicu ${deps} blok`}>
+                      {deps}
+                    </span>
+                  )}
                 </div>
               );
             })}
           </div>
           <div className="zoom">
-            <button type="button" className="icon-btn" aria-label="Perkecil" title="Perkecil" onClick={() => zoomAt(1 / 1.2)}><Icon name="zoomOut" size={20} /></button>
-            <button type="button" className="icon-btn" aria-label="Perbesar" title="Perbesar" onClick={() => zoomAt(1.2)}><Icon name="zoomIn" size={20} /></button>
-            <button type="button" className="icon-btn" aria-label="Paskan ke layar" title="Paskan ke layar" onClick={fit}><Icon name="fit" size={20} /></button>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Perkecil"
+              title="Perkecil"
+              onClick={() => zoomAt(1 / 1.2)}
+            >
+              <Icon name="zoomOut" size={20} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Perbesar"
+              title="Perbesar"
+              onClick={() => zoomAt(1.2)}
+            >
+              <Icon name="zoomIn" size={20} />
+            </button>
+            <button
+              type="button"
+              className="icon-btn"
+              aria-label="Paskan ke layar"
+              title="Paskan ke layar"
+              onClick={fit}
+            >
+              <Icon name="fit" size={20} />
+            </button>
           </div>
-          <div className="flow-hint">Seret untuk geser · Ctrl + scroll untuk zoom · klik node untuk atur kondisi</div>
+          <div className="flow-hint">
+            Seret untuk geser · Ctrl + scroll untuk zoom · klik node untuk atur
+            kondisi
+          </div>
         </div>
-        {selBlock && <LogicPanel key={selBlock.id} form={form} block={selBlock} api={api} onClose={() => setSel(null)} onSelect={setSel} />}
+        {selBlock && (
+          <LogicPanel
+            key={selBlock.id}
+            form={form}
+            block={selBlock}
+            api={api}
+            onClose={() => setSel(null)}
+            onSelect={setSel}
+          />
+        )}
       </div>
     </div>
   );
@@ -1659,59 +3983,185 @@ function FlowView({ form, api, focusId }) {
 
 /* Satu aturan dari sisi sumber: "Jika jawaban [op] [nilai] → tampilkan [tujuan…]".
    Disimpan sebagai kondisi pada tiap blok tujuan; aturan dengan kondisi identik dikelompokkan. */
-function TriggerGroup({ form, source, rule, items, onRule, onAddTarget, onRemoveTarget, onRemove, onCreate, onSelect }) {
+function TriggerGroup({
+  form,
+  source,
+  rule,
+  items,
+  onRule,
+  onAddTarget,
+  onRemoveTarget,
+  onRemove,
+  onCreate,
+  onSelect,
+}) {
   const [creating, setCreating] = useState(null);
-  const [nType, setNType] = useState("short");
-  const [nTitle, setNTitle] = useState("");
+  const [nType, setNType] = useState('short');
+  const [nTitle, setNTitle] = useState('');
   const sIdx = form.blocks.findIndex((b) => b.id === source.id);
   const taken = new Set(items.map((x) => x.target.id));
   const later = form.blocks.slice(sIdx + 1).filter((t) => !taken.has(t.id));
   const pick = (v) => {
-    if (v === "__new_q") { setCreating("q"); setNTitle(""); }
-    else if (v === "__new_e") { setCreating("e"); setNTitle("Terima kasih!"); }
-    else if (v) onAddTarget(v);
+    if (v === '__new_q') {
+      setCreating('q');
+      setNTitle('');
+    } else if (v === '__new_e') {
+      setCreating('e');
+      setNTitle('Terima kasih!');
+    } else if (v) onAddTarget(v);
   };
-  const create = () => { onCreate(creating === "e" ? "ending" : nType, nTitle); setCreating(null); };
+  const create = () => {
+    onCreate(creating === 'e' ? 'ending' : nType, nTitle);
+    setCreating(null);
+  };
   return (
-    <div className={"rule" + (!items.length ? " draft" : "")}>
-      <div className="rule-hd"><span>Jika jawaban</span><button type="button" className="icon-btn ghost xs" aria-label="Hapus aturan" title="Hapus aturan beserta semua tujuannya" onClick={onRemove}><Icon name="trash" size={14} /></button></div>
-      <ConditionRow form={form} sources={[]} fixedSrc rule={rule} onChange={onRule} />
-      <div className="rule-hd"><span>maka tampilkan</span></div>
+    <div className={'rule' + (!items.length ? ' draft' : '')}>
+      <div className="rule-hd">
+        <span>Jika jawaban</span>
+        <button
+          type="button"
+          className="icon-btn ghost xs"
+          aria-label="Hapus aturan"
+          title="Hapus aturan beserta semua tujuannya"
+          onClick={onRemove}
+        >
+          <Icon name="trash" size={14} />
+        </button>
+      </div>
+      <ConditionRow
+        form={form}
+        sources={[]}
+        fixedSrc
+        rule={rule}
+        onChange={onRule}
+      />
+      <div className="rule-hd">
+        <span>maka tampilkan</span>
+      </div>
       {items.length > 0 && (
         <div className="tg-list">
           {items.map((x) => (
-            <span key={x.rule.id} className="tg-chip" title={x.target.cond.rules.length > 1 ? `Juga punya ${x.target.cond.rules.length - 1} syarat lain (${x.target.cond.match === "any" ? "salah satu cukup" : "semua harus terpenuhi"})` : undefined}>
-              <Icon name={x.target.type === "ending" ? "ending" : TYPES[x.target.type].icon} size={13} />
-              <button type="button" className="tg-go" title="Buka node ini" onClick={() => onSelect?.(x.target.id)}>{blockLabel(form, x.target.id, 34)}</button>
-              {x.target.cond.rules.length > 1 && <b className="tg-more">+{x.target.cond.rules.length - 1}</b>}
-              <button type="button" aria-label={`Lepas ${blockLabel(form, x.target.id, 20)}`} onClick={() => onRemoveTarget(x)}><Icon name="x" size={12} /></button>
+            <span
+              key={x.rule.id}
+              className="tg-chip"
+              title={
+                x.target.cond.rules.length > 1
+                  ? `Juga punya ${x.target.cond.rules.length - 1} syarat lain (${x.target.cond.match === 'any' ? 'salah satu cukup' : 'semua harus terpenuhi'})`
+                  : undefined
+              }
+            >
+              <Icon
+                name={
+                  x.target.type === 'ending'
+                    ? 'ending'
+                    : TYPES[x.target.type].icon
+                }
+                size={13}
+              />
+              <button
+                type="button"
+                className="tg-go"
+                title="Buka node ini"
+                onClick={() => onSelect?.(x.target.id)}
+              >
+                {blockLabel(form, x.target.id, 34)}
+              </button>
+              {x.target.cond.rules.length > 1 && (
+                <b className="tg-more">+{x.target.cond.rules.length - 1}</b>
+              )}
+              <button
+                type="button"
+                aria-label={`Lepas ${blockLabel(form, x.target.id, 20)}`}
+                onClick={() => onRemoveTarget(x)}
+              >
+                <Icon name="x" size={12} />
+              </button>
             </span>
           ))}
         </div>
       )}
-      <select aria-label="Tambah tujuan" value={creating ? (creating === "q" ? "__new_q" : "__new_e") : ""} onChange={(e) => pick(e.target.value)} className={"tg-add" + (!items.length && !creating ? " need" : "")}>
-        <option value="">{items.length ? "+ Tambah tujuan…" : "Pilih atau buat tujuan…"}</option>
+      <select
+        aria-label="Tambah tujuan"
+        value={creating ? (creating === 'q' ? '__new_q' : '__new_e') : ''}
+        onChange={(e) => pick(e.target.value)}
+        className={'tg-add' + (!items.length && !creating ? ' need' : '')}
+      >
+        <option value="">
+          {items.length ? '+ Tambah tujuan…' : 'Pilih atau buat tujuan…'}
+        </option>
         <optgroup label="Buat baru">
           <option value="__new_q">+ Pertanyaan baru…</option>
           <option value="__new_e">+ Ending baru…</option>
         </optgroup>
-        {later.some(isQuestion) && <optgroup label="Pertanyaan yang ada">{later.filter(isQuestion).map((t) => <option key={t.id} value={t.id}>{blockLabel(form, t.id, 46)}</option>)}</optgroup>}
-        {later.some((t) => t.type === "ending") && <optgroup label="Ending">{later.filter((t) => t.type === "ending").map((t) => <option key={t.id} value={t.id}>{blockLabel(form, t.id, 46)}</option>)}</optgroup>}
+        {later.some(isQuestion) && (
+          <optgroup label="Pertanyaan yang ada">
+            {later.filter(isQuestion).map((t) => (
+              <option key={t.id} value={t.id}>
+                {blockLabel(form, t.id, 46)}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {later.some((t) => t.type === 'ending') && (
+          <optgroup label="Ending">
+            {later
+              .filter((t) => t.type === 'ending')
+              .map((t) => (
+                <option key={t.id} value={t.id}>
+                  {blockLabel(form, t.id, 46)}
+                </option>
+              ))}
+          </optgroup>
+        )}
       </select>
       {creating && (
         <div className="creator">
-          {creating === "q" && (
-            <select aria-label="Tipe pertanyaan baru" value={nType} onChange={(e) => setNType(e.target.value)}>
-              {QTYPES.map((t) => <option key={t} value={t}>{TYPES[t].label}</option>)}
+          {creating === 'q' && (
+            <select
+              aria-label="Tipe pertanyaan baru"
+              value={nType}
+              onChange={(e) => setNType(e.target.value)}
+            >
+              {QTYPES.map((t) => (
+                <option key={t} value={t}>
+                  {TYPES[t].label}
+                </option>
+              ))}
             </select>
           )}
-          <input autoFocus aria-label="Judul" placeholder={creating === "q" ? "Tulis pertanyaannya…" : "Judul ending"} value={nTitle} onChange={(e) => setNTitle(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); create(); } if (e.key === "Escape") setCreating(null); }} />
+          <input
+            autoFocus
+            aria-label="Judul"
+            placeholder={
+              creating === 'q' ? 'Tulis pertanyaannya…' : 'Judul ending'
+            }
+            value={nTitle}
+            onChange={(e) => setNTitle(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                create();
+              }
+              if (e.key === 'Escape') setCreating(null);
+            }}
+          />
           <div className="creator-act">
-            <button type="button" className="btn sm accent" onClick={create}>Buat & sambungkan</button>
-            <button type="button" className="lnk" onClick={() => setCreating(null)}>Batal</button>
+            <button type="button" className="btn sm accent" onClick={create}>
+              Buat & sambungkan
+            </button>
+            <button
+              type="button"
+              className="lnk"
+              onClick={() => setCreating(null)}
+            >
+              Batal
+            </button>
           </div>
-          <small className="muted">{creating === "q" ? "Disisipkan setelah cabang dari pertanyaan ini dan tersembunyi sampai kondisinya terpenuhi. Isinya bisa dilengkapi di Konten." : "Ending ini dipakai bila kondisinya terpenuhi."}</small>
+          <small className="muted">
+            {creating === 'q'
+              ? 'Disisipkan setelah cabang dari pertanyaan ini dan tersembunyi sampai kondisinya terpenuhi. Isinya bisa dilengkapi di Konten.'
+              : 'Ending ini dipakai bila kondisinya terpenuhi.'}
+          </small>
         </div>
       )}
     </div>
@@ -1735,52 +4185,180 @@ function LogicPanel({ form, block, api, onClose, onSelect }) {
       g.items.push({ target: t, rule: r });
     });
   });
-  const addRule = (toId, rule) => api.mutateBlocks((bs) => bs.map((b) => (b.id === toId ? { ...b, cond: { ...b.cond, rules: [...b.cond.rules, { ...rule, id: uid("c") }] } } : b)));
-  const removeRules = (ids) => api.mutateBlocks((bs) => bs.map((b) => (b.cond?.rules?.some((r) => ids.includes(r.id)) ? { ...b, cond: { ...b.cond, rules: b.cond.rules.filter((r) => !ids.includes(r.id)) } } : b)));
-  const patchRules = (ids, patch, key) => api.mutateBlocks((bs) => bs.map((b) => (b.cond?.rules?.some((r) => ids.includes(r.id)) ? { ...b, cond: { ...b.cond, rules: b.cond.rules.map((r) => (ids.includes(r.id) ? { ...r, ...patch } : r)) } } : b)), key);
+  const addRule = (toId, rule) =>
+    api.mutateBlocks((bs) =>
+      bs.map((b) =>
+        b.id === toId
+          ? {
+              ...b,
+              cond: {
+                ...b.cond,
+                rules: [...b.cond.rules, { ...rule, id: uid('c') }],
+              },
+            }
+          : b,
+      ),
+    );
+  const removeRules = (ids) =>
+    api.mutateBlocks((bs) =>
+      bs.map((b) =>
+        b.cond?.rules?.some((r) => ids.includes(r.id))
+          ? {
+              ...b,
+              cond: {
+                ...b.cond,
+                rules: b.cond.rules.filter((r) => !ids.includes(r.id)),
+              },
+            }
+          : b,
+      ),
+    );
+  const patchRules = (ids, patch, key) =>
+    api.mutateBlocks(
+      (bs) =>
+        bs.map((b) =>
+          b.cond?.rules?.some((r) => ids.includes(r.id))
+            ? {
+                ...b,
+                cond: {
+                  ...b.cond,
+                  rules: b.cond.rules.map((r) =>
+                    ids.includes(r.id) ? { ...r, ...patch } : r,
+                  ),
+                },
+              }
+            : b,
+        ),
+      key,
+    );
   return (
     <aside className="logic" aria-label="Panel logika">
       <div className="logic-hd">
-        <span className="qnum sm">{questionNumber(form, block.id) || <Icon name={T.icon} size={13} />}</span>
-        <div className="grow"><small className="muted">{T.label}</small><div className="logic-title">{stripHtml(block.title) || "Tanpa judul"}</div></div>
-        <button type="button" className="icon-btn" aria-label="Tutup panel" onClick={onClose}><Icon name="x" /></button>
+        <span className="qnum sm">
+          {questionNumber(form, block.id) || <Icon name={T.icon} size={13} />}
+        </span>
+        <div className="grow">
+          <small className="muted">{T.label}</small>
+          <div className="logic-title">
+            {stripHtml(block.title) || 'Tanpa judul'}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label="Tutup panel"
+          onClick={onClose}
+        >
+          <Icon name="x" />
+        </button>
       </div>
 
-      {block.type !== "welcome" && (
+      {block.type !== 'welcome' && (
         <section className="lp-sec">
-          <h5><Icon name="cond" size={14} />Blok ini tampil jika</h5>
+          <h5>
+            <Icon name="cond" size={14} />
+            Blok ini tampil jika
+          </h5>
           <ConditionBuilder form={form} block={block} api={api} />
         </section>
       )}
-      {block.type === "welcome" && <p className="muted small">Welcome screen selalu tampil paling atas.</p>}
+      {block.type === 'welcome' && (
+        <p className="muted small">Welcome screen selalu tampil paling atas.</p>
+      )}
 
       {q && (
         <section className="lp-sec">
-          <h5><Icon name="branch" size={14} />Aturan dari jawaban ini</h5>
-          <p className="muted small">Seperti conditional formatting: tulis kondisinya, lalu pilih blok yang dimunculkan. Blok tujuan tersembunyi sampai kondisinya terpenuhi.</p>
+          <h5>
+            <Icon name="branch" size={14} />
+            Aturan dari jawaban ini
+          </h5>
+          <p className="muted small">
+            Seperti conditional formatting: tulis kondisinya, lalu pilih blok
+            yang dimunculkan. Blok tujuan tersembunyi sampai kondisinya
+            terpenuhi.
+          </p>
           {groups.map((g) => {
             const ids = g.items.map((x) => x.rule.id);
             return (
-              <TriggerGroup key={g.key + ids[0]} form={form} source={block} rule={g.rule} items={g.items} onSelect={onSelect}
+              <TriggerGroup
+                key={g.key + ids[0]}
+                form={form}
+                source={block}
+                rule={g.rule}
+                items={g.items}
+                onSelect={onSelect}
                 onRule={(patch) => patchRules(ids, patch, `tg:${ids[0]}`)}
                 onAddTarget={(to) => addRule(to, g.rule)}
                 onRemoveTarget={(x) => removeRules([x.rule.id])}
                 onRemove={() => removeRules(ids)}
-                onCreate={(type, title) => { api.createConditional(block.id, type, title, { ...g.rule, id: uid("c") }); api.toast(type === "ending" ? "Ending baru dibuat" : "Pertanyaan baru dibuat & tersembunyi sampai kondisinya terpenuhi"); }} />
+                onCreate={(type, title) => {
+                  api.createConditional(block.id, type, title, {
+                    ...g.rule,
+                    id: uid('c'),
+                  });
+                  api.toast(
+                    type === 'ending'
+                      ? 'Ending baru dibuat'
+                      : 'Pertanyaan baru dibuat & tersembunyi sampai kondisinya terpenuhi',
+                  );
+                }}
+              />
             );
           })}
           {drafts.map((d) => (
-            <TriggerGroup key={d.id} form={form} source={block} rule={d} items={[]}
-              onRule={(patch) => setDrafts((ds) => ds.map((x) => (x.id === d.id ? { ...x, ...patch } : x)))}
-              onAddTarget={(to) => { addRule(to, d); setDrafts((ds) => ds.filter((x) => x.id !== d.id)); }}
+            <TriggerGroup
+              key={d.id}
+              form={form}
+              source={block}
+              rule={d}
+              items={[]}
+              onRule={(patch) =>
+                setDrafts((ds) =>
+                  ds.map((x) => (x.id === d.id ? { ...x, ...patch } : x)),
+                )
+              }
+              onAddTarget={(to) => {
+                addRule(to, d);
+                setDrafts((ds) => ds.filter((x) => x.id !== d.id));
+              }}
               onRemoveTarget={() => {}}
-              onRemove={() => setDrafts((ds) => ds.filter((x) => x.id !== d.id))}
-              onCreate={(type, title) => { api.createConditional(block.id, type, title, { ...d, id: uid("c") }); setDrafts((ds) => ds.filter((x) => x.id !== d.id)); api.toast(type === "ending" ? "Ending baru dibuat" : "Pertanyaan baru dibuat & tersembunyi sampai kondisinya terpenuhi"); }} />
+              onRemove={() =>
+                setDrafts((ds) => ds.filter((x) => x.id !== d.id))
+              }
+              onCreate={(type, title) => {
+                api.createConditional(block.id, type, title, {
+                  ...d,
+                  id: uid('c'),
+                });
+                setDrafts((ds) => ds.filter((x) => x.id !== d.id));
+                api.toast(
+                  type === 'ending'
+                    ? 'Ending baru dibuat'
+                    : 'Pertanyaan baru dibuat & tersembunyi sampai kondisinya terpenuhi',
+                );
+              }}
+            />
           ))}
-          <button type="button" className="btn ghost full" onClick={() => setDrafts((ds) => [...ds, newRule(block.id, block.type)])}><Icon name="plus" size={15} />Tambah aturan</button>
+          <button
+            type="button"
+            className="btn ghost full"
+            onClick={() =>
+              setDrafts((ds) => [...ds, newRule(block.id, block.type)])
+            }
+          >
+            <Icon name="plus" size={15} />
+            Tambah aturan
+          </button>
         </section>
       )}
-      <button type="button" className="btn ghost full" onClick={() => api.gotoBlock(block.id)}><Icon name="edit" size={15} />Edit isi di Konten</button>
+      <button
+        type="button"
+        className="btn ghost full"
+        onClick={() => api.gotoBlock(block.id)}
+      >
+        <Icon name="edit" size={15} />
+        Edit isi di Konten
+      </button>
     </aside>
   );
 }
@@ -2431,65 +5009,187 @@ const CSS = `
 /* =====================================================================
    PRATINJAU — pemutar responden (satu per satu / satu halaman)
    ===================================================================== */
-const extOf = (n) => (n.split(".").pop() || "").toLowerCase();
-const fmtSize = (b) => (b > 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.ceil(b / 1e3) + " KB");
+const extOf = (n) => (n.split('.').pop() || '').toLowerCase();
+const fmtSize = (b) =>
+  b > 1e6 ? (b / 1e6).toFixed(1) + ' MB' : Math.ceil(b / 1e3) + ' KB';
 
-function AnswerInput({ block, value, onChange, onEnter, variant, autoFocus, setError, order }) {
+function AnswerInput({
+  block,
+  value,
+  onChange,
+  onEnter,
+  variant,
+  autoFocus,
+  setError,
+  order,
+}) {
   const p = block.props || {};
   const ref = useRef(null);
-  useEffect(() => { if (autoFocus && ref.current) setTimeout(() => ref.current?.focus({ preventScroll: true }), 260); }, [autoFocus, block.id]);
+  useEffect(() => {
+    if (autoFocus && ref.current)
+      setTimeout(() => ref.current?.focus({ preventScroll: true }), 260);
+  }, [autoFocus, block.id]);
   const idb = `in-${block.id}`;
   switch (block.type) {
-    case "short":
-      return <input id={idb} ref={ref} className="a-text" value={value || ""} placeholder={p.placeholder || (variant === "page" ? "Jawabanmu" : "Ketik jawabanmu di sini...")} maxLength={p.maxLen || undefined} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onEnter?.())} />;
-    case "long":
+    case 'short':
+      return (
+        <input
+          id={idb}
+          ref={ref}
+          className="a-text"
+          value={value || ''}
+          placeholder={
+            p.placeholder ||
+            (variant === 'page' ? 'Jawabanmu' : 'Ketik jawabanmu di sini...')
+          }
+          maxLength={p.maxLen || undefined}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) =>
+            e.key === 'Enter' && (e.preventDefault(), onEnter?.())
+          }
+        />
+      );
+    case 'long':
       return (
         <>
-          <textarea id={idb} ref={ref} className="a-text area" rows={variant === "page" ? 4 : 3} value={value || ""} placeholder={p.placeholder || (variant === "page" ? "Jawabanmu" : "Ketik jawabanmu di sini...")} maxLength={p.maxLen || undefined}
-            onChange={(e) => { onChange(e.target.value); if (variant !== "page") { e.target.style.height = "auto"; e.target.style.height = e.target.scrollHeight + "px"; } }}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && variant !== "page") { e.preventDefault(); onEnter?.(); } }} />
-          {variant !== "page" && <small className="a-hint">Shift + Enter ↵ untuk baris baru{p.maxLen ? ` · ${String(value || "").length}/${p.maxLen}` : ""}</small>}
+          <textarea
+            id={idb}
+            ref={ref}
+            className="a-text area"
+            rows={variant === 'page' ? 4 : 3}
+            value={value || ''}
+            placeholder={
+              p.placeholder ||
+              (variant === 'page' ? 'Jawabanmu' : 'Ketik jawabanmu di sini...')
+            }
+            maxLength={p.maxLen || undefined}
+            onChange={(e) => {
+              onChange(e.target.value);
+              if (variant !== 'page') {
+                e.target.style.height = 'auto';
+                e.target.style.height = e.target.scrollHeight + 'px';
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey && variant !== 'page') {
+                e.preventDefault();
+                onEnter?.();
+              }
+            }}
+          />
+          {variant !== 'page' && (
+            <small className="a-hint">
+              Shift + Enter ↵ untuk baris baru
+              {p.maxLen ? ` · ${String(value || '').length}/${p.maxLen}` : ''}
+            </small>
+          )}
         </>
       );
-    case "number":
-      return <input id={idb} ref={ref} className="a-text" type="number" inputMode="decimal" value={value ?? ""} placeholder={variant === "page" ? "Jawabanmu" : "Ketik angka..."} min={p.min} max={p.max} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onEnter?.())} />;
-    case "choice":
-    case "checkbox": {
-      const multi = block.type === "checkbox";
+    case 'number':
+      return (
+        <input
+          id={idb}
+          ref={ref}
+          className="a-text"
+          type="number"
+          inputMode="decimal"
+          value={value ?? ''}
+          placeholder={variant === 'page' ? 'Jawabanmu' : 'Ketik angka...'}
+          min={p.min}
+          max={p.max}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) =>
+            e.key === 'Enter' && (e.preventDefault(), onEnter?.())
+          }
+        />
+      );
+    case 'choice':
+    case 'checkbox': {
+      const multi = block.type === 'checkbox';
       const cur = multi ? value || [] : value;
       return (
-        <div className={"a-choices " + (variant === "page" ? "plain" : "tf")} role={multi ? "group" : "radiogroup"} aria-label={stripHtml(block.title)}>
+        <div
+          className={'a-choices ' + (variant === 'page' ? 'plain' : 'tf')}
+          role={multi ? 'group' : 'radiogroup'}
+          aria-label={stripHtml(block.title)}
+        >
           {(order || p.options).map((o, i) => {
             const on = multi ? cur.includes(o.id) : cur === o.id;
             return (
-              <button type="button" key={o.id} role={multi ? "checkbox" : "radio"} aria-checked={on} className={"a-choice" + (on ? " on" : "")}
-                onClick={() => onChange(multi ? (on ? cur.filter((x) => x !== o.id) : [...cur, o.id]) : on && !block.required ? null : o.id, !multi)}>
-                {variant === "page" ? <span className={multi ? "fake-cb" : "fake-rd"} /> : <span className="key">{LETTERS[i]}</span>}
+              <button
+                type="button"
+                key={o.id}
+                role={multi ? 'checkbox' : 'radio'}
+                aria-checked={on}
+                className={'a-choice' + (on ? ' on' : '')}
+                onClick={() =>
+                  onChange(
+                    multi
+                      ? on
+                        ? cur.filter((x) => x !== o.id)
+                        : [...cur, o.id]
+                      : on && !block.required
+                        ? null
+                        : o.id,
+                    !multi,
+                  )
+                }
+              >
+                {variant === 'page' ? (
+                  <span className={multi ? 'fake-cb' : 'fake-rd'} />
+                ) : (
+                  <span className="key">{LETTERS[i]}</span>
+                )}
                 <span className="a-lbl">{o.label}</span>
-                {variant !== "page" && on && <Icon name="check" size={18} sw={2.4} className="a-tick" />}
+                {variant !== 'page' && on && (
+                  <Icon name="check" size={18} sw={2.4} className="a-tick" />
+                )}
               </button>
             );
           })}
-          {multi && variant !== "page" && <small className="a-hint">Bisa pilih lebih dari satu{p.minSel ? ` · minimal ${p.minSel}` : ""}{p.maxSel ? ` · maksimal ${p.maxSel}` : ""}</small>}
+          {multi && variant !== 'page' && (
+            <small className="a-hint">
+              Bisa pilih lebih dari satu
+              {p.minSel ? ` · minimal ${p.minSel}` : ''}
+              {p.maxSel ? ` · maksimal ${p.maxSel}` : ''}
+            </small>
+          )}
         </div>
       );
     }
-    case "dropdown":
+    case 'dropdown':
       return (
         <div className="a-select">
-          <select id={idb} ref={ref} value={value || ""} onChange={(e) => onChange(e.target.value || null, true)} aria-label={stripHtml(block.title)}>
+          <select
+            id={idb}
+            ref={ref}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value || null, true)}
+            aria-label={stripHtml(block.title)}
+          >
             <option value="">Pilih jawaban…</option>
-            {(order || p.options).map((o) => <option key={o.id} value={o.id}>{o.label}</option>)}
+            {(order || p.options).map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.label}
+              </option>
+            ))}
           </select>
           <Icon name="chevDown" size={18} />
         </div>
       );
-    case "matrix": {
+    case 'matrix': {
       const v = value || {};
       return (
         <div className="a-mx-wrap">
           <table className="a-mx">
-            <thead><tr><th />{p.cols.map((c) => <th key={c.id}>{c.label}</th>)}</tr></thead>
+            <thead>
+              <tr>
+                <th />
+                {p.cols.map((c) => (
+                  <th key={c.id}>{c.label}</th>
+                ))}
+              </tr>
+            </thead>
             <tbody>
               {p.rows.map((r) => (
                 <tr key={r.id}>
@@ -2499,8 +5199,28 @@ function AnswerInput({ block, value, onChange, onEnter, variant, autoFocus, setE
                     const on = rv.includes(c.id);
                     return (
                       <td key={c.id}>
-                        <button type="button" role={p.multi ? "checkbox" : "radio"} aria-checked={on} aria-label={`${r.label}: ${c.label}`} className={(p.multi ? "fake-cb" : "fake-rd") + (on ? " on" : "")}
-                          onClick={() => onChange({ ...v, [r.id]: p.multi ? (on ? rv.filter((x) => x !== c.id) : [...rv, c.id]) : on ? [] : [c.id] })} />
+                        <button
+                          type="button"
+                          role={p.multi ? 'checkbox' : 'radio'}
+                          aria-checked={on}
+                          aria-label={`${r.label}: ${c.label}`}
+                          className={
+                            (p.multi ? 'fake-cb' : 'fake-rd') +
+                            (on ? ' on' : '')
+                          }
+                          onClick={() =>
+                            onChange({
+                              ...v,
+                              [r.id]: p.multi
+                                ? on
+                                  ? rv.filter((x) => x !== c.id)
+                                  : [...rv, c.id]
+                                : on
+                                  ? []
+                                  : [c.id],
+                            })
+                          }
+                        />
                       </td>
                     );
                   })}
@@ -2511,57 +5231,159 @@ function AnswerInput({ block, value, onChange, onEnter, variant, autoFocus, setE
         </div>
       );
     }
-    case "scale": {
+    case 'scale': {
       const n = [];
       for (let i = p.min; i <= p.max; i++) n.push(i);
-      const star = p.style === "star";
+      const star = p.style === 'star';
       return (
-        <div className={"a-scale" + (star ? " star" : "") + (variant === "page" ? " page" : "")}>
-          <div className="a-scale-row" role="radiogroup" aria-label={stripHtml(block.title)}>
+        <div
+          className={
+            'a-scale' +
+            (star ? ' star' : '') +
+            (variant === 'page' ? ' page' : '')
+          }
+        >
+          <div
+            className="a-scale-row"
+            role="radiogroup"
+            aria-label={stripHtml(block.title)}
+          >
             {n.map((i) => {
               const on = star ? value != null && i <= value : value === i;
               return (
-                <button type="button" key={i} role="radio" aria-checked={value === i} aria-label={String(i)} className={"a-sc" + (on ? " on" : "")} onClick={() => onChange(value === i && !block.required ? null : i, true)}>
-                  {star ? <><Icon name="star" size={30} sw={1.5} fill={on ? "currentColor" : "none"} /><small>{i}</small></> : i}
+                <button
+                  type="button"
+                  key={i}
+                  role="radio"
+                  aria-checked={value === i}
+                  aria-label={String(i)}
+                  className={'a-sc' + (on ? ' on' : '')}
+                  onClick={() =>
+                    onChange(value === i && !block.required ? null : i, true)
+                  }
+                >
+                  {star ? (
+                    <>
+                      <Icon
+                        name="star"
+                        size={30}
+                        sw={1.5}
+                        fill={on ? 'currentColor' : 'none'}
+                      />
+                      <small>{i}</small>
+                    </>
+                  ) : (
+                    i
+                  )}
                 </button>
               );
             })}
           </div>
-          {(p.minLabel || p.maxLabel) && <div className="a-scale-lbl"><span>{p.minLabel}</span><span>{p.maxLabel}</span></div>}
+          {(p.minLabel || p.maxLabel) && (
+            <div className="a-scale-lbl">
+              <span>{p.minLabel}</span>
+              <span>{p.maxLabel}</span>
+            </div>
+          )}
         </div>
       );
     }
-    case "date": {
-      const type = p.mode === "time" ? "time" : p.mode === "datetime" ? "datetime-local" : "date";
+    case 'date': {
+      const type =
+        p.mode === 'time'
+          ? 'time'
+          : p.mode === 'datetime'
+            ? 'datetime-local'
+            : 'date';
       return (
         <div className="a-date">
-          <span className="a-date-lbl">{p.mode === "time" ? "Waktu" : p.mode === "datetime" ? "Tanggal & waktu" : "Tanggal"}</span>
-          <input id={idb} ref={ref} type={type} value={value || ""} onChange={(e) => onChange(e.target.value)} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), onEnter?.())} />
+          <span className="a-date-lbl">
+            {p.mode === 'time'
+              ? 'Waktu'
+              : p.mode === 'datetime'
+                ? 'Tanggal & waktu'
+                : 'Tanggal'}
+          </span>
+          <input
+            id={idb}
+            ref={ref}
+            type={type}
+            value={value || ''}
+            onChange={(e) => onChange(e.target.value)}
+            onKeyDown={(e) =>
+              e.key === 'Enter' && (e.preventDefault(), onEnter?.())
+            }
+          />
         </div>
       );
     }
-    case "file": {
+    case 'file': {
       const files = value || [];
-      const accept = (p.accept || "").split(",").map((s) => s.trim().replace(/^\./, "").toLowerCase()).filter(Boolean);
+      const accept = (p.accept || '')
+        .split(',')
+        .map((s) => s.trim().replace(/^\./, '').toLowerCase())
+        .filter(Boolean);
       const add = (list) => {
         const next = [...files];
         for (const f of list) {
-          if (next.length >= p.maxFiles) { setError?.(`Maksimal ${p.maxFiles} file.`); break; }
-          if (accept.length && !accept.includes(extOf(f.name))) { setError?.(`Jenis file .${extOf(f.name)} tidak didukung. Gunakan: ${accept.join(", ")}.`); continue; }
-          if (f.size > p.maxSizeMB * 1e6) { setError?.(`${f.name} lebih dari ${p.maxSizeMB} MB.`); continue; }
+          if (next.length >= p.maxFiles) {
+            setError?.(`Maksimal ${p.maxFiles} file.`);
+            break;
+          }
+          if (accept.length && !accept.includes(extOf(f.name))) {
+            setError?.(
+              `Jenis file .${extOf(f.name)} tidak didukung. Gunakan: ${accept.join(', ')}.`,
+            );
+            continue;
+          }
+          if (f.size > p.maxSizeMB * 1e6) {
+            setError?.(`${f.name} lebih dari ${p.maxSizeMB} MB.`);
+            continue;
+          }
           next.push({ name: f.name, size: f.size });
         }
         onChange(next);
       };
       return (
         <div className="a-file">
-          <small className="muted">Unggah {p.maxFiles} file{accept.length ? ` (${accept.join(", ")})` : ""}. Maks {p.maxSizeMB} MB.</small>
-          <label className={"a-file-btn" + (files.length >= p.maxFiles ? " dis" : "")}>
-            <Icon name="upload" size={17} />Tambahkan File
-            <input type="file" hidden multiple={p.maxFiles > 1} accept={accept.map((a) => "." + a).join(",") || undefined} disabled={files.length >= p.maxFiles} onChange={(e) => { add([...e.target.files]); e.target.value = ""; }} />
+          <small className="muted">
+            Unggah {p.maxFiles} file
+            {accept.length ? ` (${accept.join(', ')})` : ''}. Maks {p.maxSizeMB}{' '}
+            MB.
+          </small>
+          <label
+            className={
+              'a-file-btn' + (files.length >= p.maxFiles ? ' dis' : '')
+            }
+          >
+            <Icon name="upload" size={17} />
+            Tambahkan File
+            <input
+              type="file"
+              hidden
+              multiple={p.maxFiles > 1}
+              accept={accept.map((a) => '.' + a).join(',') || undefined}
+              disabled={files.length >= p.maxFiles}
+              onChange={(e) => {
+                add([...e.target.files]);
+                e.target.value = '';
+              }}
+            />
           </label>
           {files.map((f, i) => (
-            <div key={i} className="a-file-item"><Icon name="file" size={16} /><span>{f.name}</span><small className="muted">{fmtSize(f.size)}</small><button type="button" className="icon-btn ghost xs" aria-label={`Hapus ${f.name}`} onClick={() => onChange(files.filter((_, j) => j !== i))}><Icon name="x" size={13} /></button></div>
+            <div key={i} className="a-file-item">
+              <Icon name="file" size={16} />
+              <span>{f.name}</span>
+              <small className="muted">{fmtSize(f.size)}</small>
+              <button
+                type="button"
+                className="icon-btn ghost xs"
+                aria-label={`Hapus ${f.name}`}
+                onClick={() => onChange(files.filter((_, j) => j !== i))}
+              >
+                <Icon name="x" size={13} />
+              </button>
+            </div>
           ))}
         </div>
       );
@@ -2572,9 +5394,19 @@ function AnswerInput({ block, value, onChange, onEnter, variant, autoFocus, setE
 }
 
 function themeStyle(theme) {
-  return { "--pa": theme.accent, "--pfont": (FONTS[theme.font] || FONTS.jakarta).css };
+  return {
+    '--pa': theme.accent,
+    '--pfont': (FONTS[theme.font] || FONTS.jakarta).css,
+  };
 }
-const shuffle = (arr) => { const a = [...arr]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 function EndingScreen({ form, endId, children }) {
   const b = form.blocks.find((x) => x.id === endId);
@@ -2582,25 +5414,44 @@ function EndingScreen({ form, endId, children }) {
     <div className="pl-screen ending-scr">
       {b?.image && <img className="scr-img" src={b.image} alt="" />}
       <Icon name="checkCircle" size={44} className="pa" />
-      <Rich as="h2" html={b?.title || "Terima kasih!"} />
+      <Rich as="h2" html={b?.title || 'Terima kasih!'} />
       {b?.desc ? <p>{b.desc}</p> : !b && <p>Jawabanmu sudah tersimpan.</p>}
-      {b?.props?.button && b.props.url && <a className="pl-btn" href={b.props.url} target="_blank" rel="noopener noreferrer">{b.props.button}</a>}
+      {b?.props?.button && b.props.url && (
+        <a
+          className="pl-btn"
+          href={b.props.url}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {b.props.button}
+        </a>
+      )}
       {children}
     </div>
   );
 }
 
-const readDraft = (key) => { try { return JSON.parse(localStorage.getItem(key) || "null"); } catch { return null; } };
+const readDraft = (key) => {
+  try {
+    return JSON.parse(localStorage.getItem(key) || 'null');
+  } catch {
+    return null;
+  }
+};
 
 /* ---------- tampilan responden: satu halaman, pertanyaan bersyarat muncul saat syaratnya terpenuhi ---------- */
 function Respondent({ form, onSubmit, onTrace, focusId, scrollRef }) {
   const S = form.settings;
   const draftKey = `anmategra-draft-${form.id}`;
-  const [initial] = useState(() => (S.autosaveDraft ? readDraft(draftKey) : null));
+  const [initial] = useState(() =>
+    S.autosaveDraft ? readDraft(draftKey) : null,
+  );
   const [answers, setAnswers] = useState(initial || {});
-  const [restored, setRestored] = useState(!!initial && Object.keys(initial).length > 0);
+  const [restored, setRestored] = useState(
+    !!initial && Object.keys(initial).length > 0,
+  );
   const [errors, setErrors] = useState({});
-  const [stage, setStage] = useState("form");
+  const [stage, setStage] = useState('form');
   const [endId, setEndId] = useState(null);
   const [savedAt, setSavedAt] = useState(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -2609,95 +5460,215 @@ function Respondent({ form, onSubmit, onTrace, focusId, scrollRef }) {
   const dirty = Object.keys(answers).some((k) => !isEmptyAnswer(answers[k]));
 
   const vis = useMemo(() => computeVisibility(form, answers), [form, answers]);
-  useEffect(() => { onTrace?.(vis); }, [vis]); // eslint-disable-line
+  useEffect(() => {
+    onTrace?.(vis);
+  }, [vis]); // eslint-disable-line
   const visible = form.blocks.filter((b) => isQuestion(b) && vis[b.id]);
-  const triggers = useMemo(() => { const s = new Set(); form.blocks.forEach((b) => validRules(form, b).forEach((r) => s.add(r.src))); return s; }, [form]);
-  const welcome = form.blocks.find((b) => b.type === "welcome");
+  const triggers = useMemo(() => {
+    const s = new Set();
+    form.blocks.forEach((b) =>
+      validRules(form, b).forEach((r) => s.add(r.src)),
+    );
+    return s;
+  }, [form]);
+  const welcome = form.blocks.find((b) => b.type === 'welcome');
 
   /* simpan draf otomatis */
   useEffect(() => {
-    if (!S.autosaveDraft || stage !== "form" || !dirty) return;
-    const t = setTimeout(() => { try { localStorage.setItem(draftKey, JSON.stringify(answers)); setSavedAt(new Date()); } catch {} }, 500);
+    if (!S.autosaveDraft || stage !== 'form' || !dirty) return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(draftKey, JSON.stringify(answers));
+        setSavedAt(new Date());
+      } catch {}
+    }, 500);
     return () => clearTimeout(t);
   }, [answers, S.autosaveDraft, stage]); // eslint-disable-line
   /* peringatan saat meninggalkan halaman dengan jawaban belum terkirim */
   useEffect(() => {
-    if (!S.confirmOnLeave || !dirty || stage === "done") return;
-    const h = (e) => { e.preventDefault(); e.returnValue = ""; };
-    window.addEventListener("beforeunload", h);
-    return () => window.removeEventListener("beforeunload", h);
+    if (!S.confirmOnLeave || !dirty || stage === 'done') return;
+    const h = (e) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
   }, [S.confirmOnLeave, dirty, stage]);
   useEffect(() => {
     if (!focusId) return;
-    const t = setTimeout(() => document.getElementById(`pq-${focusId}`)?.scrollIntoView({ block: "center" }), 120);
+    const t = setTimeout(
+      () =>
+        document
+          .getElementById(`pq-${focusId}`)
+          ?.scrollIntoView({ block: 'center' }),
+      120,
+    );
     return () => clearTimeout(t);
   }, [focusId]);
 
   const orderFor = (b) => {
     if (!S.shuffleOptions || !TYPES[b.type].options) return null;
     const cur = orderRef.current[b.id];
-    if (!cur || cur.length !== b.props.options.length || cur.some((o) => !b.props.options.find((x) => x.id === o.id))) orderRef.current[b.id] = shuffle(b.props.options);
-    return orderRef.current[b.id].map((o) => b.props.options.find((x) => x.id === o.id));
+    if (
+      !cur ||
+      cur.length !== b.props.options.length ||
+      cur.some((o) => !b.props.options.find((x) => x.id === o.id))
+    )
+      orderRef.current[b.id] = shuffle(b.props.options);
+    return orderRef.current[b.id].map((o) =>
+      b.props.options.find((x) => x.id === o.id),
+    );
   };
-  const set = (id, v) => { setAnswers((a) => ({ ...a, [id]: v })); setErrors((e) => ({ ...e, [id]: null })); };
+  const set = (id, v) => {
+    setAnswers((a) => ({ ...a, [id]: v }));
+    setErrors((e) => ({ ...e, [id]: null }));
+  };
   const toTop = () => scrollRef?.current?.scrollTo({ top: 0 });
   const finalize = () => {
     const clean = {};
-    visible.forEach((b) => { if (!isEmptyAnswer(answers[b.id])) clean[b.id] = answers[b.id]; });
+    visible.forEach((b) => {
+      if (!isEmptyAnswer(answers[b.id])) clean[b.id] = answers[b.id];
+    });
     const end = chooseEnding(form, vis);
     onSubmit(clean, end);
-    try { localStorage.removeItem(draftKey); } catch {}
-    setEndId(end); setStage("done"); toTop();
+    try {
+      localStorage.removeItem(draftKey);
+    } catch {}
+    setEndId(end);
+    setStage('done');
+    toTop();
   };
   const submit = () => {
     const errs = {};
-    visible.forEach((b) => { const e = validateAnswer(b, answers[b.id]); if (e) errs[b.id] = e; });
+    visible.forEach((b) => {
+      const e = validateAnswer(b, answers[b.id]);
+      if (e) errs[b.id] = e;
+    });
     setErrors(errs);
     const firstErr = visible.find((b) => errs[b.id]);
-    if (firstErr) { document.getElementById(`pq-${firstErr.id}`)?.scrollIntoView({ behavior: "smooth", block: "center" }); return; }
-    if (S.reviewBeforeSubmit) { setStage("review"); toTop(); } else finalize();
+    if (firstErr) {
+      document
+        .getElementById(`pq-${firstErr.id}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    if (S.reviewBeforeSubmit) {
+      setStage('review');
+      toTop();
+    } else finalize();
   };
 
   const closed = form.closesAt && new Date(form.closesAt) < new Date();
-  const full = form.maxResponses && (form.responses || []).filter((r) => !r.test).length >= Number(form.maxResponses);
+  const full =
+    form.maxResponses &&
+    (form.responses || []).filter((r) => !r.test).length >=
+      Number(form.maxResponses);
   if ((closed || full) && !override) {
     return (
-      <div className="pl-page"><div className="pp-card"><div className="pl-screen ending-scr">
-        <Icon name="lock" size={40} className="pa" />
-        <h2>{closed ? "Form sudah ditutup" : "Kuota responden penuh"}</h2>
-        <p>{S.closedMessage}</p>
-        <button type="button" className="lnk" onClick={() => setOverride(true)}>Tetap uji (khusus pratinjau)</button>
-      </div></div></div>
-    );
-  }
-  if (stage === "done") {
-    return (
-      <div className="pl-page"><div className="pp-card">
-        <EndingScreen form={form} endId={endId}>
-          {S.oneResponsePerAccount && <small className="muted">Satu akun ITB hanya bisa mengirim satu respons{S.allowEditAfterSubmit ? ", tetapi kamu masih bisa mengubahnya." : "."}</small>}
-          <div className="pl-actions center">
-            {S.allowEditAfterSubmit && <button type="button" className="btn outline" onClick={() => { setStage("form"); toTop(); }}><Icon name="edit" size={15} />Edit jawaban</button>}
-            <button type="button" className="lnk" onClick={() => { setAnswers({}); setStage("form"); setErrors({}); toTop(); }}>Isi ulang (pratinjau)</button>
+      <div className="pl-page">
+        <div className="pp-card">
+          <div className="pl-screen ending-scr">
+            <Icon name="lock" size={40} className="pa" />
+            <h2>{closed ? 'Form sudah ditutup' : 'Kuota responden penuh'}</h2>
+            <p>{S.closedMessage}</p>
+            <button
+              type="button"
+              className="lnk"
+              onClick={() => setOverride(true)}
+            >
+              Tetap uji (khusus pratinjau)
+            </button>
           </div>
-        </EndingScreen>
-      </div></div>
+        </div>
+      </div>
     );
   }
-  if (stage === "review") {
+  if (stage === 'done') {
     return (
       <div className="pl-page">
-        <div className="pp-card pp-head"><h1>Periksa jawabanmu</h1><p>Pastikan semuanya benar sebelum dikirim. Setelah terkirim, {S.allowEditAfterSubmit ? "kamu masih bisa mengubahnya." : "jawaban tidak bisa diubah."}</p></div>
+        <div className="pp-card">
+          <EndingScreen form={form} endId={endId}>
+            {S.oneResponsePerAccount && (
+              <small className="muted">
+                Satu akun ITB hanya bisa mengirim satu respons
+                {S.allowEditAfterSubmit
+                  ? ', tetapi kamu masih bisa mengubahnya.'
+                  : '.'}
+              </small>
+            )}
+            <div className="pl-actions center">
+              {S.allowEditAfterSubmit && (
+                <button
+                  type="button"
+                  className="btn outline"
+                  onClick={() => {
+                    setStage('form');
+                    toTop();
+                  }}
+                >
+                  <Icon name="edit" size={15} />
+                  Edit jawaban
+                </button>
+              )}
+              <button
+                type="button"
+                className="lnk"
+                onClick={() => {
+                  setAnswers({});
+                  setStage('form');
+                  setErrors({});
+                  toTop();
+                }}
+              >
+                Isi ulang (pratinjau)
+              </button>
+            </div>
+          </EndingScreen>
+        </div>
+      </div>
+    );
+  }
+  if (stage === 'review') {
+    return (
+      <div className="pl-page">
+        <div className="pp-card pp-head">
+          <h1>Periksa jawabanmu</h1>
+          <p>
+            Pastikan semuanya benar sebelum dikirim. Setelah terkirim,{' '}
+            {S.allowEditAfterSubmit
+              ? 'kamu masih bisa mengubahnya.'
+              : 'jawaban tidak bisa diubah.'}
+          </p>
+        </div>
         <div className="pp-card review">
           {visible.map((b, i) => (
             <div key={b.id} className="rv-row">
-              <span className="rv-q">{S.showNumbers ? `${i + 1}. ` : ""}{stripHtml(b.title) || "Tanpa judul"}</span>
-              <span className={"rv-a" + (isEmptyAnswer(answers[b.id]) ? " muted" : "")}>{fmtAnswer(b, answers[b.id]) || "Tidak dijawab"}</span>
+              <span className="rv-q">
+                {S.showNumbers ? `${i + 1}. ` : ''}
+                {stripHtml(b.title) || 'Tanpa judul'}
+              </span>
+              <span
+                className={
+                  'rv-a' + (isEmptyAnswer(answers[b.id]) ? ' muted' : '')
+                }
+              >
+                {fmtAnswer(b, answers[b.id]) || 'Tidak dijawab'}
+              </span>
             </div>
           ))}
         </div>
         <div className="pp-foot">
-          <button type="button" className="btn ghost" onClick={() => setStage("form")}><Icon name="arrowLeft" size={15} />Ubah jawaban</button>
-          <button type="button" className="pl-btn" onClick={finalize}>Kirim sekarang</button>
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={() => setStage('form')}
+          >
+            <Icon name="arrowLeft" size={15} />
+            Ubah jawaban
+          </button>
+          <button type="button" className="pl-btn" onClick={finalize}>
+            Kirim sekarang
+          </button>
         </div>
       </div>
     );
@@ -2706,47 +5677,166 @@ function Respondent({ form, onSubmit, onTrace, focusId, scrollRef }) {
   return (
     <div className="pl-page">
       {S.showProgress && (
-        <div className="pp-progress" role="progressbar" aria-valuemin={0} aria-valuemax={visible.length} aria-valuenow={answered} aria-label="Kemajuan pengisian">
-          <i style={{ width: `${visible.length ? (answered / visible.length) * 100 : 0}%` }} />
-          <span>{answered}/{visible.length} terjawab{S.autosaveDraft && savedAt ? " · draf tersimpan" : ""}</span>
+        <div
+          className="pp-progress"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={visible.length}
+          aria-valuenow={answered}
+          aria-label="Kemajuan pengisian"
+        >
+          <i
+            style={{
+              width: `${visible.length ? (answered / visible.length) * 100 : 0}%`,
+            }}
+          />
+          <span>
+            {answered}/{visible.length} terjawab
+            {S.autosaveDraft && savedAt ? ' · draf tersimpan' : ''}
+          </span>
         </div>
       )}
-      {form.theme.banner && <div className="pp-banner"><img src={form.theme.banner} alt="" /></div>}
+      {form.theme.banner && (
+        <div className="pp-banner">
+          <img src={form.theme.banner} alt="" />
+        </div>
+      )}
       <div className="pp-card pp-head">
-        {welcome?.image && <img className="pp-logo" src={welcome.image} alt="" />}
+        {welcome?.image && (
+          <img className="pp-logo" src={welcome.image} alt="" />
+        )}
         <Rich as="h1" html={welcome?.title || form.title} />
-        {welcome?.props?.subtitle && <p className="sub">{welcome.props.subtitle}</p>}
+        {welcome?.props?.subtitle && (
+          <p className="sub">{welcome.props.subtitle}</p>
+        )}
         {(welcome?.desc || form.desc) && <p>{welcome?.desc || form.desc}</p>}
         <hr />
         {S.collectIdentity ? (
-          <div className="pp-acct"><span>mahasiswa@mahasiswa.itb.ac.id</span><button type="button" className="lnk pa">Ganti Akun</button><span className="sp" /><small className="muted">Nama & NIM tercatat otomatis</small></div>
+          <div className="pp-acct">
+            <span>mahasiswa@mahasiswa.itb.ac.id</span>
+            <button type="button" className="lnk pa">
+              Ganti Akun
+            </button>
+            <span className="sp" />
+            <small className="muted">Nama & NIM tercatat otomatis</small>
+          </div>
         ) : (
-          <div className="pp-acct"><Icon name="eyeOff" size={15} /><span>Respons anonim: identitasmu tidak dicatat.</span></div>
+          <div className="pp-acct">
+            <Icon name="eyeOff" size={15} />
+            <span>Respons anonim: identitasmu tidak dicatat.</span>
+          </div>
         )}
-        {restored && <div className="pp-note"><Icon name="save" size={15} />Draf terakhirmu dipulihkan.<button type="button" className="lnk" onClick={() => { setAnswers({}); setRestored(false); try { localStorage.removeItem(draftKey); } catch {} }}>Mulai dari awal</button></div>}
-        {visible.some((b) => b.required) && <div className="pp-req">* Menunjukkan pertanyaan yang wajib diisi</div>}
+        {restored && (
+          <div className="pp-note">
+            <Icon name="save" size={15} />
+            Draf terakhirmu dipulihkan.
+            <button
+              type="button"
+              className="lnk"
+              onClick={() => {
+                setAnswers({});
+                setRestored(false);
+                try {
+                  localStorage.removeItem(draftKey);
+                } catch {}
+              }}
+            >
+              Mulai dari awal
+            </button>
+          </div>
+        )}
+        {visible.some((b) => b.required) && (
+          <div className="pp-req">
+            * Menunjukkan pertanyaan yang wajib diisi
+          </div>
+        )}
       </div>
       {visible.map((b, i) => {
         const cnd = isConditional(form, b);
         return (
-          <div key={b.id} id={`pq-${b.id}`} className={"pp-card pp-q" + (errors[b.id] ? " has-err" : "") + (cnd ? " pp-cond" : "")}>
-            {cnd && <span className="pp-cond-tag"><Icon name="sparkle" size={13} />Pertanyaan lanjutan dari jawabanmu</span>}
-            <h3>{S.showNumbers ? `${i + 1}. ` : ""}<Rich html={b.title || "Tanpa judul"} />{b.required && <span className="req">*</span>}</h3>
+          <div
+            key={b.id}
+            id={`pq-${b.id}`}
+            className={
+              'pp-card pp-q' +
+              (errors[b.id] ? ' has-err' : '') +
+              (cnd ? ' pp-cond' : '')
+            }
+          >
+            {cnd && (
+              <span className="pp-cond-tag">
+                <Icon name="sparkle" size={13} />
+                Pertanyaan lanjutan dari jawabanmu
+              </span>
+            )}
+            <h3>
+              {S.showNumbers ? `${i + 1}. ` : ''}
+              <Rich html={b.title || 'Tanpa judul'} />
+              {b.required && <span className="req">*</span>}
+            </h3>
             {b.desc && <p className="pl-desc">{b.desc}</p>}
             {b.image && <img className="pl-img" src={b.image} alt="" />}
-            <AnswerInput block={b} value={answers[b.id]} onChange={(v) => set(b.id, v)} variant="page" order={orderFor(b)} setError={(e) => setErrors((x) => ({ ...x, [b.id]: e }))} />
-            {errors[b.id] && <div className="pl-err" role="alert"><Icon name="alert" size={15} />{errors[b.id]}</div>}
-            {triggers.has(b.id) && <small className="pp-trig"><Icon name="branch" size={13} />Jawabanmu di sini bisa memunculkan pertanyaan lanjutan.</small>}
+            <AnswerInput
+              block={b}
+              value={answers[b.id]}
+              onChange={(v) => set(b.id, v)}
+              variant="page"
+              order={orderFor(b)}
+              setError={(e) => setErrors((x) => ({ ...x, [b.id]: e }))}
+            />
+            {errors[b.id] && (
+              <div className="pl-err" role="alert">
+                <Icon name="alert" size={15} />
+                {errors[b.id]}
+              </div>
+            )}
+            {triggers.has(b.id) && (
+              <small className="pp-trig">
+                <Icon name="branch" size={13} />
+                Jawabanmu di sini bisa memunculkan pertanyaan lanjutan.
+              </small>
+            )}
           </div>
         );
       })}
       <div className="pp-foot">
-        <button type="button" className="pl-btn" onClick={submit}>{S.reviewBeforeSubmit ? "Periksa & kirim" : "Kirim"}</button>
+        <button type="button" className="pl-btn" onClick={submit}>
+          {S.reviewBeforeSubmit ? 'Periksa & kirim' : 'Kirim'}
+        </button>
         <span className="sp" />
         {confirmReset ? (
-          <span className="pp-confirm">Hapus semua jawaban? <button type="button" className="lnk danger" onClick={() => { setAnswers({}); setErrors({}); setConfirmReset(false); try { localStorage.removeItem(draftKey); } catch {} }}>Ya, kosongkan</button><button type="button" className="lnk" onClick={() => setConfirmReset(false)}>Batal</button></span>
+          <span className="pp-confirm">
+            Hapus semua jawaban?{' '}
+            <button
+              type="button"
+              className="lnk danger"
+              onClick={() => {
+                setAnswers({});
+                setErrors({});
+                setConfirmReset(false);
+                try {
+                  localStorage.removeItem(draftKey);
+                } catch {}
+              }}
+            >
+              Ya, kosongkan
+            </button>
+            <button
+              type="button"
+              className="lnk"
+              onClick={() => setConfirmReset(false)}
+            >
+              Batal
+            </button>
+          </span>
         ) : (
-          <button type="button" className="lnk danger" onClick={() => setConfirmReset(true)}>Kosongkan Formulir</button>
+          <button
+            type="button"
+            className="lnk danger"
+            onClick={() => setConfirmReset(true)}
+          >
+            Kosongkan Formulir
+          </button>
         )}
       </div>
     </div>
@@ -2754,79 +5844,213 @@ function Respondent({ form, onSubmit, onTrace, focusId, scrollRef }) {
 }
 
 function PreviewView({ form, api, focusId, device: dev0 }) {
-  const [device, setDevice] = useState(dev0 || "desktop");
+  const [device, setDevice] = useState(dev0 || 'desktop');
   const [runKey, setRunKey] = useState(0);
   const [vis, setVis] = useState({});
   const [share, setShare] = useState(false);
   const [showTrace, setShowTrace] = useState(true);
   const scrollRef = useRef(null);
   const closed = form.closesAt && new Date(form.closesAt) < new Date();
-  const full = form.maxResponses && (form.responses || []).filter((r) => !r.test).length >= Number(form.maxResponses);
-  const onSubmit = useCallback((answers, end) => api.recordResponse(answers, end), [api]);
-  const link = `anmategra.km.itb.ac.id/f/${form.id.replace(/^f_/, "")}`;
+  const full =
+    form.maxResponses &&
+    (form.responses || []).filter((r) => !r.test).length >=
+      Number(form.maxResponses);
+  const onSubmit = useCallback(
+    (answers, end) => api.recordResponse(answers, end),
+    [api],
+  );
+  const link = `anmategra.km.itb.ac.id/f/${form.id.replace(/^f_/, '')}`;
   const conds = form.blocks.filter((b) => isConditional(form, b));
-  const restart = () => { try { localStorage.removeItem(`anmategra-draft-${form.id}`); } catch {} setRunKey((k) => k + 1); };
+  const restart = () => {
+    try {
+      localStorage.removeItem(`anmategra-draft-${form.id}`);
+    } catch {}
+    setRunKey((k) => k + 1);
+  };
   const player = (
-    <div ref={scrollRef} className={"player bg-" + (form.theme.bg || "soft")} style={themeStyle(form.theme)}>
-      <Respondent key={runKey} form={form} onSubmit={onSubmit} onTrace={setVis} focusId={focusId} scrollRef={scrollRef} />
+    <div
+      ref={scrollRef}
+      className={'player bg-' + (form.theme.bg || 'soft')}
+      style={themeStyle(form.theme)}
+    >
+      <Respondent
+        key={runKey}
+        form={form}
+        onSubmit={onSubmit}
+        onTrace={setVis}
+        focusId={focusId}
+        scrollRef={scrollRef}
+      />
     </div>
   );
   return (
     <div className="preview">
       <div className="pv-bar">
         <div className="seg" role="radiogroup" aria-label="Perangkat">
-          <button type="button" role="radio" aria-checked={device === "desktop"} className={device === "desktop" ? "on" : ""} onClick={() => setDevice("desktop")}><Icon name="laptop" size={16} />Desktop</button>
-          <button type="button" role="radio" aria-checked={device === "mobile"} className={device === "mobile" ? "on" : ""} onClick={() => setDevice("mobile")}><Icon name="phone" size={16} />Mobile</button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={device === 'desktop'}
+            className={device === 'desktop' ? 'on' : ''}
+            onClick={() => setDevice('desktop')}
+          >
+            <Icon name="laptop" size={16} />
+            Desktop
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={device === 'mobile'}
+            className={device === 'mobile' ? 'on' : ''}
+            onClick={() => setDevice('mobile')}
+          >
+            <Icon name="phone" size={16} />
+            Mobile
+          </button>
         </div>
-        <button type="button" className="btn ghost" onClick={restart}><Icon name="refresh" size={16} />Ulang dari awal</button>
-        <button type="button" className={"btn ghost" + (showTrace ? " on" : "")} aria-pressed={showTrace} onClick={() => setShowTrace((v) => !v)}><Icon name="cond" size={16} />Logika aktif</button>
-        <span className="sp" />
-        {(closed || full) && <span className="warn-chip"><Icon name="alert" size={14} />{closed ? "Tenggat sudah lewat" : "Kuota responden penuh"}</span>}
-        <button type="button" className={"btn " + (form.status === "published" ? "ghost" : "outline")} onClick={() => api.setMeta({ status: form.status === "published" ? "draft" : "published" })}>
-          <Icon name="checkCircle" size={16} />{form.status === "published" ? "Batalkan rilis" : "Publikasikan"}
+        <button type="button" className="btn ghost" onClick={restart}>
+          <Icon name="refresh" size={16} />
+          Ulang dari awal
         </button>
-        <button type="button" className="btn accent" onClick={() => setShare(true)}><Icon name="share" size={16} />Share</button>
+        <button
+          type="button"
+          className={'btn ghost' + (showTrace ? ' on' : '')}
+          aria-pressed={showTrace}
+          onClick={() => setShowTrace((v) => !v)}
+        >
+          <Icon name="cond" size={16} />
+          Logika aktif
+        </button>
+        <span className="sp" />
+        {(closed || full) && (
+          <span className="warn-chip">
+            <Icon name="alert" size={14} />
+            {closed ? 'Tenggat sudah lewat' : 'Kuota responden penuh'}
+          </span>
+        )}
+        <button
+          type="button"
+          className={
+            'btn ' + (form.status === 'published' ? 'ghost' : 'outline')
+          }
+          onClick={() =>
+            api.setMeta({
+              status: form.status === 'published' ? 'draft' : 'published',
+            })
+          }
+        >
+          <Icon name="checkCircle" size={16} />
+          {form.status === 'published' ? 'Batalkan rilis' : 'Publikasikan'}
+        </button>
+        <button
+          type="button"
+          className="btn accent"
+          onClick={() => setShare(true)}
+        >
+          <Icon name="share" size={16} />
+          Share
+        </button>
       </div>
       <div className="pv-body">
-        <div className={"device " + device}>
-          {device === "desktop" ? (
+        <div className={'device ' + device}>
+          {device === 'desktop' ? (
             <div className="browser">
-              <div className="browser-bar" aria-hidden="true"><i /><i /><i /><span className="url"><Icon name="lock" size={12} />{link}</span></div>
+              <div className="browser-bar" aria-hidden="true">
+                <i />
+                <i />
+                <i />
+                <span className="url">
+                  <Icon name="lock" size={12} />
+                  {link}
+                </span>
+              </div>
               {player}
             </div>
           ) : (
-            <div className="phone"><div className="phone-notch" aria-hidden="true" />{player}</div>
+            <div className="phone">
+              <div className="phone-notch" aria-hidden="true" />
+              {player}
+            </div>
           )}
         </div>
         {showTrace && (
           <aside className="trace" aria-label="Logika aktif">
             <h4>Logika aktif</h4>
-            <p className="muted small">Isi form di sebelah kiri; status di bawah ikut berubah. Blok tersembunyi tidak terlihat dan jawabannya tidak ikut terkirim.</p>
-            {conds.length === 0 ? <p className="muted small">Form ini belum punya pertanyaan bersyarat.</p> : (
+            <p className="muted small">
+              Isi form di sebelah kiri; status di bawah ikut berubah. Blok
+              tersembunyi tidak terlihat dan jawabannya tidak ikut terkirim.
+            </p>
+            {conds.length === 0 ? (
+              <p className="muted small">
+                Form ini belum punya pertanyaan bersyarat.
+              </p>
+            ) : (
               <ul>
                 {conds.map((b) => (
-                  <li key={b.id} className={vis[b.id] ? "on" : ""}>
-                    <span className={"pill " + (vis[b.id] ? "ok" : "muted")}>{vis[b.id] ? "Tampil" : "Tersembunyi"}</span>
+                  <li key={b.id} className={vis[b.id] ? 'on' : ''}>
+                    <span className={'pill ' + (vis[b.id] ? 'ok' : 'muted')}>
+                      {vis[b.id] ? 'Tampil' : 'Tersembunyi'}
+                    </span>
                     <b>{blockLabel(form, b.id, 44)}</b>
                     <small className="muted">jika {condSummary(form, b)}</small>
                   </li>
                 ))}
               </ul>
             )}
-            <p className="muted small">Kiriman dari pratinjau dicatat sebagai respons <b>uji</b>.</p>
+            <p className="muted small">
+              Kiriman dari pratinjau dicatat sebagai respons <b>uji</b>.
+            </p>
           </aside>
         )}
       </div>
-      <Modal open={share} title="Bagikan form" onClose={() => setShare(false)} actions={<button type="button" className="btn" onClick={() => setShare(false)}>Tutup</button>}>
-        {form.status !== "published" && <p className="warn-box">Form masih <b>Draf</b>. Tautan baru bisa dibuka responden setelah dipublikasikan.</p>}
+      <Modal
+        open={share}
+        title="Bagikan form"
+        onClose={() => setShare(false)}
+        actions={
+          <button type="button" className="btn" onClick={() => setShare(false)}>
+            Tutup
+          </button>
+        }
+      >
+        {form.status !== 'published' && (
+          <p className="warn-box">
+            Form masih <b>Draf</b>. Tautan baru bisa dibuka responden setelah
+            dipublikasikan.
+          </p>
+        )}
         <div className="copy-row">
-          <input readOnly value={"https://" + link} id="share-link" onFocus={(e) => e.target.select()} />
-          <button type="button" className="btn accent" onClick={async () => {
-            try { await navigator.clipboard.writeText("https://" + link); api.toast("Tautan disalin"); }
-            catch { document.getElementById("share-link")?.select(); api.toast("Tekan Ctrl+C untuk menyalin"); }
-          }}><Icon name="copy" size={16} />Salin</button>
+          <input
+            readOnly
+            value={'https://' + link}
+            id="share-link"
+            onFocus={(e) => e.target.select()}
+          />
+          <button
+            type="button"
+            className="btn accent"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText('https://' + link);
+                api.toast('Tautan disalin');
+              } catch {
+                document.getElementById('share-link')?.select();
+                api.toast('Tekan Ctrl+C untuk menyalin');
+              }
+            }}
+          >
+            <Icon name="copy" size={16} />
+            Salin
+          </button>
         </div>
-        <p className="muted small">{form.settings.collectIdentity ? "Responden masuk dengan akun ITB, jadi nama dan NIM tercatat otomatis." : "Form anonim: identitas responden tidak dicatat."}{form.settings.oneResponsePerAccount ? " Satu akun hanya bisa mengirim satu respons." : ""}</p>
+        <p className="muted small">
+          {form.settings.collectIdentity
+            ? 'Responden masuk dengan akun ITB, jadi nama dan NIM tercatat otomatis.'
+            : 'Form anonim: identitas responden tidak dicatat.'}
+          {form.settings.oneResponsePerAccount
+            ? ' Satu akun hanya bisa mengirim satu respons.'
+            : ''}
+        </p>
       </Modal>
     </div>
   );
@@ -2836,17 +6060,31 @@ function PreviewView({ form, api, focusId, device: dev0 }) {
    RESPONS · DAFTAR FORMS · APP
    ===================================================================== */
 function fmtAnswer(b, v) {
-  if (isEmptyAnswer(v)) return "";
+  if (isEmptyAnswer(v)) return '';
   const p = b.props || {};
-  const lab = (id, list = p.options) => list?.find((o) => o.id === id)?.label ?? "?";
+  const lab = (id, list = p.options) =>
+    list?.find((o) => o.id === id)?.label ?? '?';
   switch (b.type) {
-    case "choice": case "dropdown": return lab(v);
-    case "checkbox": return v.map((x) => lab(x)).join(", ");
-    case "matrix": return p.rows.filter((r) => !isEmptyAnswer(v[r.id])).map((r) => `${r.label}: ${v[r.id].map((c) => lab(c, p.cols)).join("/")}`).join("; ");
-    case "file": return v.map((f) => f.name).join(", ");
-    case "scale": return p.style === "star" ? `${v} ★` : String(v);
-    case "date": return p.mode === "date" ? fmtDate(v) : String(v).replace("T", " ");
-    default: return String(v);
+    case 'choice':
+    case 'dropdown':
+      return lab(v);
+    case 'checkbox':
+      return v.map((x) => lab(x)).join(', ');
+    case 'matrix':
+      return p.rows
+        .filter((r) => !isEmptyAnswer(v[r.id]))
+        .map(
+          (r) => `${r.label}: ${v[r.id].map((c) => lab(c, p.cols)).join('/')}`,
+        )
+        .join('; ');
+    case 'file':
+      return v.map((f) => f.name).join(', ');
+    case 'scale':
+      return p.style === 'star' ? `${v} ★` : String(v);
+    case 'date':
+      return p.mode === 'date' ? fmtDate(v) : String(v).replace('T', ' ');
+    default:
+      return String(v);
   }
 }
 
@@ -2854,70 +6092,163 @@ function fmtAnswer(b, v) {
    Opsi dengan label sama di beberapa pertanyaan digabung jadi satu cabang. */
 function branchesOf(form) {
   const m = new Map();
-  form.blocks.forEach((b) => validRules(form, b).forEach((r) => {
-    if (r.op !== "is" || !r.value) return;
-    const src = form.blocks.find((x) => x.id === r.src);
-    const label = src?.props?.options?.find((o) => o.id === r.value)?.label;
-    if (!label) return;
-    if (!m.has(label)) m.set(label, { label, blocks: new Set(), srcs: new Map() });
-    m.get(label).blocks.add(b.id);
-    m.get(label).srcs.set(r.src, r.value);
-  }));
+  form.blocks.forEach((b) =>
+    validRules(form, b).forEach((r) => {
+      if (r.op !== 'is' || !r.value) return;
+      const src = form.blocks.find((x) => x.id === r.src);
+      const label = src?.props?.options?.find((o) => o.id === r.value)?.label;
+      if (!label) return;
+      if (!m.has(label))
+        m.set(label, { label, blocks: new Set(), srcs: new Map() });
+      m.get(label).blocks.add(b.id);
+      m.get(label).srcs.set(r.src, r.value);
+    }),
+  );
   return [...m.values()];
 }
 
 function SheetView({ form, rows, qs }) {
   const branches = useMemo(() => branchesOf(form), [form]);
-  const [br, setBr] = useState("");
+  const [br, setBr] = useState('');
   const [hideGen, setHideGen] = useState(false);
   const [wrap, setWrap] = useState(false);
   const B = branches.find((b) => b.label === br);
-  const condIds = new Set(qs.filter((q) => isConditional(form, q)).map((q) => q.id));
+  const condIds = new Set(
+    qs.filter((q) => isConditional(form, q)).map((q) => q.id),
+  );
   const general = qs.filter((q) => !condIds.has(q.id));
-  const cols = B ? [...(hideGen ? [] : general), ...qs.filter((q) => B.blocks.has(q.id))] : qs;
-  const list = B ? rows.filter((r) => { const v = computeVisibility(form, r.answers); return [...B.blocks].some((id) => v[id]); }) : rows;
-  const via = (r) => [...B.srcs].filter(([src, val]) => r.answers[src] === val).map(([src]) => stripHtml(form.blocks.find((x) => x.id === src).title).replace(/^Pilihan divisi /, "Pilihan ")).join(", ");
-  const ident = form.settings?.collectIdentity !== false && rows.some((r) => r.who);
+  const cols = B
+    ? [...(hideGen ? [] : general), ...qs.filter((q) => B.blocks.has(q.id))]
+    : qs;
+  const list = B
+    ? rows.filter((r) => {
+        const v = computeVisibility(form, r.answers);
+        return [...B.blocks].some((id) => v[id]);
+      })
+    : rows;
+  const via = (r) =>
+    [...B.srcs]
+      .filter(([src, val]) => r.answers[src] === val)
+      .map(([src]) =>
+        stripHtml(form.blocks.find((x) => x.id === src).title).replace(
+          /^Pilihan divisi /,
+          'Pilihan ',
+        ),
+      )
+      .join(', ');
+  const ident =
+    form.settings?.collectIdentity !== false && rows.some((r) => r.who);
   return (
     <div className="sheet-box" data-tour="forms-sheet">
       <div className="sheet-bar">
         {branches.length > 0 && (
-          <label className="sheet-field"><span>Saring per cabang</span>
+          <label className="sheet-field">
+            <span>Saring per cabang</span>
             <select value={br} onChange={(e) => setBr(e.target.value)}>
               <option value="">Semua respons, semua kolom</option>
-              {branches.map((b) => <option key={b.label} value={b.label}>{b.label} ({rows.filter((r) => [...b.srcs].some(([s, v]) => r.answers[s] === v)).length})</option>)}
+              {branches.map((b) => (
+                <option key={b.label} value={b.label}>
+                  {b.label} (
+                  {
+                    rows.filter((r) =>
+                      [...b.srcs].some(([s, v]) => r.answers[s] === v),
+                    ).length
+                  }
+                  )
+                </option>
+              ))}
             </select>
           </label>
         )}
-        {B && <Toggle id="hide-gen" label="Sembunyikan pertanyaan umum" on={hideGen} onChange={setHideGen} />}
-        <Toggle id="wrap" label="Tampilkan jawaban utuh" on={wrap} onChange={setWrap} />
+        {B && (
+          <Toggle
+            id="hide-gen"
+            label="Sembunyikan pertanyaan umum"
+            on={hideGen}
+            onChange={setHideGen}
+          />
+        )}
+        <Toggle
+          id="wrap"
+          label="Tampilkan jawaban utuh"
+          on={wrap}
+          onChange={setWrap}
+        />
         <span className="sp" />
-        <span className="muted small">{list.length} baris · {cols.length} kolom pertanyaan</span>
+        <span className="muted small">
+          {list.length} baris · {cols.length} kolom pertanyaan
+        </span>
       </div>
-      {B && <p className="muted small">Hanya pendaftar yang memilih <b>{B.label}</b> di salah satu pilihannya, dengan kolom pertanyaan khusus {B.label}. Mirip satu tab sheet pendivisian.</p>}
-      <div className={"sheet-wrap" + (wrap ? " wrap" : "")}>
+      {B && (
+        <p className="muted small">
+          Hanya pendaftar yang memilih <b>{B.label}</b> di salah satu
+          pilihannya, dengan kolom pertanyaan khusus {B.label}. Mirip satu tab
+          sheet pendivisian.
+        </p>
+      )}
+      <div className={'sheet-wrap' + (wrap ? ' wrap' : '')}>
         <table className="sheet">
           <thead>
             <tr>
-              <th className="rn">#</th><th>Waktu</th>
-              {ident && <><th>NIM</th><th>Nama</th><th>Fakultas</th></>}
+              <th className="rn">#</th>
+              <th>Waktu</th>
+              {ident && (
+                <>
+                  <th>NIM</th>
+                  <th>Nama</th>
+                  <th>Fakultas</th>
+                </>
+              )}
               {B && <th>Memilih di</th>}
-              {cols.map((q) => <th key={q.id} className={condIds.has(q.id) ? "cond" : ""} title={stripHtml(q.title)}>{questionNumber(form, q.id)}. {stripHtml(q.title) || TYPES[q.type].label}</th>)}
+              {cols.map((q) => (
+                <th
+                  key={q.id}
+                  className={condIds.has(q.id) ? 'cond' : ''}
+                  title={stripHtml(q.title)}
+                >
+                  {questionNumber(form, q.id)}.{' '}
+                  {stripHtml(q.title) || TYPES[q.type].label}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {list.map((r, i) => (
               <tr key={r.id}>
                 <td className="rn">{i + 1}</td>
-                <td className="nowrap">{new Date(r.at).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })}</td>
-                {ident && <><td className="nowrap">{r.who?.nim ?? "—"}</td><td className="nowrap">{r.who?.name ?? (r.test ? "Respons uji" : "—")}</td><td className="nowrap">{r.who?.fak ?? "—"}</td></>}
+                <td className="nowrap">
+                  {new Date(r.at).toLocaleString('id-ID', {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  })}
+                </td>
+                {ident && (
+                  <>
+                    <td className="nowrap">{r.who?.nim ?? '—'}</td>
+                    <td className="nowrap">
+                      {r.who?.name ?? (r.test ? 'Respons uji' : '—')}
+                    </td>
+                    <td className="nowrap">{r.who?.fak ?? '—'}</td>
+                  </>
+                )}
                 {B && <td className="nowrap">{via(r)}</td>}
-                {cols.map((q) => { const t = fmtAnswer(q, r.answers[q.id]); return <td key={q.id} title={t}>{t || <span className="dash">—</span>}</td>; })}
+                {cols.map((q) => {
+                  const t = fmtAnswer(q, r.answers[q.id]);
+                  return (
+                    <td key={q.id} title={t}>
+                      {t || <span className="dash">—</span>}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>
         </table>
-        {!list.length && <div className="empty"><p>Belum ada respons di cabang ini.</p></div>}
+        {!list.length && (
+          <div className="empty">
+            <p>Belum ada respons di cabang ini.</p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -2927,136 +6258,397 @@ function ResponsesView({ form, api, mode, setMode }) {
   const [withTest, setWithTest] = useState(true);
   const qs = form.blocks.filter(isQuestion);
   const all = form.responses || [];
-  const rows = all.filter((r) => withTest || !r.test).slice().sort((a, b) => b.at.localeCompare(a.at));
+  const rows = all
+    .filter((r) => withTest || !r.test)
+    .slice()
+    .sort((a, b) => b.at.localeCompare(a.at));
   const csv = () => {
     const esc = (s) => `"${String(s).replace(/"/g, '""')}"`;
-    const head = ["Waktu", "Jenis", "Penutup", ...qs.map((q) => stripHtml(q.title) || TYPES[q.type].label)];
-    const body = rows.map((r) => [new Date(r.at).toLocaleString("id-ID"), r.test ? "Uji" : r.sample ? "Contoh" : "Asli", blockLabel(form, r.end || END), ...qs.map((q) => fmtAnswer(q, r.answers[q.id]))]);
-    return [head, ...body].map((l) => l.map(esc).join(",")).join("\n");
+    const head = [
+      'Waktu',
+      'Jenis',
+      'Penutup',
+      ...qs.map((q) => stripHtml(q.title) || TYPES[q.type].label),
+    ];
+    const body = rows.map((r) => [
+      new Date(r.at).toLocaleString('id-ID'),
+      r.test ? 'Uji' : r.sample ? 'Contoh' : 'Asli',
+      blockLabel(form, r.end || END),
+      ...qs.map((q) => fmtAnswer(q, r.answers[q.id])),
+    ]);
+    return [head, ...body].map((l) => l.map(esc).join(',')).join('\n');
   };
   return (
     <div className="resp">
       <div className="resp-head">
         <div>
           <h2>{form.title}</h2>
-          <p className="muted">{rows.length} respons ditampilkan · {all.filter((r) => r.test).length} uji · {all.filter((r) => r.sample).length} contoh</p>
+          <p className="muted">
+            {rows.length} respons ditampilkan ·{' '}
+            {all.filter((r) => r.test).length} uji ·{' '}
+            {all.filter((r) => r.sample).length} contoh
+          </p>
         </div>
         <span className="sp" />
-        <Toggle id="with-test" label="Sertakan respons uji" on={withTest} onChange={setWithTest} />
-        <button type="button" className="btn ghost" onClick={async () => { try { await navigator.clipboard.writeText(csv()); api.toast("CSV disalin ke clipboard"); } catch { api.toast("Clipboard ditolak browser"); } }}><Icon name="copy" size={16} />Salin CSV</button>
-        <button type="button" className="btn accent" onClick={() => api.edit(form.id)}><Icon name="edit" size={16} />Edit form</button>
+        <Toggle
+          id="with-test"
+          label="Sertakan respons uji"
+          on={withTest}
+          onChange={setWithTest}
+        />
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(csv());
+              api.toast('CSV disalin ke clipboard');
+            } catch {
+              api.toast('Clipboard ditolak browser');
+            }
+          }}
+        >
+          <Icon name="copy" size={16} />
+          Salin CSV
+        </button>
+        <button
+          type="button"
+          className="btn accent"
+          onClick={() => api.edit(form.id)}
+        >
+          <Icon name="edit" size={16} />
+          Edit form
+        </button>
       </div>
-      <div className="seg" role="radiogroup" aria-label="Tampilan respons" data-tour="forms-resp-mode">
-        {[["ringkasan", "grid", "Ringkasan"], ["sheets", "table", "Sheets"]].map(([k, ic, l]) => (
-          <button type="button" key={k} role="radio" aria-checked={mode === k} className={mode === k ? "on" : ""} onClick={() => setMode(k)}><Icon name={ic} size={15} />{l}</button>
+      <div
+        className="seg"
+        role="radiogroup"
+        aria-label="Tampilan respons"
+        data-tour="forms-resp-mode"
+      >
+        {[
+          ['ringkasan', 'grid', 'Ringkasan'],
+          ['sheets', 'table', 'Sheets'],
+        ].map(([k, ic, l]) => (
+          <button
+            type="button"
+            key={k}
+            role="radio"
+            aria-checked={mode === k}
+            className={mode === k ? 'on' : ''}
+            onClick={() => setMode(k)}
+          >
+            <Icon name={ic} size={15} />
+            {l}
+          </button>
         ))}
       </div>
-      {mode === "sheets" ? <SheetView form={form} rows={rows} qs={qs} /> : <>
-      <div className="summary">
-        {qs.filter((q) => ["choice", "dropdown", "checkbox", "scale"].includes(q.type)).map((q) => {
-          const ans = rows.map((r) => r.answers[q.id]).filter((v) => !isEmptyAnswer(v));
-          let bars;
-          if (q.type === "scale") {
-            bars = [];
-            for (let i = q.props.min; i <= q.props.max; i++) bars.push({ label: String(i), n: ans.filter((v) => v === i).length });
-          } else bars = q.props.options.map((o) => ({ label: o.label, n: ans.filter((v) => (Array.isArray(v) ? v.includes(o.id) : v === o.id)).length }));
-          const max = Math.max(1, ...bars.map((b) => b.n));
-          const avg = q.type === "scale" && ans.length ? (ans.reduce((s, v) => s + v, 0) / ans.length).toFixed(1) : null;
-          return (
-            <div className="sum-card" key={q.id}>
-              <div className="sum-hd"><span className="qnum sm">{questionNumber(form, q.id)}</span><b>{stripHtml(q.title)}</b></div>
-              <small className="muted">{ans.length} menjawab{avg ? ` · rata-rata ${avg}` : ""}</small>
-              <div className="bars">
-                {bars.map((b, i) => (
-                  <div className="bar" key={i}><span className="bar-l" title={b.label}>{b.label}</span><span className="bar-t"><i style={{ width: `${(b.n / max) * 100}%` }} /></span><span className="bar-n">{b.n}</span></div>
-                ))}
+      {mode === 'sheets' ? (
+        <SheetView form={form} rows={rows} qs={qs} />
+      ) : (
+        <>
+          <div className="summary">
+            {qs
+              .filter((q) =>
+                ['choice', 'dropdown', 'checkbox', 'scale'].includes(q.type),
+              )
+              .map((q) => {
+                const ans = rows
+                  .map((r) => r.answers[q.id])
+                  .filter((v) => !isEmptyAnswer(v));
+                let bars;
+                if (q.type === 'scale') {
+                  bars = [];
+                  for (let i = q.props.min; i <= q.props.max; i++)
+                    bars.push({
+                      label: String(i),
+                      n: ans.filter((v) => v === i).length,
+                    });
+                } else
+                  bars = q.props.options.map((o) => ({
+                    label: o.label,
+                    n: ans.filter((v) =>
+                      Array.isArray(v) ? v.includes(o.id) : v === o.id,
+                    ).length,
+                  }));
+                const max = Math.max(1, ...bars.map((b) => b.n));
+                const avg =
+                  q.type === 'scale' && ans.length
+                    ? (ans.reduce((s, v) => s + v, 0) / ans.length).toFixed(1)
+                    : null;
+                return (
+                  <div className="sum-card" key={q.id}>
+                    <div className="sum-hd">
+                      <span className="qnum sm">
+                        {questionNumber(form, q.id)}
+                      </span>
+                      <b>{stripHtml(q.title)}</b>
+                    </div>
+                    <small className="muted">
+                      {ans.length} menjawab{avg ? ` · rata-rata ${avg}` : ''}
+                    </small>
+                    <div className="bars">
+                      {bars.map((b, i) => (
+                        <div className="bar" key={i}>
+                          <span className="bar-l" title={b.label}>
+                            {b.label}
+                          </span>
+                          <span className="bar-t">
+                            <i style={{ width: `${(b.n / max) * 100}%` }} />
+                          </span>
+                          <span className="bar-n">{b.n}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+          <div className="tbl-wrap">
+            {rows.length === 0 ? (
+              <div className="empty">
+                <Icon name="inbox" size={30} />
+                <p>
+                  Belum ada respons. Coba isi lewat{' '}
+                  <button
+                    type="button"
+                    className="lnk"
+                    onClick={() => api.edit(form.id, 'pratinjau')}
+                  >
+                    Pratinjau
+                  </button>
+                  .
+                </p>
               </div>
-            </div>
-          );
-        })}
-      </div>
-      <div className="tbl-wrap">
-        {rows.length === 0 ? (
-          <div className="empty"><Icon name="inbox" size={30} /><p>Belum ada respons. Coba isi lewat <button type="button" className="lnk" onClick={() => api.edit(form.id, "pratinjau")}>Pratinjau</button>.</p></div>
-        ) : (
-          <table className="tbl">
-            <thead><tr><th>Waktu</th><th>Jenis</th><th>Penutup</th>{qs.map((q) => <th key={q.id} title={stripHtml(q.title)}>{questionNumber(form, q.id)}. {stripHtml(q.title) || TYPES[q.type].label}</th>)}</tr></thead>
-            <tbody>
-              {rows.map((r) => (
-                <tr key={r.id}>
-                  <td className="nowrap">{new Date(r.at).toLocaleString("id-ID", { dateStyle: "short", timeStyle: "short" })}</td>
-                  <td><span className={"pill " + (r.test ? "warn" : r.sample ? "muted" : "ok")}>{r.test ? "Uji" : r.sample ? "Contoh" : "Asli"}</span></td>
-                  <td className="nowrap">{r.end ? blockLabel(form, r.end) : "-"}</td>
-                  {qs.map((q) => <td key={q.id}>{fmtAnswer(q, r.answers[q.id]) || <span className="dash">—</span>}</td>)}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-      </>}
+            ) : (
+              <table className="tbl">
+                <thead>
+                  <tr>
+                    <th>Waktu</th>
+                    <th>Jenis</th>
+                    <th>Penutup</th>
+                    {qs.map((q) => (
+                      <th key={q.id} title={stripHtml(q.title)}>
+                        {questionNumber(form, q.id)}.{' '}
+                        {stripHtml(q.title) || TYPES[q.type].label}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows.map((r) => (
+                    <tr key={r.id}>
+                      <td className="nowrap">
+                        {new Date(r.at).toLocaleString('id-ID', {
+                          dateStyle: 'short',
+                          timeStyle: 'short',
+                        })}
+                      </td>
+                      <td>
+                        <span
+                          className={
+                            'pill ' +
+                            (r.test ? 'warn' : r.sample ? 'muted' : 'ok')
+                          }
+                        >
+                          {r.test ? 'Uji' : r.sample ? 'Contoh' : 'Asli'}
+                        </span>
+                      </td>
+                      <td className="nowrap">
+                        {r.end ? blockLabel(form, r.end) : '-'}
+                      </td>
+                      {qs.map((q) => (
+                        <td key={q.id}>
+                          {fmtAnswer(q, r.answers[q.id]) || (
+                            <span className="dash">—</span>
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </>
+      )}
     </div>
   );
 }
 
 /* ---------- daftar Forms ---------- */
-const NAV = [["home", "Beranda"], ["calendar", "Kegiatan"], ["users", "Anggota"], ["inbox", "Inbox"], ["alert", "Laporan"], ["list", "Forms"]];
+const NAV = [
+  ['home', 'Beranda'],
+  ['calendar', 'Kegiatan'],
+  ['users', 'Anggota'],
+  ['inbox', 'Inbox'],
+  ['alert', 'Laporan'],
+  ['list', 'Forms'],
+];
 function AppSidebar({ api }) {
   return (
     <nav className="app-side" aria-label="Navigasi utama">
-      <div className="brand"><Logo /><span>anmategra</span></div>
+      <div className="brand">
+        <Logo />
+        <span>anmategra</span>
+      </div>
       <ul>
         {NAV.map(([i, l]) => (
-          <li key={l}><button type="button" className={l === "Forms" ? "on" : ""} aria-current={l === "Forms" ? "page" : undefined} onClick={() => l !== "Forms" && api.toast(`${l} di luar cakupan purwarupa ini`)}><Icon name={i} size={19} />{l}</button></li>
+          <li key={l}>
+            <button
+              type="button"
+              className={l === 'Forms' ? 'on' : ''}
+              aria-current={l === 'Forms' ? 'page' : undefined}
+              onClick={() =>
+                l !== 'Forms' && api.toast(`${l} di luar cakupan purwarupa ini`)
+              }
+            >
+              <Icon name={i} size={19} />
+              {l}
+            </button>
+          </li>
         ))}
       </ul>
       <div className="org">
         <span className="org-av">IF</span>
-        <div><b>HMIF ITB</b><small>Lembaga</small></div>
+        <div>
+          <b>HMIF ITB</b>
+          <small>Lembaga</small>
+        </div>
       </div>
-      <button type="button" className="logout" onClick={() => api.toast("Logout dinonaktifkan di purwarupa")}><Icon name="logout" size={18} />Logout</button>
+      <button
+        type="button"
+        className="logout"
+        onClick={() => api.toast('Logout dinonaktifkan di purwarupa')}
+      >
+        <Icon name="logout" size={18} />
+        Logout
+      </button>
     </nav>
   );
 }
 
 function FormsList({ forms, api }) {
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState('');
   const [st, setSt] = useState([]);
   const [tg, setTg] = useState([]);
-  const [disp, setDisp] = useState("list");
+  const [disp, setDisp] = useState('list');
   const [open, setOpen] = useState(null);
   const [page, setPage] = useState(1);
   const [menu, setMenu] = useState(null);
   const [del, setDel] = useState(null);
-  const stRef = useRef(null), tgRef = useRef(null);
+  const stRef = useRef(null),
+    tgRef = useRef(null);
   const allTags = [...new Set(forms.flatMap((f) => f.tags))].sort();
   const list = forms
-    .filter((f) => !q || f.title.toLowerCase().includes(q.toLowerCase()) || f.tags.some((t) => t.toLowerCase().includes(q.toLowerCase())))
+    .filter(
+      (f) =>
+        !q ||
+        f.title.toLowerCase().includes(q.toLowerCase()) ||
+        f.tags.some((t) => t.toLowerCase().includes(q.toLowerCase())),
+    )
     .filter((f) => !st.length || st.includes(f.status))
     .filter((f) => !tg.length || tg.some((t) => f.tags.includes(t)))
-    .sort((a, b) => (b.pinned - a.pinned) || b.createdAt.localeCompare(a.createdAt));
+    .sort(
+      (a, b) => b.pinned - a.pinned || b.createdAt.localeCompare(a.createdAt),
+    );
   const PER = 6;
   const pages = Math.max(1, Math.ceil(list.length / PER));
   const pg = Math.min(page, pages);
   const shown = list.slice((pg - 1) * PER, pg * PER);
-  const tog = (arr, set, v) => set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
+  const tog = (arr, set, v) =>
+    set(arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v]);
   const Thumb = ({ f }) => (
-    <div className="thumb" style={{ "--ta": f.theme.accent }}>
-      {f.theme.banner ? <img src={f.theme.banner} alt="" /> : <span className="thumb-gen"><i /><i /><i /></span>}
-      {f.pinned && <Icon name="pin" size={16} className="thumb-pin" fill="currentColor" />}
+    <div className="thumb" style={{ '--ta': f.theme.accent }}>
+      {f.theme.banner ? (
+        <img src={f.theme.banner} alt="" />
+      ) : (
+        <span className="thumb-gen">
+          <i />
+          <i />
+          <i />
+        </span>
+      )}
+      {f.pinned && (
+        <Icon name="pin" size={16} className="thumb-pin" fill="currentColor" />
+      )}
     </div>
   );
   const Actions = ({ f }) => (
     <div className="row-act">
-      <button type="button" className="btn sm ghost" onClick={() => api.responses(f.id)}>Lihat <Icon name="external" size={14} /></button>
-      <button type="button" className="btn sm ghost" onClick={() => api.edit(f.id)}>Edit <Icon name="external" size={14} /></button>
+      <button
+        type="button"
+        className="btn sm ghost"
+        onClick={() => api.responses(f.id)}
+      >
+        Lihat <Icon name="external" size={14} />
+      </button>
+      <button
+        type="button"
+        className="btn sm ghost"
+        onClick={() => api.edit(f.id)}
+      >
+        Edit <Icon name="external" size={14} />
+      </button>
       <div className="rel">
-        <button type="button" className="icon-btn" aria-label="Menu lain" aria-expanded={menu === f.id} onClick={(e) => { e.stopPropagation(); setMenu(menu === f.id ? null : f.id); }}><Icon name="more" size={20} sw={2.6} /></button>
-        <Popover open={menu === f.id} onClose={() => setMenu(null)} className="row-menu">
-          <button type="button" onClick={() => { api.patchForm(f.id, { pinned: !f.pinned }); setMenu(null); }}><Icon name="pin" size={16} />{f.pinned ? "Lepas sematan" : "Sematkan"}</button>
-          <button type="button" onClick={() => { api.duplicateForm(f.id); setMenu(null); }}><Icon name="copy" size={16} />Duplikat</button>
-          <button type="button" onClick={() => { api.edit(f.id, "pratinjau"); setMenu(null); }}><Icon name="eye" size={16} />Pratinjau</button>
-          <button type="button" className="danger" onClick={() => { setDel(f); setMenu(null); }}><Icon name="trash" size={16} />Hapus</button>
+        <button
+          type="button"
+          className="icon-btn"
+          aria-label="Menu lain"
+          aria-expanded={menu === f.id}
+          onClick={(e) => {
+            e.stopPropagation();
+            setMenu(menu === f.id ? null : f.id);
+          }}
+        >
+          <Icon name="more" size={20} sw={2.6} />
+        </button>
+        <Popover
+          open={menu === f.id}
+          onClose={() => setMenu(null)}
+          className="row-menu"
+        >
+          <button
+            type="button"
+            onClick={() => {
+              api.patchForm(f.id, { pinned: !f.pinned });
+              setMenu(null);
+            }}
+          >
+            <Icon name="pin" size={16} />
+            {f.pinned ? 'Lepas sematan' : 'Sematkan'}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              api.duplicateForm(f.id);
+              setMenu(null);
+            }}
+          >
+            <Icon name="copy" size={16} />
+            Duplikat
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              api.edit(f.id, 'pratinjau');
+              setMenu(null);
+            }}
+          >
+            <Icon name="eye" size={16} />
+            Pratinjau
+          </button>
+          <button
+            type="button"
+            className="danger"
+            onClick={() => {
+              setDel(f);
+              setMenu(null);
+            }}
+          >
+            <Icon name="trash" size={16} />
+            Hapus
+          </button>
         </Popover>
       </div>
     </div>
@@ -3065,38 +6657,152 @@ function FormsList({ forms, api }) {
     <div className="list-page">
       <div className="lp-head">
         <h1>Forms</h1>
-        <button type="button" className="btn accent" onClick={api.create}><Icon name="plus" size={16} />Form Baru</button>
+        <button type="button" className="btn accent" onClick={api.create}>
+          <Icon name="plus" size={16} />
+          Form Baru
+        </button>
       </div>
-      <label className="search"><Icon name="search" size={20} /><input placeholder="Cari forms" value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} aria-label="Cari forms" /></label>
+      <label className="search">
+        <Icon name="search" size={20} />
+        <input
+          placeholder="Cari forms"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setPage(1);
+          }}
+          aria-label="Cari forms"
+        />
+      </label>
       <div className="filters">
         <div className="rel">
-          <button ref={stRef} type="button" className={"chip-btn" + (st.length ? " on" : "")} aria-expanded={open === "st"} onClick={() => setOpen(open === "st" ? null : "st")}><Icon name="filter" size={18} />Status{st.length ? ` · ${st.length}` : ""}</button>
-          <Popover open={open === "st"} onClose={() => setOpen(null)} anchorRef={stRef} className="filter-pop">
-            {Object.entries(STATUS).map(([k, s]) => <label key={k}><input type="checkbox" checked={st.includes(k)} onChange={() => { tog(st, setSt, k); setPage(1); }} /><span className={"dot " + s.tone} />{s.label}</label>)}
+          <button
+            ref={stRef}
+            type="button"
+            className={'chip-btn' + (st.length ? ' on' : '')}
+            aria-expanded={open === 'st'}
+            onClick={() => setOpen(open === 'st' ? null : 'st')}
+          >
+            <Icon name="filter" size={18} />
+            Status{st.length ? ` · ${st.length}` : ''}
+          </button>
+          <Popover
+            open={open === 'st'}
+            onClose={() => setOpen(null)}
+            anchorRef={stRef}
+            className="filter-pop"
+          >
+            {Object.entries(STATUS).map(([k, s]) => (
+              <label key={k}>
+                <input
+                  type="checkbox"
+                  checked={st.includes(k)}
+                  onChange={() => {
+                    tog(st, setSt, k);
+                    setPage(1);
+                  }}
+                />
+                <span className={'dot ' + s.tone} />
+                {s.label}
+              </label>
+            ))}
           </Popover>
         </div>
         <div className="rel">
-          <button ref={tgRef} type="button" className={"chip-btn" + (tg.length ? " on" : "")} aria-expanded={open === "tg"} onClick={() => setOpen(open === "tg" ? null : "tg")}><Icon name="tag" size={18} />Tag{tg.length ? ` · ${tg.length}` : ""}</button>
-          <Popover open={open === "tg"} onClose={() => setOpen(null)} anchorRef={tgRef} className="filter-pop">
-            {allTags.map((t) => <label key={t}><input type="checkbox" checked={tg.includes(t)} onChange={() => { tog(tg, setTg, t); setPage(1); }} />{t}</label>)}
+          <button
+            ref={tgRef}
+            type="button"
+            className={'chip-btn' + (tg.length ? ' on' : '')}
+            aria-expanded={open === 'tg'}
+            onClick={() => setOpen(open === 'tg' ? null : 'tg')}
+          >
+            <Icon name="tag" size={18} />
+            Tag{tg.length ? ` · ${tg.length}` : ''}
+          </button>
+          <Popover
+            open={open === 'tg'}
+            onClose={() => setOpen(null)}
+            anchorRef={tgRef}
+            className="filter-pop"
+          >
+            {allTags.map((t) => (
+              <label key={t}>
+                <input
+                  type="checkbox"
+                  checked={tg.includes(t)}
+                  onChange={() => {
+                    tog(tg, setTg, t);
+                    setPage(1);
+                  }}
+                />
+                {t}
+              </label>
+            ))}
           </Popover>
         </div>
-        {(st.length > 0 || tg.length > 0 || q) && <button type="button" className="lnk" onClick={() => { setSt([]); setTg([]); setQ(""); }}>Reset filter</button>}
+        {(st.length > 0 || tg.length > 0 || q) && (
+          <button
+            type="button"
+            className="lnk"
+            onClick={() => {
+              setSt([]);
+              setTg([]);
+              setQ('');
+            }}
+          >
+            Reset filter
+          </button>
+        )}
         <span className="sp" />
-        <button type="button" className="chip-btn square" onClick={() => setDisp(disp === "list" ? "grid" : "list")} aria-label="Ganti tampilan"><Icon name={disp === "list" ? "grid" : "display"} size={18} />{disp === "list" ? "Grid" : "Daftar"}</button>
+        <button
+          type="button"
+          className="chip-btn square"
+          onClick={() => setDisp(disp === 'list' ? 'grid' : 'list')}
+          aria-label="Ganti tampilan"
+        >
+          <Icon name={disp === 'list' ? 'grid' : 'display'} size={18} />
+          {disp === 'list' ? 'Grid' : 'Daftar'}
+        </button>
       </div>
       {shown.length === 0 ? (
-        <div className="empty"><Icon name="search" size={30} /><p>Tidak ada form yang cocok dengan filter ini.</p></div>
-      ) : disp === "list" ? (
+        <div className="empty">
+          <Icon name="search" size={30} />
+          <p>Tidak ada form yang cocok dengan filter ini.</p>
+        </div>
+      ) : disp === 'list' ? (
         <div className="ftable" role="table" aria-label="Daftar forms">
-          <div className="fr fh" role="row"><span>Thumbnail</span><span>Judul</span><span>Dibuat pada</span><span>Status</span><span>Respons</span><span>Aksi</span></div>
+          <div className="fr fh" role="row">
+            <span>Thumbnail</span>
+            <span>Judul</span>
+            <span>Dibuat pada</span>
+            <span>Status</span>
+            <span>Respons</span>
+            <span>Aksi</span>
+          </div>
           {shown.map((f) => (
-            <div key={f.id} className={"fr" + (f.pinned ? " pinned" : "")} role="row">
+            <div
+              key={f.id}
+              className={'fr' + (f.pinned ? ' pinned' : '')}
+              role="row"
+            >
               <Thumb f={f} />
-              <button type="button" className="f-title" onClick={() => api.edit(f.id)}><b>{f.title}</b>{f.tags.length > 0 && <small>{f.tags.join(" · ")}</small>}</button>
+              <button
+                type="button"
+                className="f-title"
+                onClick={() => api.edit(f.id)}
+              >
+                <b>{f.title}</b>
+                {f.tags.length > 0 && <small>{f.tags.join(' · ')}</small>}
+              </button>
               <span className="f-date">{fmtDate(f.createdAt)}</span>
-              <span className="f-status"><span className={"dot " + STATUS[f.status].tone} />{STATUS[f.status].label}</span>
-              <span className="f-resp">{(f.responses || []).length}{f.maxResponses ? <small> / {f.maxResponses}</small> : ""}</span>
+              <span className="f-status">
+                <span className={'dot ' + STATUS[f.status].tone} />
+                {STATUS[f.status].label}
+              </span>
+              <span className="f-resp">
+                {(f.responses || []).length}
+                {f.maxResponses ? <small> / {f.maxResponses}</small> : ''}
+              </span>
               <Actions f={f} />
             </div>
           ))}
@@ -3106,8 +6812,23 @@ function FormsList({ forms, api }) {
           {shown.map((f) => (
             <div key={f.id} className="fcard">
               <Thumb f={f} />
-              <button type="button" className="f-title" onClick={() => api.edit(f.id)}><b>{f.title}</b></button>
-              <div className="fcard-meta"><span className="f-status"><span className={"dot " + STATUS[f.status].tone} />{STATUS[f.status].label}</span><span className="muted">{fmtDate(f.createdAt)}</span><span className="muted">{(f.responses || []).length} respons</span></div>
+              <button
+                type="button"
+                className="f-title"
+                onClick={() => api.edit(f.id)}
+              >
+                <b>{f.title}</b>
+              </button>
+              <div className="fcard-meta">
+                <span className="f-status">
+                  <span className={'dot ' + STATUS[f.status].tone} />
+                  {STATUS[f.status].label}
+                </span>
+                <span className="muted">{fmtDate(f.createdAt)}</span>
+                <span className="muted">
+                  {(f.responses || []).length} respons
+                </span>
+              </div>
               <Actions f={f} />
             </div>
           ))}
@@ -3115,60 +6836,250 @@ function FormsList({ forms, api }) {
       )}
       {pages > 1 && (
         <div className="pager">
-          <button type="button" aria-label="Sebelumnya" disabled={pg === 1} onClick={() => setPage(pg - 1)}><Icon name="chevLeft" /></button>
-          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => <button type="button" key={n} className={n === pg ? "on" : ""} onClick={() => setPage(n)}>{n}</button>)}
-          <button type="button" aria-label="Berikutnya" disabled={pg === pages} onClick={() => setPage(pg + 1)}><Icon name="chevRight" /></button>
+          <button
+            type="button"
+            aria-label="Sebelumnya"
+            disabled={pg === 1}
+            onClick={() => setPage(pg - 1)}
+          >
+            <Icon name="chevLeft" />
+          </button>
+          {Array.from({ length: pages }, (_, i) => i + 1).map((n) => (
+            <button
+              type="button"
+              key={n}
+              className={n === pg ? 'on' : ''}
+              onClick={() => setPage(n)}
+            >
+              {n}
+            </button>
+          ))}
+          <button
+            type="button"
+            aria-label="Berikutnya"
+            disabled={pg === pages}
+            onClick={() => setPage(pg + 1)}
+          >
+            <Icon name="chevRight" />
+          </button>
         </div>
       )}
-      <Modal open={!!del} title="Hapus form?" onClose={() => setDel(null)} actions={<><button type="button" className="btn ghost" onClick={() => setDel(null)}>Batal</button><button type="button" className="btn danger" onClick={() => { api.deleteForm(del.id); setDel(null); }}>Hapus form</button></>}>
-        <p><b>{del?.title}</b> beserta {(del?.responses || []).length} responsnya akan dihapus permanen.</p>
+      <Modal
+        open={!!del}
+        title="Hapus form?"
+        onClose={() => setDel(null)}
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setDel(null)}
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              className="btn danger"
+              onClick={() => {
+                api.deleteForm(del.id);
+                setDel(null);
+              }}
+            >
+              Hapus form
+            </button>
+          </>
+        }
+      >
+        <p>
+          <b>{del?.title}</b> beserta {(del?.responses || []).length} responsnya
+          akan dihapus permanen.
+        </p>
       </Modal>
     </div>
   );
 }
 
 /* ---------- editor shell ---------- */
-function Editor({ form, api, tab, setTab, hist, startAt, device, flowFocus, selected, setSelected, panelOpen, setPanelOpen, condOpen }) {
+function Editor({
+  form,
+  api,
+  tab,
+  setTab,
+  hist,
+  startAt,
+  device,
+  flowFocus,
+  selected,
+  setSelected,
+  panelOpen,
+  setPanelOpen,
+  condOpen,
+}) {
   const [delId, setDelId] = useState(null);
-  useEffect(() => { api._setAskDelete(setDelId); }, [api]);
+  useEffect(() => {
+    api._setAskDelete(setDelId);
+  }, [api]);
   const del = form.blocks.find((b) => b.id === delId);
-  const incoming = del ? form.blocks.filter((b) => (b.cond?.rules || []).some((r) => r.src === del.id)).length : 0;
+  const incoming = del
+    ? form.blocks.filter((b) =>
+        (b.cond?.rules || []).some((r) => r.src === del.id),
+      ).length
+    : 0;
   useEffect(() => {
     const k = (e) => {
       const t = e.target;
-      const typing = t.isContentEditable || /^(input|textarea|select)$/i.test(t.tagName);
-      if (typing || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== "z") return;
+      const typing =
+        t.isContentEditable || /^(input|textarea|select)$/i.test(t.tagName);
+      if (typing || !(e.metaKey || e.ctrlKey) || e.key.toLowerCase() !== 'z')
+        return;
       e.preventDefault();
       e.shiftKey ? api.redo() : api.undo();
     };
-    window.addEventListener("keydown", k);
-    return () => window.removeEventListener("keydown", k);
+    window.addEventListener('keydown', k);
+    return () => window.removeEventListener('keydown', k);
   }, [api]);
   return (
     <div className="editor">
       <header className="ed-top">
-        <button type="button" className="brand-btn" onClick={api.home} aria-label="Kembali ke daftar Forms"><Logo size={36} /></button>
-        <button type="button" className="icon-btn burger" aria-label="Panel halaman" aria-expanded={panelOpen} onClick={() => setPanelOpen(!panelOpen)}><Icon name="menu" size={22} /></button>
-        <nav className="crumb" aria-label="Breadcrumb"><button type="button" onClick={api.home}>Forms</button><span>›</span><b title={form.title}>{form.title || "Tanpa judul"}</b></nav>
+        <button
+          type="button"
+          className="brand-btn"
+          onClick={api.home}
+          aria-label="Kembali ke daftar Forms"
+        >
+          <Logo size={36} />
+        </button>
+        <button
+          type="button"
+          className="icon-btn burger"
+          aria-label="Panel halaman"
+          aria-expanded={panelOpen}
+          onClick={() => setPanelOpen(!panelOpen)}
+        >
+          <Icon name="menu" size={22} />
+        </button>
+        <nav className="crumb" aria-label="Breadcrumb">
+          <button type="button" onClick={api.home}>
+            Forms
+          </button>
+          <span>›</span>
+          <b title={form.title}>{form.title || 'Tanpa judul'}</b>
+        </nav>
         <div className="tabs" role="tablist" data-tour="forms-editor-tabs">
-          {[["konten", "list", "Konten"], ["alur", "flow", "Alur"], ["pratinjau", "eye", "Pratinjau"]].map(([k, i, l]) => (
-            <button type="button" key={k} role="tab" aria-label={l} aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}><Icon name={i} size={19} /><span>{l}</span></button>
+          {[
+            ['konten', 'list', 'Konten'],
+            ['alur', 'flow', 'Alur'],
+            ['pratinjau', 'eye', 'Pratinjau'],
+          ].map(([k, i, l]) => (
+            <button
+              type="button"
+              key={k}
+              role="tab"
+              aria-label={l}
+              aria-selected={tab === k}
+              className={tab === k ? 'on' : ''}
+              onClick={() => setTab(k)}
+            >
+              <Icon name={i} size={19} />
+              <span>{l}</span>
+            </button>
           ))}
         </div>
         <div className="ed-right">
-          <button type="button" className="icon-btn" aria-label="Urungkan" title="Urungkan (Ctrl+Z)" disabled={!hist.past.length} onClick={api.undo}><Icon name="undo" /></button>
-          <button type="button" className="icon-btn" aria-label="Ulangi" title="Ulangi (Ctrl+Shift+Z)" disabled={!hist.future.length} onClick={api.redo}><Icon name="redo" /></button>
-          <button type="button" className="btn ghost sm resp-btn" data-tour="forms-resp-btn" onClick={() => api.responses(form.id)}><Icon name="table" size={15} />{(form.responses || []).length}<span> respons</span></button>
-          <span className={"status-pill " + STATUS[form.status].tone}>{STATUS[form.status].label}</span>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Urungkan"
+            title="Urungkan (Ctrl+Z)"
+            disabled={!hist.past.length}
+            onClick={api.undo}
+          >
+            <Icon name="undo" />
+          </button>
+          <button
+            type="button"
+            className="icon-btn"
+            aria-label="Ulangi"
+            title="Ulangi (Ctrl+Shift+Z)"
+            disabled={!hist.future.length}
+            onClick={api.redo}
+          >
+            <Icon name="redo" />
+          </button>
+          <button
+            type="button"
+            className="btn ghost sm resp-btn"
+            data-tour="forms-resp-btn"
+            onClick={() => api.responses(form.id)}
+          >
+            <Icon name="table" size={15} />
+            {(form.responses || []).length}
+            <span> respons</span>
+          </button>
+          <span className={'status-pill ' + STATUS[form.status].tone}>
+            {STATUS[form.status].label}
+          </span>
         </div>
       </header>
-      {tab === "konten" && <KontenView form={form} selected={selected} api={api} panelOpen={panelOpen} condOpen={condOpen} />}
-      {tab === "alur" && <FlowView form={form} api={api} focusId={flowFocus} />}
-      {tab === "pratinjau" && <PreviewView form={form} api={api} focusId={startAt} device={device} />}
-      <Modal open={!!del} title="Hapus blok ini?" onClose={() => setDelId(null)} actions={<><button type="button" className="btn ghost" onClick={() => setDelId(null)}>Batal</button><button type="button" className="btn danger" onClick={() => { api.remove(delId); setDelId(null); }}>Hapus</button></>}>
-        <p><b>{del && (stripHtml(del.title) || TYPES[del.type].label)}</b> akan dihapus.</p>
-        {incoming > 0 && <p className="warn-box">{incoming} blok memakai jawaban pertanyaan ini sebagai syarat tampil. Kondisinya ikut dihapus, jadi blok-blok itu akan selalu tampil.</p>}
-        {del && (form.responses || []).some((r) => !isEmptyAnswer(r.answers[del.id])) && <p className="muted small">Jawaban lama untuk pertanyaan ini tidak lagi tampil di tabel respons.</p>}
+      {tab === 'konten' && (
+        <KontenView
+          form={form}
+          selected={selected}
+          api={api}
+          panelOpen={panelOpen}
+          condOpen={condOpen}
+        />
+      )}
+      {tab === 'alur' && <FlowView form={form} api={api} focusId={flowFocus} />}
+      {tab === 'pratinjau' && (
+        <PreviewView form={form} api={api} focusId={startAt} device={device} />
+      )}
+      <Modal
+        open={!!del}
+        title="Hapus blok ini?"
+        onClose={() => setDelId(null)}
+        actions={
+          <>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setDelId(null)}
+            >
+              Batal
+            </button>
+            <button
+              type="button"
+              className="btn danger"
+              onClick={() => {
+                api.remove(delId);
+                setDelId(null);
+              }}
+            >
+              Hapus
+            </button>
+          </>
+        }
+      >
+        <p>
+          <b>{del && (stripHtml(del.title) || TYPES[del.type].label)}</b> akan
+          dihapus.
+        </p>
+        {incoming > 0 && (
+          <p className="warn-box">
+            {incoming} blok memakai jawaban pertanyaan ini sebagai syarat
+            tampil. Kondisinya ikut dihapus, jadi blok-blok itu akan selalu
+            tampil.
+          </p>
+        )}
+        {del &&
+          (form.responses || []).some(
+            (r) => !isEmptyAnswer(r.answers[del.id]),
+          ) && (
+            <p className="muted small">
+              Jawaban lama untuk pertanyaan ini tidak lagi tampil di tabel
+              respons.
+            </p>
+          )}
       </Modal>
     </div>
   );
@@ -3176,9 +7087,12 @@ function Editor({ form, api, tab, setTab, hist, startAt, device, flowFocus, sele
 
 /* ---------- App ---------- */
 /* Kunci terpisah dari purwarupa Forms biasa supaya contoh oprec OSKM selalu ada. */
-const STORE_KEY = "anmategra-proto-oprec-forms-v1";
+const STORE_KEY = 'anmategra-proto-oprec-forms-v1';
 function loadForms() {
-  try { const s = localStorage.getItem(STORE_KEY); if (s) return JSON.parse(s).map(withDefaults); } catch {}
+  try {
+    const s = localStorage.getItem(STORE_KEY);
+    if (s) return JSON.parse(s).map(withDefaults);
+  } catch {}
   return sampleForms();
 }
 
@@ -3186,8 +7100,8 @@ export default function AnmategraForms() {
   const [forms, setForms] = useState(loadForms);
   const formsRef = useRef(forms);
   formsRef.current = forms;
-  const [route, setRoute] = useState({ view: "list" });
-  const [respMode, setRespMode] = useState("ringkasan");
+  const [route, setRoute] = useState({ view: 'list' });
+  const [respMode, setRespMode] = useState('ringkasan');
   const routeRef = useRef(route);
   routeRef.current = route;
   const [hist, setHist] = useState({ past: [], future: [] });
@@ -3198,7 +7112,14 @@ export default function AnmategraForms() {
   const [toastMsg, toast] = useToast();
   const askDel = useRef(() => {});
 
-  useEffect(() => { const t = setTimeout(() => { try { localStorage.setItem(STORE_KEY, JSON.stringify(forms)); } catch {} }, 400); return () => clearTimeout(t); }, [forms]);
+  useEffect(() => {
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(forms));
+      } catch {}
+    }, 400);
+    return () => clearTimeout(t);
+  }, [forms]);
 
   const writeForm = (next) => {
     const nf = formsRef.current.map((f) => (f.id === next.id ? next : f));
@@ -3213,9 +7134,11 @@ export default function AnmategraForms() {
     const next = fn(prev);
     if (next === prev) return;
     const now = Date.now();
-    const coalesce = key && histMeta.current.key === key && now - histMeta.current.t < 1200;
+    const coalesce =
+      key && histMeta.current.key === key && now - histMeta.current.t < 1200;
     histMeta.current = { key, t: now };
-    if (!coalesce) setHist((h) => ({ past: [...h.past.slice(-80), prev], future: [] }));
+    if (!coalesce)
+      setHist((h) => ({ past: [...h.past.slice(-80), prev], future: [] }));
     else setHist((h) => ({ ...h, future: [] }));
     writeForm(next);
   };
@@ -3224,120 +7147,312 @@ export default function AnmategraForms() {
   const api = useMemo(() => {
     const a = {
       toast,
-      home: () => { setRoute({ view: "list" }); setPanelOpen(false); },
-      edit: (id, tab = "konten") => { setHist({ past: [], future: [] }); setSelected(null); setCondOpen(null); setRoute({ view: "editor", formId: id, tab }); },
-      responses: (id) => setRoute({ view: "responses", formId: id }),
-      create: () => { const f = blankForm(); const nf = [f, ...formsRef.current]; formsRef.current = nf; setForms(nf); a.edit(f.id); },
-      patchForm: (id, patch) => { const f = formsRef.current.find((x) => x.id === id); writeForm({ ...f, ...patch }); },
+      home: () => {
+        setRoute({ view: 'list' });
+        setPanelOpen(false);
+      },
+      edit: (id, tab = 'konten') => {
+        setHist({ past: [], future: [] });
+        setSelected(null);
+        setCondOpen(null);
+        setRoute({ view: 'editor', formId: id, tab });
+      },
+      responses: (id) => setRoute({ view: 'responses', formId: id }),
+      create: () => {
+        const f = blankForm();
+        const nf = [f, ...formsRef.current];
+        formsRef.current = nf;
+        setForms(nf);
+        a.edit(f.id);
+      },
+      patchForm: (id, patch) => {
+        const f = formsRef.current.find((x) => x.id === id);
+        writeForm({ ...f, ...patch });
+      },
       duplicateForm: (id) => {
         const f = clone(formsRef.current.find((x) => x.id === id));
         const idMap = {};
-        f.blocks.forEach((b) => { idMap[b.id] = uid("b"); });
-        f.blocks.forEach((b) => { b.id = idMap[b.id]; (b.cond?.rules || []).forEach((r) => { r.src = idMap[r.src] || r.src; }); });
-        const nf = [{ ...f, id: uid("f"), title: f.title + " (salinan)", status: "draft", pinned: false, responses: [], createdAt: new Date().toISOString() }, ...formsRef.current];
-        formsRef.current = nf; setForms(nf); toast("Form diduplikat");
+        f.blocks.forEach((b) => {
+          idMap[b.id] = uid('b');
+        });
+        f.blocks.forEach((b) => {
+          b.id = idMap[b.id];
+          (b.cond?.rules || []).forEach((r) => {
+            r.src = idMap[r.src] || r.src;
+          });
+        });
+        const nf = [
+          {
+            ...f,
+            id: uid('f'),
+            title: f.title + ' (salinan)',
+            status: 'draft',
+            pinned: false,
+            responses: [],
+            createdAt: new Date().toISOString(),
+          },
+          ...formsRef.current,
+        ];
+        formsRef.current = nf;
+        setForms(nf);
+        toast('Form diduplikat');
       },
-      deleteForm: (id) => { const nf = formsRef.current.filter((f) => f.id !== id); formsRef.current = nf; setForms(nf); toast("Form dihapus"); },
-      undo: () => setHist((h) => {
-        if (!h.past.length) return h;
-        const cur = formsRef.current.find((f) => f.id === routeRef.current.formId);
-        const prev = h.past[h.past.length - 1];
-        writeForm(prev);
-        histMeta.current = { key: null, t: 0 };
-        return { past: h.past.slice(0, -1), future: [cur, ...h.future] };
-      }),
-      redo: () => setHist((h) => {
-        if (!h.future.length) return h;
-        const cur = formsRef.current.find((f) => f.id === routeRef.current.formId);
-        writeForm(h.future[0]);
-        histMeta.current = { key: null, t: 0 };
-        return { past: [...h.past, cur], future: h.future.slice(1) };
-      }),
+      deleteForm: (id) => {
+        const nf = formsRef.current.filter((f) => f.id !== id);
+        formsRef.current = nf;
+        setForms(nf);
+        toast('Form dihapus');
+      },
+      undo: () =>
+        setHist((h) => {
+          if (!h.past.length) return h;
+          const cur = formsRef.current.find(
+            (f) => f.id === routeRef.current.formId,
+          );
+          const prev = h.past[h.past.length - 1];
+          writeForm(prev);
+          histMeta.current = { key: null, t: 0 };
+          return { past: h.past.slice(0, -1), future: [cur, ...h.future] };
+        }),
+      redo: () =>
+        setHist((h) => {
+          if (!h.future.length) return h;
+          const cur = formsRef.current.find(
+            (f) => f.id === routeRef.current.formId,
+          );
+          writeForm(h.future[0]);
+          histMeta.current = { key: null, t: 0 };
+          return { past: [...h.past, cur], future: h.future.slice(1) };
+        }),
       select: (id, scroll) => {
         setSelected(id);
-        if (scroll) { setPanelOpen(false); requestAnimationFrame(() => document.getElementById(`card-${id}`)?.scrollIntoView({ behavior: "smooth", block: "center" })); }
+        if (scroll) {
+          setPanelOpen(false);
+          requestAnimationFrame(() =>
+            document
+              .getElementById(`card-${id}`)
+              ?.scrollIntoView({ behavior: 'smooth', block: 'center' }),
+          );
+        }
       },
-      setMeta: (patch, key) => commit((f) => ({ ...f, ...patch }), key && "meta:" + key),
-      update: (id, patch, key) => commit(mapBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, ...patch } : b))), key),
+      setMeta: (patch, key) =>
+        commit((f) => ({ ...f, ...patch }), key && 'meta:' + key),
+      update: (id, patch, key) =>
+        commit(
+          mapBlocks((bs) =>
+            bs.map((b) => (b.id === id ? { ...b, ...patch } : b)),
+          ),
+          key,
+        ),
       mutateBlocks: (fn, key) => commit(mapBlocks(fn), key),
-      toggleCond: (id) => { setCondOpen((c) => (c === id ? null : id)); setSelected(id); },
+      toggleCond: (id) => {
+        setCondOpen((c) => (c === id ? null : id));
+        setSelected(id);
+      },
       /* buat blok baru yang tersembunyi sampai kondisi terpenuhi; disisipkan setelah cabang milik sumber */
       createConditional: (srcId, type, title, rule) => {
-        const f = formsRef.current.find((x) => x.id === routeRef.current.formId);
+        const f = formsRef.current.find(
+          (x) => x.id === routeRef.current.formId,
+        );
         const S = f.settings || DEFAULT_SETTINGS;
-        const nb = newBlock(type, { title: title || (type === "ending" ? "Terima kasih!" : ""), required: type !== "ending" && S.requiredByDefault, cond: { match: "all", rules: [{ ...rule, src: srcId }] } });
-        commit(mapBlocks((bs) => {
-          const n = [...bs];
-          if (type === "ending") { n.push(nb); return normalizeOrder(n); }
-          const si = n.findIndex((b) => b.id === srcId);
-          let at = si + 1;
-          while (at < n.length && isQuestion(n[at]) && (n[at].cond?.rules || []).some((r) => r.src === srcId)) at++;
-          n.splice(at, 0, nb);
-          return normalizeOrder(n);
-        }));
+        const nb = newBlock(type, {
+          title: title || (type === 'ending' ? 'Terima kasih!' : ''),
+          required: type !== 'ending' && S.requiredByDefault,
+          cond: { match: 'all', rules: [{ ...rule, src: srcId }] },
+        });
+        commit(
+          mapBlocks((bs) => {
+            const n = [...bs];
+            if (type === 'ending') {
+              n.push(nb);
+              return normalizeOrder(n);
+            }
+            const si = n.findIndex((b) => b.id === srcId);
+            let at = si + 1;
+            while (
+              at < n.length &&
+              isQuestion(n[at]) &&
+              (n[at].cond?.rules || []).some((r) => r.src === srcId)
+            )
+              at++;
+            n.splice(at, 0, nb);
+            return normalizeOrder(n);
+          }),
+        );
         return nb.id;
       },
-      updateProps: (id, patch, key) => commit(mapBlocks((bs) => bs.map((b) => (b.id === id ? { ...b, props: { ...b.props, ...patch } } : b))), key),
+      updateProps: (id, patch, key) =>
+        commit(
+          mapBlocks((bs) =>
+            bs.map((b) =>
+              b.id === id ? { ...b, props: { ...b.props, ...patch } } : b,
+            ),
+          ),
+          key,
+        ),
       add: (type) => {
-        const S = formsRef.current.find((x) => x.id === routeRef.current.formId)?.settings || DEFAULT_SETTINGS;
-        const nb = newBlock(type, type === "ending" ? { title: "Terima kasih!" } : { required: !TYPES[type].screen && S.requiredByDefault });
-        commit(mapBlocks((bs) => {
-          const sel = bs.findIndex((b) => b.id === routeRef.current.selectedId);
-          const n = [...bs];
-          if (type === "welcome") n.unshift(nb);
-          else if (type === "ending") n.push(nb);
-          else if (sel >= 0 && isQuestion(bs[sel])) n.splice(sel + 1, 0, nb);
-          else { const fe = n.findIndex((b) => b.type === "ending"); fe < 0 ? n.push(nb) : n.splice(fe, 0, nb); }
-          return normalizeOrder(n);
-        }));
+        const S =
+          formsRef.current.find((x) => x.id === routeRef.current.formId)
+            ?.settings || DEFAULT_SETTINGS;
+        const nb = newBlock(
+          type,
+          type === 'ending'
+            ? { title: 'Terima kasih!' }
+            : { required: !TYPES[type].screen && S.requiredByDefault },
+        );
+        commit(
+          mapBlocks((bs) => {
+            const sel = bs.findIndex(
+              (b) => b.id === routeRef.current.selectedId,
+            );
+            const n = [...bs];
+            if (type === 'welcome') n.unshift(nb);
+            else if (type === 'ending') n.push(nb);
+            else if (sel >= 0 && isQuestion(bs[sel])) n.splice(sel + 1, 0, nb);
+            else {
+              const fe = n.findIndex((b) => b.type === 'ending');
+              fe < 0 ? n.push(nb) : n.splice(fe, 0, nb);
+            }
+            return normalizeOrder(n);
+          }),
+        );
         a.select(nb.id, true);
-        setTimeout(() => document.querySelector(`#card-${nb.id} .rich`)?.focus(), 350);
+        setTimeout(
+          () => document.querySelector(`#card-${nb.id} .rich`)?.focus(),
+          350,
+        );
       },
       duplicate: (id) => {
-        const src = formsRef.current.find((f) => f.id === routeRef.current.formId).blocks.find((b) => b.id === id);
+        const src = formsRef.current
+          .find((f) => f.id === routeRef.current.formId)
+          .blocks.find((b) => b.id === id);
         if (!src) return;
         const c = clone(src);
-        c.id = uid("b");
+        c.id = uid('b');
         const m = {};
-        ["options", "rows", "cols"].forEach((k) => c.props[k] && (c.props[k] = c.props[k].map((o) => { const nid = uid("o"); m[o.id] = nid; return { ...o, id: nid }; })));
-        c.cond = { match: c.cond?.match || "all", rules: (c.cond?.rules || []).map((r) => ({ ...r, id: uid("c") })) };
-        commit(mapBlocks((bs) => { const i = bs.findIndex((b) => b.id === id); const n = [...bs]; n.splice(i + 1, 0, c); return normalizeOrder(n); }));
+        ['options', 'rows', 'cols'].forEach(
+          (k) =>
+            c.props[k] &&
+            (c.props[k] = c.props[k].map((o) => {
+              const nid = uid('o');
+              m[o.id] = nid;
+              return { ...o, id: nid };
+            })),
+        );
+        c.cond = {
+          match: c.cond?.match || 'all',
+          rules: (c.cond?.rules || []).map((r) => ({ ...r, id: uid('c') })),
+        };
+        commit(
+          mapBlocks((bs) => {
+            const i = bs.findIndex((b) => b.id === id);
+            const n = [...bs];
+            n.splice(i + 1, 0, c);
+            return normalizeOrder(n);
+          }),
+        );
         a.select(c.id, true);
-        toast("Blok diduplikat");
+        toast('Blok diduplikat');
       },
       askDelete: (id) => askDel.current(id),
-      _setAskDelete: (fn) => { askDel.current = fn; },
+      _setAskDelete: (fn) => {
+        askDel.current = fn;
+      },
       remove: (id) => {
-        commit(mapBlocks((bs) => bs.filter((b) => b.id !== id).map((b) => ({ ...b, cond: { ...b.cond, rules: (b.cond?.rules || []).filter((r) => r.src !== id) } }))));
-        setSelected(null); setCondOpen(null);
-        toast("Blok dihapus · Ctrl+Z untuk urungkan");
+        commit(
+          mapBlocks((bs) =>
+            bs
+              .filter((b) => b.id !== id)
+              .map((b) => ({
+                ...b,
+                cond: {
+                  ...b.cond,
+                  rules: (b.cond?.rules || []).filter((r) => r.src !== id),
+                },
+              })),
+          ),
+        );
+        setSelected(null);
+        setCondOpen(null);
+        toast('Blok dihapus · Ctrl+Z untuk urungkan');
       },
       changeType: (id, type) => {
-        const f = formsRef.current.find((x) => x.id === routeRef.current.formId);
+        const f = formsRef.current.find(
+          (x) => x.id === routeRef.current.formId,
+        );
         const b = f.blocks.find((x) => x.id === id);
         const keepOpts = TYPES[b.type].options && TYPES[type].options;
-        const props = { ...defaultProps(type), ...(keepOpts ? { options: b.props.options } : {}) };
+        const props = {
+          ...defaultProps(type),
+          ...(keepOpts ? { options: b.props.options } : {}),
+        };
         /* kondisi lain yang bersumber dari blok ini: pertahankan yang operatornya masih berlaku */
         let dropped = 0;
-        commit(mapBlocks((bs) => bs.map((x) => {
-          if (x.id === id) return { ...x, type, props };
-          const rules = (x.cond?.rules || []).filter((r) => { const ok = r.src !== id || (opsFor(type).some((o) => o[0] === r.op) && (keepOpts || !TYPES[b.type].options)); if (!ok) dropped++; return ok; });
-          return rules.length === (x.cond?.rules || []).length ? x : { ...x, cond: { ...x.cond, rules } };
-        })));
-        if (dropped) toast(`${dropped} kondisi yang bergantung pada pertanyaan ini dihapus karena tipenya berubah`);
+        commit(
+          mapBlocks((bs) =>
+            bs.map((x) => {
+              if (x.id === id) return { ...x, type, props };
+              const rules = (x.cond?.rules || []).filter((r) => {
+                const ok =
+                  r.src !== id ||
+                  (opsFor(type).some((o) => o[0] === r.op) &&
+                    (keepOpts || !TYPES[b.type].options));
+                if (!ok) dropped++;
+                return ok;
+              });
+              return rules.length === (x.cond?.rules || []).length
+                ? x
+                : { ...x, cond: { ...x.cond, rules } };
+            }),
+          ),
+        );
+        if (dropped)
+          toast(
+            `${dropped} kondisi yang bergantung pada pertanyaan ini dihapus karena tipenya berubah`,
+          );
       },
-      reorderQuestions: (ids) => commit(mapBlocks((bs) => {
-        const qs = ids.map((id) => bs.find((b) => b.id === id));
-        return [...bs.filter((b) => b.type === "welcome"), ...qs, ...bs.filter((b) => b.type === "ending")];
-      })),
-      openFlow: (id) => setRoute((r) => ({ ...r, tab: "alur", flowFocus: id })),
-      gotoBlock: (id) => { setRoute((r) => ({ ...r, tab: "konten" })); setTimeout(() => a.select(id, true), 50); },
-      preview: (startAt, device) => setRoute((r) => ({ ...r, tab: "pratinjau", startAt: startAt || null, device: device || r.device })),
+      reorderQuestions: (ids) =>
+        commit(
+          mapBlocks((bs) => {
+            const qs = ids.map((id) => bs.find((b) => b.id === id));
+            return [
+              ...bs.filter((b) => b.type === 'welcome'),
+              ...qs,
+              ...bs.filter((b) => b.type === 'ending'),
+            ];
+          }),
+        ),
+      openFlow: (id) => setRoute((r) => ({ ...r, tab: 'alur', flowFocus: id })),
+      gotoBlock: (id) => {
+        setRoute((r) => ({ ...r, tab: 'konten' }));
+        setTimeout(() => a.select(id, true), 50);
+      },
+      preview: (startAt, device) =>
+        setRoute((r) => ({
+          ...r,
+          tab: 'pratinjau',
+          startAt: startAt || null,
+          device: device || r.device,
+        })),
       recordResponse: (answers, end) => {
-        const f = formsRef.current.find((x) => x.id === routeRef.current.formId);
+        const f = formsRef.current.find(
+          (x) => x.id === routeRef.current.formId,
+        );
         if (!f) return;
-        writeForm({ ...f, responses: [...(f.responses || []), { id: uid("s"), at: new Date().toISOString(), answers, end, test: true }] });
-        toast("Respons uji tercatat");
+        writeForm({
+          ...f,
+          responses: [
+            ...(f.responses || []),
+            {
+              id: uid('s'),
+              at: new Date().toISOString(),
+              answers,
+              end,
+              test: true,
+            },
+          ],
+        });
+        toast('Respons uji tercatat');
       },
     };
     return a;
@@ -3348,15 +7463,19 @@ export default function AnmategraForms() {
     const on = (e) => {
       const d = e.detail || {};
       if (d.mode) setRespMode(d.mode);
-      if (d.view === "list") api.home();
-      else if (d.view === "responses" && d.formId) api.responses(d.formId);
-      else if (d.view === "editor" && d.formId) {
-        if (routeRef.current.view === "editor" && routeRef.current.formId === d.formId) setRoute((r) => ({ ...r, tab: d.tab || "konten" }));
-        else api.edit(d.formId, d.tab || "konten");
+      if (d.view === 'list') api.home();
+      else if (d.view === 'responses' && d.formId) api.responses(d.formId);
+      else if (d.view === 'editor' && d.formId) {
+        if (
+          routeRef.current.view === 'editor' &&
+          routeRef.current.formId === d.formId
+        )
+          setRoute((r) => ({ ...r, tab: d.tab || 'konten' }));
+        else api.edit(d.formId, d.tab || 'konten');
       }
     };
-    window.addEventListener("forms-proto", on);
-    return () => window.removeEventListener("forms-proto", on);
+    window.addEventListener('forms-proto', on);
+    return () => window.removeEventListener('forms-proto', on);
   }, [api]);
 
   routeRef.current = { ...route, selectedId: selected };
@@ -3365,22 +7484,55 @@ export default function AnmategraForms() {
   return (
     <div className="af-root">
       <style>{CSS}</style>
-      {route.view === "list" || !form ? (
-        <div className="shell">
-          <AppSidebar api={api} />
-          <main className="shell-main"><FormsList forms={forms} api={api} /></main>
-        </div>
-      ) : route.view === "responses" ? (
+      {route.view === 'list' || !form ? (
         <div className="shell">
           <AppSidebar api={api} />
           <main className="shell-main">
-            <nav className="crumb plain"><button type="button" onClick={api.home}>Forms</button><span>›</span><b>Respons</b></nav>
-            <ResponsesView form={form} api={api} mode={respMode} setMode={setRespMode} />
+            <FormsList forms={forms} api={api} />
+          </main>
+        </div>
+      ) : route.view === 'responses' ? (
+        <div className="shell">
+          <AppSidebar api={api} />
+          <main className="shell-main">
+            <nav className="crumb plain">
+              <button type="button" onClick={api.home}>
+                Forms
+              </button>
+              <span>›</span>
+              <b>Respons</b>
+            </nav>
+            <ResponsesView
+              form={form}
+              api={api}
+              mode={respMode}
+              setMode={setRespMode}
+            />
           </main>
         </div>
       ) : (
-        <Editor form={form} api={api} tab={route.tab} setTab={(t) => setRoute((r) => ({ ...r, tab: t, startAt: t === "pratinjau" ? r.startAt : null, flowFocus: t === "alur" ? r.flowFocus : null }))}
-          hist={hist} startAt={route.startAt} device={route.device} flowFocus={route.flowFocus} selected={selected} setSelected={setSelected} panelOpen={panelOpen} setPanelOpen={setPanelOpen} condOpen={condOpen} />
+        <Editor
+          form={form}
+          api={api}
+          tab={route.tab}
+          setTab={(t) =>
+            setRoute((r) => ({
+              ...r,
+              tab: t,
+              startAt: t === 'pratinjau' ? r.startAt : null,
+              flowFocus: t === 'alur' ? r.flowFocus : null,
+            }))
+          }
+          hist={hist}
+          startAt={route.startAt}
+          device={route.device}
+          flowFocus={route.flowFocus}
+          selected={selected}
+          setSelected={setSelected}
+          panelOpen={panelOpen}
+          setPanelOpen={setPanelOpen}
+          condOpen={condOpen}
+        />
       )}
       <Toast msg={toastMsg} />
     </div>

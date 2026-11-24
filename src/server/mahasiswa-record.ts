@@ -48,7 +48,9 @@ export async function insertMahasiswa(
     .returning();
 
   if (pending) {
-    await database.delete(alumniPending).where(eq(alumniPending.id, pending.id));
+    await database
+      .delete(alumniPending)
+      .where(eq(alumniPending.id, pending.id));
   }
 
   return newMahasiswa;

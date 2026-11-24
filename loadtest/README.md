@@ -19,10 +19,10 @@ JS/CSS halaman diunduh sekali per pengguna, seperti browser dengan cache.
 
 ## Mode
 
-| `MODE` | Mengisi formulir | Jeda antar-iterasi | Gambaran |
-|---|---|---|---|
-| `steady` | 30–90 dtk | 10–30 dtk | puncak oprec yang realistis |
-| `deadline` | 5–15 dtk | 2–5 dtk | stres: semua orang submit terus-menerus menjelang tenggat |
+| `MODE`     | Mengisi formulir | Jeda antar-iterasi | Gambaran                                                  |
+| ---------- | ---------------- | ------------------ | --------------------------------------------------------- |
+| `steady`   | 30–90 dtk        | 10–30 dtk          | puncak oprec yang realistis                               |
+| `deadline` | 5–15 dtk         | 2–5 dtk            | stres: semua orang submit terus-menerus menjelang tenggat |
 
 Ambang lulus (gagal kalau terlampaui): error < 1%, p95 halaman < 2 dtk, p95 query & submit < 1 dtk.
 
@@ -67,22 +67,22 @@ Diuji di laptop dengan server (Next.js build production + Postgres 15 default) d
 Versi aplikasi: Next 15.5 / React 19 (branch security upgrades), baris "teroptimasi" memakai
 branch `perf/BE/request-overhead` (matcher middleware, dedup query halaman, cache sesi).
 
-| Skenario | Setup server | Req/dtk | p95 halaman | p95 submit | Error |
-|---|---|---|---|---|---|
-| 600 `steady` | 1 proses `next start` | ~86 | 100 ms | 61 ms | 0% |
-| 600 `deadline` | 1 proses | ~175 (mentok) | 7,8 dtk | 4,9 dtk | 0,09% |
-| 600 `deadline` | 3 proses + nginx yang melayani `/_next/static` | ~277 | 2,1 dtk | 1,1 dtk | 0,02% |
-| 1000 `deadline` | 1 proses | ~240 (mentok) | 12,1 dtk | 7,3 dtk | 0,21% (timeout) |
-| 1000 `deadline` | 3 proses teroptimasi + nginx | ~345 | 5,1 dtk | 2,7 dtk | 0,00% |
+| Skenario        | Setup server                                   | Req/dtk       | p95 halaman | p95 submit | Error           |
+| --------------- | ---------------------------------------------- | ------------- | ----------- | ---------- | --------------- |
+| 600 `steady`    | 1 proses `next start`                          | ~86           | 100 ms      | 61 ms      | 0%              |
+| 600 `deadline`  | 1 proses                                       | ~175 (mentok) | 7,8 dtk     | 4,9 dtk    | 0,09%           |
+| 600 `deadline`  | 3 proses + nginx yang melayani `/_next/static` | ~277          | 2,1 dtk     | 1,1 dtk    | 0,02%           |
+| 1000 `deadline` | 1 proses                                       | ~240 (mentok) | 12,1 dtk    | 7,3 dtk    | 0,21% (timeout) |
+| 1000 `deadline` | 3 proses teroptimasi + nginx                   | ~345          | 5,1 dtk     | 2,7 dtk    | 0,00%           |
 
 Kapasitas per thread (satu jenis request terus-menerus):
 
-| Request | Sebelum | Teroptimasi |
-|---|---|---|
-| File JS/CSS lewat Node.js | ~1.000/dtk | ~3.000/dtk |
-| Query tRPC (profil + daftar kegiatan) | ~155/dtk | ~170/dtk |
-| Halaman `/mahasiswa/kegiatan` | ~100/dtk | sama |
-| Halaman detail kegiatan | ~55/dtk | ~66/dtk |
+| Request                               | Sebelum    | Teroptimasi |
+| ------------------------------------- | ---------- | ----------- |
+| File JS/CSS lewat Node.js             | ~1.000/dtk | ~3.000/dtk  |
+| Query tRPC (profil + daftar kegiatan) | ~155/dtk   | ~170/dtk    |
+| Halaman `/mahasiswa/kegiatan`         | ~100/dtk   | sama        |
+| Halaman detail kegiatan               | ~55/dtk    | ~66/dtk     |
 
 Kesimpulan:
 
@@ -159,12 +159,12 @@ docker service logs -f --since 1m <nama-service-app> 2>&1 | grep PERF
 
 Cara membaca:
 
-| Baris log | Artinya |
-|---|---|
-| `thread utama jenuh` (p99 tinggi, cpu ≥ 85%) | Satu proses Node jenuh: tambah replika. |
+| Baris log                                       | Artinya                                                     |
+| ----------------------------------------------- | ----------------------------------------------------------- |
+| `thread utama jenuh` (p99 tinggi, cpu ≥ 85%)    | Satu proses Node jenuh: tambah replika.                     |
 | `beban di thread lain` (cpu > 100%, p99 rendah) | Kerja berat ada di thread lain, mis. resize gambar (sharp). |
-| `event loop terblokir` (p99 tinggi, cpu rendah) | Ada tugas sinkron/GC panjang, bukan CPU murni. |
-| tidak ada baris PERF, tetapi latensi tinggi | Leher botol di luar Node (database, jaringan, proxy). |
+| `event loop terblokir` (p99 tinggi, cpu rendah) | Ada tugas sinkron/GC panjang, bukan CPU murni.              |
+| tidak ada baris PERF, tetapi latensi tinggi     | Leher botol di luar Node (database, jaringan, proxy).       |
 
 `PERF_MONITOR=1` mencatat tiap interval (default 10 dtk, `PERF_MONITOR_INTERVAL_MS`) walau belum
 melewati ambang.

@@ -1,6 +1,3 @@
-# Husky hooks
-.husky/
-
 # Other files to ignore
 node_modules
 .next
@@ -11,3 +8,9 @@ docs/api/openapi.json
 docs/api/lifecycles.json
 docs/api/lifecycles.md
 docs/api/schema.dbml
+# Berkas lisensi font pihak ketiga; HTML-nya tidak valid.
+public/fonts/
+# Ditulis `bun lint --suppress-all` / `lint:prune` dalam formatnya sendiri.
+oxlint-suppressions.json
+# Keluaran drizzle-kit (migrasi + snapshot); biarkan dalam format generatornya.
+drizzle/

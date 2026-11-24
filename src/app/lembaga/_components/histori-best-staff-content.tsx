@@ -3,10 +3,7 @@
 import { Pencil, Trash2 } from 'lucide-react';
 import React from 'react';
 import CarouselBestStaff from '~/app/_components/carousel/carousel-best-staff';
-import BestStaffForm from './best-staff-form';
 import { Button } from '~/components/ui/button';
-import { useToast } from '~/hooks/use-toast';
-import { api } from '~/trpc/react';
 import {
   Dialog,
   DialogClose,
@@ -15,6 +12,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '~/components/ui/dialog';
+import { useToast } from '~/hooks/use-toast';
+import { api } from '~/trpc/react';
+
+import BestStaffForm from './best-staff-form';
 
 interface BestStaffPeriode {
   start_date: string;
@@ -50,7 +51,9 @@ export default function HistoriBestStaffContent({
 }: HistoriBestStaffContentProps) {
   const { toast } = useToast();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [selectedPeriodeIndex, setSelectedPeriodeIndex] = React.useState<number | null>(null);
+  const [selectedPeriodeIndex, setSelectedPeriodeIndex] = React.useState<
+    number | null
+  >(null);
   const utils = api.useUtils();
 
   const deleteMutation = api.lembaga.deleteBestStaffPeriode.useMutation({
@@ -84,7 +87,7 @@ export default function HistoriBestStaffContent({
 
   const confirmDelete = () => {
     if (selectedPeriodeIndex === null) return;
-    
+
     const periode = initialData.periode[selectedPeriodeIndex];
     if (!periode) return;
 
@@ -106,80 +109,83 @@ export default function HistoriBestStaffContent({
 
   return (
     <>
-      <div
-        className="flex flex-col max-h-[70vh] overflow-y-auto scroll-smooth gap-[50px]
-        [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
-      >
-          {initialData.periode.length > 0 ? (
-            initialData.periode.map((periode, id) => {
-              const startDate = new Date(periode.start_date).toLocaleDateString('id-ID', {
+      <div className="flex max-h-[70vh] flex-col gap-[50px] overflow-y-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {initialData.periode.length > 0 ? (
+          initialData.periode.map((periode, id) => {
+            const startDate = new Date(periode.start_date).toLocaleDateString(
+              'id-ID',
+              {
                 month: 'long',
                 year: 'numeric',
-              });
-              const endDate = new Date(periode.end_date).toLocaleDateString('id-ID', {
+              },
+            );
+            const endDate = new Date(periode.end_date).toLocaleDateString(
+              'id-ID',
+              {
                 month: 'long',
                 year: 'numeric',
-              });
-              return (
-                <div key={id} className="flex flex-col gap-3">
-                  <div className="flex flex-row justify-between items-center">
-                    <h2 className="text-2xl font-semibold">
-                      Best Staff Periode {startDate}–{endDate}
-                    </h2>
-                    {!isReadOnly && (
-                      <div className="flex gap-2">
-                        <BestStaffForm
-                          mode="edit"
-                          lembagaId={lembagaId}
-                          eventId={kegiatanId}
-                          existingPeriode={{
-                            start_date: periode.start_date,
-                            end_date: periode.end_date,
-                            best_staff_list: periode.best_staff_list,
-                          }}
-                          trigger={
-                            <Button
-                              variant="dark_blue"
-                              className="rounded-xl gap-2 p-3"
-                            >
-                              <Pencil className="w-6 h-6" />
-                              <h3 className="font-semibold text-[18px]">Edit</h3>
-                            </Button>
-                          }
-                        />
-                        <Button
-                          variant="warning"
-                          className="rounded-xl gap-2 p-3"
-                          onClick={() => handleDelete(id)}
-                        >
-                          <Trash2 className="w-6 h-6" />
-                          <h3 className="font-semibold text-[18px]">Hapus</h3>
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  <CarouselBestStaff
-                    bestStaffList={periode.best_staff_list.map(staff => ({
-                      user_id: staff.user_id,
-                      name: staff.name,
-                      image: staff.image,
-                      nim: staff.nim,
-                      jurusan: staff.jurusan,
-                      division: staff.division,
-                    }))}
-                    isLembaga={!isKegiatan}
-                  />
+              },
+            );
+            return (
+              <div key={id} className="flex flex-col gap-3">
+                <div className="flex flex-row items-center justify-between">
+                  <h2 className="text-2xl font-semibold">
+                    Best Staff Periode {startDate}–{endDate}
+                  </h2>
+                  {!isReadOnly && (
+                    <div className="flex gap-2">
+                      <BestStaffForm
+                        mode="edit"
+                        lembagaId={lembagaId}
+                        eventId={kegiatanId}
+                        existingPeriode={{
+                          start_date: periode.start_date,
+                          end_date: periode.end_date,
+                          best_staff_list: periode.best_staff_list,
+                        }}
+                        trigger={
+                          <Button
+                            variant="dark_blue"
+                            className="gap-2 rounded-xl p-3"
+                          >
+                            <Pencil className="h-6 w-6" />
+                            <h3 className="text-[18px] font-semibold">Edit</h3>
+                          </Button>
+                        }
+                      />
+                      <Button
+                        variant="warning"
+                        className="gap-2 rounded-xl p-3"
+                        onClick={() => handleDelete(id)}
+                      >
+                        <Trash2 className="h-6 w-6" />
+                        <h3 className="text-[18px] font-semibold">Hapus</h3>
+                      </Button>
+                    </div>
+                  )}
                 </div>
-              );
-            })
-          ) : (
-            <div className="flex flex-col items-center justify-center h-[50vh]">
-              <h2 className="text-2xl font-semibold mb-4">
-                Belum ada histori Best Staff
-              </h2>
-            </div>
-          )}
+
+                <CarouselBestStaff
+                  bestStaffList={periode.best_staff_list.map((staff) => ({
+                    user_id: staff.user_id,
+                    name: staff.name,
+                    image: staff.image,
+                    nim: staff.nim,
+                    jurusan: staff.jurusan,
+                    division: staff.division,
+                  }))}
+                  isLembaga={!isKegiatan}
+                />
+              </div>
+            );
+          })
+        ) : (
+          <div className="flex h-[50vh] flex-col items-center justify-center">
+            <h2 className="mb-4 text-2xl font-semibold">
+              Belum ada histori Best Staff
+            </h2>
+          </div>
+        )}
       </div>
 
       {/* Delete Confirmation Dialog */}
@@ -188,18 +194,15 @@ export default function HistoriBestStaffContent({
           <DialogHeader>
             <DialogTitle>Konfirmasi Hapus</DialogTitle>
             <DialogDescription>
-              Apakah Anda yakin ingin menghapus periode Best Staff ini? 
-              Tindakan ini tidak dapat dibatalkan.
+              Apakah Anda yakin ingin menghapus periode Best Staff ini? Tindakan
+              ini tidak dapat dibatalkan.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="mt-4 flex justify-end gap-2">
             <DialogClose asChild>
               <Button variant="outline">Batal</Button>
             </DialogClose>
-            <Button
-              onClick={confirmDelete}
-              variant="warning"
-            >
+            <Button onClick={confirmDelete} variant="warning">
               Hapus
             </Button>
           </div>

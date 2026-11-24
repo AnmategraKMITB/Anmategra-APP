@@ -3,13 +3,13 @@ import { type FileRouter, createUploadthing } from 'uploadthing/next';
 import { UploadThingError } from 'uploadthing/server';
 import { z } from 'zod';
 import { loadManagedForm } from '~/app/_components/forms/access';
+import { isAcceptingResponses } from '~/server/api/routers/form/services';
 import {
   getServerAuthSession,
   getServerAuthSessionWithAlt,
 } from '~/server/auth';
 import { db } from '~/server/db';
 import { form, formImage } from '~/server/db/schema';
-import { isAcceptingResponses } from '~/server/api/routers/form/services';
 
 const f = createUploadthing();
 // FileRouter for your app, can contain multiple FileRoutes
@@ -90,44 +90,51 @@ export const ourFileRouter = {
    * dibuka siapa pun yang memilikinya. Hanya boleh dipakai untuk berkas yang
    * memang boleh publik.
    */
-  formFile: f(
-    {
-      pdf: { maxFileSize: '16MB', maxFileCount: 5 },
-      'application/msword': { maxFileSize: '16MB', maxFileCount: 5 },
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
-        maxFileSize: '16MB',
-        maxFileCount: 5,
-      },
-      'application/vnd.ms-excel': { maxFileSize: '16MB', maxFileCount: 5 },
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
-        maxFileSize: '16MB',
-        maxFileCount: 5,
-      },
-      'application/vnd.ms-powerpoint': { maxFileSize: '16MB', maxFileCount: 5 },
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation': {
-        maxFileSize: '16MB',
-        maxFileCount: 5,
-      },
-      'application/zip': { maxFileSize: '16MB', maxFileCount: 5 },
-      'image/jpeg': { maxFileSize: '16MB', maxFileCount: 5 },
-      'image/png': { maxFileSize: '16MB', maxFileCount: 5 },
-      'image/webp': { maxFileSize: '16MB', maxFileCount: 5 },
+  formFile: f({
+    pdf: { maxFileSize: '16MB', maxFileCount: 5 },
+    'application/msword': { maxFileSize: '16MB', maxFileCount: 5 },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {
+      maxFileSize: '16MB',
+      maxFileCount: 5,
     },
-  )
+    'application/vnd.ms-excel': { maxFileSize: '16MB', maxFileCount: 5 },
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': {
+      maxFileSize: '16MB',
+      maxFileCount: 5,
+    },
+    'application/vnd.ms-powerpoint': { maxFileSize: '16MB', maxFileCount: 5 },
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+      {
+        maxFileSize: '16MB',
+        maxFileCount: 5,
+      },
+    'application/zip': { maxFileSize: '16MB', maxFileCount: 5 },
+    'image/jpeg': { maxFileSize: '16MB', maxFileCount: 5 },
+    'image/png': { maxFileSize: '16MB', maxFileCount: 5 },
+    'image/webp': { maxFileSize: '16MB', maxFileCount: 5 },
+  })
     .input(z.object({ formId: z.string().min(1).max(255) }))
     .middleware(async ({ input }) => {
       // Akses alternatif (klaim aktif) boleh mengunggah jawaban berkas form.
       const raw = await getServerAuthSessionWithAlt();
       const session = raw?.user.alt === 'guest' ? null : raw;
       if (!session) {
-        throw new UploadThingError('Harus login untuk mengunggah berkas.') as Error;
+        throw new UploadThingError(
+          'Harus login untuk mengunggah berkas.',
+        ) as Error;
       }
-      const [row] = await db.select().from(form).where(eq(form.id, input.formId)).limit(1);
+      const [row] = await db
+        .select()
+        .from(form)
+        .where(eq(form.id, input.formId))
+        .limit(1);
       if (!row) {
         throw new UploadThingError('Formulir tidak ditemukan.') as Error;
       }
       if (!isAcceptingResponses(row)) {
-        throw new UploadThingError('Formulir sudah tidak menerima jawaban.') as Error;
+        throw new UploadThingError(
+          'Formulir sudah tidak menerima jawaban.',
+        ) as Error;
       }
       // Sama seperti formImage: customId harus unik per file. Memakai formId
       // membuat unggahan kedua untuk form yang sama ditolak 409.

@@ -67,7 +67,8 @@ export default function AnggotaContent({
   const pathname = usePathname();
   const isAnggota = pageAnggota ?? false;
   const eventId =
-    eventIdProp ?? (!isAnggota && pathname ? pathname.split('/')[3] : undefined);
+    eventIdProp ??
+    (!isAnggota && pathname ? pathname.split('/')[3] : undefined);
   const lembagaId = lembagaIdProp ?? session?.user.lembagaId ?? undefined;
 
   const reorderLembagaMutation = api.lembaga.reorderAnggotaLembaga.useMutation({
@@ -217,8 +218,8 @@ export default function AnggotaContent({
   };
 
   return (
-    <main className="flex flex-col p-4 sm:p-6 md:p-8 min-h-screen">
-      <h1 className="text-2xl sm:text-3xl md:text-[32px] font-semibold mb-2">
+    <main className="flex min-h-screen flex-col p-4 sm:p-6 md:p-8">
+      <h1 className="mb-2 text-2xl font-semibold sm:text-3xl md:text-[32px]">
         {isAnggota ? 'Anggota' : 'Panitia Kegiatan'} {title}
       </h1>
       <div className="mb-4" />
@@ -242,11 +243,11 @@ export default function AnggotaContent({
       </div>
       <div className="mb-6" />
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-1 flex-col">
         <div className="flex-1">
           {/* Button Section */}
-          <div className="flex flex-col sm:flex-row sm:justify-between gap-4 mb-4">
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-x-5">
+          <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:justify-between">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-x-5">
               <TambahAnggotaDialog
                 session={session}
                 dataPosisiBidang={dataPosisiBidang}
@@ -263,7 +264,7 @@ export default function AnggotaContent({
                 >
                   <Button
                     variant="light_blue"
-                    className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-[16px] px-3 shadow-none"
                   >
                     <Image
                       src={Rapor}
@@ -285,7 +286,7 @@ export default function AnggotaContent({
                 >
                   <Button
                     variant="light_blue"
-                    className="rounded-[16px] px-3 shadow-none flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-[16px] px-3 shadow-none"
                   >
                     <Image
                       src={Best}
@@ -307,7 +308,7 @@ export default function AnggotaContent({
                 >
                   <Button
                     variant="light_blue"
-                    className="rounded-[12px] px-3 shadow-none flex items-center gap-2"
+                    className="flex items-center gap-2 rounded-[12px] px-3 shadow-none"
                   >
                     <Network className="size-5" />
                     Organogram
@@ -315,7 +316,7 @@ export default function AnggotaContent({
                 </Link>
               ) : null}
             </div>
-            <div className="flex flex-col sm:flex-row gap-2 sm:gap-x-2">
+            <div className="flex flex-col gap-2 sm:flex-row sm:gap-x-2">
               <Button
                 onClick={() => {
                   if (isEditMode) {

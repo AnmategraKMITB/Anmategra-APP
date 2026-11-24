@@ -32,11 +32,11 @@ bagian tetap bisa menimpanya lewat **Sebutan** di panel Detail.
 3. Gunakan **Tambah level** atau **Hapus level terakhir** untuk mengatur jumlah
    level.
 
-| Skema               | Nama level                                   |
-| ------------------- | -------------------------------------------- |
-| **Kepanitiaan ITB** | Bidang, Divisi, Subdivisi                    |
-| **Himpunan**        | Departemen, Divisi, Unit Kerja               |
-| **Kabinet KM**      | Kemenkoan, Kementerian, Kedirjenan, Biro     |
+| Skema               | Nama level                               |
+| ------------------- | ---------------------------------------- |
+| **Kepanitiaan ITB** | Bidang, Divisi, Subdivisi                |
+| **Himpunan**        | Departemen, Divisi, Unit Kerja           |
+| **Kabinet KM**      | Kemenkoan, Kementerian, Kedirjenan, Biro |
 
 Kolom yang dikosongkan memakai sebutan bawaan, yaitu **Bagian**.
 

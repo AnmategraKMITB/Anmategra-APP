@@ -21,11 +21,10 @@ import {
 import type React from 'react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_STUDENTS, matchesStudent } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import { Btn, Field, inputClass, tdClass, thClass, useFlash } from '../ui';
 
 const STEPS: DemoStep[] = [
@@ -45,7 +44,8 @@ const STEPS: DemoStep[] = [
   },
   {
     id: 'jabatan',
-    title: 'Pada bagian **Jabatan**, klik **Tambah**, lalu beri nama jabatannya',
+    title:
+      'Pada bagian **Jabatan**, klik **Tambah**, lalu beri nama jabatannya',
     hint: 'Atur juga **Rank** dan **Kuota**. Kuota inilah yang nanti dipakai oprec.',
   },
   {
@@ -57,7 +57,10 @@ const STEPS: DemoStep[] = [
     id: 'orang',
     title: 'Ketik nama pada **Cari nama atau NIM**, lalu pilih orangnya',
   },
-  { id: 'tabel', title: 'Buka tab **Tabel** untuk melihat semua jabatan sekaligus' },
+  {
+    id: 'tabel',
+    title: 'Buka tab **Tabel** untuk melihat semua jabatan sekaligus',
+  },
 ];
 
 const LEVELS = ['Bidang', 'Divisi', 'Subdivisi', 'Bagian'];
@@ -75,7 +78,10 @@ const ARRANGE_ITEMS = [
   { label: 'Seimbangkan', hint: 'terbesar di tengah, mengecil ke tepi' },
   { label: 'Terbesar dulu', hint: 'bagian dengan subbagian terbanyak di kiri' },
   { label: 'Alfabetis', hint: 'urut nama A→Z' },
-  { label: 'Ratakan tier', hint: 'buang semua tier manual, kembali ke kedalaman' },
+  {
+    label: 'Ratakan tier',
+    hint: 'buang semua tier manual, kembali ke kedalaman',
+  },
 ] as const;
 
 type Unit = {
@@ -98,7 +104,12 @@ type Snapshot = { units: Unit[]; positions: Position[] };
 
 // Struktur meniru contoh KAT ITB 2026 di prototipe editor organogram, diringkas
 // ke lima bidang supaya muat di simulasi. Nama orang fiktif.
-const ROOT = { name: 'KAT ITB 2026', label: 'Kepanitiaan', head: 'Ketua', person: 's4' };
+const ROOT = {
+  name: 'KAT ITB 2026',
+  label: 'Kepanitiaan',
+  head: 'Ketua',
+  person: 's4',
+};
 const ROOT_ID = '__root';
 
 const UNITS: Unit[] = [
@@ -124,16 +135,96 @@ const UNITS: Unit[] = [
 ];
 
 const POSITIONS: Position[] = [
-  { id: 'p1', unitId: 'sekjen', title: 'Sekretaris Jenderal', rank: 'Kepala', quota: 1, people: ['s2'], saved: true },
-  { id: 'p2', unitId: 'hr', title: 'Kepala Bidang', rank: 'Kepala', quota: 1, people: ['s6'], saved: true },
-  { id: 'p3', unitId: 'acara', title: 'Kepala Bidang', rank: 'Kepala', quota: 1, people: ['s3'], saved: true },
-  { id: 'p4', unitId: 'acara', title: 'Wakil Kepala Bidang', rank: 'Wakil', quota: 1, people: [], saved: true },
-  { id: 'p5', unitId: 'eo', title: 'Ketua Divisi', rank: 'Kepala', quota: 1, people: ['s5'], saved: true },
-  { id: 'p6', unitId: 'eo', title: 'Staf', rank: 'Staf', quota: 6, people: [], saved: true },
-  { id: 'p7', unitId: 'ops', title: 'Kepala Bidang', rank: 'Kepala', quota: 1, people: ['s7'], saved: true },
-  { id: 'p8', unitId: 'logistik', title: 'Ketua Divisi', rank: 'Kepala', quota: 1, people: [], saved: true },
-  { id: 'p9', unitId: 'kreatif', title: 'Kepala Bidang', rank: 'Kepala', quota: 1, people: ['s8'], saved: true },
-  { id: 'p10', unitId: 'grafis', title: 'Staf', rank: 'Staf', quota: 6, people: [], saved: true },
+  {
+    id: 'p1',
+    unitId: 'sekjen',
+    title: 'Sekretaris Jenderal',
+    rank: 'Kepala',
+    quota: 1,
+    people: ['s2'],
+    saved: true,
+  },
+  {
+    id: 'p2',
+    unitId: 'hr',
+    title: 'Kepala Bidang',
+    rank: 'Kepala',
+    quota: 1,
+    people: ['s6'],
+    saved: true,
+  },
+  {
+    id: 'p3',
+    unitId: 'acara',
+    title: 'Kepala Bidang',
+    rank: 'Kepala',
+    quota: 1,
+    people: ['s3'],
+    saved: true,
+  },
+  {
+    id: 'p4',
+    unitId: 'acara',
+    title: 'Wakil Kepala Bidang',
+    rank: 'Wakil',
+    quota: 1,
+    people: [],
+    saved: true,
+  },
+  {
+    id: 'p5',
+    unitId: 'eo',
+    title: 'Ketua Divisi',
+    rank: 'Kepala',
+    quota: 1,
+    people: ['s5'],
+    saved: true,
+  },
+  {
+    id: 'p6',
+    unitId: 'eo',
+    title: 'Staf',
+    rank: 'Staf',
+    quota: 6,
+    people: [],
+    saved: true,
+  },
+  {
+    id: 'p7',
+    unitId: 'ops',
+    title: 'Kepala Bidang',
+    rank: 'Kepala',
+    quota: 1,
+    people: ['s7'],
+    saved: true,
+  },
+  {
+    id: 'p8',
+    unitId: 'logistik',
+    title: 'Ketua Divisi',
+    rank: 'Kepala',
+    quota: 1,
+    people: [],
+    saved: true,
+  },
+  {
+    id: 'p9',
+    unitId: 'kreatif',
+    title: 'Kepala Bidang',
+    rank: 'Kepala',
+    quota: 1,
+    people: ['s8'],
+    saved: true,
+  },
+  {
+    id: 'p10',
+    unitId: 'grafis',
+    title: 'Staf',
+    rank: 'Staf',
+    quota: 6,
+    people: [],
+    saved: true,
+  },
 ];
 
 // Garis penghubung bagan: akar ke tiap bidang (melebar), lalu divisi
@@ -186,7 +277,10 @@ function pathOf(units: Unit[], id: string): string {
 }
 
 function initialsOf(name: string): string {
-  const parts = name.trim().split(/\s+/).filter((part) => part !== '');
+  const parts = name
+    .trim()
+    .split(/\s+/)
+    .filter((part) => part !== '');
   const first = parts[0]?.charAt(0) ?? '';
   const last =
     parts.length > 1 ? (parts[parts.length - 1]?.charAt(0) ?? '') : '';
@@ -342,19 +436,23 @@ function Body({ guide }: { guide: DemoGuide }) {
 
   useEffect(() => {
     const targetAt = (x: number, y: number) =>
-      document
-        .elementFromPoint(x, y)
-        ?.closest<HTMLElement>('[data-unit-drop]')
+      document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-unit-drop]')
         ?.dataset.unitDrop ?? null;
 
     const onMove = (event: PointerEvent) => {
       const start = dragStart.current;
       if (!start) return;
       const far =
-        Math.abs(event.clientX - start.x) + Math.abs(event.clientY - start.y) > 6;
+        Math.abs(event.clientX - start.x) + Math.abs(event.clientY - start.y) >
+        6;
       if (!far && !drag?.active) return;
       event.preventDefault();
-      setDrag({ id: start.id, x: event.clientX, y: event.clientY, active: true });
+      setDrag({
+        id: start.id,
+        x: event.clientX,
+        y: event.clientY,
+        active: true,
+      });
       const target = targetAt(event.clientX, event.clientY);
       setDropId(target && canDrop(start.id, target) ? target : null);
     };
@@ -401,7 +499,6 @@ function Body({ guide }: { guide: DemoGuide }) {
     'data-unit-drop': unitId,
     onPointerDown: (event: React.PointerEvent) => startDrag(event, unitId),
   });
-
 
   const undo = () => {
     const last = past[past.length - 1];
@@ -537,7 +634,9 @@ function Body({ guide }: { guide: DemoGuide }) {
               style={{ paddingLeft: depth * 12 + 4 }}
               className={cn(
                 'group flex min-h-[34px] w-full cursor-grab items-center gap-0.5 rounded-[8px] py-0.5 pr-0.5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 active:cursor-grabbing',
-                unit.id === selectedId ? 'bg-primary-200' : 'hover:bg-neutral-200',
+                unit.id === selectedId
+                  ? 'bg-primary-200'
+                  : 'hover:bg-neutral-200',
                 unit.id === dropId &&
                   'bg-secondary-100 ring-2 ring-inset ring-secondary-400',
                 unit.id === dragId && 'opacity-50',
@@ -593,7 +692,8 @@ function Body({ guide }: { guide: DemoGuide }) {
           unit.id === selectedId
             ? 'border-primary-400 bg-primary-100'
             : 'border-neutral-400 bg-white',
-          unit.id === dropId && 'border-secondary-400 ring-2 ring-secondary-400',
+          unit.id === dropId &&
+            'border-secondary-400 ring-2 ring-secondary-400',
           unit.id === dragId && 'opacity-50',
         )}
       >
@@ -681,7 +781,9 @@ function Body({ guide }: { guide: DemoGuide }) {
     );
   };
 
-  const rootPerson = DEMO_STUDENTS.find((student) => student.id === ROOT.person);
+  const rootPerson = DEMO_STUDENTS.find(
+    (student) => student.id === ROOT.person,
+  );
 
   const renderPositionRow = (position: Position) => {
     const expanded = expandedIds.has(position.id);
@@ -691,8 +793,7 @@ function Body({ guide }: { guide: DemoGuide }) {
       term.trim().length >= 2
         ? DEMO_STUDENTS.filter(
             (student) =>
-              matchesStudent(student, term) &&
-              !people.includes(student.id),
+              matchesStudent(student, term) && !people.includes(student.id),
           ).slice(0, 3)
         : [];
     const filled = people.length;
@@ -742,9 +843,7 @@ function Body({ guide }: { guide: DemoGuide }) {
             className={cn(
               inputClass,
               'h-7 min-w-0 flex-1 rounded-[8px] px-2 text-xs',
-              !position.saved &&
-                position.title === '' &&
-                guide.spot('jabatan'),
+              !position.saved && position.title === '' && guide.spot('jabatan'),
             )}
           />
           <span
@@ -1033,8 +1132,8 @@ function Body({ guide }: { guide: DemoGuide }) {
               </div>
               {unitPositions.length === 0 ? (
                 <p className="mt-1 text-xs text-neutral-700">
-                  Belum ada jabatan di{' '}
-                  {levelLabel(selectedDepth).toLowerCase()} ini.
+                  Belum ada jabatan di {levelLabel(selectedDepth).toLowerCase()}{' '}
+                  ini.
                 </p>
               ) : null}
               <div className="mt-1">
@@ -1134,8 +1233,12 @@ function Body({ guide }: { guide: DemoGuide }) {
               )}
             >
               <div className="px-3 py-2">
-                <p className="text-sm font-semibold leading-[18px]">{ROOT.name}</p>
-                <p className="text-xs leading-4 text-primary-200">{ROOT.label}</p>
+                <p className="text-sm font-semibold leading-[18px]">
+                  {ROOT.name}
+                </p>
+                <p className="text-xs leading-4 text-primary-200">
+                  {ROOT.label}
+                </p>
               </div>
               <div className="flex items-center gap-2 border-t border-white/20 px-2 py-1.5">
                 <AvatarInitial
@@ -1284,7 +1387,9 @@ function Body({ guide }: { guide: DemoGuide }) {
         <div className="flex min-w-0 items-center gap-2">
           <button
             type="button"
-            aria-label={showLeft ? 'Tutup panel Struktur' : 'Buka panel Struktur'}
+            aria-label={
+              showLeft ? 'Tutup panel Struktur' : 'Buka panel Struktur'
+            }
             aria-pressed={showLeft}
             onClick={() => setShowLeft((value) => !value)}
             className="grid size-8 shrink-0 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
@@ -1326,7 +1431,7 @@ function Body({ guide }: { guide: DemoGuide }) {
               aria-label="Urungkan"
               disabled={past.length === 0}
               onClick={undo}
-              className="grid size-8 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              className="grid size-8 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Undo2 className="size-4" />
             </button>
@@ -1335,7 +1440,7 @@ function Body({ guide }: { guide: DemoGuide }) {
               aria-label="Ulangi"
               disabled={future.length === 0}
               onClick={redo}
-              className="grid size-8 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+              className="grid size-8 place-items-center rounded-[8px] text-neutral-700 hover:bg-neutral-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400 disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Redo2 className="size-4" />
             </button>

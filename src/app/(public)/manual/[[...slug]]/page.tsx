@@ -1,5 +1,4 @@
 import { type Metadata } from 'next';
-
 import { DocsPage } from '~/app/_components/manual/docs-page';
 import { getDocPage } from '~/server/manual/docs';
 

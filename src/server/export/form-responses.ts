@@ -13,7 +13,6 @@ import {
 
 type Caller = ReturnType<typeof createCaller>;
 
-
 /**
  * Semua respons satu form lewat prosedur halaman respons (akses ikut
  * diperiksa di sana). Batas waktu tetap supaya respons yang masuk selama

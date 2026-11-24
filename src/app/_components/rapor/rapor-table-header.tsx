@@ -25,10 +25,10 @@ export default function RaporTableHeader({
   return (
     <TableHeader>
       <TableRow className="text-neutral-500">
-        <TableHead className="sticky left-0 z-10 bg-neutral-100 w-[283px]">
+        <TableHead className="sticky left-0 z-10 w-[283px] bg-neutral-100">
           Nama
         </TableHead>
-        <TableHead className="sticky left-[283px] z-10 bg-neutral-100 w-[128px]">
+        <TableHead className="sticky left-[283px] z-10 w-[128px] bg-neutral-100">
           NIM
         </TableHead>
         {profilHeaders.map((header, colIdx) => (

@@ -30,12 +30,12 @@ export default function LandingContent({
   return (
     <div className="flex w-full flex-col gap-4 pt-0 sm:pt-6">
       {/* Title */}
-      <div className="flex flex-col gap-4 ">
+      <div className="flex flex-col gap-4">
         <h1 className="text-[32px] font-semibold text-[#141718]">Beranda</h1>
       </div>
 
       {/* List of Kepanitiaan */}
-      <div className="flex flex-col w-full">
+      <div className="flex w-full flex-col">
         {/*/!* Kepanitiaan *!/*/}
         {/*<div className="space-y-2 w-full">*/}
         {/*    <h3 className="text-left text-xl font-semibold mb-2 text-slate-600">Kepanitiaan</h3>*/}
@@ -58,9 +58,9 @@ export default function LandingContent({
         {/*    </div>*/}
         {/*</div>*/}
         {/* Kegiatan */}
-        <div className="space-y-2 w-full mt-2">
+        <div className="mt-2 w-full space-y-2">
           <div>
-            <h3 className="text-left text-2xl font-semibold mb-2 text-[#141718]">
+            <h3 className="mb-2 text-left text-2xl font-semibold text-[#141718]">
               Kepanitiaan Terbaru
             </h3>
             {/* <Link
@@ -92,10 +92,10 @@ export default function LandingContent({
                   height={120}
                   className="mb-6"
                 />
-                <p className="text-[#768085] text-[32px] font-semibold">
+                <p className="text-[32px] font-semibold text-[#768085]">
                   Tidak ada kegiatan tersedia
                 </p>
-                <p className="text-[#C4CACE] text-2xl font-normal pt-[12px] pl-[197px] pr-[197px] pb-[32px]">
+                <p className="pb-[32px] pl-[197px] pr-[197px] pt-[12px] text-2xl font-normal text-[#C4CACE]">
                   Maaf, Anda belum mencatat kegiatan yang dapat ditampilkan.
                   Tambahkan kegiatan terbarumu sekarang
                 </p>

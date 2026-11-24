@@ -79,7 +79,8 @@ export function validateTree(tree: Tree): string[] {
   const errors: string[] = [];
   const { units, positions } = tree;
 
-  if (units.length > MAX_UNITS) errors.push(`Terlalu banyak unit (maksimum ${MAX_UNITS}).`);
+  if (units.length > MAX_UNITS)
+    errors.push(`Terlalu banyak unit (maksimum ${MAX_UNITS}).`);
   if (positions.length > MAX_POSITIONS) {
     errors.push(`Terlalu banyak posisi (maksimum ${MAX_POSITIONS}).`);
   }
@@ -96,7 +97,9 @@ export function validateTree(tree: Tree): string[] {
     positionIds.add(p.id);
     if (p.title.trim() === '') errors.push('Nama posisi tidak boleh kosong.');
     if (!Number.isInteger(p.quota) || p.quota < 0) {
-      errors.push(`Kuota posisi "${p.title}" harus bilangan bulat 0 atau lebih.`);
+      errors.push(
+        `Kuota posisi "${p.title}" harus bilangan bulat 0 atau lebih.`,
+      );
     }
     if (!unitIds.has(p.unitId)) {
       errors.push(`Posisi "${p.title}" menunjuk unit yang tidak ada.`);
@@ -109,7 +112,8 @@ export function validateTree(tree: Tree): string[] {
       missingParent = true;
       errors.push(`Unit "${u.name}" menunjuk induk yang tidak ada.`);
     }
-    if (u.parentId === u.id) errors.push(`Unit "${u.name}" menjadi induk dirinya sendiri.`);
+    if (u.parentId === u.id)
+      errors.push(`Unit "${u.name}" menjadi induk dirinya sendiri.`);
   }
 
   if (!missingParent) {
@@ -119,7 +123,9 @@ export function validateTree(tree: Tree): string[] {
       if (level === undefined) {
         errors.push(`Unit "${u.name}" berada dalam siklus induk-anak.`);
       } else if (level > MAX_LEVEL) {
-        errors.push(`Unit "${u.name}" melebihi kedalaman maksimum ${MAX_TREE_DEPTH} tingkat.`);
+        errors.push(
+          `Unit "${u.name}" melebihi kedalaman maksimum ${MAX_TREE_DEPTH} tingkat.`,
+        );
       }
     }
   }
@@ -138,7 +144,8 @@ export type TreeDiff = {
   positionsToDelete: PositionNode[];
 };
 
-const sameJson = (a: unknown, b: unknown) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
+const sameJson = (a: unknown, b: unknown) =>
+  JSON.stringify(a ?? null) === JSON.stringify(b ?? null);
 
 const unitChanged = (a: UnitNode, b: UnitNode) =>
   a.parentId !== b.parentId ||
@@ -166,7 +173,8 @@ function parentsFirst(units: UnitNode[]): UnitNode[] {
   const visit = (u: UnitNode, guard: Set<string>) => {
     if (done.has(u.id) || guard.has(u.id)) return;
     guard.add(u.id);
-    if (u.parentId && inList.has(u.parentId)) visit(byId.get(u.parentId)!, guard);
+    if (u.parentId && inList.has(u.parentId))
+      visit(byId.get(u.parentId)!, guard);
     done.add(u.id);
     out.push(u);
   };
@@ -180,23 +188,36 @@ export function diffTrees(current: Tree, next: Tree): TreeDiff {
   const curPos = new Map(current.positions.map((p) => [p.id, p]));
   const nextPos = new Map(next.positions.map((p) => [p.id, p]));
 
-  const unitsToInsert = parentsFirst(next.units.filter((u) => !curUnits.has(u.id)));
+  const unitsToInsert = parentsFirst(
+    next.units.filter((u) => !curUnits.has(u.id)),
+  );
   const unitsToUpdate: UnitChange[] = [];
   for (const u of next.units) {
     const before = curUnits.get(u.id);
-    if (before && unitChanged(before, u)) unitsToUpdate.push({ before, after: u });
+    if (before && unitChanged(before, u))
+      unitsToUpdate.push({ before, after: u });
   }
-  const unitsToDelete = parentsFirst(current.units.filter((u) => !nextUnits.has(u.id))).reverse();
+  const unitsToDelete = parentsFirst(
+    current.units.filter((u) => !nextUnits.has(u.id)),
+  ).reverse();
 
   const positionsToInsert = next.positions.filter((p) => !curPos.has(p.id));
   const positionsToUpdate: PositionChange[] = [];
   for (const p of next.positions) {
     const before = curPos.get(p.id);
-    if (before && positionChanged(before, p)) positionsToUpdate.push({ before, after: p });
+    if (before && positionChanged(before, p))
+      positionsToUpdate.push({ before, after: p });
   }
   const positionsToDelete = current.positions.filter((p) => !nextPos.has(p.id));
 
-  return { unitsToInsert, unitsToUpdate, unitsToDelete, positionsToInsert, positionsToUpdate, positionsToDelete };
+  return {
+    unitsToInsert,
+    unitsToUpdate,
+    unitsToDelete,
+    positionsToInsert,
+    positionsToUpdate,
+    positionsToDelete,
+  };
 }
 
 export function isEmptyDiff(d: TreeDiff): boolean {
@@ -211,10 +232,14 @@ export function isEmptyDiff(d: TreeDiff): boolean {
 }
 
 /** Id unit + semua turunannya dalam pohon `units`. */
-export function subtreeIds(units: UnitNode[], rootIds: Iterable<string>): Set<string> {
+export function subtreeIds(
+  units: UnitNode[],
+  rootIds: Iterable<string>,
+): Set<string> {
   const children = new Map<string, string[]>();
   for (const u of units) {
-    if (u.parentId) children.set(u.parentId, [...(children.get(u.parentId) ?? []), u.id]);
+    if (u.parentId)
+      children.set(u.parentId, [...(children.get(u.parentId) ?? []), u.id]);
   }
   const result = new Set<string>();
   const stack = [...rootIds];
@@ -239,7 +264,11 @@ export function subtreeIds(units: UnitNode[], rootIds: Iterable<string>): Set<st
  * - pindah unit: unit, induk lama, dan induk baru harus di dalam cakupan;
  * - posisi: unitnya (lama dan baru) harus di dalam cakupan.
  */
-export function checkMemberEdit(diff: TreeDiff, next: Tree, allowed: Set<string>): string | null {
+export function checkMemberEdit(
+  diff: TreeDiff,
+  next: Tree,
+  allowed: Set<string>,
+): string | null {
   const insertedIds = new Set(diff.unitsToInsert.map((u) => u.id));
   const nextById = new Map(next.units.map((u) => [u.id, u]));
 
@@ -257,21 +286,29 @@ export function checkMemberEdit(diff: TreeDiff, next: Tree, allowed: Set<string>
   };
 
   for (const u of diff.unitsToInsert) {
-    if (!insideNext(u.parentId)) return `Anda tidak berhak menambah unit "${u.name}" di luar unit Anda.`;
+    if (!insideNext(u.parentId))
+      return `Anda tidak berhak menambah unit "${u.name}" di luar unit Anda.`;
   }
   for (const { before, after } of diff.unitsToUpdate) {
-    if (!allowed.has(before.id)) return `Anda tidak berhak mengubah unit "${before.name}".`;
+    if (!allowed.has(before.id))
+      return `Anda tidak berhak mengubah unit "${before.name}".`;
     if (before.parentId !== after.parentId) {
-      if (!before.parentId || !allowed.has(before.parentId) || !insideNext(after.parentId)) {
+      if (
+        !before.parentId ||
+        !allowed.has(before.parentId) ||
+        !insideNext(after.parentId)
+      ) {
         return `Anda tidak berhak memindahkan unit "${before.name}" keluar dari cakupan Anda.`;
       }
     }
   }
   for (const u of diff.unitsToDelete) {
-    if (!allowed.has(u.id)) return `Anda tidak berhak menghapus unit "${u.name}".`;
+    if (!allowed.has(u.id))
+      return `Anda tidak berhak menghapus unit "${u.name}".`;
   }
   for (const p of diff.positionsToInsert) {
-    if (!insideNext(p.unitId)) return `Anda tidak berhak menambah posisi "${p.title}" di luar unit Anda.`;
+    if (!insideNext(p.unitId))
+      return `Anda tidak berhak menambah posisi "${p.title}" di luar unit Anda.`;
   }
   for (const { before, after } of diff.positionsToUpdate) {
     if (!allowed.has(before.unitId) || !insideNext(after.unitId)) {
@@ -279,7 +316,8 @@ export function checkMemberEdit(diff: TreeDiff, next: Tree, allowed: Set<string>
     }
   }
   for (const p of diff.positionsToDelete) {
-    if (!allowed.has(p.unitId)) return `Anda tidak berhak menghapus posisi "${p.title}".`;
+    if (!allowed.has(p.unitId))
+      return `Anda tidak berhak menghapus posisi "${p.title}".`;
   }
   return null;
 }

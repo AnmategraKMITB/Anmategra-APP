@@ -2,10 +2,10 @@ import { TRPCError } from '@trpc/server';
 import { and, eq, inArray } from 'drizzle-orm';
 import { canManageLembaga } from '~/server/api/access';
 import {
+  hasManagedScope,
   listHandledOprecs,
   listManagedEvents,
   listManagedLembaga,
-  hasManagedScope,
 } from '~/server/api/managed-scope';
 import {
   createTRPCRouter,
@@ -26,14 +26,14 @@ import {
 import {
   GetMyHandledOprecsOutputSchema,
   GetMyManagedEventsOutputSchema,
-  KelolaAdminAccessInputSchema,
-  KelolaAdminAccessOutputSchema,
   GetMyManagedLembagaOutputSchema,
   GrantEventAdminInputSchema,
   GrantEventAdminOutputSchema,
   GrantLembagaAdminInputSchema,
   GrantLembagaAdminOutputSchema,
   HasManagedScopeOutputSchema,
+  KelolaAdminAccessInputSchema,
+  KelolaAdminAccessOutputSchema,
   ListEventAdminsInputSchema,
   ListEventAdminsOutputSchema,
   ListLembagaAdminsInputSchema,
@@ -83,7 +83,10 @@ async function attachNim<T extends { userId: string }>(
     columns: { userId: true, nim: true },
   });
   const nimByUserId = new Map(mahasiswaRows.map((m) => [m.userId, m.nim]));
-  return rows.map((row) => ({ ...row, nim: nimByUserId.get(row.userId) ?? null }));
+  return rows.map((row) => ({
+    ...row,
+    nim: nimByUserId.get(row.userId) ?? null,
+  }));
 }
 
 // NOTE: sengaja tidak pakai relational query builder `with` di sini —
@@ -94,12 +97,15 @@ async function fetchUsersById(
   db: typeof import('~/server/db').db,
   userIds: string[],
 ) {
-  if (userIds.length === 0) return new Map<string, { name: string | null; email: string }>();
+  if (userIds.length === 0)
+    return new Map<string, { name: string | null; email: string }>();
   const rows = await db.query.users.findMany({
     where: inArray(users.id, userIds),
     columns: { id: true, name: true, email: true },
   });
-  return new Map(rows.map((row) => [row.id, { name: row.name, email: row.email }]));
+  return new Map(
+    rows.map((row) => [row.id, { name: row.name, email: row.email }]),
+  );
 }
 
 type Db = typeof import('~/server/db').db;
@@ -179,7 +185,10 @@ async function listInheritedGrants(db: Db, lembagaId: string) {
   if (ancestors.length === 0) return [];
   const rows = await db.query.accessGrant.findMany({
     where: and(
-      inArray(accessGrant.lembagaId, ancestors.map((a) => a.id)),
+      inArray(
+        accessGrant.lembagaId,
+        ancestors.map((a) => a.id),
+      ),
       eq(accessGrant.status, 'active'),
       eq(accessGrant.propagate, true),
     ),
@@ -340,33 +349,30 @@ export const adminGrantRouter = createTRPCRouter({
         [...own, ...inherited].map((row) => row.userId),
       );
 
-      const withNim = await attachNim(
-        ctx.db,
-        [
-          ...own.map((row) => ({
-            userId: row.userId,
-            name: userById.get(row.userId)?.name ?? null,
-            email: userById.get(row.userId)?.email ?? '',
-            grantedAt: row.created_at,
-            features: row.features,
-            origin: 'lembaga' as const,
-            sourceLembagaId: null,
-            sourceLembagaName: null,
-            propagate: row.propagate,
-          })),
-          ...inherited.map((row) => ({
-            userId: row.userId,
-            name: userById.get(row.userId)?.name ?? null,
-            email: userById.get(row.userId)?.email ?? '',
-            grantedAt: row.created_at,
-            features: row.features,
-            origin: 'diwarisi' as const,
-            sourceLembagaId: row.lembagaId,
-            sourceLembagaName: row.sourceName,
-            propagate: true,
-          })),
-        ],
-      );
+      const withNim = await attachNim(ctx.db, [
+        ...own.map((row) => ({
+          userId: row.userId,
+          name: userById.get(row.userId)?.name ?? null,
+          email: userById.get(row.userId)?.email ?? '',
+          grantedAt: row.created_at,
+          features: row.features,
+          origin: 'lembaga' as const,
+          sourceLembagaId: null,
+          sourceLembagaName: null,
+          propagate: row.propagate,
+        })),
+        ...inherited.map((row) => ({
+          userId: row.userId,
+          name: userById.get(row.userId)?.name ?? null,
+          email: userById.get(row.userId)?.email ?? '',
+          grantedAt: row.created_at,
+          features: row.features,
+          origin: 'diwarisi' as const,
+          sourceLembagaId: row.lembagaId,
+          sourceLembagaName: row.sourceName,
+          propagate: true,
+        })),
+      ]);
 
       return withNim;
     }),

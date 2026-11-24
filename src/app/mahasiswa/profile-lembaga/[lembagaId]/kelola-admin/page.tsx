@@ -24,7 +24,11 @@ export default async function KelolaAdminLembagaPage({
         <h1 className="text-xl font-semibold text-slate-600 md:text-2xl">
           Kelola Admin
         </h1>
-        <KelolaAdminPanel mode="lembaga" lembagaId={lembagaId} access={access} />
+        <KelolaAdminPanel
+          mode="lembaga"
+          lembagaId={lembagaId}
+          access={access}
+        />
       </div>
     </div>
   );

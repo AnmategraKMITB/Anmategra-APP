@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
-import { LembagaScopeInput, withoutLembagaId } from '~/server/api/types/scope';
 import { and, eq } from 'drizzle-orm';
+import { LembagaScopeInput, withoutLembagaId } from '~/server/api/types/scope';
 import { type Prodi } from '~/server/auth';
 import {
   events,
@@ -41,10 +41,7 @@ export const updateEvent = lembagaScopedProcedure
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
-        where: and(
-          eq(events.id, input.id),
-          eq(events.org_id, ctx.lembagaId),
-        ),
+        where: and(eq(events.id, input.id), eq(events.org_id, ctx.lembagaId)),
         columns: {
           id: true,
         },
@@ -407,10 +404,7 @@ export const toggleHighlight = lembagaScopedProcedure
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
-        where: and(
-          eq(events.id, input.id),
-          eq(events.org_id, ctx.lembagaId),
-        ),
+        where: and(eq(events.id, input.id), eq(events.org_id, ctx.lembagaId)),
         columns: {
           id: true,
         },
@@ -452,10 +446,7 @@ export const toggleRaporVisibility = lembagaScopedProcedure
   .mutation(async ({ ctx, input }) => {
     try {
       const eventToUpdate = await ctx.db.query.events.findFirst({
-        where: and(
-          eq(events.id, input.id),
-          eq(events.org_id, ctx.lembagaId),
-        ),
+        where: and(eq(events.id, input.id), eq(events.org_id, ctx.lembagaId)),
         columns: {
           id: true,
         },

@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useEffect, type ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 import { api } from '~/trpc/react';
 
 function defaultRoute(permissions: string[]): string {
@@ -31,8 +31,7 @@ export function AdminGuard({
   const router = useRouter();
   const current = api.adminConsole.myAdminPermissions.useQuery();
   const permissions = current.data?.permissions ?? [];
-  const allowed =
-    permissions.includes('*') || permissions.includes(permission);
+  const allowed = permissions.includes('*') || permissions.includes(permission);
 
   useEffect(() => {
     if (!current.data || allowed) return;

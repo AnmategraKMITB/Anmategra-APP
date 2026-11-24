@@ -1,10 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import { type AppBase } from '~/lib/app-base';
 import { api } from '~/trpc/server';
 
 import { canManageEventForms } from './access';
 import { FormsList } from './forms-list';
-import { type AppBase } from '~/lib/app-base';
 
 /** Daftar form satu kegiatan; dipakai rute lembaga dan mahasiswa-admin. */
 export async function EventFormsPage({

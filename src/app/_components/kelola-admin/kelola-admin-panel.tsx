@@ -96,12 +96,20 @@ export default function KelolaAdminPanel({
   eventId?: string;
   access: 'owner' | 'admin';
 }) {
-  const [tab, setTab] = useState<Tab>(mode === 'kegiatan' ? 'kegiatan' : 'lembaga');
-  const [selectedEvent, setSelectedEvent] = useState<string | undefined>(eventId);
+  const [tab, setTab] = useState<Tab>(
+    mode === 'kegiatan' ? 'kegiatan' : 'lembaga',
+  );
+  const [selectedEvent, setSelectedEvent] = useState<string | undefined>(
+    eventId,
+  );
   const [addOpen, setAddOpen] = useState(false);
   const [target, setTarget] = useState<Entry | null>(null);
-  const [filterOrigin, setFilterOrigin] = useState<'semua' | 'lembaga' | 'diwarisi'>('semua');
-  const [filterFeature, setFilterFeature] = useState<'semua' | Feature>('semua');
+  const [filterOrigin, setFilterOrigin] = useState<
+    'semua' | 'lembaga' | 'diwarisi'
+  >('semua');
+  const [filterFeature, setFilterFeature] = useState<'semua' | Feature>(
+    'semua',
+  );
 
   const utils = api.useUtils();
   const isOwner = access === 'owner';
@@ -161,7 +169,11 @@ export default function KelolaAdminPanel({
     if (tab === 'lembaga') {
       revokeLembaga.mutate({ lembagaId, userId: target.userId });
     } else if (selectedEvent) {
-      revokeEvent.mutate({ lembagaId, eventId: selectedEvent, userId: target.userId });
+      revokeEvent.mutate({
+        lembagaId,
+        eventId: selectedEvent,
+        userId: target.userId,
+      });
     }
   };
 
@@ -187,10 +199,16 @@ export default function KelolaAdminPanel({
           </>
         )}
         {mode === 'kegiatan' && (
-          <span className="px-5 py-3 text-sm font-semibold">Admin Kepanitiaan</span>
+          <span className="px-5 py-3 text-sm font-semibold">
+            Admin Kepanitiaan
+          </span>
         )}
         {canEdit && (tab === 'lembaga' || selectedEvent) && (
-          <Button size="sm" className="m-2 ml-auto gap-1" onClick={() => setAddOpen(true)}>
+          <Button
+            size="sm"
+            className="m-2 ml-auto gap-1"
+            onClick={() => setAddOpen(true)}
+          >
             <UserPlus className="h-4 w-4" /> Tambah admin
           </Button>
         )}
@@ -215,7 +233,9 @@ export default function KelolaAdminPanel({
           <select
             className="rounded border px-2 py-1"
             value={filterOrigin}
-            onChange={(e) => setFilterOrigin(e.target.value as typeof filterOrigin)}
+            onChange={(e) =>
+              setFilterOrigin(e.target.value as typeof filterOrigin)
+            }
           >
             <option value="semua">Semua asal</option>
             <option value="lembaga">Lembaga ini</option>
@@ -225,7 +245,9 @@ export default function KelolaAdminPanel({
         <select
           className="rounded border px-2 py-1"
           value={filterFeature}
-          onChange={(e) => setFilterFeature(e.target.value as typeof filterFeature)}
+          onChange={(e) =>
+            setFilterFeature(e.target.value as typeof filterFeature)
+          }
         >
           <option value="semua">Semua jenis akses</option>
           {FEATURES.map((f) => (
@@ -242,7 +264,9 @@ export default function KelolaAdminPanel({
       </div>
 
       {tab === 'kegiatan' && !selectedEvent ? (
-        <p className="p-6 text-sm text-slate-500">Pilih kegiatan terlebih dahulu.</p>
+        <p className="p-6 text-sm text-slate-500">
+          Pilih kegiatan terlebih dahulu.
+        </p>
       ) : (
         <table className="w-full text-sm">
           <thead className="text-left text-xs text-slate-500">
@@ -264,7 +288,9 @@ export default function KelolaAdminPanel({
             {filtered.map((r) => (
               <tr key={`${r.origin}-${r.userId}`} className="border-t">
                 <td className="p-3">
-                  <div className="font-medium text-slate-800">{r.name ?? r.email}</div>
+                  <div className="font-medium text-slate-800">
+                    {r.name ?? r.email}
+                  </div>
                   <div className="text-xs text-slate-500">
                     {r.nim ?? '-'} · {r.email}
                   </div>
@@ -272,7 +298,9 @@ export default function KelolaAdminPanel({
                 <td>
                   {r.features.includes('admin')
                     ? LABEL.admin
-                    : r.features.map((f) => LABEL[f as Feature] ?? f).join(', ')}
+                    : r.features
+                        .map((f) => LABEL[f as Feature] ?? f)
+                        .join(', ')}
                 </td>
                 <td className="text-xs text-slate-500">
                   {r.origin === 'diwarisi' ? (
@@ -308,7 +336,9 @@ export default function KelolaAdminPanel({
       <Dialog open={!!target} onOpenChange={(o) => !o && setTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Cabut akses {target?.name ?? target?.email}?</DialogTitle>
+            <DialogTitle>
+              Cabut akses {target?.name ?? target?.email}?
+            </DialogTitle>
             <DialogDescription>
               Akun ini langsung kehilangan aksesnya.
               {target?.propagate && ' Akses di semua sub-lembaga ikut hilang.'}
@@ -370,8 +400,14 @@ function AddDialog({
     onDone();
   };
   const onError = (e: { message: string }) => toast.error(e.message);
-  const grantLembaga = api.adminGrant.grantLembagaAdmin.useMutation({ onSuccess, onError });
-  const grantEvent = api.adminGrant.grantEventAdmin.useMutation({ onSuccess, onError });
+  const grantLembaga = api.adminGrant.grantLembagaAdmin.useMutation({
+    onSuccess,
+    onError,
+  });
+  const grantEvent = api.adminGrant.grantEventAdmin.useMutation({
+    onSuccess,
+    onError,
+  });
   const pending = grantLembaga.isPending || grantEvent.isPending;
 
   const submit = () => {
@@ -380,7 +416,12 @@ function AddDialog({
     if (features.length === 0) return toast.error('Pilih minimal satu akses.');
     const f = toApiFeatures(features);
     if (tab === 'lembaga') {
-      grantLembaga.mutate({ lembagaId, identifier: id, features: f, propagate: isOwner && propagate });
+      grantLembaga.mutate({
+        lembagaId,
+        identifier: id,
+        features: f,
+        propagate: isOwner && propagate,
+      });
     } else if (eventId) {
       grantEvent.mutate({ lembagaId, eventId, identifier: id, features: f });
     }

@@ -164,14 +164,16 @@ describe('pemberitahuan manual oprec', () => {
     const stranger = await createUser(db, { role: 'mahasiswa' });
     await createMahasiswa(db, stranger.id);
     await expect(
-      callerFor(db, { id: stranger.id, role: 'mahasiswa' }).oprec
-        .sendApplicantNotification({
-          recruitmentId: fx.recruitmentId,
-          audience: 'all',
-          scope: { kind: 'all' },
-          title: 'Tes',
-          content: 'Tes',
-        }),
+      callerFor(db, {
+        id: stranger.id,
+        role: 'mahasiswa',
+      }).oprec.sendApplicantNotification({
+        recruitmentId: fx.recruitmentId,
+        audience: 'all',
+        scope: { kind: 'all' },
+        title: 'Tes',
+        content: 'Tes',
+      }),
     ).rejects.toMatchObject({ code: 'FORBIDDEN' });
   });
 });

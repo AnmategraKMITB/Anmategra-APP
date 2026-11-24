@@ -2,21 +2,19 @@
 
 // Simulasi halaman Nilai oprec: penilai memilih berkas dari antrean, memberi
 // skor tiap kriteria, memasang label, dan mengubah status secara manual.
-
 // Library Import
 import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_DIVISIONS, DEMO_EVENT, divisionName } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import {
   Btn,
   Field,
-  inputClass,
   Pill,
   type PillTone,
+  inputClass,
   tdClass,
   thClass,
 } from '../ui';
@@ -206,7 +204,9 @@ function computedStatuses(scores: Scores): Record<string, ChoiceStatus> {
     id: row.id,
     score: scoreOf(scores[row.id]),
   }))
-    .filter((entry): entry is { id: string; score: number } => entry.score !== null)
+    .filter(
+      (entry): entry is { id: string; score: number } => entry.score !== null,
+    )
     .sort((a, b) => b.score - a.score);
   ranked.forEach((entry, index) => {
     result[entry.id] =
@@ -341,9 +341,7 @@ function Body({ guide }: { guide: DemoGuide }) {
     const q = query.trim().toLowerCase();
     return ROWS.filter((row) => {
       const match =
-        q === '' ||
-        row.name.toLowerCase().includes(q) ||
-        row.nim.includes(q);
+        q === '' || row.name.toLowerCase().includes(q) || row.nim.includes(q);
       const progress = progressOf(scores[row.id]);
       return match && (!incomplete || progress.done < progress.total);
     });
@@ -353,9 +351,8 @@ function Body({ guide }: { guide: DemoGuide }) {
   const sheetRows = filterRows(sheetSearch, sheetOnlyIncomplete);
 
   const defaultId =
-    queueRows.find(
-      (row) => progressOf(scores[row.id]).done < CRITERIA.length,
-    )?.id ??
+    queueRows.find((row) => progressOf(scores[row.id]).done < CRITERIA.length)
+      ?.id ??
     queueRows[0]?.id ??
     null;
   const selectedId =
@@ -561,7 +558,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                       onChange={(event) => setSearch(event.target.value)}
                       placeholder="Cari nama atau NIM"
                       aria-label="Cari nama atau NIM"
-                      className="h-9 w-full rounded-lg border border-neutral-400 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-1000 placeholder:text-neutral-500 transition-colors duration-150 hover:border-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                      className="h-9 w-full rounded-lg border border-neutral-400 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-1000 transition-colors duration-150 placeholder:text-neutral-500 hover:border-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                     />
                   </div>
                   <button
@@ -637,9 +634,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                 )}
 
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-700">
-                  <span>
-                    {ROWS.length} pendaftar · halaman 1 dari 1
-                  </span>
+                  <span>{ROWS.length} pendaftar · halaman 1 dari 1</span>
                   <div className="flex gap-1.5">
                     <Btn small tone="outline" disabled>
                       <ChevronLeft /> Sebelumnya
@@ -756,9 +751,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                                   diubah manual
                                 </span>
                               ) : null}
-                              <Pill
-                                tone={STATUS_TONE[effective(active.id)]}
-                              >
+                              <Pill tone={STATUS_TONE[effective(active.id)]}>
                                 {STATUS_LABEL[effective(active.id)]}
                               </Pill>
                             </div>
@@ -863,11 +856,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                                 {override ? 'Ubah lagi' : 'Ubah status'}
                               </Btn>
                               {override ? (
-                                <Btn
-                                  small
-                                  tone="ghost"
-                                  onClick={clearOverride}
-                                >
+                                <Btn small tone="ghost" onClick={clearOverride}>
                                   Kembalikan ke hitungan
                                 </Btn>
                               ) : null}
@@ -926,9 +915,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                           return (
                             <section
                               key={criterion.id}
-                              onClick={() =>
-                                setActiveCriterionId(criterion.id)
-                              }
+                              onClick={() => setActiveCriterionId(criterion.id)}
                               onFocusCapture={() =>
                                 setActiveCriterionId(criterion.id)
                               }
@@ -1073,7 +1060,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                     onChange={(event) => setSheetSearch(event.target.value)}
                     placeholder="Cari nama atau NIM"
                     aria-label="Cari nama atau NIM"
-                    className="h-9 w-full rounded-lg border border-neutral-400 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-1000 placeholder:text-neutral-500 transition-colors duration-150 hover:border-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
+                    className="h-9 w-full rounded-lg border border-neutral-400 bg-neutral-50 pl-9 pr-3 text-sm text-neutral-1000 transition-colors duration-150 placeholder:text-neutral-500 hover:border-neutral-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-400"
                   />
                 </div>
                 <button
@@ -1151,7 +1138,9 @@ function Body({ guide }: { guide: DemoGuide }) {
                                 <td key={criterion.id} className={tdClass}>
                                   <select
                                     aria-label={`${criterion.name} ${row.name}`}
-                                    value={value === undefined ? '' : String(value)}
+                                    value={
+                                      value === undefined ? '' : String(value)
+                                    }
                                     onChange={(event) => {
                                       const raw = event.target.value;
                                       setRating(

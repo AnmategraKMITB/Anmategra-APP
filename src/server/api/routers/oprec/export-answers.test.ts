@@ -254,9 +254,9 @@ describe('preset ekspor', () => {
     expect(admin.presets).toMatchObject([
       { name: 'Data diri', fieldIds: [mbti.id, darurat.id, alat.id] },
     ]);
-    expect(
-      admin.fields.find((f) => f.fieldId === alat.id)?.divisions,
-    ).toEqual(['Logistik']);
+    expect(admin.fields.find((f) => f.fieldId === alat.id)?.divisions).toEqual([
+      'Logistik',
+    ]);
 
     // Kadiv IT memakai preset yang sama, tanpa pertanyaan khusus Logistik.
     const it = await s.kadivIt.oprec.exportOptions({

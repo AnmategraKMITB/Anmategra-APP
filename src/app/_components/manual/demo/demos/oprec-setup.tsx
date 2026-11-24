@@ -3,15 +3,13 @@
 // Bagian kecil yang dipakai ulang oleh simulasi manual. Di sini dipakai untuk
 // meniru layar wizard setup oprec: pilih preset, empat pertanyaan kunci, dan
 // ringkasan sebelum oprec dibuat. Semua state palsu, tanpa server.
-
 // Library Import
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useState } from 'react';
-
 import { cn } from '~/lib/utils';
 
 import { DEMO_DIVISIONS, DEMO_EVENT } from '../data';
-import { type DemoGuide, DemoFrame, type DemoStep } from '../demo-frame';
+import { DemoFrame, type DemoGuide, type DemoStep } from '../demo-frame';
 import { Btn, Pill } from '../ui';
 
 const STEPS: DemoStep[] = [
@@ -215,9 +213,7 @@ function Body({ guide }: { guide: DemoGuide }) {
   const renderHeader = () => {
     if (screen === 'preset' || screen === 'selesai') return null;
     const isSummary = screen === 'ringkasan';
-    const percent = isSummary
-      ? 100
-      : Math.round((index / WIZARD.length) * 100);
+    const percent = isSummary ? 100 : Math.round((index / WIZARD.length) * 100);
     return (
       <header className="mb-6">
         <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-neutral-700">
@@ -393,46 +389,47 @@ function Body({ guide }: { guide: DemoGuide }) {
       ? RUBRIC_LABEL[preset.rubrics]
       : RUBRIC_LABEL.keduanya;
 
-    const groups: { group: string; rows: { label: string; value: string }[] }[] =
-      [
-        {
-          group: 'Dasar',
-          rows: [
-            {
-              label: 'Nama dan periode',
-              value: `${name || '—'} · ${DEMO_EVENT}`,
-            },
-            {
-              label: 'Bidang atau divisi yang dibuka',
-              value: divisionValue,
-            },
-          ],
-        },
-        {
-          group: 'Isi form',
-          rows: [
-            {
-              label: 'Jumlah pilihan divisi',
-              value:
-                maxChoices === 1 ? '1 pilihan' : `1–${maxChoices} pilihan`,
-            },
-          ],
-        },
-        {
-          group: 'Penilaian',
-          rows: [
-            { label: 'Rubrik penilaian', value: rubricsValue },
-            { label: 'Cara memutuskan', value: 'Dinilai dengan skor' },
-            { label: 'Penilai', value: ASSESSOR_LABEL[assessors] },
-          ],
-        },
-        {
-          group: 'Publikasi',
-          rows: [
-            { label: 'Rilis ke pendaftar', value: 'Ya, saat admin merilis' },
-          ],
-        },
-      ];
+    const groups: {
+      group: string;
+      rows: { label: string; value: string }[];
+    }[] = [
+      {
+        group: 'Dasar',
+        rows: [
+          {
+            label: 'Nama dan periode',
+            value: `${name || '—'} · ${DEMO_EVENT}`,
+          },
+          {
+            label: 'Bidang atau divisi yang dibuka',
+            value: divisionValue,
+          },
+        ],
+      },
+      {
+        group: 'Isi form',
+        rows: [
+          {
+            label: 'Jumlah pilihan divisi',
+            value: maxChoices === 1 ? '1 pilihan' : `1–${maxChoices} pilihan`,
+          },
+        ],
+      },
+      {
+        group: 'Penilaian',
+        rows: [
+          { label: 'Rubrik penilaian', value: rubricsValue },
+          { label: 'Cara memutuskan', value: 'Dinilai dengan skor' },
+          { label: 'Penilai', value: ASSESSOR_LABEL[assessors] },
+        ],
+      },
+      {
+        group: 'Publikasi',
+        rows: [
+          { label: 'Rilis ke pendaftar', value: 'Ya, saat admin merilis' },
+        ],
+      },
+    ];
 
     return (
       <div>
@@ -580,7 +577,7 @@ function Body({ guide }: { guide: DemoGuide }) {
                     <li key={division.id}>
                       <div
                         className={cn(
-                          'flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg py-1.5 pr-2 pl-2',
+                          'flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg py-1.5 pl-2 pr-2',
                           picked && 'bg-primary-100',
                         )}
                       >
@@ -674,7 +671,9 @@ function Body({ guide }: { guide: DemoGuide }) {
             <p className="rounded-xl bg-neutral-200 px-4 py-3 text-sm text-neutral-700">
               {open.length === 0
                 ? 'Belum ada divisi yang dibuka.'
-                : `${open.length} divisi dibuka: ${DEMO_DIVISIONS.filter((d) => open.includes(d.id))
+                : `${open.length} divisi dibuka: ${DEMO_DIVISIONS.filter((d) =>
+                    open.includes(d.id),
+                  )
                     .map((d) => d.name)
                     .join(', ')}.`}
             </p>
@@ -697,28 +696,26 @@ function Body({ guide }: { guide: DemoGuide }) {
               aria-label="Penilai"
               className={cn('grid gap-3', guide.spot('penilai'))}
             >
-              {(
-                [
-                  {
-                    value: 'ketua' as const,
-                    label: 'Pengurus divisi',
-                    description:
-                      'Pengurus divisi memberi skor untuk pendaftar yang memilih divisinya.',
-                  },
-                  {
-                    value: 'umum' as const,
-                    label: 'Penilai umum',
-                    description:
-                      'Penilai umum memberi skor untuk semua pendaftar, dari satu bagian yang sama.',
-                  },
-                  {
-                    value: 'keduanya' as const,
-                    label: 'Penilai umum dan pengurus divisi',
-                    description:
-                      'Keduanya memberi skor, nilainya digabung dengan bobot rubrik.',
-                  },
-                ]
-              ).map((option) => {
+              {[
+                {
+                  value: 'ketua' as const,
+                  label: 'Pengurus divisi',
+                  description:
+                    'Pengurus divisi memberi skor untuk pendaftar yang memilih divisinya.',
+                },
+                {
+                  value: 'umum' as const,
+                  label: 'Penilai umum',
+                  description:
+                    'Penilai umum memberi skor untuk semua pendaftar, dari satu bagian yang sama.',
+                },
+                {
+                  value: 'keduanya' as const,
+                  label: 'Penilai umum dan pengurus divisi',
+                  description:
+                    'Keduanya memberi skor, nilainya digabung dengan bobot rubrik.',
+                },
+              ].map((option) => {
                 const selected = assessors === option.value;
                 return (
                   <button

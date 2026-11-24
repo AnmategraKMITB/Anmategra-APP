@@ -113,7 +113,7 @@ export function ActionCell({
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
         <DialogContent className="w-full max-w-xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-semibold text-center text-[#00B7B7]">
+            <DialogTitle className="text-center text-2xl font-semibold text-[#00B7B7]">
               {isKegiatan ? 'Edit Panitia' : 'Edit Anggota'}
             </DialogTitle>
             <DialogDescription className="text-center text-[#98A2B3]">
@@ -163,7 +163,7 @@ export function ActionCell({
                 : 'Apakah kamu yakin ingin menghapus anggota ini?'}
             </DialogDescription>
           </DialogHeader>
-          <div className="w-full flex items-center justify-center gap-x-4">
+          <div className="flex w-full items-center justify-center gap-x-4">
             <Button onClick={() => setDeleteOpen(false)}>
               Tidak, Batalkan
             </Button>

@@ -52,7 +52,9 @@ export function VisibilityPanel({
     data.divisions.find((division) => division.id === id)?.label ?? id;
 
   const existing = data.overrides
-    .filter((row) => !removed.has(keyOf(row.viewerDivisionId, row.targetDivisionId)))
+    .filter(
+      (row) => !removed.has(keyOf(row.viewerDivisionId, row.targetDivisionId)),
+    )
     .map((row) => ({
       ...row,
       allowed:

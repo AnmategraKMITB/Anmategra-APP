@@ -1,10 +1,8 @@
-import 'server-only';
-
 // Library Import
 import { promises as fs } from 'fs';
 import matter from 'gray-matter';
 import path from 'path';
-
+import 'server-only';
 // Type Import
 import {
   type DocCategory,
@@ -114,7 +112,9 @@ export async function getDocNav(): Promise<DocNav> {
     });
   }
 
-  categories.sort((a, b) => a.order - b.order || a.label.localeCompare(b.label));
+  categories.sort(
+    (a, b) => a.order - b.order || a.label.localeCompare(b.label),
+  );
 
   return { index, categories };
 }
@@ -132,7 +132,10 @@ export async function getDocPage(slug: string[]): Promise<DocPage | null> {
 
   // Defence in depth: ensure the resolved path stays inside CONTENT_DIR.
   const resolved = path.resolve(filePath);
-  if (resolved !== CONTENT_DIR && !resolved.startsWith(CONTENT_DIR + path.sep)) {
+  if (
+    resolved !== CONTENT_DIR &&
+    !resolved.startsWith(CONTENT_DIR + path.sep)
+  ) {
     return null;
   }
 

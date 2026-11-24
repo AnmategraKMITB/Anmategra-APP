@@ -403,13 +403,13 @@ export function PlacementView({
                       </p>
                     </div>
                     {activeDivision.overQuota ? (
-                      <p className="sm:col-span-3 rounded-xl bg-warning-light px-3 py-2 text-sm text-neutral-1000">
+                      <p className="rounded-xl bg-warning-light px-3 py-2 text-sm text-neutral-1000 sm:col-span-3">
                         Diterima melebihi kuota ({activeDivision.accepted} dari{' '}
                         {activeDivision.quota}). Penerimaan tetap sah, tetapi
                         perlu ditinjau.
                       </p>
                     ) : null}
-                    <p className="sm:col-span-3 text-sm text-neutral-700">
+                    <p className="text-sm text-neutral-700 sm:col-span-3">
                       {activeDivision.pending} pilihan aktif belum diputuskan ·{' '}
                       {activeDivision.waiting} menunggu pilihan sebelumnya.
                     </p>

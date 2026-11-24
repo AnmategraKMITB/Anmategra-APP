@@ -30,7 +30,7 @@ const ProfilLembagaView = async ({
 
   const header = (
     <div className="gap-y-2">
-      <h1 className="text-neutral-1000 text-[32px] font-semibold">
+      <h1 className="text-[32px] font-semibold text-neutral-1000">
         Profil Lembaga
       </h1>
       <RaporBreadcrumb items={breadcrumbItems} />
@@ -39,9 +39,9 @@ const ProfilLembagaView = async ({
 
   if (!data) {
     return (
-      <div className="flex flex-col gap-y-6 pt-16 px-9 md:px-11">
+      <div className="flex flex-col gap-y-6 px-9 pt-16 md:px-11">
         {header}
-        <div className="text-center py-8">
+        <div className="py-8 text-center">
           <p className="text-neutral-500">
             {lembagaId
               ? 'Gagal memuat data profil lembaga'
@@ -74,10 +74,10 @@ const ProfilLembagaView = async ({
   );
 
   return (
-    <div className="flex flex-col gap-y-6 pt-16 px-9 md:px-11">
+    <div className="flex flex-col gap-y-6 px-9 pt-16 md:px-11">
       {header}
       <div className="flex flex-col gap-y-4">
-        <h2 className="text-neutral-700 text-[20px] font-normal">
+        <h2 className="text-[20px] font-normal text-neutral-700">
           Profil Lembaga
         </h2>
         <ProfilTable
@@ -87,7 +87,7 @@ const ProfilLembagaView = async ({
         />
       </div>
       <div className="flex flex-col gap-y-4">
-        <h2 className="text-neutral-700 text-[20px] font-normal">
+        <h2 className="text-[20px] font-normal text-neutral-700">
           Detail Pemetaan Profil Lembaga
         </h2>
         <ProfilTable

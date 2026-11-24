@@ -218,9 +218,7 @@ export const authOptions: NextAuthOptions = {
               token.lembagaId = lembagaExists.id;
             }
           }
-        }
-
-        else if (account?.provider === 'credentials' && isDemo) {
+        } else if (account?.provider === 'credentials' && isDemo) {
           token.role = user.role;
           token.lembagaId = user.lembagaId;
         }
@@ -272,7 +270,8 @@ export const authOptions: NextAuthOptions = {
         const userRecord = await db.query.users.findFirst({
           where: eq(users.email, user.email),
         });
-        if (!isValidLembaga && !isVerified && userRecord?.role !== 'admin') return false;
+        if (!isValidLembaga && !isVerified && userRecord?.role !== 'admin')
+          return false;
       }
       // signin mahasiswa
       else if (account?.provider === 'azure-ad') {
