@@ -244,12 +244,6 @@
   "src/app/_components/admin/admin-data-table.tsx": {
     "react-perf/jsx-no-new-function-as-prop": {
       "count": 2
-    },
-    "react/incompatible-library": {
-      "count": 1
-    },
-    "typescript/no-unnecessary-type-arguments": {
-      "count": 1
     }
   },
   "src/app/_components/admin/admin-entity-search.tsx": {
@@ -330,9 +324,6 @@
     "react/no-unstable-nested-components": {
       "count": 4
     },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
-    },
     "typescript/no-unsafe-type-assertion": {
       "count": 3
     }
@@ -359,9 +350,6 @@
     },
     "react/no-unstable-nested-components": {
       "count": 3
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     }
   },
   "src/app/_components/admin/email-terverifikasi-page.tsx": {
@@ -418,9 +406,6 @@
     },
     "react/no-unstable-nested-components": {
       "count": 3
-    },
-    "typescript/no-unnecessary-type-assertion": {
-      "count": 1
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 1
@@ -3216,9 +3201,6 @@
     "react-perf/jsx-no-new-object-as-prop": {
       "count": 1
     },
-    "react/incompatible-library": {
-      "count": 1
-    },
     "react/no-object-type-as-default-prop": {
       "count": 1
     },
@@ -3227,15 +3209,6 @@
     },
     "typescript/no-unnecessary-condition": {
       "count": 8
-    },
-    "typescript/no-unsafe-argument": {
-      "count": 1
-    },
-    "typescript/no-unsafe-call": {
-      "count": 3
-    },
-    "typescript/no-unsafe-member-access": {
-      "count": 7
     },
     "typescript/no-unsafe-type-assertion": {
       "count": 8

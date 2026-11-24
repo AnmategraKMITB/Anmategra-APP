@@ -1,12 +1,11 @@
 'use client';
 
 import { type SortingState } from '@tanstack/react-table';
-import type { ColumnDef } from '@tanstack/react-table';
 import { useState } from 'react';
 import { Input } from '~/components/ui/input';
 import { api } from '~/trpc/react';
 
-import { AdminDataTable } from './admin-data-table';
+import { type AdminColumnDef, AdminDataTable } from './admin-data-table';
 import { AdminPageHeader } from './admin-page-header';
 
 type Row = {
@@ -34,7 +33,7 @@ export function AuditPage() {
     sort: sorting[0]?.id === 'action' ? 'action' : 'created_at',
     dir: sorting[0]?.desc === false ? 'asc' : 'desc',
   });
-  const columns: ColumnDef<Row>[] = [
+  const columns: AdminColumnDef<Row>[] = [
     {
       id: 'createdAt',
       accessorKey: 'createdAt',
@@ -97,7 +96,7 @@ export function AuditPage() {
       />
       <AdminDataTable
         columns={columns}
-        data={(list.data?.rows ?? []) as Row[]}
+        data={list.data?.rows ?? []}
         sorting={sorting}
         onSortingChange={(next) => {
           setSorting(next);
