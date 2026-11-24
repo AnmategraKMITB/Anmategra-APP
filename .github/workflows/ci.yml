@@ -93,10 +93,17 @@ jobs:
       - run: sh scripts/ci/budget.sh check 180
 
   test:
-    name: Test
+    # Tiap shard: runner, Postgres, dan database sendiri. Bagiannya dihitung dari
+    # durasi per berkas yang dicatat run penuh di develop (scripts/ci/test-shards.ts).
+    name: Test (${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
     env:
+      SHARDS: 3
       # Tiap worker `bun test` membuat database sendiri: anmategra_test_w<n>.
       TEST_DATABASE_URL: postgresql://postgres:postgres@localhost:5432/anmategra_test
     steps:
@@ -116,11 +123,50 @@ jobs:
         with:
           node-version-file: .nvmrc
       - uses: ./.github/actions/setup-bun
+
+      # Durasi terbaru tiap shard dari run penuh develop. Kalau belum ada,
+      # berkas dianggap sama panjang; pembagian tetap lengkap, hanya kurang rata.
+      - uses: actions/cache/restore@v6
+        with:
+          path: .timings/1.json
+          key: test-timings-1-${{ github.run_id }}
+          restore-keys: test-timings-1-
+      - uses: actions/cache/restore@v6
+        with:
+          path: .timings/2.json
+          key: test-timings-2-${{ github.run_id }}
+          restore-keys: test-timings-2-
+      - uses: actions/cache/restore@v6
+        with:
+          path: .timings/3.json
+          key: test-timings-3-${{ github.run_id }}
+          restore-keys: test-timings-3-
+      - name: Plan shard
+        run: |
+          bun scripts/ci/test-shards.ts plan --shards "$SHARDS" --shard ${{ matrix.shard }} \
+            --out "$RUNNER_TEMP/files.txt" --timings .timings/1.json .timings/2.json .timings/3.json
+          # Durasi run ini ditulis ulang dari nol, hanya untuk berkas shard ini.
+          mkdir -p .timings && echo '{"version":1,"files":{}}' > .timings/${{ matrix.shard }}.json
+
       # Lewat TCP: server sementara saat initdb hanya mendengar socket Unix.
       - name: Wait for Postgres
         run: timeout 30 sh -c 'until docker exec pg pg_isready -h 127.0.0.1 -U postgres -q; do sleep 0.2; done'
-      - run: bun run test
-      - run: sh scripts/ci/budget.sh check 120
+      - name: Test
+        run: >-
+          bun run test --files-from="$RUNNER_TEMP/files.txt"
+          --reporter=junit --reporter-outfile="$RUNNER_TEMP/junit.xml"
+          --timings=.timings/${{ matrix.shard }}.json --update-timings
+      # Bersama pengecekan gabungan di "Plan shard", ini membuktikan semua shard
+      # bersama-sama menjalankan setiap berkas tes.
+      - name: Verify shard ran its files
+        run: bun scripts/ci/test-shards.ts verify --files "$RUNNER_TEMP/files.txt" --junit "$RUNNER_TEMP/junit.xml"
+
+      - if: github.event_name == 'push'
+        uses: actions/cache/save@v6
+        with:
+          path: .timings/${{ matrix.shard }}.json
+          key: test-timings-${{ matrix.shard }}-${{ github.run_id }}
+      - run: sh scripts/ci/budget.sh check 90
 
   dependency-review:
     name: Dependency review
