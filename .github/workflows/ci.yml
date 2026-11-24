@@ -116,9 +116,12 @@ jobs:
           docker run -d --name pg -p 5432:5432 -e POSTGRES_PASSWORD=postgres
           --tmpfs /var/lib/postgresql/data postgres:15-alpine
           -c fsync=off -c synchronous_commit=off -c full_page_writes=off
+      # Riwayat penuh tanpa isi berkas (blobless): cukup untuk diff nama berkas
+      # terhadap base PR.
       - uses: actions/checkout@v7
         with:
           filter: blob:none
+          fetch-depth: 0
       - uses: actions/setup-node@v7
         with:
           node-version-file: .nvmrc
@@ -141,10 +144,13 @@ jobs:
           path: .timings/3.json
           key: test-timings-3-${{ github.run_id }}
           restore-keys: test-timings-3-
+      # Di PR hanya tes yang bisa dicapai diff (lihat RERUN_ALL dan FS_INPUTS di
+      # skrip). Push ke develop dan merge queue selalu menjalankan semuanya.
       - name: Plan shard
         run: |
           bun scripts/ci/test-shards.ts plan --shards "$SHARDS" --shard ${{ matrix.shard }} \
-            --out "$RUNNER_TEMP/files.txt" --timings .timings/1.json .timings/2.json .timings/3.json
+            --out "$RUNNER_TEMP/shard" --timings .timings/1.json .timings/2.json .timings/3.json \
+            ${{ github.event_name == 'pull_request' && format('--changed-from {0}', github.event.pull_request.base.sha) || '' }}
           # Durasi run ini ditulis ulang dari nol, hanya untuk berkas shard ini.
           mkdir -p .timings && echo '{"version":1,"files":{}}' > .timings/${{ matrix.shard }}.json
 
@@ -152,14 +158,26 @@ jobs:
       - name: Wait for Postgres
         run: timeout 30 sh -c 'until docker exec pg pg_isready -h 127.0.0.1 -U postgres -q; do sleep 0.2; done'
       - name: Test
-        run: >-
-          bun run test --files-from="$RUNNER_TEMP/files.txt"
-          --reporter=junit --reporter-outfile="$RUNNER_TEMP/junit.xml"
-          --timings=.timings/${{ matrix.shard }}.json --update-timings
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          OUT: ${{ runner.temp }}/shard
+        run: |
+          if [ "$(cat "$OUT/mode")" = selective ]; then
+            bun run test --files-from="$OUT/files.txt" --changed="$BASE" --pass-with-no-tests \
+              --reporter=junit --reporter-outfile="$OUT/junit.xml"
+            if [ -s "$OUT/forced.txt" ]; then
+              bun run test --files-from="$OUT/forced.txt" \
+                --reporter=junit --reporter-outfile="$OUT/junit-forced.xml"
+            fi
+          else
+            bun run test --files-from="$OUT/files.txt" \
+              --reporter=junit --reporter-outfile="$OUT/junit.xml" \
+              --timings=.timings/${{ matrix.shard }}.json --update-timings
+          fi
       # Bersama pengecekan gabungan di "Plan shard", ini membuktikan semua shard
-      # bersama-sama menjalankan setiap berkas tes.
+      # bersama-sama menjalankan setiap berkas tes (di PR: setiap tes terpilih).
       - name: Verify shard ran its files
-        run: bun scripts/ci/test-shards.ts verify --files "$RUNNER_TEMP/files.txt" --junit "$RUNNER_TEMP/junit.xml"
+        run: bun scripts/ci/test-shards.ts verify --out "$RUNNER_TEMP/shard"
 
       - if: github.event_name == 'push'
         uses: actions/cache/save@v6
